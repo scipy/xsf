@@ -13,7 +13,7 @@
 #include <numpy/ufuncobject.h>
 
 #include "sf_error.h"
-#include "special/mdspan.h"
+#include "special/third_party/kokkos/mdspan.hpp"
 
 // Initializes Python and NumPy.
 inline bool SpecFun_Initialize() {
