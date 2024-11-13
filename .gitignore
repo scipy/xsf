@@ -1,3 +1,5 @@
+build/
+
 # Prerequisites
 *.d
 
@@ -30,3 +32,7 @@
 *.exe
 *.out
 *.app
+
+# pixi environments
+.pixi
+*.egg-info
