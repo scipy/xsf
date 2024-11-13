@@ -12,9 +12,9 @@ endif()
 
 # Add custom targets for generating coverage reports
 add_custom_target(coverage
-    COMMAND /usr/bin/lcov --capture --directory . --output-file coverage.info
-    COMMAND /usr/bin/lcov --output-file coverage.info --extract coverage.info '*/include/xsf/*'
-    COMMAND /usr/bin/lcov --list coverage.info
+    COMMAND lcov --capture --directory . --output-file coverage.info
+    COMMAND lcov --output-file coverage.info --extract coverage.info '*/include/xsf/*'
+    COMMAND lcov --list coverage.info
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     COMMENT "Generating coverage report"
 )
