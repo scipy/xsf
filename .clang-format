@@ -6,7 +6,9 @@ BreakBeforeBraces: Attach
 Cpp11BracedListStyle: true
 NamespaceIndentation: Inner
 AlwaysBreakTemplateDeclarations: true
-SpaceAfterCStyleCast: true
+SpaceAfterCStyleCast: false
 ColumnLimit: 120
 InsertNewlineAtEOF: true
 AlignAfterOpenBracket: BlockIndent
+IncludeBlocks: Preserve
+AllowShortFunctionsOnASingleLine: None
