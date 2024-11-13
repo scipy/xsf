@@ -5,22 +5,22 @@
 
 #define SPECFUN_ZCONVINF(func, z)                                                                                      \
     do {                                                                                                               \
-        if ((double) (z).real() == (double) 1.0e300) {                                                                 \
+        if ((double)(z).real() == (double)1.0e300) {                                                                   \
             set_error(func, SF_ERROR_OVERFLOW, NULL);                                                                  \
             (z).real(std::numeric_limits<double>::infinity());                                                         \
         }                                                                                                              \
-        if ((double) (z).real() == (double) -1.0e300) {                                                                \
+        if ((double)(z).real() == (double)-1.0e300) {                                                                  \
             set_error(func, SF_ERROR_OVERFLOW, NULL);                                                                  \
             (z).real(-std::numeric_limits<double>::infinity());                                                        \
         }                                                                                                              \
     } while (0)
 #define SPECFUN_CONVINF(func, x)                                                                                       \
     do {                                                                                                               \
-        if ((double) (x) == (double) 1.0e300) {                                                                        \
+        if ((double)(x) == (double)1.0e300) {                                                                          \
             set_error(func, SF_ERROR_OVERFLOW, NULL);                                                                  \
             (x) = std::numeric_limits<double>::infinity();                                                             \
         }                                                                                                              \
-        if ((double) (x) == (double) -1.0e300) {                                                                       \
+        if ((double)(x) == (double)-1.0e300) {                                                                         \
             set_error(func, SF_ERROR_OVERFLOW, NULL);                                                                  \
             (x) = -std::numeric_limits<double>::infinity();                                                            \
         }                                                                                                              \
@@ -89,7 +89,9 @@ inline double hyp1f1(double a, double b, double x) {
     return outy;
 }
 
-inline std::complex<double> cerf(std::complex<double> z) { return specfun::cerror(z); }
+inline std::complex<double> cerf(std::complex<double> z) {
+    return specfun::cerror(z);
+}
 
 inline double pmv(double m, double v, double x) {
     int int_m;
@@ -98,10 +100,10 @@ inline double pmv(double m, double v, double x) {
     if (m != floor(m)) {
         return std::numeric_limits<double>::quiet_NaN();
     }
-    int_m = (int) m;
+    int_m = (int)m;
     out = specfun::lpmv(x, int_m, v);
     SPECFUN_CONVINF("pmv", out);
     return out;
 }
 
-} // namespace special
+} // namespace xsf

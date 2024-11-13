@@ -212,7 +212,7 @@ inline void airyb(double x, double *ai, double *bi, double *ad, double *bd) {
         *ad = c1 * df - c2 * dg;
         *bd = sr3 * (c1 * df + c2 * dg);
     } else {
-        km = (int) (24.5 - xa);
+        km = (int)(24.5 - xa);
         if (xa < 6.0)
             km = 14;
         if (xa > 15.0)

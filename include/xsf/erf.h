@@ -1,46 +1,70 @@
 #pragma once
 
-#include "faddeeva.h"
 #include "cephes/ndtr.h"
 #include "config.h"
+#include "faddeeva.h"
 
 namespace xsf {
 
-inline double erf(double x) { return cephes::erf(x); }
+inline double erf(double x) {
+    return cephes::erf(x);
+}
 
-inline float erf(float x) { return erf(static_cast<double>(x)); }
+inline float erf(float x) {
+    return erf(static_cast<double>(x));
+}
 
-inline std::complex<double> erf(std::complex<double> z) { return Faddeeva::erf(z); }
+inline std::complex<double> erf(std::complex<double> z) {
+    return Faddeeva::erf(z);
+}
 
 inline std::complex<float> erf(std::complex<float> x) {
     return static_cast<std::complex<float>>(erf(static_cast<std::complex<double>>(x)));
 }
 
-inline double erfc(double x) { return cephes::erfc(x); }
+inline double erfc(double x) {
+    return cephes::erfc(x);
+}
 
-inline float erfc(float x) { return erfc(static_cast<double>(x)); }
+inline float erfc(float x) {
+    return erfc(static_cast<double>(x));
+}
 
-inline std::complex<double> erfc(std::complex<double> z) { return Faddeeva::erfc(z); }
+inline std::complex<double> erfc(std::complex<double> z) {
+    return Faddeeva::erfc(z);
+}
 
 inline std::complex<float> erfc(std::complex<float> x) {
     return static_cast<std::complex<float>>(erfc(static_cast<std::complex<double>>(x)));
 }
 
-inline double erfcx(double x) { return Faddeeva::erfcx(x); }
+inline double erfcx(double x) {
+    return Faddeeva::erfcx(x);
+}
 
-inline float erfcx(float x) { return erfcx(static_cast<double>(x)); }
+inline float erfcx(float x) {
+    return erfcx(static_cast<double>(x));
+}
 
-inline std::complex<double> erfcx(std::complex<double> z) { return Faddeeva::erfcx(z); }
+inline std::complex<double> erfcx(std::complex<double> z) {
+    return Faddeeva::erfcx(z);
+}
 
 inline std::complex<float> erfcx(std::complex<float> x) {
     return static_cast<std::complex<float>>(erfcx(static_cast<std::complex<double>>(x)));
 }
 
-inline double erfi(double x) { return Faddeeva::erfi(x); }
+inline double erfi(double x) {
+    return Faddeeva::erfi(x);
+}
 
-inline float erfi(float x) { return erfi(static_cast<double>(x)); }
+inline float erfi(float x) {
+    return erfi(static_cast<double>(x));
+}
 
-inline std::complex<double> erfi(std::complex<double> z) { return Faddeeva::erfi(z); }
+inline std::complex<double> erfi(std::complex<double> z) {
+    return Faddeeva::erfi(z);
+}
 
 inline std::complex<float> erfi(std::complex<float> z) {
     return static_cast<std::complex<float>>(erfi(static_cast<std::complex<double>>(z)));
@@ -75,17 +99,25 @@ inline float voigt_profile(float x, float sigma, float gamma) {
     return voigt_profile(static_cast<double>(x), static_cast<double>(sigma), static_cast<double>(gamma));
 }
 
-inline std::complex<double> wofz(std::complex<double> z) { return Faddeeva::w(z); }
+inline std::complex<double> wofz(std::complex<double> z) {
+    return Faddeeva::w(z);
+}
 
 inline std::complex<float> wofz(std::complex<float> x) {
     return static_cast<std::complex<float>>(wofz(static_cast<std::complex<double>>(x)));
 }
 
-inline double dawsn(double x) { return Faddeeva::Dawson(x); }
+inline double dawsn(double x) {
+    return Faddeeva::Dawson(x);
+}
 
-inline float dawsn(float x) { return dawsn(static_cast<double>(x)); }
+inline float dawsn(float x) {
+    return dawsn(static_cast<double>(x));
+}
 
-inline std::complex<double> dawsn(std::complex<double> z) { return Faddeeva::Dawson(z); }
+inline std::complex<double> dawsn(std::complex<double> z) {
+    return Faddeeva::Dawson(z);
+}
 
 inline std::complex<float> dawsn(std::complex<float> x) {
     return static_cast<std::complex<float>>(dawsn(static_cast<std::complex<double>>(x)));
