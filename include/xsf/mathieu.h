@@ -20,7 +20,7 @@ T cem_cva(T m, T q) {
         set_error("cem_cva", SF_ERROR_DOMAIN, NULL);
         return std::numeric_limits<T>::quiet_NaN();
     }
-    int_m = (int) m;
+    int_m = (int)m;
     if (q < 0) {
         /* https://dlmf.nist.gov/28.2#E26 */
         if (int_m % 2 == 0) {
@@ -44,7 +44,7 @@ T sem_cva(T m, T q) {
         set_error("cem_cva", SF_ERROR_DOMAIN, NULL);
         return std::numeric_limits<T>::quiet_NaN();
     }
-    int_m = (int) m;
+    int_m = (int)m;
     if (q < 0) {
         /* https://dlmf.nist.gov/28.2#E26 */
         if (int_m % 2 == 0) {
@@ -69,7 +69,7 @@ void cem(T m, T q, T x, T &csf, T &csd) {
         csd = std::numeric_limits<T>::quiet_NaN();
         set_error("cem", SF_ERROR_DOMAIN, NULL);
     } else {
-        int_m = (int) m;
+        int_m = (int)m;
         if (q < 0) {
             /* https://dlmf.nist.gov/28.2#E34 */
             if (int_m % 2 == 0) {
@@ -99,7 +99,7 @@ void sem(T m, T q, T x, T &csf, T &csd) {
         csd = std::numeric_limits<T>::quiet_NaN();
         set_error("sem", SF_ERROR_DOMAIN, NULL);
     } else {
-        int_m = (int) m;
+        int_m = (int)m;
         if (int_m == 0) {
             csf = 0;
             csd = 0;
@@ -132,7 +132,7 @@ void mcm1(T m, T q, T x, T &f1r, T &d1r) {
         d1r = std::numeric_limits<T>::quiet_NaN();
         set_error("mcm1", SF_ERROR_DOMAIN, NULL);
     } else {
-        int_m = (int) m;
+        int_m = (int)m;
         specfun::mtu12(kf, kc, int_m, q, x, &f1r, &d1r, &f2r, &d2r);
     }
 }
@@ -147,7 +147,7 @@ void msm1(T m, T q, T x, T &f1r, T &d1r) {
         d1r = std::numeric_limits<T>::quiet_NaN();
         set_error("msm1", SF_ERROR_DOMAIN, NULL);
     } else {
-        int_m = (int) m;
+        int_m = (int)m;
         specfun::mtu12(kf, kc, int_m, q, x, &f1r, &d1r, &f2r, &d2r);
     }
 }
@@ -162,7 +162,7 @@ void mcm2(T m, T q, T x, T &f2r, T &d2r) {
         d2r = std::numeric_limits<T>::quiet_NaN();
         set_error("mcm2", SF_ERROR_DOMAIN, NULL);
     } else {
-        int_m = (int) m;
+        int_m = (int)m;
         specfun::mtu12(kf, kc, int_m, q, x, &f1r, &d1r, &f2r, &d2r);
     }
 }
@@ -177,7 +177,7 @@ void msm2(T m, T q, T x, T &f2r, T &d2r) {
         d2r = std::numeric_limits<T>::quiet_NaN();
         set_error("msm2", SF_ERROR_DOMAIN, NULL);
     } else {
-        int_m = (int) m;
+        int_m = (int)m;
         specfun::mtu12(kf, kc, int_m, q, x, &f1r, &d1r, &f2r, &d2r);
     }
 }
