@@ -11,6 +11,10 @@ FetchContent_MakeAvailable(googletest)
 include(GoogleTest)
 
 # Add Tests
-add_executable(airy airy.cpp)
-target_link_libraries(airy GTest::gtest_main)
-gtest_discover_tests(airy)
+function(add_gtest test_name)
+    add_executable(${test_name} ${test_name}.cpp)
+    target_link_libraries(${test_name} GTest::gtest_main)
+    gtest_discover_tests(${test_name})
+endfunction()
+
+add_gtest(airy)
