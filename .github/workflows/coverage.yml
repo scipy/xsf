@@ -32,5 +32,11 @@ jobs:
       working-directory: build
       run: ctest
     - name: Generating coverage report
-      run: cmake --build build --target coverage
+      run: cmake --build build --target coverage_html
+
+    - name: Upload HTML coverage report
+      uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882  # v4.4.3
+      with:
+        name: cov-html
+        path: build/coverage_report/**
 
