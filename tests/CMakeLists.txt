@@ -13,6 +13,9 @@ FetchContent_MakeAvailable(googletest)
 include(GoogleTest)
 include(${CMAKE_SOURCE_DIR}/tests/Coverage.cmake)
 
+# Add include for tests
+include_directories(${CMAKE_SOURCE_DIR}/tests/include)
+
 # Add Tests
 function(add_gtest test_name)
     add_executable(${test_name} ${test_name}.cpp)
@@ -21,3 +24,5 @@ function(add_gtest test_name)
 endfunction()
 
 add_gtest(airy)
+
+add_gtest(expint)
