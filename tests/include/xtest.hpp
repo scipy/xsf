@@ -3,6 +3,8 @@
 #include <cmath>
 #include <limits>
 
+#include <3rd/csv.h>
+
 
 namespace xsf::test {
 

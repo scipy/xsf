@@ -20,7 +20,10 @@ include_directories(${CMAKE_SOURCE_DIR}/tests/include)
 function(add_gtest test_name)
     add_executable(${test_name} ${test_name}.cpp)
     target_link_libraries(${test_name} GTest::gtest_main)
-    gtest_discover_tests(${test_name})
+    gtest_discover_tests(${test_name}
+        DISCOVERY_MODE PRE_TEST
+        # Run ctest in tests/
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/)
 endfunction()
 
 add_gtest(airy)
