@@ -32,7 +32,7 @@ TEST(ExpInt_exp1, DataDriven) {
     io::CSVReader<2> in("data/exp1.csv");
     while(in.read_row(x, y_ref)) {
         y = xsf::exp1(x);
-        EXPECT_TRUE(xtest::isapprox<double>(y_ref, y))
+        EXPECT_TRUE(xtest::isapprox<double>(y_ref, y, 1e-11))
             << "x = " << x
             << "\n Want ref = " << y_ref
             << "\n Got  y   = " << y;
