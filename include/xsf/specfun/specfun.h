@@ -3534,7 +3534,7 @@ inline void kmn(int m, int n, T c, T cv, int kd, T *df, T *dn, T *ck1, T *ck2) {
     dn[m] = pow(-1, ip) * dnp * cs / ((2.0 * m - 1.0) * (2.0 * m + 1.0 - 4.0 * ip) * tp[m]);
 
     for (k = m + 2; k <= nn; k++)
-        dn[k - 1] *= rk[k - 1];
+        dn[k - 1] = rk[k - 1] * dn[k - 2];
 
     r1 = 1.0;
     for (j = 1; j <= (n + m + ip) / 2; j++) {
