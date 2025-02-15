@@ -3,7 +3,7 @@
 namespace xsf {
 
 template <typename T>
-XSF_HOST_DEVICE inline typename std::enable_if<std::is_floating_point<T>::value, T>::type extended_absolute_error(T actual, T desired) {
+XSF_HOST_DEVICE typename std::enable_if<std::is_floating_point<T>::value, T>::type extended_absolute_error(T actual, T desired) {
     if (actual == desired || std::isnan(actual) && std::isnan(desired)) {
 	return T(0);
     }
@@ -18,14 +18,14 @@ XSF_HOST_DEVICE inline typename std::enable_if<std::is_floating_point<T>::value,
 	T sgn = std::copysign(1.0, actual);
 	T max_float = std::numeric_limits<T>::max();
 	// max_float * 2**-(mantissa_bits + 1) = ulp(max_float)
-	T ulp = std::pow(2, -std::numeric_limits<T>::digits()) * max_float;
+	T ulp = std::pow(2, -std::numeric_limits<T>::digits) * max_float;
 	return std::abs((sgn * std::numeric_limits<T>::max() - desired) + sgn * ulp);
     }
     if (std::isinf(desired)) {
 	T sgn = std::copysign(1.0, desired);
 	T max_float = std::numeric_limits<T>::max();
 	// max_float * 2**-(mantissa_bits + 1) = ulp(max_float)
-	T ulp = std::pow(2, -std::numeric_limits<T>::digits()) * max_float;
+	T ulp = std::pow(2, -std::numeric_limits<T>::digits) * max_float;
 	return std::abs((sgn * std::numeric_limits<T>::max() - actual) + sgn * ulp);
     }
     return std::abs(actual - desired);
@@ -33,13 +33,13 @@ XSF_HOST_DEVICE inline typename std::enable_if<std::is_floating_point<T>::value,
 
 
 template <typename T>
-XSF_HOST_DEVICE inline typename std::enable_if<!std::is_floating_point<T>::value, T>::type extended_absolute_error(T actual, T desired) {
+XSF_HOST_DEVICE T extended_absolute_error(std::complex<T> actual, std::complex<T> desired) {
     return std::hypot(extended_absolute_error(actual.real(), desired.real()), extended_absolute_error(actual.imag(), desired.imag()));
 }
 
 
 template <typename T>
-XSF_HOST_DEVICE inline typename std::enable_if<std::is_floating_point<T>::value, T>::type extended_relative_error(T actual, T desired) {
+XSF_HOST_DEVICE typename std::enable_if<std::is_floating_point<T>::value, T>::type extended_relative_error(T actual, T desired) {
     T abs_error = extended_absolute_error(actual, desired);
     T abs_desired = std::abs(desired);
     if (desired == 0.0) {
@@ -59,35 +59,34 @@ XSF_HOST_DEVICE inline typename std::enable_if<std::is_floating_point<T>::value,
 
 
 template <typename T>
-XSF_HOST_DEVICE inline typename std::enable_if<!std::is_floating_point<T>::value, T>::type extended_relative_error(T actual, T desired) {
-    using V = typename T::value_type;
-    V abs_error = extended_absolute_error(actual, desired);
+XSF_HOST_DEVICE T extended_relative_error(std::complex<T> actual, std::complex<T> desired) {
+    T abs_error = extended_absolute_error(actual, desired);
 
     if (desired.real() == 0.0) {
-	desired.real() = std::copysign(std::numeric_limits<V>::denorm_min(), desired.real());
+	desired.real(std::copysign(std::numeric_limits<T>::denorm_min(), desired.real()));
     } else if (std::isinf(desired.real())) {
-	desired.real() = std::copysign(std::numeric_limits<V>::max(), desired.real());
+	desired.real(std::copysign(std::numeric_limits<T>::max(), desired.real()));
     } else if (std::isnan(desired.real())) {
 	/* In this case, the value used for desired doesn't matter. If desired.real() is NaN
 	 * but actual.real() isn't NaN, then the extended_absolute_error will be inf already
 	 * anyway. */
-	desired.real() == 1.0;
+	desired.real(1.0);
     }
 
     if (desired.imag() == 0.0) {
-	desired.imag() = std::copysign(std::numeric_limits<V>::denorm_min(), desired.imag());
+	desired.imag(std::copysign(std::numeric_limits<T>::denorm_min(), desired.imag()));
     } else if (std::isinf(desired.imag())) {
-	desired.imag() = std::copysign(std::numeric_limits<V>::max(), desired.imag());
+	desired.imag(std::copysign(std::numeric_limits<T>::max(), desired.imag()));
     } else if (std::isnan(desired.imag())) {
 	/* In this case, the value used for desired doesn't matter. If desired.imag() is NaN
 	 * but actual.imag() isn't NaN, then the extended_absolute_error will be inf already
 	 * anyway. */
-	desired.imag() == 1.0;
+	desired.imag(1.0);
     }
 
-    if (!std::isinf(desired) && std::isinf(std::abs(desired))) {
+    if (!(std::isinf(desired.real()) || std::isinf(desired.imag())) && std::isinf(std::abs(desired))) {
 	/* Rescale to avoid overflow */
-	return (abs_error / 2) / (std::abs(desired / 2));
+	return (abs_error / 2.0) / (std::abs(desired / 2.0));
     }
 
     return abs_error / abs(desired);
