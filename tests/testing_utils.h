@@ -104,7 +104,11 @@ class XsfTestCaseGenerator final
 
 template <typename T1, typename T2, typename T3>
 Catch::Generators::GeneratorWrapper<std::tuple<T1, T2, T3>>
-xsf_test_cases(TableReader<T1> input_reader, TableReader<T2> output_reader, TableReader<T3> tol_reader) {
+xsf_test_cases(const std::string &input_path, std::string &output_path, std::string &tol_path) {
+    TableReader<T1> input_reader(input_path);
+    TableReader<T2> output_reader(output_path);
+    TableReader<T3> tol_reader(tol_path);
+
     return Catch::Generators::GeneratorWrapper<std::tuple<T1, T2, T3>>(
         Catch::Detail::make_unique<XsfTestCaseGenerator>(input_reader, output_reader, tol_reader)
     );
