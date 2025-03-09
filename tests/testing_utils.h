@@ -1,0 +1,113 @@
+#include <complex>
+#include <iostream>
+#include <tuple>
+#include <type_traits>
+
+#include <arrow/io/file.h>
+#include <parquet/stream_reader.h>
+
+#include <catch2/generators/catch_generators.hpp>
+#include <catch2/generators/catch_generators_adapters.hpp>
+
+namespace {
+
+template <typename T>
+struct remove_complex {
+    using type = T;
+};
+
+template <typename T>
+struct remove_complex<std::complex<T>> {
+    using type = T;
+};
+
+template <typename T>
+using remove_complex_t = typename remove_complex<T>::type;
+
+template <typename T>
+class TableReader {
+  public:
+    TableReader(const std::string &file_path) {
+        PARQUET_ASSIGN_OR_THROW(infile_, arrow::io::ReadableFile::Open(file_path));
+        parquet::StreamReader stream{parquet::ParquetFileReader::Open(infile_)};
+        stream_ = std::make_unique<parquet::StreamReader>(std::move(stream));
+    }
+
+    T operator()() {
+        T row;
+        fill_row(row);
+        return row;
+    }
+
+    bool eof() const { return stream_->eof(); }
+
+  private:
+    void fill_row(T &elements) {
+        if constexpr (std::is_scalar_v<T>) {
+            fill_element(elements);
+        } else {
+            std::apply([this](auto &...x) { (fill_element(x), ...); }, elements);
+        }
+        stream_->EndRow();
+    }
+
+    template <typename U>
+    void fill_element(U &element) {
+        if constexpr (std::is_same_v<U, std::complex<remove_complex_t<U>>>) {
+            using V = remove_complex_t<U>;
+            V real;
+            V imag;
+            *stream_ >> real >> imag;
+            element = T(real, imag);
+        } else {
+            *stream_ >> element;
+        }
+    }
+
+    std::shared_ptr<arrow::io::ReadableFile> infile_;
+    std::unique_ptr<parquet::StreamReader> stream_;
+};
+
+template <typename T1, typename T2, typename T3>
+class XsfTestCaseGenerator final
+    : public Catch::Generators::IGenerator<std::tuple<T1, T2, T3>> {
+  public:
+    XsfTestCaseGenerator(
+        TableReader<T1> &input_reader, TableReader<T2> &output_reader,
+        TableReader<T3> &tol_reader
+    )
+        : input_reader_(input_reader), output_reader_(output_reader), tol_reader_(tol_reader) {}
+
+    std::tuple<T1, T2, T3> const &get() const override { return current_case_; }
+
+    bool next() override {
+        if (input_reader_.eof() || output_reader_.eof() || tol_reader_.eof()) {
+            return false;
+        }
+
+        auto inputs = input_reader_();
+        auto outputs = output_reader_();
+        auto tolerance = tol_reader_();
+
+        current_case_ = std::make_tuple(inputs, outputs, tolerance);
+        return true;
+    }
+
+  private:
+    TableReader<T1> &input_reader_;
+    TableReader<T2> &output_reader_;
+    TableReader<T3> &tol_reader_;
+
+    std::tuple<T1, T2, T3> current_case_;
+};
+
+
+template <typename T1, typename T2, typename T3>
+Catch::Generators::GeneratorWrapper<std::tuple<T1, T2, T3>>
+xsf_test_cases(TableReader<T1> input_reader, TableReader<T2> output_reader, TableReader<T3> tol_reader) {
+    return Catch::Generators::GeneratorWrapper<std::tuple<T1, T2, T3>>(
+        Catch::Detail::make_unique<XsfTestCaseGenerator>(input_reader, output_reader, tol_reader)
+    );
+}
+
+} // namespace
