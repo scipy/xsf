@@ -45,6 +45,7 @@ CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
 *.cmake
+DartConfiguration.tcl
 
-# Other
-*.tcl
+# test executable extension
+*.test
