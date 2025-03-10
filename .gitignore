@@ -45,3 +45,6 @@ CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
 *.cmake
+
+# Other
+*.tcl
