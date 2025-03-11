@@ -38,7 +38,7 @@ jobs:
           sudo apt-get update
           wget https://apache.jfrog.io/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
           sudo apt-get install -y -V ./apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
-          suto apt-get update
+          sudo apt-get update
           sudo apt-get install -y -V libarrow-dev # For C++
           sudo apt-get install -y -V libarrow-glib-dev # For GLib (C)
           sudo apt-get install -y -V libarrow-dataset-dev # For Apache Arrow Dataset C++
