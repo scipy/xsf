@@ -49,6 +49,7 @@ jobs:
 
       - name: Install Catch2
         run: |
+          export XSREF_TABLES_PATH="./xsref/tables"
           cmake -Bbuild -H. -DBUILD_TESTING=OFF
           sudo cmake --build build/ --target install
         working-directory: ./Catch2
@@ -60,5 +61,4 @@ jobs:
 
       - name: run tests
         run: |
-          export XSREF_TABLES_PATH="xsref/tables"
           ctest --output-on-failure
