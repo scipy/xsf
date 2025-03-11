@@ -1,5 +1,7 @@
 #include <complex>
+#include <filesystem>
 #include <iostream>
+#include <stdexcept>
 #include <tuple>
 #include <type_traits>
 
@@ -31,9 +33,10 @@ class TableReader {
         PARQUET_ASSIGN_OR_THROW(infile_, arrow::io::ReadableFile::Open(file_path));
         parquet::StreamReader stream{parquet::ParquetFileReader::Open(infile_)};
         stream_ = std::make_unique<parquet::StreamReader>(std::move(stream));
+        file_path_ = std::move(file_path);
     }
 
-    T operator()() {
+    T next() {
         T row;
         fill_row(row);
         return row;
@@ -58,7 +61,7 @@ class TableReader {
             V real;
             V imag;
             *stream_ >> real >> imag;
-            element = T(real, imag);
+            element = U(real, imag);
         } else {
             *stream_ >> element;
         }
@@ -66,51 +69,53 @@ class TableReader {
 
     std::shared_ptr<arrow::io::ReadableFile> infile_;
     std::unique_ptr<parquet::StreamReader> stream_;
+    std::string file_path_;
 };
 
 template <typename T1, typename T2, typename T3>
-class XsfTestCaseGenerator final
-    : public Catch::Generators::IGenerator<std::tuple<T1, T2, T3>> {
+class XsfTestCaseGenerator final : public Catch::Generators::IGenerator<std::tuple<T1, T2, T3>> {
   public:
     XsfTestCaseGenerator(
-        TableReader<T1> &input_reader, TableReader<T2> &output_reader,
-        TableReader<T3> &tol_reader
+        std::unique_ptr<TableReader<T1>> input_reader, std::unique_ptr<TableReader<T2>> output_reader,
+        std::unique_ptr<TableReader<T3>> tol_reader
     )
-        : input_reader_(input_reader), output_reader_(output_reader), tol_reader_(tol_reader) {}
+        : input_reader_(std::move(input_reader)), output_reader_(std::move(output_reader)),
+          tol_reader_(std::move(tol_reader)) {
+        if (!next()) {
+            throw std::runtime_error("XsfTestCaseGenerator received an empty table\n");
+        }
+    }
 
     std::tuple<T1, T2, T3> const &get() const override { return current_case_; }
 
     bool next() override {
-        if (input_reader_.eof() || output_reader_.eof() || tol_reader_.eof()) {
+        if (input_reader_->eof() || output_reader_->eof() || tol_reader_->eof()) {
             return false;
         }
-
-        auto inputs = input_reader_();
-        auto outputs = output_reader_();
-        auto tolerance = tol_reader_();
-
-        current_case_ = std::make_tuple(inputs, outputs, tolerance);
+        current_case_ = std::make_tuple(input_reader_->next(), output_reader_->next(), tol_reader_->next());
         return true;
     }
 
   private:
-    TableReader<T1> &input_reader_;
-    TableReader<T2> &output_reader_;
-    TableReader<T3> &tol_reader_;
-
+    std::unique_ptr<TableReader<T1>> input_reader_;
+    std::unique_ptr<TableReader<T2>> output_reader_;
+    std::unique_ptr<TableReader<T3>> tol_reader_;
     std::tuple<T1, T2, T3> current_case_;
 };
 
-
 template <typename T1, typename T2, typename T3>
-Catch::Generators::GeneratorWrapper<std::tuple<T1, T2, T3>>
-xsf_test_cases(const std::string &input_path, std::string &output_path, std::string &tol_path) {
-    TableReader<T1> input_reader(input_path);
-    TableReader<T2> output_reader(output_path);
-    TableReader<T3> tol_reader(tol_path);
+Catch::Generators::GeneratorWrapper<std::tuple<T1, T2, T3>> xsf_test_cases(
+    const std::filesystem::path &input_path, const std::filesystem::path &output_path,
+    const std::filesystem::path &tol_path
+) {
+    auto input_reader = std::make_unique<TableReader<T1>>(input_path.string());
+    auto output_reader = std::make_unique<TableReader<T2>>(output_path.string());
+    auto tol_reader = std::make_unique<TableReader<T3>>(tol_path.string());
 
     return Catch::Generators::GeneratorWrapper<std::tuple<T1, T2, T3>>(
-        Catch::Detail::make_unique<XsfTestCaseGenerator>(input_reader, output_reader, tol_reader)
+        Catch::Detail::make_unique<XsfTestCaseGenerator<T1, T2, T3>>(
+            std::move(input_reader), std::move(output_reader), std::move(tol_reader)
+        )
     );
 }
 
