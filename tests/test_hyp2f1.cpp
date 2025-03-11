@@ -1,11 +1,44 @@
+#include <complex>
+#include <filesystem>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <tuple>
+
 #include <catch2/catch_test_macros.hpp>
 
-#include <xsf/hyp2f1.h>
 #include <xsf/fp_error_metrics.h>
+#include <xsf/hyp2f1.h>
 
 #include "testing_utils.h"
 
+namespace fs = std::filesystem;
 
-TEST_CASE("hyp2f1 example text", "[hyp2f1_example]") {
-    REQUIRE ( xsf::extended_relative_error(xsf::hyp2f1(1.0, 0.9, 0.8, 0.2), 1.2848765105679898) < 1e-12 );
+fs::path hyp2f1_tables_path{fs::path(XSREF_TABLES_PATH) / "scipy_special_tests" / "hyp2f1"};
+
+TEST_CASE("hyp2f1 complex scipy.special cases", "[hyp2f1][complex][scipy-special]") {
+    auto [input, output, tol] = GENERATE(
+        xsf_test_cases<
+            std::tuple<double, double, double, std::complex<double>>, std::tuple<std::complex<double>, bool>, double>(
+            hyp2f1_tables_path / "In_d_d_d_cd-cd.parquet", hyp2f1_tables_path / "Out_d_d_d_cd-cd.parquet",
+            hyp2f1_tables_path / "Err_d_d_d_cd-cd_gcc-linux-x86_64.parquet"
+        )
+    );
+    auto [a, b, c, z] = input;
+    auto [desired, fallback] = output;
+    auto actual = xsf::hyp2f1(a, b, c, z);
+    auto error = xsf::extended_relative_error(actual, desired);
+    INFO(
+        "Inputs: " << std::setprecision(std::numeric_limits<double>::max_digits10) << '\n'
+                   << "a: " << a << '\n'
+                   << "b: " << b << '\n'
+                   << "c: " << c << '\n'
+                   << "z: " << z << '\n'
+                   << "Output: \n"
+                   << "desired: " << desired << '\n'
+                   << "actual: " << actual << '\n'
+                   << "error: " << error << '\n'
+                   << "tolerance: " << tol << '\n'
+    );
+    REQUIRE(error <= 2 * tol);
 }
