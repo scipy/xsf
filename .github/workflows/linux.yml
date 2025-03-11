@@ -35,6 +35,7 @@ jobs:
 
       - name: Install Ubuntu dependencies
         run: |
+          pwd
           sudo apt-get update
           wget https://apache.jfrog.io/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
           sudo apt-get install -y -V ./apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
@@ -48,16 +49,19 @@ jobs:
 
       - name: Install Catch2
         run: |
-          cd Catch2
+          pwd
           cmake -Bbuild -H. -DBUILD_TESTING=OFF
           sudo cmake --build build/ --target install
+        working-directory: ./Catch2
 
       - name: Configure and build
         run: |
+          pwd
           cmake .
           make
 
       - name: run tests
         run: |
+          pwd
           export XSREF_TABLES_PATH="xsref/tables"
           ctest --output-on-failure
