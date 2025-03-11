@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <complex>
 #include <filesystem>
 #include <iostream>
@@ -117,6 +118,13 @@ Catch::Generators::GeneratorWrapper<std::tuple<T1, T2, T3>> xsf_test_cases(
             std::move(input_reader), std::move(output_reader), std::move(tol_reader)
         )
     );
+}
+
+
+template <typename T>
+T adjust_tolerance(T tol) {
+    // Add some wiggle room to tolerance from table.
+    return 2 * std::max(std::numeric_limits<T>::epsilon(), tol);
 }
 
 } // namespace
