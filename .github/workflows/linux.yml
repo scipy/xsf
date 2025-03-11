@@ -4,10 +4,7 @@ on:
   push:
     branches:
       - main
-      - catch-test-setup
     pull_request:
-      - main
-      - catch-test-setup
 
 permissions:
    contents: read  # to fetch code (actions/checkout)
