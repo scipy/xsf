@@ -22,7 +22,7 @@ jobs:
       - name: Checkout xsref
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          repository: 'scipy/xsref'
+          repository: 'steppi/xsref'
           path: 'xsref'
           ref: 'xsref'
 
