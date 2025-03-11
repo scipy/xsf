@@ -1,0 +1,10 @@
+name: Linux Tests
+
+on:
+  push:
+    branches:
+      - main
+      - catch-test-setup
+    pull_request:
+      - main
+      - catch-test-setup
