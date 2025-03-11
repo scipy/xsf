@@ -1,10 +1,55 @@
 name: Linux Tests
 
-on:
-  push:
-    branches:
-      - main
-      - catch-test-setup
-    pull_request:
-      - main
-      - catch-test-setup
+on: [ push, pull_request ]
+
+permissions:
+   contents: read  # to fetch code (actions/checkout)
+
+env:
+  CCACHE_DIR: "${{ github.workspace }}/.ccache"
+  INSTALLDIR: "build-install"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  gcc_x86_64_linux:
+    name: GCC X86_64 Linux
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout xsref
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: 'scipy/xsref'
+          path: 'xsref'
+          ref: 'xsref'
+
+      - name: Checkout Catch2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: 'catchorg/Catch2'
+          path: 'Catch2'
+          ref: 'v3.8.0'
+
+      - name: Install Ubuntu dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y libarrow-dev libparquet-dev libzstd-dev ccache
+
+      - name: Install Catch2
+        run: |
+          cd Catch2
+          cmake -Bbuild -H. -DBUILD_TESTING=OFF
+          sudo cmake --build build/ --target install
+
+      - name: Configure and build
+        run: |
+          cmake .
+          make
+
+      - name: run tests
+        run: |
+          export XSREF_TABLES_PATH="xsref/tables"
+          ctest --output-on-failure
