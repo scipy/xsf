@@ -177,7 +177,7 @@ namespace cephes {
             return (phi);
         a = 1.0 - m;
         if (a == 0.0) {
-            if (std::abs(phi) >= (double) M_PI_2) {
+            if (std::abs(phi) >= (double)M_PI_2) {
                 set_error("ellik", SF_ERROR_SINGULAR, NULL);
                 return (std::numeric_limits<double>::infinity());
             }

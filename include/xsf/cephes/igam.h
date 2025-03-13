@@ -328,9 +328,9 @@ namespace cephes {
     XSF_HOST_DEVICE inline double igam(double a, double x) {
         double absxma_a;
 
-	if (std::isnan(a) || std::isnan(x)) {
-	    return std::numeric_limits<double>::quiet_NaN();
-	}
+        if (std::isnan(a) || std::isnan(x)) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
 
         if (x < 0 || a < 0) {
             set_error("gammainc", SF_ERROR_DOMAIN, NULL);
@@ -371,9 +371,9 @@ namespace cephes {
     XSF_HOST_DEVICE double igamc(double a, double x) {
         double absxma_a;
 
-	if (std::isnan(a) || std::isnan(x)) {
-	    return std::numeric_limits<double>::quiet_NaN();
-	}
+        if (std::isnan(a) || std::isnan(x)) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
 
         if (x < 0 || a < 0) {
             set_error("gammaincc", SF_ERROR_DOMAIN, NULL);
