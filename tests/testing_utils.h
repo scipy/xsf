@@ -127,4 +127,13 @@ T adjust_tolerance(T tol) {
     return 2 * std::max(std::numeric_limits<T>::epsilon(), tol);
 }
 
+
+std::string get_platform_str() {
+    /* This is going to get a string "<compiler>-<os>-<architecture>" using conditional
+     * compilation, but for now we're just stubbing things out. */
+    return "gcc-linux-x86_64";
+}
+
+
+
 } // namespace

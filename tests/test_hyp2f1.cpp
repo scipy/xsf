@@ -16,12 +16,13 @@ namespace fs = std::filesystem;
 
 fs::path hyp2f1_tables_path{fs::path(XSREF_TABLES_PATH) / "scipy_special_tests" / "hyp2f1"};
 
+
 TEST_CASE("hyp2f1 complex scipy.special cases", "[hyp2f1][complex][scipy-special]") {
     auto [input, output, tol] = GENERATE(
         xsf_test_cases<
             std::tuple<double, double, double, std::complex<double>>, std::tuple<std::complex<double>, bool>, double>(
             hyp2f1_tables_path / "In_d_d_d_cd-cd.parquet", hyp2f1_tables_path / "Out_d_d_d_cd-cd.parquet",
-            hyp2f1_tables_path / "Err_d_d_d_cd-cd_gcc-linux-x86_64.parquet"
+            hyp2f1_tables_path / ("Err_d_d_d_cd-cd_" + get_platform_str() + ".parquet")
         )
     );
     auto [a, b, c, z] = input;
@@ -46,7 +47,7 @@ TEST_CASE("hyp2f1 real scipy.special cases", "[hyp2f1][real][scipy-special]") {
         xsf_test_cases<
             std::tuple<double, double, double, double>, std::tuple<double, bool>, double>(
             hyp2f1_tables_path / "In_d_d_d_d-d.parquet", hyp2f1_tables_path / "Out_d_d_d_d-d.parquet",
-            hyp2f1_tables_path / "Err_d_d_d_d-d_gcc-linux-x86_64.parquet"
+            hyp2f1_tables_path / ("Err_d_d_d_d-d_" + get_platform_str() + ".parquet")
         )
     );
     auto [a, b, c, z] = input;
