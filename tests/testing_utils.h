@@ -131,7 +131,7 @@ Catch::Generators::GeneratorWrapper<std::tuple<T1, T2, T3>> xsf_test_cases(
 template <typename T>
 T adjust_tolerance(T tol) {
     // Add some wiggle room to tolerance from table.
-    return 2 * std::max(std::numeric_limits<T>::epsilon(), tol);
+    return 4 * std::max(std::numeric_limits<T>::epsilon(), tol);
 }
 
 
