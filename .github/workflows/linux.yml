@@ -27,7 +27,7 @@ jobs:
         with:
           repository: 'steppi/xsref'
           path: 'xsref'
-          ref: 'xsref'
+          ref: 'main'
 
       - name: Checkout Catch2
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
