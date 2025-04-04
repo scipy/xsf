@@ -39,7 +39,6 @@ depends-on = ["configure", "build-only"]
 [feature.tests.dependencies]
 catch2 = ">=3.8.0,<4"
 ccache = ">=4.11.2,<5"
-zstd = ">=1.5.7,<2"
 libarrow-all = ">=19.0.1,<20"
 
 [feature.tests.tasks]
