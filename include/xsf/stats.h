@@ -25,7 +25,11 @@ inline double bdtrc(double k, int n, double p) { return cephes::bdtrc(k, n, p); 
 
 inline double chdtr(double df, double x) { return cephes::chdtr(df, x); }
 
+inline float chdtr(float df, float x) { return static_cast<float>(cephes::chdtr(df, x)); }
+
 inline double chdtrc(double df, double x) { return cephes::chdtrc(df, x); }
+
+inline float chdtrc(float df, float x) { return static_cast<float>(cephes::chdtrc(df, x)); }
 
 inline double chdtri(double df, double y) { return cephes::chdtri(df, y); }
 
