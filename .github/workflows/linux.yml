@@ -57,9 +57,9 @@ jobs:
 
       - name: Configure and build
         run: |
-          cmake .
-          make
+          cmake -Bbuild
+          cmake --build build
 
       - name: run tests
         run: |
-          ctest --output-on-failure
+          ctest --output-on-failure --test-dir build/tests
