@@ -21,3 +21,19 @@ TEST_CASE("chdtrc dd->d scipy_special_tests", "[chdtrc][dd->d][scipy_special_tes
     CAPTURE(v, x, out, desired, error, tol, fallback);
     REQUIRE(error <= tol);
 }
+
+TEST_CASE("chdtrc ff->f scipy_special_tests", "[chdtrc][ff->f][scipy_special_tests]") {
+    SET_FP_FORMAT()
+    auto [input, output, tol] = GENERATE(xsf_test_cases<std::tuple<float, float>, std::tuple<float, bool>, float>(
+        tables_path / "In_f_f-f.parquet", tables_path / "Out_f_f-f.parquet",
+        tables_path / ("Err_f_f-f_" + get_platform_str() + ".parquet")
+    ));
+
+    auto [v, x] = input;
+    auto [desired, fallback] = output;
+    auto out = xsf::chdtrc(v, x);
+    auto error = xsf::extended_relative_error(out, desired);
+    tol = adjust_tolerance(tol);
+    CAPTURE(v, x, out, desired, error, tol, fallback);
+    REQUIRE(error <= tol);
+}

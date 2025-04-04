@@ -21,3 +21,19 @@ TEST_CASE("gammainc dd->d scipy_special_tests", "[gammainc][dd->d][scipy_special
     CAPTURE(a, x, out, desired, error, tol, fallback);
     REQUIRE(error <= tol);
 }
+
+TEST_CASE("gammainc ff->f scipy_special_tests", "[gammainc][ff->f][scipy_special_tests]") {
+    SET_FP_FORMAT()
+    auto [input, output, tol] = GENERATE(xsf_test_cases<std::tuple<float, float>, std::tuple<float, bool>, float>(
+        tables_path / "In_f_f-f.parquet", tables_path / "Out_f_f-f.parquet",
+        tables_path / ("Err_f_f-f_" + get_platform_str() + ".parquet")
+    ));
+
+    auto [a, x] = input;
+    auto [desired, fallback] = output;
+    auto out = xsf::gammainc(a, x);
+    auto error = xsf::extended_relative_error(out, desired);
+    tol = adjust_tolerance(tol);
+    CAPTURE(a, x, out, desired, error, tol, fallback);
+    REQUIRE(error <= tol);
+}

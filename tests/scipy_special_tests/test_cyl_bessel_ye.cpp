@@ -21,3 +21,21 @@ TEST_CASE("cyl_bessel_ye dd->d scipy_special_tests", "[cyl_bessel_ye][dd->d][sci
     CAPTURE(v, z, out, desired, error, tol, fallback);
     REQUIRE(error <= tol);
 }
+
+TEST_CASE("cyl_bessel_ye dD->D scipy_special_tests", "[cyl_bessel_ye][dD->D][scipy_special_tests]") {
+    SET_FP_FORMAT()
+    auto [input, output, tol] = GENERATE(
+        xsf_test_cases<std::tuple<double, std::complex<double>>, std::tuple<std::complex<double>, bool>, double>(
+            tables_path / "In_d_cd-cd.parquet", tables_path / "Out_d_cd-cd.parquet",
+            tables_path / ("Err_d_cd-cd_" + get_platform_str() + ".parquet")
+        )
+    );
+
+    auto [v, z] = input;
+    auto [desired, fallback] = output;
+    auto out = xsf::cyl_bessel_ye(v, z);
+    auto error = xsf::extended_relative_error(out, desired);
+    tol = adjust_tolerance(tol);
+    CAPTURE(v, z, out, desired, error, tol, fallback);
+    REQUIRE(error <= tol);
+}
