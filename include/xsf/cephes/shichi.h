@@ -151,7 +151,7 @@ namespace cephes {
     } // namespace detail
 
     /* Sine and cosine integrals */
-    XSF_HOST_DEVICE inline int shichi(double x, double *si, double *ci) {
+    XSF_HOST_DEVICE inline int shichi(double x, double &si, double &ci) {
         double k, z, c, s, a, b;
         short sign;
 
@@ -163,8 +163,8 @@ namespace cephes {
         }
 
         if (x == 0.0) {
-            *si = 0.0;
-            *ci = -std::numeric_limits<double>::infinity();
+            si = 0.0;
+            ci = -std::numeric_limits<double>::infinity();
             return (0);
         }
 
@@ -216,8 +216,8 @@ namespace cephes {
 
     asymp:
         if (x > 1000) {
-            *si = std::numeric_limits<double>::infinity();
-            *ci = std::numeric_limits<double>::infinity();
+            si = std::numeric_limits<double>::infinity();
+            ci = std::numeric_limits<double>::infinity();
         } else {
             /* Asymptotic expansions
              * http://functions.wolfram.com/GammaBetaErf/CoshIntegral/06/02/
@@ -225,11 +225,11 @@ namespace cephes {
              */
             a = detail::hyp3f0(0.5, 1, 1, 4.0 / (x * x));
             b = detail::hyp3f0(1, 1, 1.5, 4.0 / (x * x));
-            *si = std::cosh(x) / x * a + std::sinh(x) / (x * x) * b;
-            *ci = std::sinh(x) / x * a + std::cosh(x) / (x * x) * b;
+            si = std::cosh(x) / x * a + std::sinh(x) / (x * x) * b;
+            ci = std::sinh(x) / x * a + std::cosh(x) / (x * x) * b;
         }
         if (sign) {
-            *si = -*si;
+            si = -si;
         }
         return 0;
 
@@ -238,9 +238,9 @@ namespace cephes {
             s = -s;
         }
 
-        *si = s;
+        si = s;
 
-        *ci = detail::SCIPY_EULER + std::log(x) + c;
+        ci = detail::SCIPY_EULER + std::log(x) + c;
         return (0);
     }
 

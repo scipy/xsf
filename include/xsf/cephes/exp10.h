@@ -57,6 +57,8 @@
 #include "../config.h"
 #include "../error.h"
 
+#include "polevl.h"
+
 namespace xsf {
 namespace cephes {
 
