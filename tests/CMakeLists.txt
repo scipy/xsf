@@ -11,7 +11,7 @@ find_package(Parquet REQUIRED)
 add_library(xsf INTERFACE)
 target_include_directories(xsf INTERFACE ${CMAKE_SOURCE_DIR}/include)
 
-file(GLOB TEST_SOURCES "test_*.cpp")
+file(GLOB TEST_SOURCES "*/test_*.cpp")
 foreach(test_file ${TEST_SOURCES})
   get_filename_component(test_name ${test_file} NAME_WE)
   add_executable(${test_name}.test ${test_file})

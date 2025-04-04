@@ -1,7 +1,11 @@
+#pragma once
+
 #include <algorithm>
 #include <complex>
 #include <filesystem>
+#include <iomanip>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <tuple>
 #include <type_traits>
@@ -9,8 +13,11 @@
 #include <arrow/io/file.h>
 #include <parquet/stream_reader.h>
 
+#include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_adapters.hpp>
+
+#include <xsf/fp_error_metrics.h>
 
 namespace {
 
@@ -47,7 +54,7 @@ class TableReader {
 
   private:
     void fill_row(T &elements) {
-        if constexpr (std::is_scalar_v<T>) {
+        if constexpr (std::is_scalar_v<remove_complex_t<T>>) {
             fill_element(elements);
         } else {
             std::apply([this](auto &...x) { (fill_element(x), ...); }, elements);
@@ -137,3 +144,8 @@ std::string get_platform_str() {
 
 
 } // namespace
+
+
+#define SET_FP_FORMAT()							\
+    Catch::StringMaker<double>::precision = std::numeric_limits<double>::max_digits10; \
+    Catch::StringMaker<float>::precision = std::numeric_limits<float>::max_digits10;
