@@ -52,14 +52,14 @@ jobs:
       - name: Install Catch2
         run: |
           cmake -Bbuild -H. -DBUILD_TESTING=OFF
-          sudo cmake --build build/ --target install
+          sudo cmake --build build/ --target install -j2
         working-directory: ./Catch2
 
       - name: Configure and build
         run: |
-          cmake .
-          make
+          cmake -Bbuild
+          cmake --build build -j2
 
       - name: run tests
         run: |
-          ctest --output-on-failure
+          ctest --output-on-failure --test-dir build/tests -j2

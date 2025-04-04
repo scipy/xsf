@@ -48,4 +48,4 @@ CMakeUserPresets.json
 DartConfiguration.tcl
 
 # test executable extension
-*.test
+build/

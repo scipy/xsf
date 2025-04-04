@@ -21,3 +21,19 @@ TEST_CASE("log_expit f->f scipy_special_tests", "[log_expit][f->f][scipy_special
     CAPTURE(x, out, desired, error, tol, fallback);
     REQUIRE(error <= tol);
 }
+
+TEST_CASE("log_expit d->d scipy_special_tests", "[log_expit][d->d][scipy_special_tests]") {
+    SET_FP_FORMAT()
+    auto [input, output, tol] = GENERATE(xsf_test_cases<double, std::tuple<double, bool>, double>(
+        tables_path / "In_d-d.parquet", tables_path / "Out_d-d.parquet",
+        tables_path / ("Err_d-d_" + get_platform_str() + ".parquet")
+    ));
+
+    auto x = input;
+    auto [desired, fallback] = output;
+    auto out = xsf::log_expit(x);
+    auto error = xsf::extended_relative_error(out, desired);
+    tol = adjust_tolerance(tol);
+    CAPTURE(x, out, desired, error, tol, fallback);
+    REQUIRE(error <= tol);
+}
