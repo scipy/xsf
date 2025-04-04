@@ -1,7 +1,11 @@
 #pragma once
 
-#include "xsf/cephes/exp10.h"
-#include "xsf/cephes/exp2.h"
+#include "config.h"
+#include "trig.h"
+
+#include "cephes/exp10.h"
+#include "cephes/exp2.h"
+#include "cephes/unity.h"
 
 namespace xsf {
 
@@ -45,12 +49,12 @@ inline std::complex<float> expm1(std::complex<float> z) {
     return static_cast<std::complex<float>>(expm1(static_cast<std::complex<double>>(z)));
 }
 
-double exp2(double x) { return cephes::exp2(x); }
+inline double exp2(double x) { return cephes::exp2(x); }
 
-float exp2(float x) { return exp2(static_cast<double>(x)); }
+inline float exp2(float x) { return exp2(static_cast<double>(x)); }
 
-double exp10(double x) { return cephes::exp10(x); }
+inline double exp10(double x) { return cephes::exp10(x); }
 
-float exp10(float x) { return exp10(static_cast<double>(x)); }
+inline float exp10(float x) { return exp10(static_cast<double>(x)); }
 
 } // namespace xsf

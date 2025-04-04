@@ -135,6 +135,7 @@
 #pragma once
 
 #include "../config.h"
+#include "../error.h"
 
 #include "const.h"
 #include "polevl.h"

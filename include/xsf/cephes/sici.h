@@ -138,7 +138,7 @@ namespace cephes {
 
     } // namespace detail
 
-    XSF_HOST_DEVICE inline int sici(double x, double *si, double *ci) {
+    XSF_HOST_DEVICE inline int sici(double x, double &si, double &ci) {
         double z, c, s, f, g;
         short sign;
 
@@ -150,24 +150,24 @@ namespace cephes {
         }
 
         if (x == 0.0) {
-            *si = 0.0;
-            *ci = -std::numeric_limits<double>::infinity();
+            si = 0.0;
+            ci = -std::numeric_limits<double>::infinity();
             return (0);
         }
 
         if (x > 1.0e9) {
             if (std::isinf(x)) {
                 if (sign == -1) {
-                    *si = -M_PI_2;
-                    *ci = std::numeric_limits<double>::quiet_NaN();
+                    si = -M_PI_2;
+                    ci = std::numeric_limits<double>::quiet_NaN();
                 } else {
-                    *si = M_PI_2;
-                    *ci = 0;
+                    si = M_PI_2;
+                    ci = 0;
                 }
                 return 0;
             }
-            *si = M_PI_2 - std::cos(x) / x;
-            *ci = std::sin(x) / x;
+            si = M_PI_2 - std::cos(x) / x;
+            ci = std::sin(x) / x;
         }
 
         if (x > 4.0) {
@@ -181,8 +181,8 @@ namespace cephes {
         if (sign) {
             s = -s;
         }
-        *si = s;
-        *ci = detail::SCIPY_EULER + std::log(x) + c; /* real part if x < 0 */
+        si = s;
+        ci = detail::SCIPY_EULER + std::log(x) + c; /* real part if x < 0 */
         return (0);
 
         /* The auxiliary functions are:
@@ -211,11 +211,11 @@ namespace cephes {
             f = polevl(z, detail::sici_FN8, 8) / (x * p1evl(z, detail::sici_FD8, 8));
             g = z * polevl(z, detail::sici_GN8, 8) / p1evl(z, detail::sici_GD8, 9);
         }
-        *si = M_PI_2 - f * c - g * s;
+        si = M_PI_2 - f * c - g * s;
         if (sign) {
-            *si = -(*si);
+            si = -(si);
         }
-        *ci = f * s - g * c;
+        ci = f * s - g * c;
 
         return (0);
     }

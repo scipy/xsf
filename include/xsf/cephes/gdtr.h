@@ -111,7 +111,7 @@ namespace cephes {
     XSF_HOST_DEVICE inline double gdtr(double a, double b, double x) {
 
         if (x < 0.0) {
-            sf_error("gdtr", SF_ERROR_DOMAIN, NULL);
+            set_error("gdtr", SF_ERROR_DOMAIN, NULL);
             return (std::numeric_limits<double>::quiet_NaN());
         }
         return (igam(b, a * x));
@@ -129,7 +129,7 @@ namespace cephes {
     XSF_HOST_DEVICE inline double gdtri(double a, double b, double y) {
 
         if ((y < 0.0) || (y > 1.0) || (a <= 0.0) || (b < 0.0)) {
-            sf_error("gdtri", SF_ERROR_DOMAIN, NULL);
+            set_error("gdtri", SF_ERROR_DOMAIN, NULL);
             return (std::numeric_limits<double>::quiet_NaN());
         }
 

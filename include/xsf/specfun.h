@@ -52,7 +52,7 @@ inline std::complex<double> chyp2f1(double a, double b, double c, std::complex<d
     return outz;
 }
 
-inline std::complex<double> chyp1f1(double a, double b, std::complex<double> z) {
+inline std::complex<double> hyp1f1(double a, double b, std::complex<double> z) {
     std::complex<double> outz = specfun::cchg(a, b, z);
     if (outz.real() == 1e300) {
         set_error("chyp1f1", SF_ERROR_OVERFLOW, NULL);

@@ -1,10 +1,65 @@
 name: Linux Tests
 
-on:
-  push:
-    branches:
-      - main
-      - catch-test-setup
-    pull_request:
-      - main
-      - catch-test-setup
+on: [ push, pull_request ]
+
+permissions:
+   contents: read  # to fetch code (actions/checkout)
+
+env:
+  CCACHE_DIR: "${{ github.workspace }}/.ccache"
+  INSTALLDIR: "build-install"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  gcc_x86_64_linux:
+    name: GCC X86_64 Linux
+    runs-on: ubuntu-22.04
+    env:
+      XSREF_TABLES_PATH: "${{ github.workspace }}/xsref/tables"
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Checkout xsref
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: 'scipy/xsref'
+          path: 'xsref'
+          ref: 'main'
+
+      - name: Checkout Catch2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: 'catchorg/Catch2'
+          path: 'Catch2'
+          ref: 'v3.8.0'
+
+      - name: Install Ubuntu dependencies
+        run: |
+          sudo apt-get update
+          wget https://apache.jfrog.io/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+          sudo apt-get install -y -V ./apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+          sudo apt-get update
+          sudo apt-get install -y -V libarrow-dev # For C++
+          sudo apt-get install -y -V libarrow-glib-dev # For GLib (C)
+          sudo apt-get install -y -V libarrow-dataset-dev # For Apache Arrow Dataset C++
+          sudo apt-get install -y -V libparquet-dev # For Apache Parquet C++
+          sudo apt-get install -y -V libparquet-glib-dev # For Apache Parquet GLib (C)
+          sudo apt-get install -y libzstd-dev ccache
+
+      - name: Install Catch2
+        run: |
+          cmake -Bbuild -H. -DBUILD_TESTING=OFF
+          sudo cmake --build build/ --target install
+        working-directory: ./Catch2
+
+      - name: Configure and build
+        run: |
+          cmake .
+          make
+
+      - name: run tests
+        run: |
+          ctest --output-on-failure
