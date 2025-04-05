@@ -8,11 +8,12 @@ fs::path tables_path{fs::path(XSREF_TABLES_PATH) / "scipy_special_tests" / "nbdt
 
 TEST_CASE("nbdtr ddd->d scipy_special_tests", "[nbdtr][ddd->d][scipy_special_tests]") {
     SET_FP_FORMAT()
-    auto [input, output, tol] =
-        GENERATE(xsf_test_cases<std::tuple<double, double, double>, std::tuple<double, bool>, double>(
+    auto [input, output, tol] = GENERATE(
+        xsf_test_cases<std::tuple<double, double, double>, std::tuple<double, bool>, double>(
             tables_path / "In_d_d_d-d.parquet", tables_path / "Out_d_d_d-d.parquet",
             tables_path / ("Err_d_d_d-d_" + get_platform_str() + ".parquet")
-        ));
+        )
+    );
 
     auto [k, n, p] = input;
     auto [desired, fallback] = output;
@@ -25,11 +26,12 @@ TEST_CASE("nbdtr ddd->d scipy_special_tests", "[nbdtr][ddd->d][scipy_special_tes
 
 TEST_CASE("nbdtr ppd->d scipy_special_tests", "[nbdtr][ppd->d][scipy_special_tests]") {
     SET_FP_FORMAT()
-    auto [input, output, tol] =
-        GENERATE(xsf_test_cases<std::tuple<std::ptrdiff_t, std::ptrdiff_t, double>, std::tuple<double, bool>, double>(
+    auto [input, output, tol] = GENERATE(
+        xsf_test_cases<std::tuple<std::ptrdiff_t, std::ptrdiff_t, double>, std::tuple<double, bool>, double>(
             tables_path / "In_p_p_d-d.parquet", tables_path / "Out_p_p_d-d.parquet",
             tables_path / ("Err_p_p_d-d_" + get_platform_str() + ".parquet")
-        ));
+        )
+    );
 
     auto [k, n, p] = input;
     auto [desired, fallback] = output;

@@ -8,12 +8,13 @@ fs::path tables_path{fs::path(XSREF_TABLES_PATH) / "scipy_special_tests" / "modi
 
 TEST_CASE("modified_fresnel_plus d->DD scipy_special_tests", "[modified_fresnel_plus][d->DD][scipy_special_tests]") {
     SET_FP_FORMAT()
-    auto [input, output, tol] =
-        GENERATE(xsf_test_cases<
-                 double, std::tuple<std::complex<double>, std::complex<double>, bool>, std::tuple<double, double>>(
+    auto [input, output, tol] = GENERATE(
+        xsf_test_cases<
+            double, std::tuple<std::complex<double>, std::complex<double>, bool>, std::tuple<double, double>>(
             tables_path / "In_d-cd_cd.parquet", tables_path / "Out_d-cd_cd.parquet",
             tables_path / ("Err_d-cd_cd_" + get_platform_str() + ".parquet")
-        ));
+        )
+    );
 
     auto x = input;
     auto [desired0, desired1, fallback] = output;

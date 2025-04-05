@@ -50,7 +50,9 @@ class TableReader {
         return row;
     }
 
-    bool eof() const { return stream_->eof(); }
+    bool eof() const {
+        return stream_->eof();
+    }
 
   private:
     void fill_row(T &elements) {
@@ -94,7 +96,9 @@ class XsfTestCaseGenerator final : public Catch::Generators::IGenerator<std::tup
         }
     }
 
-    std::tuple<T1, T2, T3> const &get() const override { return current_case_; }
+    std::tuple<T1, T2, T3> const &get() const override {
+        return current_case_;
+    }
 
     bool next() override {
         if (input_reader_->eof() || output_reader_->eof() || tol_reader_->eof()) {
@@ -127,13 +131,11 @@ Catch::Generators::GeneratorWrapper<std::tuple<T1, T2, T3>> xsf_test_cases(
     );
 }
 
-
 template <typename T>
 T adjust_tolerance(T tol) {
     // Add some wiggle room to tolerance from table.
     return 4 * std::max(std::numeric_limits<T>::epsilon(), tol);
 }
-
 
 std::string get_platform_str() {
     /* This is going to get a string "<compiler>-<os>-<architecture>" using conditional
@@ -141,11 +143,8 @@ std::string get_platform_str() {
     return "gcc-linux-x86_64";
 }
 
-
-
 } // namespace
 
-
-#define SET_FP_FORMAT()							\
-    Catch::StringMaker<double>::precision = std::numeric_limits<double>::max_digits10; \
+#define SET_FP_FORMAT()                                                                                                \
+    Catch::StringMaker<double>::precision = std::numeric_limits<double>::max_digits10;                                 \
     Catch::StringMaker<float>::precision = std::numeric_limits<float>::max_digits10;
