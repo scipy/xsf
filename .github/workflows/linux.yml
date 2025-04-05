@@ -3,11 +3,10 @@ name: Linux Tests
 on: [ push, pull_request ]
 
 permissions:
-   contents: read  # to fetch code (actions/checkout)
+  contents: read  # to fetch code (actions/checkout)
 
 env:
   CCACHE_DIR: "${{ github.workspace }}/.ccache"
-  INSTALLDIR: "build-install"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -22,44 +21,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Checkout xsref
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: prefix-dev/setup-pixi@92815284c57faa15cd896c4d5cfb2d59f32dc43d # v0.8.3
         with:
-          repository: 'scipy/xsref'
-          path: 'xsref'
-          ref: 'main'
-
-      - name: Checkout Catch2
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          repository: 'catchorg/Catch2'
-          path: 'Catch2'
-          ref: 'v3.8.0'
-
-      - name: Install Ubuntu dependencies
+          pixi-version: v0.44.0
+          cache: true
+      - name: Run tests
         run: |
-          sudo apt-get update
-          wget https://apache.jfrog.io/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
-          sudo apt-get install -y -V ./apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
-          sudo apt-get update
-          sudo apt-get install -y -V libarrow-dev # For C++
-          sudo apt-get install -y -V libarrow-glib-dev # For GLib (C)
-          sudo apt-get install -y -V libarrow-dataset-dev # For Apache Arrow Dataset C++
-          sudo apt-get install -y -V libparquet-dev # For Apache Parquet C++
-          sudo apt-get install -y -V libparquet-glib-dev # For Apache Parquet GLib (C)
-          sudo apt-get install -y libzstd-dev ccache
-
-      - name: Install Catch2
-        run: |
-          cmake -Bbuild -H. -DBUILD_TESTING=OFF
-          sudo cmake --build build/ --target install -j2
-        working-directory: ./Catch2
-
-      - name: Configure and build
-        run: |
-          cmake -Bbuild
-          cmake --build build -j2
-
-      - name: run tests
-        run: |
-          ctest --output-on-failure --test-dir build/tests -j2
+          pixi run configure-tests
+          pixi run build-only -j2
+          pixi run tests -j2    

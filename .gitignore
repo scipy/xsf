@@ -31,21 +31,15 @@
 *.out
 *.app
 
-# CMake stuff
-CMakeLists.txt.user
-CMakeCache.txt
-CMakeFiles
-CMakeScripts
-Testing
-Makefile
-cmake_install.cmake
-install_manifest.txt
-compile_commands.json
-CTestTestfile.cmake
-_deps
-CMakeUserPresets.json
-*.cmake
-DartConfiguration.tcl
+# cmake build
+build/
 
 # test executable extension
-build/
+*.test
+
+# pixi environments
+.pixi
+*.egg-info
+
+# xsref
+xsref/

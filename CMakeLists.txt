@@ -7,5 +7,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Tests
-enable_testing()
-add_subdirectory(tests)
+option(BUILD_TESTS "Build the tests" OFF)
+
+if(BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
