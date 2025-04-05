@@ -34,7 +34,7 @@ namespace detail {
             pd = ep;
         } else {
             if (x == 0.0) {
-                if ((va0 <= 0.0) && (va0 == (int) va0)) {
+                if ((va0 <= 0.0) && (va0 == (int)va0)) {
                     pd = 0.0;
                 } else {
                     ga0 = specfun::gamma2(va0);
@@ -165,7 +165,7 @@ namespace detail {
         T va0 = 1.0 + 0.5 * va;
 
         if (x == 0.0) {
-            if (((va0 <= 0.0) && (va0 == (int) va0)) || va == 0.0) {
+            if (((va0 <= 0.0) && (va0 == (int)va0)) || va == 0.0) {
                 pv = 0.0;
             } else {
                 vb0 = -0.5 * va;
@@ -225,7 +225,7 @@ namespace detail {
         xa = fabs(x);
         vh = v;
         v += copysign(1.0, v);
-        nv = (int) v;
+        nv = (int)v;
         v0 = v - nv;
         na = abs(nv);
         ep = exp(-0.25 * x * x);
@@ -282,7 +282,7 @@ namespace detail {
                 if (nv == 0) {
                     v2 -= 1.0;
                 }
-                nk = (int) (-v2);
+                nk = (int)(-v2);
                 f1 = dvsa(x, v2);
                 v1 = v2 + 1.0;
                 f0 = dvsa(x, v1);
@@ -360,7 +360,7 @@ namespace detail {
         xa = fabs(x);
         vh = v;
         v += copysign(1.0, v);
-        nv = (int) v;
+        nv = (int)v;
         v0 = v - nv;
         na = abs(nv);
         qe = exp(0.25 * x * x);
@@ -415,7 +415,7 @@ namespace detail {
                 }
                 f1 = vvsa(x, v2);
                 v1 = v2 - 1.0;
-                kv = (int) v2;
+                kv = (int)v2;
                 f0 = vvsa(x, v1);
                 vv[kv] = f1;
                 vv[kv - 1] = f0;
@@ -626,8 +626,8 @@ void pbdv(T v, T x, T &pdf, T &pdd) {
         pdd = std::numeric_limits<T>::quiet_NaN();
     } else {
         /* NB. Indexing of DV/DP in specfun.f:PBDV starts from 0, hence +2 */
-        num = std::abs((int) v) + 2;
-        dv = (T *) malloc(sizeof(T) * 2 * num);
+        num = std::abs((int)v) + 2;
+        dv = (T *)malloc(sizeof(T) * 2 * num);
         if (dv == NULL) {
             set_error("pbdv", SF_ERROR_MEMORY, "memory allocation error");
             pdf = std::numeric_limits<T>::quiet_NaN();
@@ -651,8 +651,8 @@ void pbvv(T v, T x, T &pvf, T &pvd) {
         pvd = std::numeric_limits<T>::quiet_NaN();
     } else {
         /* NB. Indexing of DV/DP in specfun.f:PBVV starts from 0, hence +2 */
-        num = std::abs((int) v) + 2;
-        vv = (T *) malloc(sizeof(T) * 2 * num);
+        num = std::abs((int)v) + 2;
+        vv = (T *)malloc(sizeof(T) * 2 * num);
         if (vv == NULL) {
             set_error("pbvv", SF_ERROR_MEMORY, "memory allocation error");
             pvf = std::numeric_limits<T>::quiet_NaN();

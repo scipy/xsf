@@ -8,11 +8,12 @@ fs::path tables_path{fs::path(XSREF_TABLES_PATH) / "scipy_special_tests" / "shic
 
 TEST_CASE("shichi d->dd scipy_special_tests", "[shichi][d->dd][scipy_special_tests]") {
     SET_FP_FORMAT()
-    auto [input, output, tol] =
-        GENERATE(xsf_test_cases<double, std::tuple<double, double, bool>, std::tuple<double, double>>(
+    auto [input, output, tol] = GENERATE(
+        xsf_test_cases<double, std::tuple<double, double, bool>, std::tuple<double, double>>(
             tables_path / "In_d-d_d.parquet", tables_path / "Out_d-d_d.parquet",
             tables_path / ("Err_d-d_d_" + get_platform_str() + ".parquet")
-        ));
+        )
+    );
 
     auto x = input;
     auto [desired0, desired1, fallback] = output;
@@ -36,13 +37,14 @@ TEST_CASE("shichi d->dd scipy_special_tests", "[shichi][d->dd][scipy_special_tes
 
 TEST_CASE("shichi D->DD scipy_special_tests", "[shichi][D->DD][scipy_special_tests]") {
     SET_FP_FORMAT()
-    auto [input, output, tol] =
-        GENERATE(xsf_test_cases<
-                 std::complex<double>, std::tuple<std::complex<double>, std::complex<double>, bool>,
-                 std::tuple<double, double>>(
+    auto [input, output, tol] = GENERATE(
+        xsf_test_cases<
+            std::complex<double>, std::tuple<std::complex<double>, std::complex<double>, bool>,
+            std::tuple<double, double>>(
             tables_path / "In_cd-cd_cd.parquet", tables_path / "Out_cd-cd_cd.parquet",
             tables_path / ("Err_cd-cd_cd_" + get_platform_str() + ".parquet")
-        ));
+        )
+    );
 
     auto x = input;
     auto [desired0, desired1, fallback] = output;

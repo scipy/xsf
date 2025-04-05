@@ -495,7 +495,8 @@ struct sph_legendre_p_initializer_m_abs_m {
     T theta_sin;
 
     sph_legendre_p_initializer_m_abs_m(bool m_signbit, T theta)
-        : m_signbit(m_signbit), theta(theta), theta_sin(sin(theta)) {}
+        : m_signbit(m_signbit), theta(theta), theta_sin(sin(theta)) {
+    }
 
     void operator()(T (&res)[2]) const {
         T fac0 = T(1) / (T(2) * sqrt(T(M_PI)));
@@ -514,7 +515,8 @@ struct sph_legendre_p_recurrence_m_abs_m {
     T theta;
     T theta_sin;
 
-    sph_legendre_p_recurrence_m_abs_m(T theta) : theta(theta), theta_sin(sin(theta)) {}
+    sph_legendre_p_recurrence_m_abs_m(T theta) : theta(theta), theta_sin(sin(theta)) {
+    }
 
     void operator()(int m, T (&res)[2]) const {
         int m_abs = abs(m);
@@ -552,7 +554,8 @@ struct sph_legendre_p_initializer_n {
     T theta;
     T theta_cos;
 
-    sph_legendre_p_initializer_n(int m, T theta) : m(m), theta(theta), theta_cos(cos(theta)) {}
+    sph_legendre_p_initializer_n(int m, T theta) : m(m), theta(theta), theta_cos(cos(theta)) {
+    }
 
     void operator()(const T &res_m_abs_m, T (&res)[2]) const {
         T fac = sqrt(T(2 * abs(m) + 3));
@@ -568,7 +571,8 @@ struct sph_legendre_p_recurrence_n {
     T theta;
     T theta_cos;
 
-    sph_legendre_p_recurrence_n(int m, T theta) : m(m), theta(theta), theta_cos(cos(theta)) {}
+    sph_legendre_p_recurrence_n(int m, T theta) : m(m), theta(theta), theta_cos(cos(theta)) {
+    }
 
     void operator()(int n, T (&res)[2]) const {
         using value_type = remove_dual_t<T>;
@@ -798,7 +802,7 @@ void lqn(std::complex<T> z, OutputVec1 cqn, OutputVec2 cqd) {
         if (abs(z) > 1.1) {
             km = 40 + n;
         } else {
-            km = (int) ((40 + n) * floor(-1.0 - 1.8 * log(abs(z - static_cast<T>(1)))));
+            km = (int)((40 + n) * floor(-1.0 - 1.8 * log(abs(z - static_cast<T>(1)))));
         }
 
         cqf2 = 0.0;
@@ -877,7 +881,7 @@ void lqmn(T x, OutputMat1 qm, OutputMat2 qd) {
         if (fabs(x) > 1.1) {
             km = 40 + m + n;
         } else {
-            km = (40 + m + n) * ((int) (-1. - 1.8 * log(x - 1.)));
+            km = (40 + m + n) * ((int)(-1. - 1.8 * log(x - 1.)));
         }
         qf2 = 0.0;
         qf1 = 1.0;
@@ -1003,7 +1007,7 @@ void lqmn(std::complex<T> z, OutputMat1 cqm, OutputMat2 cqd) {
         if (xc > 1.1) {
             km = 40 + m + n;
         } else {
-            km = (40 + m + n) * ((int) (-1.0 - 1.8 * log(xc - 1.)));
+            km = (40 + m + n) * ((int)(-1.0 - 1.8 * log(xc - 1.)));
         }
         cqf2 = 0.0;
         cqf1 = 1.0;
