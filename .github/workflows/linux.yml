@@ -1,4 +1,4 @@
-name: Linux Tests
+name: Tests
 
 on: [ push, pull_request ]
 
@@ -13,11 +13,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  gcc_x86_64_linux:
-    name: GCC X86_64 Linux
-    runs-on: ubuntu-22.04
+  tests:
+    name: ${{ matrix.environment }} ${{ matrix.runs-on }}
+    runs-on: ${{ matrix.runs-on }}
     env:
       XSREF_TABLES_PATH: "${{ github.workspace }}/xsref/tables"
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [tests-ci]
+        runs-on: [ubuntu-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -25,8 +30,6 @@ jobs:
         with:
           pixi-version: v0.44.0
           cache: true
+          environments: ${{ matrix.environment }}
       - name: Run tests
-        run: |
-          pixi run configure-tests
-          pixi run build-only -j2
-          pixi run tests -j2    
+        run: pixi run --environment=tests-ci tests-ci
