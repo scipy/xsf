@@ -86,6 +86,9 @@ configure-coverage.cmd = [
 ]
 configure-coverage.cwd = "."
 configure-coverage.env.XSREF_TABLES_PATH = "$PWD/xsref/tables"
+# Open coverage report
+open-coverage.cmd = ["open", "index.html"]
+open-coverage.cwd = "build/coverage_report"
 
 ## Tests CI
 
