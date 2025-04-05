@@ -32,4 +32,4 @@ jobs:
           cache: true
           environments: ${{ matrix.environment }}
       - name: Run tests
-        run: pixi run tests-ci
+        run: pixi run --environment=tests-ci tests-ci

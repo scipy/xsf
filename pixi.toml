@@ -106,4 +106,4 @@ tests-ci.cwd = "."
 
 [environments]
 default = { features = ["build", "tests"], solve-group = "default" }
-tests-ci = { features = ["tests-ci"], solve-group = "default" }
+tests-ci = { features = ["build", "tests", "tests-ci"], solve-group = "default" }
