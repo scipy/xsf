@@ -38,7 +38,6 @@ depends-on = ["configure", "build-only"]
 
 [feature.tests.dependencies]
 catch2 = ">=3.8.0,<4"
-ccache = ">=4.11.2,<5"
 libarrow-all = ">=19.0.1,<20"
 
 [feature.tests.tasks]
@@ -63,9 +62,22 @@ configure-tests.env.XSREF_TABLES_PATH = "$PWD/xsref/tables"
 # build for tests
 build-tests.depends-on = ["configure-tests", "build-only"]
 # run tests
-tests.cmd = "ctest --output-on-failure --test-dir build/tests"
+tests.cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests"]
 tests.depends-on = ["clone-xsref", "build-tests"]
 tests.cwd = "."
+
+[feature.tests-ci.dependencies]
+ccache = ">=4.11.2,<5"
+
+[feature.tests-ci.tasks]
+build-tests-ci.cmd = ["cmake", "--build", "build", "-j3"]
+build-tests-ci.depends-on = ["clone-xsref", "configure-tests"]
+build-tests-ci.cwd = "."
+
+# run tests
+tests-ci.cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests", "-j3"]
+tests-ci.depends-on = ["build-tests-ci"]
+tests-ci.cwd = "."
 
 ## Coverage
 
@@ -93,4 +105,5 @@ tests.cwd = "."
 # cmd = "ctest"
 
 [environments]
-default = ["build", "tests"]
+default = { features = ["build", "tests"], solve-group = "default" }
+tests-ci = { features = ["tests-ci"], solve-group = "default" }

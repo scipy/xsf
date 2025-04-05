@@ -70,6 +70,10 @@ class TableReader {
             V imag;
             *stream_ >> real >> imag;
             element = U(real, imag);
+        } else if constexpr (std::is_same_v<U, long>) {
+            int64_t temp;
+            *stream_ >> temp;
+            element = static_cast<U>(temp);
         } else {
             *stream_ >> element;
         }
@@ -127,13 +131,11 @@ Catch::Generators::GeneratorWrapper<std::tuple<T1, T2, T3>> xsf_test_cases(
     );
 }
 
-
 template <typename T>
 T adjust_tolerance(T tol) {
     // Add some wiggle room to tolerance from table.
     return 4 * std::max(std::numeric_limits<T>::epsilon(), tol);
 }
-
 
 std::string get_platform_str() {
     /* This is going to get a string "<compiler>-<os>-<architecture>" using conditional
@@ -141,11 +143,8 @@ std::string get_platform_str() {
     return "gcc-linux-x86_64";
 }
 
-
-
 } // namespace
 
-
-#define SET_FP_FORMAT()							\
-    Catch::StringMaker<double>::precision = std::numeric_limits<double>::max_digits10; \
+#define SET_FP_FORMAT()                                                                                                \
+    Catch::StringMaker<double>::precision = std::numeric_limits<double>::max_digits10;                                 \
     Catch::StringMaker<float>::precision = std::numeric_limits<float>::max_digits10;
