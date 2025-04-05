@@ -70,10 +70,10 @@ class TableReader {
             V imag;
             *stream_ >> real >> imag;
             element = U(real, imag);
-        } else if constexpr (std::is_same_v<U, long>) {
-            int64_t temp;
-            *stream_ >> temp;
-            element = static_cast<U>(temp);
+        } else if constexpr (std::is_same_v<U, std::ptrdiff_t>) {
+            std::int64_t val;
+            *stream_ >> val;
+            element = static_cast<std::ptrdiff_t>(val);
         } else {
             *stream_ >> element;
         }
