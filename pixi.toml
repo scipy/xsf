@@ -70,6 +70,7 @@ tests.cwd = "."
 ccache = ">=4.11.2,<5"
 
 [feature.tests-ci.tasks]
+# TODO: use a task arg for parallelism https://github.com/prefix-dev/pixi/pull/3433
 build-tests-ci.cmd = ["cmake", "--build", "build", "-j3"]
 build-tests-ci.depends-on = ["clone-xsref", "configure-tests"]
 build-tests-ci.cwd = "."
