@@ -67,6 +67,10 @@ tests.cmd = "ctest --output-on-failure --test-dir build/tests"
 tests.depends-on = ["clone-xsref", "build-tests"]
 tests.cwd = "."
 
+[feature.clang-format.dependencies]
+git = "*"
+clang-format = "*"
+
 ## Coverage
 
 # [feature.coverage.dependencies]
@@ -94,3 +98,4 @@ tests.cwd = "."
 
 [environments]
 default = ["build", "tests"]
+lint = ["clang-format"]
