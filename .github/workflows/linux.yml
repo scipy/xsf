@@ -26,4 +26,7 @@ jobs:
           pixi-version: v0.44.0
           cache: true
       - name: Run tests
-        run: pixi run tests
+        run: |
+          pixi run configure-tests
+          pixi run build-only -j2
+          pixi run tests -j2    
