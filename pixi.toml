@@ -66,6 +66,15 @@ tests.cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests"]
 tests.depends-on = ["clone-xsref", "build-tests"]
 tests.cwd = "."
 
+## clang-format
+
+[feature.clang-format.dependencies]
+git = "*"
+clang-format = "*"
+
+[feature.clang-format.tasks]
+format = "git ls-files '*.cpp' '*.h' | xargs clang-format -i --style=file"
+
 ## Coverage
 
 [feature.coverage.dependencies]
@@ -125,3 +134,4 @@ coverage.cwd = "."
 [environments]
 default = { features = ["build", "tests"], solve-group = "default" }
 tests-ci = { features = ["build", "tests", "tests-ci", "coverage"], solve-group = "default" }
+lint = { features = ["clang-format"], solve-group = "default" }
