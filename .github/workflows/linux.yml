@@ -53,3 +53,7 @@ jobs:
         with:
           name: cov-html
           path: build/coverage_report/**
+        run: pixi run --environment=tests-ci tests-ci
+      - name: Ccache performance
+        shell: bash -l {0}
+        run: pixi run --environment=tests-ci ccache -s
