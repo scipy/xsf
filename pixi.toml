@@ -98,14 +98,19 @@ ccache = ">=4.11.2,<5"
 [feature.tests-ci.tasks]
 # Build and generate coverage report
 # TODO: use a task arg for parallelism https://github.com/prefix-dev/pixi/pull/3433
-build-tests-ci.cmd = ["cmake", "--build", "build", "--target", "coverage_html", "-j3"]
+build-tests-ci.cmd = ["cmake", "--build", "build", "-j3"]
 build-tests-ci.depends-on = ["clone-xsref", "configure-coverage"]
 build-tests-ci.cwd = "."
 # Run tests
 tests-ci.cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests", "-j3"]
 tests-ci.depends-on = ["build-tests-ci"]
 tests-ci.cwd = "."
-
+# Coverage
+coverage.cmd = ["cmake", "--build", "build", "--target", "coverage_html", "-j3"]
+coverage.depends-on = ["tests-ci"]
+coverage.cwd = "."
+# Tests and coverage
+tests-coverage-ci.depends-on = ["coverage"]
 
 [environments]
 default = { features = ["build", "tests"], solve-group = "default" }
