@@ -86,6 +86,8 @@ configure-coverage.cmd = [
 ]
 configure-coverage.cwd = "."
 configure-coverage.env.XSREF_TABLES_PATH = "$PWD/xsref/tables"
+configure-coverage.env.CC = "ccache $CC"
+configure-coverage.env.CXX = "ccache $CXX"
 # Open coverage report
 open-coverage.cmd = ["open", "index.html"]
 open-coverage.cwd = "build/coverage_report"
