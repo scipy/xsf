@@ -113,7 +113,7 @@ XSF_HOST_DEVICE inline std::complex<double> loggamma(std::complex<double> z) {
     if (std::isnan(z.real()) || std::isnan(z.imag())) {
         return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
     }
-    if (z.real() <= 0 and z == std::floor(z.real())) {
+    if (z.real() <= 0 && z == std::floor(z.real())) {
         set_error("loggamma", SF_ERROR_SINGULAR, NULL);
         return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
     }

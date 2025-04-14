@@ -151,7 +151,7 @@ namespace detail {
 
         if (std::abs(u) >= std::abs(w)) {
             // u has greatest absolute value. Absorb ugh into the others.
-            if (std::abs((v_prime - u_prime) * (v - 0.5)) < 100 * ugh and v > 100) {
+            if (std::abs((v_prime - u_prime) * (v - 0.5)) < 100 * ugh && v > 100) {
                 /* Special case where base is close to 1. Condition taken from
                  * Boost's beta function implementation. */
                 result *= std::exp((v - 0.5) * std::log1p((v_prime - u_prime) / ugh));
@@ -159,30 +159,30 @@ namespace detail {
                 result *= std::pow(vgh / ugh, v - 0.5);
             }
 
-            if (std::abs((u_prime - w_prime) * (w - 0.5)) < 100 * wgh and u > 100) {
+            if (std::abs((u_prime - w_prime) * (w - 0.5)) < 100 * wgh && u > 100) {
                 result *= std::exp((w - 0.5) * std::log1p((u_prime - w_prime) / wgh));
             } else {
                 result *= std::pow(ugh / wgh, w - 0.5);
             }
 
-            if (std::abs((u_prime - x_prime) * (x - 0.5)) < 100 * xgh and u > 100) {
+            if (std::abs((u_prime - x_prime) * (x - 0.5)) < 100 * xgh && u > 100) {
                 result *= std::exp((x - 0.5) * std::log1p((u_prime - x_prime) / xgh));
             } else {
                 result *= std::pow(ugh / xgh, x - 0.5);
             }
         } else {
             // w has greatest absolute value. Absorb wgh into the others.
-            if (std::abs((u_prime - w_prime) * (u - 0.5)) < 100 * wgh and u > 100) {
+            if (std::abs((u_prime - w_prime) * (u - 0.5)) < 100 * wgh && u > 100) {
                 result *= std::exp((u - 0.5) * std::log1p((u_prime - w_prime) / wgh));
             } else {
                 result *= pow(ugh / wgh, u - 0.5);
             }
-            if (std::abs((v_prime - w_prime) * (v - 0.5)) < 100 * wgh and v > 100) {
+            if (std::abs((v_prime - w_prime) * (v - 0.5)) < 100 * wgh && v > 100) {
                 result *= std::exp((v - 0.5) * std::log1p((v_prime - w_prime) / wgh));
             } else {
                 result *= std::pow(vgh / wgh, v - 0.5);
             }
-            if (std::abs((w_prime - x_prime) * (x - 0.5)) < 100 * xgh and x > 100) {
+            if (std::abs((w_prime - x_prime) * (x - 0.5)) < 100 * xgh && x > 100) {
                 result *= std::exp((x - 0.5) * std::log1p((w_prime - x_prime) / xgh));
             } else {
                 result *= std::pow(wgh / xgh, x - 0.5);
@@ -539,7 +539,7 @@ XSF_HOST_DEVICE inline std::complex<double> hyp2f1(double a, double b, double c,
     }
     bool a_neg_int = a == std::trunc(a) && a < 0;
     bool b_neg_int = b == std::trunc(b) && b < 0;
-    bool c_non_pos_int = c == std::trunc(c) and c <= 0;
+    bool c_non_pos_int = c == std::trunc(c) && c <= 0;
     /* Diverges when c is a non-positive integer unless a is an integer with
      * c <= a <= 0 or b is an integer with c <= b <= 0, (or z equals 0 with
      * c != 0) Cases z = 0, a = 0, or b = 0 have already been handled. We follow

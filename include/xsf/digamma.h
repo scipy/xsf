@@ -163,7 +163,7 @@ XSF_HOST_DEVICE inline std::complex<double> digamma(std::complex<double> z) {
         return detail::digamma_zeta_series(z, detail::digamma_negroot, detail::digamma_negrootval);
     }
 
-    if (z.real() < 0 and std::abs(z.imag()) < smallabsz) {
+    if (z.real() < 0 && std::abs(z.imag()) < smallabsz) {
         /* Reflection formula for digamma. See
          *
          *https://dlmf.nist.gov/5.5#E4
