@@ -132,15 +132,25 @@ Catch::Generators::GeneratorWrapper<std::tuple<T1, T2, T3>> xsf_test_cases(
 }
 
 template <typename T>
-T adjust_tolerance(T tol) {
+T adjust_tolerance(T tol, T factor = 4) {
     // Add some wiggle room to tolerance from table.
-    return 4 * std::max(std::numeric_limits<T>::epsilon(), tol);
+    return factor * std::max(std::numeric_limits<T>::epsilon(), tol);
 }
 
 std::string get_platform_str() {
-    /* This is going to get a string "<compiler>-<os>-<architecture>" using conditional
-     * compilation, but for now we're just stubbing things out. */
+    /* This should use Boost.Predef
+     * https://www.boost.org/doc/libs/1_87_0/libs/predef/doc/index.html
+     * (Boost isn't a dependency yet but this is planned)
+     * and we should have tolerance files for a wider variety of
+     * compiler/os/architecture combos, including for specific compiler
+     * versions. For now, there are these two platforms with tolerance
+     * files and we use the former with Clang on Mac and the later
+     * otherwise. */
+#if defined(__clang__) && defined(__APPLE__)
+    return "clang-darwin-aarch64";
+#else
     return "gcc-linux-x86_64";
+#endif
 }
 
 } // namespace

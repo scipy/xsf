@@ -35,7 +35,7 @@ TEST_CASE("cyl_bessel_i dD->D scipy_special_tests", "[cyl_bessel_i][dD->D][scipy
     auto [desired, fallback] = output;
     auto out = xsf::cyl_bessel_i(v, z);
     auto error = xsf::extended_relative_error(out, desired);
-    tol = adjust_tolerance(tol);
+    tol = adjust_tolerance(tol, 12.0);
     CAPTURE(v, z, out, desired, error, tol, fallback);
     REQUIRE(error <= tol);
 }

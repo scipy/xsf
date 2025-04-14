@@ -16,8 +16,6 @@ jobs:
   tests:
     name: ${{ matrix.environment }} ${{ matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
-    env:
-      XSREF_TABLES_PATH: "${{ github.workspace }}/xsref/tables"
     strategy:
       fail-fast: false
       matrix:
@@ -25,6 +23,14 @@ jobs:
         runs-on: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
+      - name: Set XSREF_TABLES_PATH
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            echo "XSREF_TABLES_PATH=${{ github.workspace }}\\xsref\\tables" >> $GITHUB_ENV
+          else
+            echo "XSREF_TABLES_PATH=${{ github.workspace }}/xsref/tables" >> $GITHUB_ENV
+          fi
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: prefix-dev/setup-pixi@92815284c57faa15cd896c4d5cfb2d59f32dc43d # v0.8.3
         with:
@@ -32,4 +38,9 @@ jobs:
           cache: true
           environments: ${{ matrix.environment }}
       - name: Run tests
-        run: pixi run --environment=tests-ci tests-ci
+        run: pixi run --environment=tests-ci tests-coverage-ci
+      - name: Upload HTML coverage report
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882  # v4.4.3
+        with:
+          name: cov-html
+          path: build/coverage_report/**

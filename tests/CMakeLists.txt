@@ -8,6 +8,8 @@ target_include_directories(xsf INTERFACE ${CMAKE_SOURCE_DIR}/include)
 
 set(TEST_BASE_DIR "${CMAKE_SOURCE_DIR}/tests")
 
+include(${CMAKE_SOURCE_DIR}/tests/Coverage.cmake)
+
 file(GLOB TEST_SOURCES "*/test_*.cpp")
 foreach(test_file ${TEST_SOURCES})
   # Families of tests go in subfolders of xsf/tests. Test files in different

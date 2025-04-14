@@ -65,44 +65,52 @@ tests.cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests"]
 tests.depends-on = ["clone-xsref", "build-tests"]
 tests.cwd = "."
 
+## Coverage
+
+[feature.coverage.dependencies]
+lcov = ">=1.16,<2"
+
+[feature.coverage.tasks]
+# Configure with tests and coverage
+configure-coverage.cmd = [
+  "cmake",
+  # Enable building tests
+  "-DBUILD_TESTS=ON",
+  # Enable Coverage
+  "-DCMAKE_BUILD_TYPE=Coverage",
+  # The source is in the root directory
+  "-S .",
+  # We want to build in the build directory
+  "-B build",
+]
+configure-coverage.cwd = "."
+configure-coverage.env.XSREF_TABLES_PATH = "$PWD/xsref/tables"
+# Open coverage report
+open-coverage.cmd = ["open", "index.html"]
+open-coverage.cwd = "build/coverage_report"
+
+## Tests CI
+
 [feature.tests-ci.dependencies]
 ccache = ">=4.11.2,<5"
 
 [feature.tests-ci.tasks]
+# Build and generate coverage report
+# TODO: use a task arg for parallelism https://github.com/prefix-dev/pixi/pull/3433
 build-tests-ci.cmd = ["cmake", "--build", "build", "-j3"]
-build-tests-ci.depends-on = ["clone-xsref", "configure-tests"]
+build-tests-ci.depends-on = ["clone-xsref", "configure-coverage"]
 build-tests-ci.cwd = "."
-
-# run tests
+# Run tests
 tests-ci.cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests", "-j3"]
 tests-ci.depends-on = ["build-tests-ci"]
 tests-ci.cwd = "."
-
-## Coverage
-
-# [feature.coverage.dependencies]
-# lcov = ">=1.16,<2"
-
-# [feature.coverage.tasks.configure-coverage]
-# cmd = [
-#     "cmake",
-#     "-DCMAKE_BUILD_TYPE=Coverage",
-#     # The source is in the root directory
-#     "-S .",
-#     # We want to build in the build directory
-#     "-B build",
-# ]
-
-# [feature.coverage.tasks.coverage]
-# depends-on = ["configure-coverage"]
-# cmd = ["cmake", "--build", "build", "--target", "coverage_html"]
-
-# [feature.coverage.tasks.tests-coverage]
-# # Generate the coverage report and then run tests under the same configuration
-# depends-on = ["coverage"]
-# cwd = "build"
-# cmd = "ctest"
+# Coverage
+coverage.cmd = ["cmake", "--build", "build", "--target", "coverage_html", "-j3"]
+coverage.depends-on = ["tests-ci"]
+coverage.cwd = "."
+# Tests and coverage
+tests-coverage-ci.depends-on = ["coverage"]
 
 [environments]
 default = { features = ["build", "tests"], solve-group = "default" }
-tests-ci = { features = ["build", "tests", "tests-ci"], solve-group = "default" }
+tests-ci = { features = ["build", "tests", "tests-ci", "coverage"], solve-group = "default" }
