@@ -27,7 +27,7 @@ cwd = "."
 
 [feature.build.tasks.build-only]
 # Just build without configure
-cmd = ["cmake", "--build", "build"]
+cmd = ["cmake", "--build", "build", "--config", "Release"]
 cwd = "."
 
 [feature.build.tasks.build]
@@ -97,7 +97,7 @@ ccache = ">=4.11.2,<5"
 [feature.tests-ci.tasks]
 # Build and generate coverage report
 # TODO: use a task arg for parallelism https://github.com/prefix-dev/pixi/pull/3433
-build-tests-ci.cmd = ["cmake", "--build", "build", "-j3"]
+build-tests-ci.cmd = ["cmake", "--build", "build", "-j3", "--config", "Release"]
 build-tests-ci.depends-on = ["clone-xsref", "configure-coverage"]
 build-tests-ci.cwd = "."
 # Run tests
@@ -105,7 +105,10 @@ tests-ci.cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests", "-j
 tests-ci.depends-on = ["build-tests-ci"]
 tests-ci.cwd = "."
 # Coverage
-coverage.cmd = ["cmake", "--build", "build", "--target", "coverage_html", "-j3"]
+coverage.cmd = [
+	     "cmake", "--build", "build", "--target", "coverage_html", "-j3",
+	     "--config", "Release"
+	     ]
 coverage.depends-on = ["tests-ci"]
 coverage.cwd = "."
 # Tests and coverage
