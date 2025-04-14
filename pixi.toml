@@ -117,8 +117,7 @@ coverage.cmd = [
 ]
 coverage.depends-on = ["tests-ci"]
 coverage.cwd = "."
-# Tests and coverage
-tests-coverage-ci.depends-on = ["coverage"]
+
 
 [environments]
 default = { features = ["build", "tests"], solve-group = "default" }

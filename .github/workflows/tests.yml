@@ -29,8 +29,12 @@ jobs:
           pixi-version: v0.45.0
           cache: true
           environments: ${{ matrix.environment }}
+      - name: Build xsf
+        run: pixi run --environment=tests-ci build-tests-ci
       - name: Run tests
-        run: pixi run --environment=tests-ci tests-coverage-ci
+        run: pixi run --skip-deps --environment=tests-ci tests-ci
+      - name: Generate converage
+        run: pixi run --skip-deps --environment=tests-ci coverage
       - name: Upload HTML coverage report
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882  # v4.4.3
         with:
