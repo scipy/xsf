@@ -106,9 +106,15 @@ tests-ci.depends-on = ["build-tests-ci"]
 tests-ci.cwd = "."
 # Coverage
 coverage.cmd = [
-	     "cmake", "--build", "build", "--target", "coverage_html", "-j3",
-	     "--config", "Release"
-	     ]
+  "cmake",
+  "--build",
+  "build",
+  "--target",
+  "coverage_html",
+  "-j3",
+  "--config",
+  "Release",
+]
 coverage.depends-on = ["tests-ci"]
 coverage.cwd = "."
 # Tests and coverage
