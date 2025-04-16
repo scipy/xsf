@@ -16,25 +16,27 @@ jobs:
   tests:
     name: ${{ matrix.environment }} ${{ matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
-    env:
-      XSREF_TABLES_PATH: "${{ github.workspace }}/xsref/tables"
     strategy:
       fail-fast: false
       matrix:
         environment: [tests-ci]
-        runs-on: [ubuntu-latest, macos-latest]
+        runs-on: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: prefix-dev/setup-pixi@92815284c57faa15cd896c4d5cfb2d59f32dc43d # v0.8.3
         with:
-          pixi-version: v0.44.0
+          pixi-version: v0.45.0
           cache: true
           environments: ${{ matrix.environment }}
+      - name: Build xsf
+        run: pixi run --environment=tests-ci build-tests-ci
       - name: Run tests
-        run: pixi run --environment=tests-ci tests-coverage-ci
+        run: pixi run --skip-deps --environment=tests-ci tests-ci
+      - name: Generate converage
+        run: pixi run --skip-deps --environment=tests-ci coverage
       - name: Upload HTML coverage report
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882  # v4.4.3
         with:
-          name: cov-html
+          name: cov-html-${{ matrix.runs-on }}
           path: build/coverage_report/**

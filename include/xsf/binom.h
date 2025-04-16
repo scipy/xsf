@@ -54,7 +54,7 @@ XSF_HOST_DEVICE inline double binom(double n, double k) {
     }
 
     // general case
-    if (n >= 1E10 * k and k > 0) {
+    if (n >= 1E10 * k && k > 0) {
         // avoid under/overflows intermediate results
         return std::exp(-cephes::lbeta(1 + n - k, 1 + k) - std::log(n + 1));
     }

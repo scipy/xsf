@@ -1,9 +1,4 @@
-if(NOT DEFINED ENV{XSREF_TABLES_PATH})
-    message(FATAL_ERROR "XSREF_TABLES_PATH environment variable is not set. Specify the path to xsref/tables in your environment.")
-endif()
-
-set(XSREF_TABLES_PATH $ENV{XSREF_TABLES_PATH})
-
+set(XSREF_TABLES_PATH "${CMAKE_SOURCE_DIR}/xsref/tables")
 find_package(Catch2 3 REQUIRED)
 find_package(Arrow REQUIRED)
 find_package(Parquet REQUIRED)
