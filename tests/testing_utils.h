@@ -146,7 +146,7 @@ std::string get_platform_str() {
      * versions. For now, there are these two platforms with tolerance
      * files and we use the former with Clang on Mac and the later
      * otherwise. */
-#if defined(__clang__) && defined(__APPLE__) && defined(__arch64__)
+#if defined(__clang__) && defined(__APPLE__) && defined(__aarch64__)
     return "clang-darwin-aarch64";
 #elif defined(__GNUG__) && !defined(__clang__) && defined(__linux__) && defined(__x86_64__)
     return "gcc-linux-x86_64";
