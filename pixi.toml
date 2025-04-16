@@ -101,7 +101,6 @@ ccache = ">=4.11.2,<5"
 # Build and generate coverage report
 # TODO: use a task arg for parallelism https://github.com/prefix-dev/pixi/pull/3433
 build-tests-ci.cmd = ["cmake", "--build", "build", "-j3"]
-build-tests-ci.env = { CC = "ccache $CC", CXX = "ccache $CXX" }
 build-tests-ci.depends-on = ["clone-xsref", "configure-coverage"]
 build-tests-ci.cwd = "."
 # Run tests
