@@ -1,6 +1,6 @@
 #include "../testing_utils.h"
 
-#include <xsf/cephes/cbrt.h>
+#include <xsf/alg.h>
 
 namespace fs = std::filesystem;
 
@@ -15,7 +15,7 @@ TEST_CASE("cephes::cbrt d->d scipy_special_tests", "[cephes::cbrt][d->d][scipy_s
 
     auto x = input;
     auto [desired, fallback] = output;
-    auto out = xsf::cephes::cbrt(x);
+    auto out = xsf::cbrt(x);
     auto error = xsf::extended_relative_error(out, desired);
     tol = adjust_tolerance(tol);
     CAPTURE(x, out, desired, error, tol, fallback);
