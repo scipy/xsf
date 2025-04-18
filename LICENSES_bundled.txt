@@ -1,7 +1,7 @@
 xsf bundles several libraries that are compatibly licensed. We list these here.
 
 Name: Cephes
-Files: inlcude/xsf/cephes/*
+Files: include/xsf/cephes/*
 License: BSD-3-Clause
   Distributed under 3-clause BSD license with permission from the author,
   see https://lists.debian.org/debian-legal/2004/12/msg00295.html
