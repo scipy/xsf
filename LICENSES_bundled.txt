@@ -116,4 +116,4 @@ License: BSD-3-Clause-LBNL
 Name: mdspan
 Files: include/xsf/third_party/kokkos/mdspan.hpp
 License: Apache-2.0 WITH LLVM-exception
-  For details, see scipy/special/special/third_party/kokkos/mdspan.hpp
+  For details, see include/xsf/third_party/kokkos/mdspan.hpp
