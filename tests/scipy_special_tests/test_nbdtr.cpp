@@ -6,14 +6,14 @@ namespace fs = std::filesystem;
 
 fs::path tables_path{fs::path(XSREF_TABLES_PATH) / "scipy_special_tests" / "nbdtr"};
 
-
 TEST_CASE("nbdtr ppd->d scipy_special_tests", "[nbdtr][ppd->d][scipy_special_tests]") {
     SET_FP_FORMAT()
-    auto [input, output, tol] =
-        GENERATE(xsf_test_cases<std::tuple<std::ptrdiff_t, std::ptrdiff_t, double>, std::tuple<double, bool>, double>(
+    auto [input, output, tol] = GENERATE(
+        xsf_test_cases<std::tuple<std::ptrdiff_t, std::ptrdiff_t, double>, std::tuple<double, bool>, double>(
             tables_path / "In_p_p_d-d.parquet", tables_path / "Out_p_p_d-d.parquet",
             tables_path / ("Err_p_p_d-d_" + get_platform_str() + ".parquet")
-        ));
+        )
+    );
 
     auto [k, n, p] = input;
     auto [desired, fallback] = output;

@@ -5,9 +5,13 @@
 
 namespace xsf {
 
-inline double log1p(double x) { return cephes::log1p(x); }
+inline double log1p(double x) {
+    return cephes::log1p(x);
+}
 
-inline float log1p(float x) { return log1p(static_cast<double>(x)); }
+inline float log1p(float x) {
+    return log1p(static_cast<double>(x));
+}
 
 inline std::complex<double> clog1p_ddouble(double zr, double zi) {
     double x, y;
@@ -76,9 +80,13 @@ inline std::complex<float> log1p(std::complex<float> z) {
     return static_cast<std::complex<float>>(log1p(static_cast<std::complex<double>>(z)));
 }
 
-inline double log1pmx(double x) { return cephes::log1pmx(x); }
+inline double log1pmx(double x) {
+    return cephes::log1pmx(x);
+}
 
-inline float log1pmx(float x) { return log1pmx(static_cast<double>(x)); }
+inline float log1pmx(float x) {
+    return log1pmx(static_cast<double>(x));
+}
 
 template <typename T>
 T xlogy(T x, T y) {
