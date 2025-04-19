@@ -1,8 +1,8 @@
 #pragma once
 
-#include "faddeeva.h"
 #include "cephes/ndtr.h"
 #include "config.h"
+#include "faddeeva.h"
 
 namespace xsf {
 

@@ -197,9 +197,7 @@ namespace cephes {
          * Compute zetac for small negative x. We can't use the reflection
          * formula because to double precision 1 - x = 1 and zetac(1) = inf.
          */
-        XSF_HOST_DEVICE inline double zetac_smallneg(double x) {
-            return xsf::cephes::polevl(x, zetac_TAYLOR0, 9);
-        }
+        XSF_HOST_DEVICE inline double zetac_smallneg(double x) { return xsf::cephes::polevl(x, zetac_TAYLOR0, 9); }
 
         /*
          * Compute zetac using the reflection formula (see DLMF 25.4.2) plus

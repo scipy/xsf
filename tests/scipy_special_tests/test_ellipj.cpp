@@ -8,12 +8,14 @@ fs::path tables_path{fs::path(XSREF_TABLES_PATH) / "scipy_special_tests" / "elli
 
 TEST_CASE("ellipj dd->dddd scipy_special_tests", "[ellipj][dd->dddd][scipy_special_tests]") {
     SET_FP_FORMAT()
-    auto [input, output, tol] = GENERATE(xsf_test_cases<
-                                         std::tuple<double, double>, std::tuple<double, double, double, double, bool>,
-                                         std::tuple<double, double, double, double>>(
-        tables_path / "In_d_d-d_d_d_d.parquet", tables_path / "Out_d_d-d_d_d_d.parquet",
-        tables_path / ("Err_d_d-d_d_d_d_" + get_platform_str() + ".parquet")
-    ));
+    auto [input, output, tol] = GENERATE(
+        xsf_test_cases<
+            std::tuple<double, double>, std::tuple<double, double, double, double, bool>,
+            std::tuple<double, double, double, double>>(
+            tables_path / "In_d_d-d_d_d_d.parquet", tables_path / "Out_d_d-d_d_d_d.parquet",
+            tables_path / ("Err_d_d-d_d_d_d_" + get_platform_str() + ".parquet")
+        )
+    );
 
     auto [u, m] = input;
     auto [desired0, desired1, desired2, desired3, fallback] = output;

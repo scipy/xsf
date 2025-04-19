@@ -74,17 +74,15 @@ namespace cephes {
 
     namespace detail {
 
-	/* Compute (u * v) * w, disabling optimizations for gcc on 32 bit systems.
-	 * Used below in incbet_pseries to prevent aggressive optimizations from
-	 * degrading accuracy.
-	 */
+        /* Compute (u * v) * w, disabling optimizations for gcc on 32 bit systems.
+         * Used below in incbet_pseries to prevent aggressive optimizations from
+         * degrading accuracy.
+         */
 #if defined(__GNUC__) && defined(__i386__)
 #pragma GCC push_options
 #pragma GCC optimize("00")
 #endif
-	XSF_HOST_DEVICE inline double triple_product(double u, double v, double w) {
-	    return (u * v) * w;
-	}
+        XSF_HOST_DEVICE inline double triple_product(double u, double v, double w) { return (u * v) * w; }
 #if defined(__GNUC__) && defined(__i386__)
 #pragma GCC pop_options
 #endif
