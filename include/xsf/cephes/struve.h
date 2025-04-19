@@ -125,7 +125,7 @@ namespace cephes {
             } else if (m > STRUVE_MAXITER) {
                 maxiter = STRUVE_MAXITER;
             } else {
-                maxiter = (int) m;
+                maxiter = (int)m;
             }
             if (maxiter == 0) {
                 *err = std::numeric_limits<double>::infinity();

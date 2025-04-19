@@ -182,7 +182,7 @@ namespace detail {
             fac = 1.0;
             for (int k = 1; k <= km; k++) {
                 fac = -fac;
-                xt = 0.25 * k * pi - (int) (0.125 * k) * 2.0 * pi;
+                xt = 0.25 * k * pi - (int)(0.125 * k) * 2.0 * pi;
                 cs = cos(xt);
                 ss = sin(xt);
                 r1 = 0.125 * r1 * (4.0 - pow(2.0 * k - 1.0, 2)) / (k * x);

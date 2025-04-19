@@ -798,7 +798,7 @@ void lqn(std::complex<T> z, OutputVec1 cqn, OutputVec2 cqd) {
         if (abs(z) > 1.1) {
             km = 40 + n;
         } else {
-            km = (int) ((40 + n) * floor(-1.0 - 1.8 * log(abs(z - static_cast<T>(1)))));
+            km = (int)((40 + n) * floor(-1.0 - 1.8 * log(abs(z - static_cast<T>(1)))));
         }
 
         cqf2 = 0.0;
@@ -877,7 +877,7 @@ void lqmn(T x, OutputMat1 qm, OutputMat2 qd) {
         if (fabs(x) > 1.1) {
             km = 40 + m + n;
         } else {
-            km = (40 + m + n) * ((int) (-1. - 1.8 * log(x - 1.)));
+            km = (40 + m + n) * ((int)(-1. - 1.8 * log(x - 1.)));
         }
         qf2 = 0.0;
         qf1 = 1.0;
@@ -1003,7 +1003,7 @@ void lqmn(std::complex<T> z, OutputMat1 cqm, OutputMat2 cqd) {
         if (xc > 1.1) {
             km = 40 + m + n;
         } else {
-            km = (40 + m + n) * ((int) (-1.0 - 1.8 * log(xc - 1.)));
+            km = (40 + m + n) * ((int)(-1.0 - 1.8 * log(xc - 1.)));
         }
         cqf2 = 0.0;
         cqf1 = 1.0;

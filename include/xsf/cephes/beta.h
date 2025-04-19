@@ -161,9 +161,9 @@ namespace cephes {
         b = Gamma(b);
         if (std::isinf(y)) {
             goto overflow;
-	}
+        }
 
-        if (std::abs(std::abs(a*y) - 1.0) > std::abs(std::abs(b*y) - 1.0)) {
+        if (std::abs(std::abs(a * y) - 1.0) > std::abs(std::abs(b * y) - 1.0)) {
             y = b * y;
             y *= a;
         } else {
@@ -239,7 +239,7 @@ namespace cephes {
             return (sign * std::numeric_limits<double>::infinity());
         }
 
-        if (std::abs(std::abs(a*y) - 1.0) > std::abs(std::abs(b*y) - 1.0)) {
+        if (std::abs(std::abs(a * y) - 1.0) > std::abs(std::abs(b * y) - 1.0)) {
             y = b * y;
             y *= a;
         } else {

@@ -33,19 +33,19 @@ namespace xsf {
 namespace numpy {
 
     void set_error_check_fpe(const char *func_name) {
-	int status = wrap_PyUFunc_getfperr();
-	if (status & NPY_FPE_DIVIDEBYZERO) {
-	    xsf::set_error(func_name, SF_ERROR_SINGULAR, "floating point division by zero");
-	}
-	if (status & NPY_FPE_OVERFLOW) {
-	    xsf::set_error(func_name, SF_ERROR_UNDERFLOW, "floating point underflow");
-	}
-	if (status & NPY_FPE_UNDERFLOW) {
-	    xsf::set_error(func_name, SF_ERROR_OVERFLOW, "floating point overflow");
-	}
-	if (status & NPY_FPE_INVALID) {
-	    xsf::set_error(func_name, SF_ERROR_DOMAIN, "floating point invalid value");
-	}
+        int status = wrap_PyUFunc_getfperr();
+        if (status & NPY_FPE_DIVIDEBYZERO) {
+            xsf::set_error(func_name, SF_ERROR_SINGULAR, "floating point division by zero");
+        }
+        if (status & NPY_FPE_OVERFLOW) {
+            xsf::set_error(func_name, SF_ERROR_UNDERFLOW, "floating point underflow");
+        }
+        if (status & NPY_FPE_UNDERFLOW) {
+            xsf::set_error(func_name, SF_ERROR_OVERFLOW, "floating point overflow");
+        }
+        if (status & NPY_FPE_INVALID) {
+            xsf::set_error(func_name, SF_ERROR_DOMAIN, "floating point invalid value");
+        }
     }
 
     namespace detail {
@@ -202,8 +202,8 @@ namespace numpy {
     using ld_d = double (*)(long int, double);
     using lF_F = cfloat (*)(long int, cfloat);
     using lD_D = cdouble (*)(long int, cdouble);
-    using Dd_D = cdouble (*) (cdouble, double);
-    using Ff_F = cfloat (*) (cfloat, float);
+    using Dd_D = cdouble (*)(cdouble, double);
+    using Ff_F = cfloat (*)(cfloat, float);
 
     // autodiff, 2 inputs, 1 output
     using autodiff0_if_f = autodiff0_float (*)(int, autodiff0_float);
@@ -793,9 +793,11 @@ namespace numpy {
 
             Func func = static_cast<ufunc_data<Func> *>(data)->func;
             for (npy_intp i = 0; i < dims[0]; ++i) {
-                Res res = func(npy_traits<Args>::get(
-                    args[I], new_dims.data() + ranks_scan[I], steps + ranks_scan[I] + sizeof...(Args) + 1
-                )...);
+                Res res = func(
+                    npy_traits<Args>::get(
+                        args[I], new_dims.data() + ranks_scan[I], steps + ranks_scan[I] + sizeof...(Args) + 1
+                    )...
+                );
                 npy_traits<Res>::set(args[sizeof...(Args)], res); // assign to the output pointer
 
                 for (npy_uintp j = 0; j <= sizeof...(Args); ++j) {
@@ -804,7 +806,7 @@ namespace numpy {
             }
 
             const char *name = static_cast<ufunc_data<Func> *>(data)->name;
-	    set_error_check_fpe(name);
+            set_error_check_fpe(name);
         }
     };
 
@@ -827,9 +829,11 @@ namespace numpy {
 
             Func func = static_cast<ufunc_data<Func> *>(data)->func;
             for (npy_intp i = 0; i < dims[0]; ++i) {
-                func(npy_traits<Args>::get(
-                    args[I], new_dims.data() + ranks_scan[I], steps + ranks_scan[I] + sizeof...(Args)
-                )...);
+                func(
+                    npy_traits<Args>::get(
+                        args[I], new_dims.data() + ranks_scan[I], steps + ranks_scan[I] + sizeof...(Args)
+                    )...
+                );
 
                 for (npy_uintp j = 0; j < sizeof...(Args); ++j) {
                     args[j] += steps[j];
@@ -837,7 +841,7 @@ namespace numpy {
             }
 
             const char *name = static_cast<ufunc_data<Func> *>(data)->name;
-	    set_error_check_fpe(name);
+            set_error_check_fpe(name);
         }
     };
 

@@ -34,10 +34,9 @@ T logit(T x) {
     // log1p(2*(x - 0.5)) - log1p(-2*(x - 0.5)) around p=0.5, which
     // provides very good precision in this interval.
     if (x < 0.3 || x > 0.65) {
-        return std::log(x/(1 - x));
-    }
-    else {
-        T s = 2*(x - 0.5);
+        return std::log(x / (1 - x));
+    } else {
+        T s = 2 * (x - 0.5);
         return std::log1p(s) - std::log1p(-s);
     }
 };
@@ -66,20 +65,19 @@ T log_expit(T x) {
     return -std::log1p(std::exp(-x));
 };
 
-
 /* Compute log(1 - exp(x)). */
 template <typename T>
 T log1mexp(T x) {
     if (x > 0) {
-	set_error("_log1mexp", SF_ERROR_DOMAIN, NULL);
-	return std::numeric_limits<T>::quiet_NaN();
+        set_error("_log1mexp", SF_ERROR_DOMAIN, NULL);
+        return std::numeric_limits<T>::quiet_NaN();
     }
     if (x == 0) {
-	set_error("_log1mexp", SF_ERROR_SINGULAR, NULL);
-	return -std::numeric_limits<T>::infinity();
+        set_error("_log1mexp", SF_ERROR_SINGULAR, NULL);
+        return -std::numeric_limits<T>::infinity();
     }
     if (x < -1) {
-	return std::log1p(-std::exp(x));
+        return std::log1p(-std::exp(x));
     }
     return std::log(-std::expm1(x));
 }
