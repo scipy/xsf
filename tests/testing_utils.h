@@ -50,7 +50,9 @@ class TableReader {
         return row;
     }
 
-    bool eof() const { return stream_->eof(); }
+    bool eof() const {
+        return stream_->eof();
+    }
 
   private:
     void fill_row(T &elements) {
@@ -98,7 +100,9 @@ class XsfTestCaseGenerator final : public Catch::Generators::IGenerator<std::tup
         }
     }
 
-    std::tuple<T1, T2, T3> const &get() const override { return current_case_; }
+    std::tuple<T1, T2, T3> const &get() const override {
+        return current_case_;
+    }
 
     bool next() override {
         if (input_reader_->eof() || output_reader_->eof() || tol_reader_->eof()) {

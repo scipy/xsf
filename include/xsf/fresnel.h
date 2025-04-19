@@ -237,7 +237,7 @@ namespace detail {
                 fi0 = pp2 * (0.5 - s1);
                 f.imag(pow(-1, ks) * fi0);
             } else if (xa < 5.5) {
-                int m = (int) (42 + 1.75 * x2);
+                int m = (int)(42 + 1.75 * x2);
                 xsu = 0.0;
                 xc = 0.0;
                 xs = 0.0;
@@ -306,7 +306,9 @@ namespace detail {
 
 /* Fresnel integrals of complex numbers */
 
-inline void fresnel(double z, double &fs, double &fc) { cephes::fresnl(z, &fs, &fc); }
+inline void fresnel(double z, double &fs, double &fc) {
+    cephes::fresnl(z, &fs, &fc);
+}
 
 inline void fresnel(float z, float &fs, float &fc) {
     double fs_double;

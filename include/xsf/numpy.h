@@ -27,25 +27,27 @@
 /* PyUFunc_getfperr gets bits for current floating point error (fpe) status codes so we
  * can check for floating point errors and make proper calls to set_error in ufunc loops.
  * Define a wrapper so it can be given C linkage within this C++ header. */
-extern "C" int wrap_PyUFunc_getfperr() { return PyUFunc_getfperr(); }
+extern "C" int wrap_PyUFunc_getfperr() {
+    return PyUFunc_getfperr();
+}
 
 namespace xsf {
 namespace numpy {
 
     void set_error_check_fpe(const char *func_name) {
-	int status = wrap_PyUFunc_getfperr();
-	if (status & NPY_FPE_DIVIDEBYZERO) {
-	    xsf::set_error(func_name, SF_ERROR_SINGULAR, "floating point division by zero");
-	}
-	if (status & NPY_FPE_OVERFLOW) {
-	    xsf::set_error(func_name, SF_ERROR_UNDERFLOW, "floating point underflow");
-	}
-	if (status & NPY_FPE_UNDERFLOW) {
-	    xsf::set_error(func_name, SF_ERROR_OVERFLOW, "floating point overflow");
-	}
-	if (status & NPY_FPE_INVALID) {
-	    xsf::set_error(func_name, SF_ERROR_DOMAIN, "floating point invalid value");
-	}
+        int status = wrap_PyUFunc_getfperr();
+        if (status & NPY_FPE_DIVIDEBYZERO) {
+            xsf::set_error(func_name, SF_ERROR_SINGULAR, "floating point division by zero");
+        }
+        if (status & NPY_FPE_OVERFLOW) {
+            xsf::set_error(func_name, SF_ERROR_UNDERFLOW, "floating point underflow");
+        }
+        if (status & NPY_FPE_UNDERFLOW) {
+            xsf::set_error(func_name, SF_ERROR_OVERFLOW, "floating point overflow");
+        }
+        if (status & NPY_FPE_INVALID) {
+            xsf::set_error(func_name, SF_ERROR_DOMAIN, "floating point invalid value");
+        }
     }
 
     namespace detail {
@@ -202,8 +204,8 @@ namespace numpy {
     using ld_d = double (*)(long int, double);
     using lF_F = cfloat (*)(long int, cfloat);
     using lD_D = cdouble (*)(long int, cdouble);
-    using Dd_D = cdouble (*) (cdouble, double);
-    using Ff_F = cfloat (*) (cfloat, float);
+    using Dd_D = cdouble (*)(cdouble, double);
+    using Ff_F = cfloat (*)(cfloat, float);
 
     // autodiff, 2 inputs, 1 output
     using autodiff0_if_f = autodiff0_float (*)(int, autodiff0_float);
@@ -668,7 +670,9 @@ namespace numpy {
             return *reinterpret_cast<T *>(src);
         }
 
-        static void set(char *dst, const T &src) { *reinterpret_cast<npy_type_t<T> *>(dst) = src; }
+        static void set(char *dst, const T &src) {
+            *reinterpret_cast<npy_type_t<T> *>(dst) = src;
+        }
     };
 
     template <typename T>
@@ -793,9 +797,11 @@ namespace numpy {
 
             Func func = static_cast<ufunc_data<Func> *>(data)->func;
             for (npy_intp i = 0; i < dims[0]; ++i) {
-                Res res = func(npy_traits<Args>::get(
-                    args[I], new_dims.data() + ranks_scan[I], steps + ranks_scan[I] + sizeof...(Args) + 1
-                )...);
+                Res res = func(
+                    npy_traits<Args>::get(
+                        args[I], new_dims.data() + ranks_scan[I], steps + ranks_scan[I] + sizeof...(Args) + 1
+                    )...
+                );
                 npy_traits<Res>::set(args[sizeof...(Args)], res); // assign to the output pointer
 
                 for (npy_uintp j = 0; j <= sizeof...(Args); ++j) {
@@ -804,7 +810,7 @@ namespace numpy {
             }
 
             const char *name = static_cast<ufunc_data<Func> *>(data)->name;
-	    set_error_check_fpe(name);
+            set_error_check_fpe(name);
         }
     };
 
@@ -827,9 +833,11 @@ namespace numpy {
 
             Func func = static_cast<ufunc_data<Func> *>(data)->func;
             for (npy_intp i = 0; i < dims[0]; ++i) {
-                func(npy_traits<Args>::get(
-                    args[I], new_dims.data() + ranks_scan[I], steps + ranks_scan[I] + sizeof...(Args)
-                )...);
+                func(
+                    npy_traits<Args>::get(
+                        args[I], new_dims.data() + ranks_scan[I], steps + ranks_scan[I] + sizeof...(Args)
+                    )...
+                );
 
                 for (npy_uintp j = 0; j < sizeof...(Args); ++j) {
                     args[j] += steps[j];
@@ -837,7 +845,7 @@ namespace numpy {
             }
 
             const char *name = static_cast<ufunc_data<Func> *>(data)->name;
-	    set_error_check_fpe(name);
+            set_error_check_fpe(name);
         }
     };
 
@@ -860,7 +868,8 @@ namespace numpy {
         std::tuple<Trs...> m_trs;
 
       public:
-        compose(Trs... trs) : m_trs(trs...) {}
+        compose(Trs... trs) : m_trs(trs...) {
+        }
 
         template <typename Func>
         decltype(auto) operator()(Func func) const {
@@ -881,7 +890,8 @@ namespace numpy {
             : has_return(has_return_v<Func>), nin_and_nout(arity_of_v<Func> + has_return),
               func(ufunc_traits<Func>::loop), data(new ufunc_data<Func>{{nullptr}, func}),
               data_deleter([](void *ptr) { delete static_cast<ufunc_data<Func> *>(ptr); }),
-              types(ufunc_traits<Func>::types) {}
+              types(ufunc_traits<Func>::types) {
+        }
     };
 
     class ufunc_overloads {
@@ -923,7 +933,8 @@ namespace numpy {
         }
 
         template <typename... Trs, typename... Funcs>
-        ufunc_overloads(compose<Trs...> trs, Funcs... funcs) : ufunc_overloads(trs(funcs)...) {}
+        ufunc_overloads(compose<Trs...> trs, Funcs... funcs) : ufunc_overloads(trs(funcs)...) {
+        }
 
         ufunc_overloads(ufunc_overloads &&other) = default;
 
@@ -936,17 +947,29 @@ namespace numpy {
             }
         }
 
-        int ntypes() const { return m_ntypes; }
+        int ntypes() const {
+            return m_ntypes;
+        }
 
-        bool has_return() const { return m_has_return; }
+        bool has_return() const {
+            return m_has_return;
+        }
 
-        int nin_and_nout() const { return m_nin_and_nout; }
+        int nin_and_nout() const {
+            return m_nin_and_nout;
+        }
 
-        PyUFuncGenericFunction *func() const { return m_func.get(); }
+        PyUFuncGenericFunction *func() const {
+            return m_func.get();
+        }
 
-        data_handle_type *data() const { return m_data.get(); }
+        data_handle_type *data() const {
+            return m_data.get();
+        }
 
-        char *types() const { return m_types.get(); }
+        char *types() const {
+            return m_types.get();
+        }
 
         void set_name(const char *name) {
             for (int i = 0; i < m_ntypes; ++i) {
@@ -1015,12 +1038,16 @@ namespace numpy {
     // rename to autodiff_var?
     template <typename T>
     struct autodiff_traits {
-        static T to_var(T arg, size_t i) { return arg; }
+        static T to_var(T arg, size_t i) {
+            return arg;
+        }
     };
 
     template <typename T, size_t... Orders>
     struct autodiff_traits<dual<T, Orders...>> {
-        static dual<T, Orders...> to_var(T arg, size_t i) { return dual_var<Orders...>(arg, i); }
+        static dual<T, Orders...> to_var(T arg, size_t i) {
+            return dual_var<Orders...>(arg, i);
+        }
     };
 
     template <
