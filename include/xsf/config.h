@@ -210,8 +210,13 @@ using enable_if = cuda::std::enable_if<Cond, T>;
 template <typename T>
 using decay = cuda::std::decay<T>;
 
-template <typename T>
-using invoke_result = cuda::std::invoke_result<T>;
+template <typename F>
+struct invoke_result {
+    using type = decltype(cuda::std::declval<F>()());
+};
+
+template <typename F>
+using invoke_result_t = typename invoke_result<F>::type;
 
 template <typename T1, typename T2>
 using pair = cuda::std::pair<T1, T2>;
