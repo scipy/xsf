@@ -28,12 +28,14 @@ cwd = "."
 
 [feature.build.tasks.build-only]
 # Just build without configure
-cmd = ["cmake", "--build", "build", "--config", "Release"]
+cmd = ["cmake", "--build", "build", "--config", "Release", "-j{{ parallel }}"]
 cwd = "."
+args = [{ arg = "parallel", default = "2" }]
 
 [feature.build.tasks.build]
 # Build with default configuration
-depends-on = ["configure", "build-only"]
+depends-on = ["configure", { "task" = "build-only", "args" = ["{{ parallel }}"] }]
+args = [{ arg = "parallel", default = "2" }]
 
 ## Tests
 
@@ -60,11 +62,22 @@ configure-tests.cmd = [
 ]
 configure-tests.cwd = "."
 # build for tests
-build-tests.depends-on = ["configure-tests", "build-only"]
-# run tests
-tests.cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests"]
-tests.depends-on = ["clone-xsref", "build-tests"]
-tests.cwd = "."
+build-tests.depends-on = [
+  "configure-tests",
+  { "task" = "build-only", "args" = ["{{ parallel }}"] },
+]
+build-tests.args = [{ arg = "parallel", default = "2" }]
+# just run tests
+tests-only.cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests", "-j{{ parallel }}"]
+tests-only.cwd = "."
+tests-only.args = [{ arg = "parallel", default = "2" }]
+# build and run tests
+tests.depends-on = [
+  "clone-xsref",
+  { "task" = "build-tests", "args" = ["{{ parallel }}"] },
+  { "task" = "tests-only", args = ["{{ parallel }}"] },
+]
+tests.args = [{ arg = "parallel", default = "2" }]
 
 ## clang-format
 
@@ -109,13 +122,15 @@ ccache = ">=4.11.2,<5"
 [feature.tests-ci.tasks]
 # Build and generate coverage report
 # TODO: use a task arg for parallelism https://github.com/prefix-dev/pixi/pull/3433
-build-tests-ci.cmd = ["cmake", "--build", "build", "-j3", "--config", "Release"]
+build-tests-ci.cmd = ["cmake", "--build", "build", "-j{{ parallel }}", "--config", "Release"]
 build-tests-ci.depends-on = ["clone-xsref", "configure-coverage"]
 build-tests-ci.cwd = "."
+build-tests-ci.args = [{ arg = "parallel", default = "2" }]
 # Run tests
-tests-ci.cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests", "-j3"]
-tests-ci.depends-on = ["build-tests-ci"]
+tests-ci.cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests", "-j{{ parallel }}"]
+tests-ci.depends-on = [{ "task" = "build-tests-ci", "args" = ["{{ parallel }}"] }]
 tests-ci.cwd = "."
+tests-ci.args = [{ arg = "parallel", default = "2" }]
 # Coverage
 coverage.cmd = [
   "cmake",
@@ -123,12 +138,13 @@ coverage.cmd = [
   "build",
   "--target",
   "coverage_html",
-  "-j3",
+  "-j{{ parallel }}",
   "--config",
   "Release",
 ]
-coverage.depends-on = ["tests-ci"]
+coverage.depends-on = [{ "task" = "tests-ci", "args" = ["{{ parallel }}"] }]
 coverage.cwd = "."
+coverage.args = [{ arg = "parallel", default = "2" }]
 
 # CuPy tests
 [feature.cupy-tests]
