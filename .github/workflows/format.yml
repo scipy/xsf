@@ -30,4 +30,4 @@ jobs:
       - name: Check for formatting violations
         run: |
           pixi run format-dry-error
-          echo "Please execute `pixi run format` to fix any errors."
+          echo "Please execute 'pixi run format' to fix any errors."
