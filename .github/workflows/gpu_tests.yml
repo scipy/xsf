@@ -13,8 +13,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  cupy_tests:
-    name: CuPy GPU
+  cupy_tests_cuda11:
+    name: CuPy GPU CUDA 11
     runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64-gpu:22.04
     steps:
       - name: Checkout xsf repo
@@ -45,4 +45,38 @@ jobs:
           cache: false
 
       - name: Run CuPy tests
-        run: pixi run test-cupy
+        run: pixi run test-cupy-cuda11
+
+  cupy_tests_cuda12:
+    name: CuPy GPU CUDA 12
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64-gpu:22.04
+    steps:
+      - name: Checkout xsf repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          submodules: recursive
+
+      - name: Setup compiler cache
+        uses: cirruslabs/cache@v4  #caa3ad0624c6c2acd8ba50ad452d1f44bba078bb # v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          # Make primary key unique by using `run_id`, this ensures the cache
+          # is always saved at the end.
+          key: ${{ runner.os }}-gpu-ccache-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-gpu-ccache
+
+      - name: run nvidia-smi
+        run: nvidia-smi
+
+      - name: run nvidia-smi --query
+        run: nvidia-smi --query
+
+      - uses: prefix-dev/setup-pixi@ba3bb36eb2066252b2363392b7739741bb777659 # v0.8.1
+        with:
+          pixi-version: v0.39.2
+          manifest-path: pixi.toml
+          cache: false
+
+      - name: Run CuPy tests
+        run: pixi run test-cupy-cuda12
