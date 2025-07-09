@@ -165,8 +165,25 @@ test-cupy.cmd = "pytest --forked python_tests/test_cupy.py"
 test-cupy.cwd = "."
 test-cupy.depends-on = ["install-xsref-test-cupy"]
 
+[feature.cupy-tests-cuda11]
+platforms = ["linux-64"]
+dependencies = { cupy = { version = "*", pypi-name = "cupy-cuda11x" } }
+system-requirements = { cuda = "11" }
+tasks = { test-cupy-cuda11.cmd = "pytest --forked python_tests/test_cupy.py", test-cupy-cuda11.cwd = ".", test-cupy-cuda11.depends-on = ["install-xsref-test-cupy"] }
+# Inherit base dependencies and tasks from cupy-tests
+extend = ["cupy-tests"]
+
+
+[feature.cupy-tests-cuda12]
+platforms = ["linux-64"]
+dependencies = { cupy = { version = "*", pypi-name = "cupy-cuda12x" } }
+system-requirements = { cuda = "12" }
+tasks = { test-cupy-cuda12.cmd = "pytest --forked python_tests/test_cupy.py", test-cupy-cuda12.cwd = ".", test-cupy-cuda12.depends-on = ["install-xsref-test-cupy"] }
+extend = ["cupy-tests"]
+
 [environments]
 default = { features = ["build", "tests"], solve-group = "default" }
 tests-ci = { features = ["build", "tests", "tests-ci", "coverage"], solve-group = "default" }
 lint = { features = ["clang-format"], solve-group = "default" }
-cupy-tests = { features = ["cupy-tests"], solve-group = "default" }
+cupy-tests-cuda11 = { features = ["cupy-tests-cuda11"], solve-group = "cupy-cuda11" }
+cupy-tests-cuda12 = { features = ["cupy-tests-cuda12"], solve-group = "cupy-cuda12" }
