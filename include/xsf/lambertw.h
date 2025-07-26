@@ -54,7 +54,7 @@ namespace detail {
         return z * cevalpoly(num, 2, z) / cevalpoly(denom, 2, z);
     }
 
-    XSF_HOST_DEVICE inline std::complex<double> lambertw_asy(std::complex<double> z, int64_t k) {
+    XSF_HOST_DEVICE inline std::complex<double> lambertw_asy(std::complex<double> z, double k) {
         /* Compute the W function using the first two terms of the
          * asymptotic series. See 4.20 in [1].
          */
@@ -64,7 +64,8 @@ namespace detail {
 
 } // namespace detail
 
-XSF_HOST_DEVICE inline std::complex<double> lambertw(std::complex<double> z, int64_t k, double tol) {
+template <typename K, enable_if_supported_int_t<K> = 0>
+XSF_HOST_DEVICE inline std::complex<double> lambertw(std::complex<double> z, K k, double tol) {
     double absz;
     std::complex<double> w;
     std::complex<double> ew, wew, wewz, wn;
@@ -142,7 +143,8 @@ XSF_HOST_DEVICE inline std::complex<double> lambertw(std::complex<double> z, int
     return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
 }
 
-XSF_HOST_DEVICE inline std::complex<float> lambertw(std::complex<float> z, int64_t k, float tol) {
+template <typename K, enable_if_supported_int_t<K> = 0>
+XSF_HOST_DEVICE inline std::complex<float> lambertw(std::complex<float> z, K k, float tol) {
     return static_cast<std::complex<float>>(lambertw(static_cast<std::complex<double>>(z), k, static_cast<double>(tol))
     );
 }
