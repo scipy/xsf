@@ -74,6 +74,7 @@ clang-format = "*"
 
 [feature.clang-format.tasks]
 format = "git ls-files '*.cpp' '*.h' | xargs clang-format -i --style=file"
+format-dry-error = "git ls-files '*.cpp' '*.h' | xargs clang-format --style=file --Werror --dry-run"
 
 ## Coverage
 
