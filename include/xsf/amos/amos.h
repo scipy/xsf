@@ -94,8 +94,8 @@
 
 #include <stdlib.h>
 
-#include <complex.h>
-#include <math.h>
+#include <complex>
+#include <cmath>
 #include <memory> // unique_ptr
 
 namespace xsf {
