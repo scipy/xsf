@@ -10,6 +10,8 @@
  * This is part of the Mathieu function suite -- a reimplementation
  * of the Mathieu functions for Scipy.  This file holds the functions
  * which make the recursion matrices.
+ *
+ * Stuart Brorson, Summer 2025.
  * 
  */
 

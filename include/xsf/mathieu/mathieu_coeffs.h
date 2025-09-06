@@ -14,6 +14,8 @@
  * of the Mathieu functions for Scipy.  This file holds the functions
  * which return the Mathieu A and B coefficients used in the Fourier
  * series computing the Mathieu fcns.
+ *
+ * Stuart Brorson, Summer 2025.
  * 
  */
 
