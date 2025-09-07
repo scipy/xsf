@@ -15,7 +15,7 @@
  * 
  */
 
-#define SQRT2 1.414213562373095d
+#define SQRT2 1.414213562373095
 
 namespace xsf {
 namespace mathieu {
@@ -41,7 +41,7 @@ namespace mathieu {
     i = MATRIX_IDX(N, 1, 0);
     A[i] = SQRT2*q;
     i = MATRIX_IDX(N, 1, 1);
-    A[i] = 4.0d;
+    A[i] = 4.0;
     i = MATRIX_IDX(N, 1, 2);
     A[i] = q;
 
@@ -49,7 +49,7 @@ namespace mathieu {
       i = MATRIX_IDX(N, j, j-1);
       A[i] = q;
       i = MATRIX_IDX(N, j, j);      
-      A[i]   = (2.0d*j)*(2.0d*j);
+      A[i]   = (2.0*j)*(2.0*j);
       i = MATRIX_IDX(N, j, j+1);
       A[i] = q;
     }
@@ -57,7 +57,7 @@ namespace mathieu {
     i = MATRIX_IDX(N, N-1, N-2);    
     A[i] = q;
     i = MATRIX_IDX(N, N-1, N-1);    
-    A[i]   = (2.0d*(N-1))*(2.0d*(N-1));
+    A[i]   = (2.0*(N-1))*(2.0*(N-1));
 
     return 0;
   }
@@ -78,13 +78,13 @@ namespace mathieu {
     int i;
 
     i = MATRIX_IDX(N, 0, 0);
-    A[i] = 1.0d+q;
+    A[i] = 1.0+q;
     i = MATRIX_IDX(N, 0, 1);
     A[i] = q;
     i = MATRIX_IDX(N, 1, 0);
     A[i] = q;
     i = MATRIX_IDX(N, 1, 1);    
-    A[i] = 9.0d;
+    A[i] = 9.0;
     i = MATRIX_IDX(N, 1, 2);    
     A[i] = q;
   
@@ -92,7 +92,7 @@ namespace mathieu {
       i = MATRIX_IDX(N, j, j-1);
       A[i] = q;
       i = MATRIX_IDX(N, j, j);      
-      A[i] = (2.0d*j+1.0d)*(2.0d*j+1.0d);
+      A[i] = (2.0*j+1.0)*(2.0*j+1.0);
       i = MATRIX_IDX(N, j, j+1);
       A[i] = q;
     }
@@ -100,7 +100,7 @@ namespace mathieu {
     i = MATRIX_IDX(N, N-1, N-2);    
     A[i] = q;
     i = MATRIX_IDX(N, N-1, N-1);    
-    A[i] = (2.0d*(N-1)+1.0d)*(2.0d*(N-1)+1.0d);
+    A[i] = (2.0*(N-1)+1.0)*(2.0*(N-1)+1.0);
 
     return 0;
   }
@@ -122,13 +122,13 @@ namespace mathieu {
     int i;
 
     i = MATRIX_IDX(N, 0, 0);
-    A[i] = 4.0d;
+    A[i] = 4.0;
     i = MATRIX_IDX(N, 0, 1);
     A[i] = q;
     i = MATRIX_IDX(N, 1, 0);
     A[i] = q;
     i = MATRIX_IDX(N, 1, 1);    
-    A[i] = 16.0d;
+    A[i] = 16.0;
     i = MATRIX_IDX(N, 1, 2);    
     A[i] = q;
   
@@ -136,7 +136,7 @@ namespace mathieu {
       i = MATRIX_IDX(N, j, j-1);
       A[i] = q;
       i = MATRIX_IDX(N, j, j);      
-      A[i] = (2.0d*(j+1))*(2.0d*(j+1));
+      A[i] = (2.0*(j+1))*(2.0*(j+1));
       i = MATRIX_IDX(N, j, j+1);
       A[i] = q;
     }
@@ -144,7 +144,7 @@ namespace mathieu {
     i = MATRIX_IDX(N, N-1, N-2);    
     A[i] = q;
     i = MATRIX_IDX(N, N-1, N-1);    
-    A[i] = (2.0d*N)*(2.0d*N);
+    A[i] = (2.0*N)*(2.0*N);
 
     return 0;
   }
@@ -166,13 +166,13 @@ namespace mathieu {
     int i;
 
     i = MATRIX_IDX(N, 0, 0);
-    A[i] = 1.0d - q;
+    A[i] = 1.0 - q;
     i = MATRIX_IDX(N, 0, 1);
     A[i] = q;
     i = MATRIX_IDX(N, 1, 0);
     A[i] = q;
     i = MATRIX_IDX(N, 1, 1);    
-    A[i] = 9.0d;
+    A[i] = 9.0;
     i = MATRIX_IDX(N, 1, 2);    
     A[i] = q;
   
@@ -180,7 +180,7 @@ namespace mathieu {
       i = MATRIX_IDX(N, j, j-1);
       A[i] = q;
       i = MATRIX_IDX(N, j, j);      
-      A[i] = (2.0d*j+1.0d)*(2.0d*j+1.0d);
+      A[i] = (2.0*j+1.0)*(2.0*j+1.0);
       i = MATRIX_IDX(N, j, j+1);
       A[i] = q;
     }
@@ -188,7 +188,7 @@ namespace mathieu {
     i = MATRIX_IDX(N, N-1, N-2);    
     A[i] = q;
     i = MATRIX_IDX(N, N-1, N-1);    
-    A[i] = (2.0d*N-1.0d)*(2.0d*N-1.0d);
+    A[i] = (2.0*N-1.0)*(2.0*N-1.0);
 
     return 0;
   }

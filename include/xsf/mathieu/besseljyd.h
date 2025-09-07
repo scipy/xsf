@@ -40,12 +40,12 @@ namespace mathieu {
     double y;
     
     if (k == 0) {
-      double v = 1.0d;
+      double v = 1.0;
       y = -besselj(v,z);
     } else {
       double kp1 = (double) (k+1);
       double km1 = (double) (k-1);      
-      y = (besselj(km1,z)-besselj(kp1,z))/2.0d;
+      y = (besselj(km1,z)-besselj(kp1,z))/2.0;
     }
 
     // Must flip sign for negative k and odd k.
@@ -63,12 +63,12 @@ namespace mathieu {
     double y;
     
     if (k == 0) {
-      double v = 1.0d;
+      double v = 1.0;
       y = -bessely(v,z);
     } else {
       double kp1 = (double) (k+1);
       double km1 = (double) (k-1);      
-      y = (bessely(km1,z)-bessely(kp1,z))/2.0d;
+      y = (bessely(km1,z)-bessely(kp1,z))/2.0;
     }
 
     // Must flip sign for negative k and odd k.

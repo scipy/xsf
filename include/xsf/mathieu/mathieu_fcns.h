@@ -77,18 +77,18 @@ namespace mathieu {
       
       // Local scope variables used in summing the Fourier series.
       double tt, td, cep, cem, cedp, cedm;
-      cem = 0.0d; cep = 0.0d; cedm = 0.0d; cedp = 0.0d;
+      cem = 0.0; cep = 0.0; cedm = 0.0; cedp = 0.0;
       
       // Sum from smallest to largest coeff.
       for (int k=(N-1); k>=0 ; k--) {
-	tt = AA[k]*cos(2.0d*k*v); // Term for Mathieu ce
+	tt = AA[k]*cos(2.0*k*v); // Term for Mathieu ce
 	if (tt<0) {
 	  cem = cem + tt;  // Neg running sum
 	} else {
 	  cep = cep + tt;  // Pos running sum
 	}
 
-	td = -2.0d*k*AA[k]*sin(2.0d*k*v); // Term for deriv
+	td = -2.0*k*AA[k]*sin(2.0*k*v); // Term for deriv
 	if (td<0) {
 	  cedm = cedm + td;
 	} else {
@@ -102,7 +102,7 @@ namespace mathieu {
 
       // Hack -- this makes sure the fcn has the right overall sign for q<0.
       // Someday combine this with the above sums into the same for loop.
-      double s = 0.0d;
+      double s = 0.0;
       for (int l = 0; l<N; l++) {
 	s = s + AA[l];
       }
@@ -131,18 +131,18 @@ namespace mathieu {
       
       // Local scope variables used in summing the Fourier series.
       double tt, td, cep, cem, cedp, cedm;
-      cem = 0.0d; cep = 0.0d; cedm = 0.0d; cedp = 0.0d;
+      cem = 0.0; cep = 0.0; cedm = 0.0; cedp = 0.0;
       
       // Perform Fourier sum on k = 0, 2, 4, ...
       for (int k=(N-1); k>=0 ; k--) {
-	tt = AA[k]*cos((2.0d*k+1.0d)*v);  // Term for Mathieu ce
+	tt = AA[k]*cos((2.0*k+1.0)*v);  // Term for Mathieu ce
 	if (tt<0) {
 	  cem = cem + tt;  // Neg running sum
 	} else {
 	  cep = cep + tt;  // Pos running sum
 	}
 
-	td = -(2.0d*k+1.0d)*AA[k]*sin((2.0d*k+1.0d)*v); // Deriv.
+	td = -(2.0*k+1.0)*AA[k]*sin((2.0*k+1.0)*v); // Deriv.
 	if (td<0) {
 	  cedm = cedm + td;
 	} else {
@@ -156,7 +156,7 @@ namespace mathieu {
 
       // Hack -- this makes sure the fcn has the right overall sign for q<0.
       // Someday combine this with the above sums into the same for loop.
-      double s = 0.0d;
+      double s = 0.0;
       for (int l = 0; l<N; l++) {
 	s = s + AA[l];
       }
@@ -223,18 +223,18 @@ namespace mathieu {
       
       // Local scope variables used in summing the Fourier series.
       double tt, td, sep, sem, sedp, sedm;
-      sem = 0.0d; sep = 0.0d; sedm = 0.0d; sedp = 0.0d;
+      sem = 0.0; sep = 0.0; sedm = 0.0; sedp = 0.0;
       
       // Sum from smallest to largest coeff.
       for (int k=N; k>=1 ; k--) {
-	tt = BB[k-1]*sin(2.0d*k*v); // Mathieu se term
+	tt = BB[k-1]*sin(2.0*k*v); // Mathieu se term
 	if (tt<0) {
 	  sem = sem + tt;  // Neg running sum
 	} else {
 	  sep = sep + tt;  // Pos running sum
 	}
 
-	td = 2.0d*k*BB[k-1]*cos(2.0d*k*v); // Deriv term.
+	td = 2.0*k*BB[k-1]*cos(2.0*k*v); // Deriv term.
 	if (td<0) {
 	  sedm = sedm + td;
 	} else {
@@ -248,7 +248,7 @@ namespace mathieu {
 
       // Hack -- this makes sure the fcn has the right overall sign for q<0.
       // Someday combine this with the above sums into the same for loop.
-      double s = 0.0d;
+      double s = 0.0;
       for (int l = 0; l<N; l++) {
 	s = s + BB[l];
       }
@@ -277,18 +277,18 @@ namespace mathieu {
       
       // Local scope variables used in summing the Fourier series.
       double tt, td, sep, sem, sedp, sedm;
-      sem = 0.0d; sep = 0.0d; sedm = 0.0d; sedp = 0.0d;
+      sem = 0.0; sep = 0.0; sedm = 0.0; sedp = 0.0;
       
       // Sum from smallest to largest coeff.
       for (int k=(N-1); k>=0 ; k--) {
-	tt = BB[k]*sin((2.0d*k+1.0d)*v);  // Mathieu se term
+	tt = BB[k]*sin((2.0*k+1.0)*v);  // Mathieu se term
 	if (tt<0) {
 	  sem = sem + tt;  // Neg running sum
 	} else {
 	  sep = sep + tt;  // Pos running sum
 	}
 
-	td = (2.0d*k+1.0d)*BB[k]*cos((2.0d*k+1.0d)*v);  // Deriv term.
+	td = (2.0*k+1.0)*BB[k]*cos((2.0*k+1.0)*v);  // Deriv term.
 	if (td<0) {
 	  sedm = sedm + td;
 	} else {
@@ -302,7 +302,7 @@ namespace mathieu {
 
       // Hack -- this makes sure the fcn has the right overall sign for q<0.
       // Someday combine this with the above sums into the same for loop.
-      double s = 0.0d;
+      double s = 0.0;
       for (int l = 0; l<N; l++) {
 	s = s + BB[l];
       }

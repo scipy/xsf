@@ -6,7 +6,7 @@
 #include "make_matrix.h"
 #include "matrix_utils.h"
 
-#define SQRT2 1.414213562373095d
+#define SQRT2 1.414213562373095
 
 /*
  *
