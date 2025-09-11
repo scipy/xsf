@@ -1,16 +1,13 @@
+#include "../testing_utils.h"
+
+#include <xsf/mathieu.h>
+
 #include <stdlib.h>
 #include <cstdio>
 
-#include "matrix_utils.h"
-#include "make_matrix.h"
-#include "mathieu_eigs.h"
-#include "mathieu_coeffs.h"
-#include "mathieu_fcns.h"
-#include "besseljyd.h"
-
 /*
  *
- * The goal of main() is to just verify that my C/C++
+ * The goal of these tests are to verify that my C/C++
  * impl of the Mathieu fcns has been carried over from
  * my Matlab impl correctly.  Therefore, main just calls
  * a bunch of golden value tests.  The GVs were generated
