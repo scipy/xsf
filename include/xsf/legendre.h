@@ -425,7 +425,8 @@ template <typename NormPolicy, typename T, typename Func>
 void assoc_legendre_p_for_each_n_m(NormPolicy norm, int n, int m, T z, int branch_cut, T (&res)[2], Func f) {
     T res_m_abs_m[2];
     assoc_legendre_p_for_each_m_abs_m(
-        norm, m, z, branch_cut, res_m_abs_m, [norm, n, z, branch_cut, &res, f](int m, const T(&res_m_abs_m)[2]) {
+        norm, m, z, branch_cut, res_m_abs_m,
+        [norm, n, z, branch_cut, &res, f](int m, const T(&res_m_abs_m)[2]) {
             res[0] = res_m_abs_m[1];
 
             assoc_legendre_p_for_each_n(
@@ -434,7 +435,8 @@ void assoc_legendre_p_for_each_n_m(NormPolicy norm, int n, int m, T z, int branc
         }
     );
     assoc_legendre_p_for_each_m_abs_m(
-        norm, -m, z, branch_cut, res_m_abs_m, [norm, n, z, branch_cut, &res, f](int m, const T(&res_m_abs_m)[2]) {
+        norm, -m, z, branch_cut, res_m_abs_m,
+        [norm, n, z, branch_cut, &res, f](int m, const T(&res_m_abs_m)[2]) {
             res[0] = res_m_abs_m[1];
 
             assoc_legendre_p_for_each_n(
