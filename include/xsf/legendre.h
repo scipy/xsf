@@ -425,8 +425,7 @@ template <typename NormPolicy, typename T, typename Func>
 void assoc_legendre_p_for_each_n_m(NormPolicy norm, int n, int m, T z, int branch_cut, T (&res)[2], Func f) {
     T res_m_abs_m[2];
     assoc_legendre_p_for_each_m_abs_m(
-        norm, m, z, branch_cut, res_m_abs_m,
-        [norm, n, z, branch_cut, &res, f](int m, const T(&res_m_abs_m)[2]) {
+        norm, m, z, branch_cut, res_m_abs_m, [norm, n, z, branch_cut, &res, f](int m, const T(&res_m_abs_m)[2]) {
             res[0] = res_m_abs_m[1];
 
             assoc_legendre_p_for_each_n(
@@ -435,8 +434,7 @@ void assoc_legendre_p_for_each_n_m(NormPolicy norm, int n, int m, T z, int branc
         }
     );
     assoc_legendre_p_for_each_m_abs_m(
-        norm, -m, z, branch_cut, res_m_abs_m,
-        [norm, n, z, branch_cut, &res, f](int m, const T(&res_m_abs_m)[2]) {
+        norm, -m, z, branch_cut, res_m_abs_m, [norm, n, z, branch_cut, &res, f](int m, const T(&res_m_abs_m)[2]) {
             res[0] = res_m_abs_m[1];
 
             assoc_legendre_p_for_each_n(
@@ -1046,17 +1044,17 @@ void lqmn(std::complex<T> z, OutputMat1 cqm, OutputMat2 cqd) {
                 cq1 = cqf;
             }
         }
+    }
 
-        cqd(0, 0) = static_cast<T>(ls) / zs;
-        for (j = 1; j <= n; j++) {
-            cqd(0, j) = ls * static_cast<T>(j) * (cqm(0, j - 1) - z * cqm(0, j)) / zs;
-        }
+    cqd(0, 0) = static_cast<T>(ls) / zs;
+    for (j = 1; j <= n; j++) {
+        cqd(0, j) = ls * static_cast<T>(j) * (cqm(0, j - 1) - z * cqm(0, j)) / zs;
+    }
 
-        for (i = 1; i <= m; i++) {
-            for (j = 0; j <= n; j++) {
-                cqd(i, j) = static_cast<T>(ls * i) * z / zs * cqm(i, j) +
-                            static_cast<T>((i + j) * (j - i + 1)) / zq * cqm(i - 1, j);
-            }
+    for (i = 1; i <= m; i++) {
+        for (j = 0; j <= n; j++) {
+            cqd(i, j) = static_cast<T>(ls * i) * z / zs * cqm(i, j) +
+                        static_cast<T>((i + j) * (j - i + 1)) / zq * cqm(i - 1, j);
         }
     }
 }
