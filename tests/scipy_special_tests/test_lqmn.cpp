@@ -2,14 +2,35 @@
 
 #include <xsf/legendre.h>
 
-// backport of std::mdspan (since C++23)
-#define MDSPAN_USE_PAREN_OPERATOR 1
-#include <xsf/third_party/kokkos/mdspan.hpp>
+// `std::mdspan` (the kokkos one) was causing issues on windows and mac, so we duck-type it instead
+template <typename T>
+class duck_mdspan_1d {
+  private:
+    T *data_;
+    size_t size_;
 
-// Type aliases for commonly used mdspan types
-using mdspan_1d_double = std::mdspan<double, std::dextents<ptrdiff_t, 1>>;
-using mdspan_2d_double = std::mdspan<double, std::dextents<ptrdiff_t, 2>>;
-using mdspan_2d_cdouble = std::mdspan<std::complex<double>, std::dextents<ptrdiff_t, 2>>;
+  public:
+    duck_mdspan_1d(T *data, size_t size) : data_(data), size_(size) {}
+    T &operator()(size_t i) { return data_[i]; }
+    const T &operator()(size_t i) const { return data_[i]; }
+    size_t size() const { return size_; }
+    // `xsf::lqn` also uses [] for indexing
+    T &operator[](size_t i) { return data_[i]; }
+    const T &operator[](size_t i) const { return data_[i]; }
+};
+
+template <typename T>
+class duck_mdspan_2d {
+  private:
+    T *data_;
+    size_t rows_, cols_;
+
+  public:
+    duck_mdspan_2d(T *data, size_t rows, size_t cols) : data_(data), rows_(rows), cols_(cols) {}
+    T &operator()(size_t i, size_t j) { return data_[i * cols_ + j]; }
+    const T &operator()(size_t i, size_t j) const { return data_[i * cols_ + j]; }
+    size_t extent(int dim) const { return (dim == 0) ? rows_ : cols_; }
+};
 
 // From https://github.com/scipy/scipy/blob/bdd3b0e/scipy/special/tests/test_legendre.py#L693-L697
 TEST_CASE("lqmn TestLegendreFunctions.test_lqmn", "[lqmn][lqn][real][smoketest]") {
@@ -21,15 +42,17 @@ TEST_CASE("lqmn TestLegendreFunctions.test_lqmn", "[lqmn][lqn][real][smoketest]"
 
     constexpr int m1p = m + 1;
     constexpr int n1p = n + 1;
+    // lqmn requires buffer space for at least 2x2
+    constexpr int bufsize = std::max(2, m1p) * std::max(2, n1p);
 
     // lqmnf = special.lqmn(0, 2, .5)
-    double lqmnf0_data[m1p * n1p], lqmnf1_data[m1p * n1p];
-    mdspan_2d_double lqmnf0(lqmnf0_data, m1p, n1p), lqmnf1(lqmnf1_data, m1p, n1p);
+    double lqmnf0_data[bufsize], lqmnf1_data[bufsize];
+    duck_mdspan_2d<double> lqmnf0(lqmnf0_data, m1p, n1p), lqmnf1(lqmnf1_data, m1p, n1p);
     xsf::lqmn(x, lqmnf0, lqmnf1);
 
     // lqf = special.lqn(2, .5)
     double lqf0_data[n1p], lqf1_data[n1p];
-    mdspan_1d_double lqf0(lqf0_data, n1p), lqf1(lqf1_data, n1p);
+    duck_mdspan_1d<double> lqf0(lqf0_data, n1p), lqf1(lqf1_data, n1p);
     xsf::lqn(x, lqf0, lqf1);
 
     // assert_allclose(lqmnf[0][0], lqf[0], atol=1.5e-4, rtol=0)
@@ -69,7 +92,7 @@ TEST_CASE("lqmn TestLegendreFunctions.test_lqmn_gt1", "[lqmn][real][smoketest]")
     constexpr int n1p = n + 1;
 
     double lqmnf0_data[m1p * n1p], lqmnf1_data[m1p * n1p];
-    mdspan_2d_double lqmnf0(lqmnf0_data, m1p, n1p), lqmnf1(lqmnf1_data, m1p, n1p);
+    duck_mdspan_2d<double> lqmnf0(lqmnf0_data, m1p, n1p), lqmnf1(lqmnf1_data, m1p, n1p);
 
     // algorithm for real arguments changes at 1.0001
     // test against analytical result for m=2, n=1
@@ -95,17 +118,19 @@ TEST_CASE("lqmn TestLegendreFunctions.test_lqmn_gt1", "[lqmn][real][smoketest]")
 TEST_CASE("lqmn complex", "[lqmn][complex][smoketest]") {
     constexpr double atol = 1e-16;
     constexpr double x = 0.5;
+    // lqmn requires buffer space for at least 2x2
+    constexpr int bufsize = 2 * 2;
 
     // (q_mn, qp_mn) = lqmn(0, 0, 0.5)
-    double q_data[1], qp_data[1];
-    mdspan_2d_double q_mn(q_data, 1, 1), qp_mn(qp_data, 1, 1);
+    double q_data[bufsize], qp_data[bufsize];
+    duck_mdspan_2d<double> q_mn(q_data, 1, 1), qp_mn(qp_data, 1, 1);
     xsf::lqmn(x, q_mn, qp_mn);
     auto q = q_mn(0, 0);
     auto qp = qp_mn(0, 0);
 
     // (cq_mn, cqp_mn) = lqmn(0, 0, 0.5 + 0j)
-    std::complex<double> cq_data[1], cqp_data[1];
-    mdspan_2d_cdouble cq_mn(cq_data, 1, 1), cqp_mn(cqp_data, 1, 1);
+    std::complex<double> cq_data[bufsize], cqp_data[bufsize];
+    duck_mdspan_2d<std::complex<double>> cq_mn(cq_data, 1, 1), cqp_mn(cqp_data, 1, 1);
     xsf::lqmn(std::complex<double>(x, 0.0), cq_mn, cqp_mn);
     auto cq = cq_mn(0, 0);
     auto cqp = cqp_mn(0, 0);
