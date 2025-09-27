@@ -1,12 +1,11 @@
 #ifndef MATHIEU_EIGS_H
 #define MATHIEU_EIGS_H
 
-#include <vector>
 #include "../config.h"
 #include "../error.h"
 #include "make_matrix.h"
 #include "matrix_utils.h"
-
+#include <vector>
 
 /*
  *
@@ -16,215 +15,211 @@
  * b as a function of parameter q.
  *
  * Stuart Brorson, summer 2025.
- * 
+ *
  */
-
 
 /* DSYEV_ prototype */
 #ifdef __cplusplus
 extern "C" {
 #endif
-void dsyev_( char* jobz, char* uplo, int* n, double* a, int* lda,
-	    double* w, double* work, int* lwork, int* info );
+void dsyev_(char *jobz, char *uplo, int *n, double *a, int *lda, double *w, double *work, int *lwork, int *info);
 #ifdef __cplusplus
 }
 #endif
 
-
 namespace xsf {
 namespace mathieu {
 
-  //------------------------------------------------------
-  // This is the Mathieu characteristic value (eigenvalue)
-  // a for even fcns.
-  int mathieu_a(int m, double q, double *a) {
-    // printf("--> mathieu_a, m = %d, q = %e\n", m, q);
+    //------------------------------------------------------
+    // This is the Mathieu characteristic value (eigenvalue)
+    // a for even fcns.
+    int mathieu_a(int m, double q, double *a) {
+        // printf("--> mathieu_a, m = %d, q = %e\n", m, q);
 
-    int N = m+25;  // Sets size of recursion matrix
-    int retcode = SF_ERROR_OK;
+        int N = m + 25; // Sets size of recursion matrix
+        int retcode = SF_ERROR_OK;
 
-    if (m>500) {
-      // Don't support absurdly larger orders for now.
-      *a = std::numeric_limits<double>::quiet_NaN();
-      return SF_ERROR_DOMAIN;
-    }
-    
-    // Allocate recursion matrix
-    std::vector<double> A(N*N);
- 
-    // Allocate vector for eigenvalues
-    std::vector<double> ww(N);
+        if (m > 500) {
+            // Don't support absurdly larger orders for now.
+            *a = std::numeric_limits<double>::quiet_NaN();
+            return SF_ERROR_DOMAIN;
+        }
 
-    // Do EVD
-    if (m % 2 == 0) {
-      // Even order m
-      retcode = make_matrix_ee(N,q,A.data());
-      if (retcode != SF_ERROR_OK){
-	*a = std::numeric_limits<double>::quiet_NaN();	
-	return SF_ERROR_OTHER;  // Not sure what went wrong.
-      }
+        // Allocate recursion matrix
+        std::vector<double> A(N * N);
 
-      char V = 'V';
-      char U = 'U';      
-      double wkopt;
-      
-      /* Query and allocate the optimal workspace */
-      int lwork = -1;
-      dsyev_( &V, &U, &N, A.data(), &N, ww.data(), &wkopt, &lwork, &retcode );
-      lwork = (int) wkopt;
-      std::vector<double> work(lwork);
-      
-      /* Solve eigenproblem */
-      dsyev_( &V, &U, &N, A.data(), &N, ww.data(), work.data(), &lwork, &retcode );
-      
-      // Check if dsyev was successful
-      if (retcode != 0) {
-	*a = std::numeric_limits<double>::quiet_NaN();	
-	return SF_ERROR_NO_RESULT;
-      }
-      
-      // Sort ww vector from lowest to highest
-      //quickSort(ww, 0, N-1);
-      //print_matrix(ww, N, 1);      
+        // Allocate vector for eigenvalues
+        std::vector<double> ww(N);
 
-      // Now figure out which one to return.
-      int idx = m/2;
-      *a = ww[idx];
-      
-    } else {
-      // Odd order m
-      retcode = make_matrix_eo(N,q,A.data());
-      if (retcode != SF_ERROR_OK) {
-	*a = std::numeric_limits<double>::quiet_NaN();	
-	return SF_ERROR_OTHER;
-      }
+        // Do EVD
+        if (m % 2 == 0) {
+            // Even order m
+            retcode = make_matrix_ee(N, q, A.data());
+            if (retcode != SF_ERROR_OK) {
+                *a = std::numeric_limits<double>::quiet_NaN();
+                return SF_ERROR_OTHER; // Not sure what went wrong.
+            }
 
-      char V = 'V';
-      char U = 'U';      
-      double wkopt;
-      
-      /* Query and allocate the optimal workspace */
-      int lwork = -1;
-      dsyev_( &V, &U, &N, A.data(), &N, ww.data(), &wkopt, &lwork, &retcode );
-      lwork = (int) wkopt;
-      std::vector<double> work(lwork);
-      
-      /* Solve eigenproblem */
-      dsyev_( &V, &U, &N, A.data(), &N, ww.data(), work.data(), &lwork, &retcode );
-      
-      // Check if dsyev was successful
-      if (retcode != 0) {
-	*a = std::numeric_limits<double>::quiet_NaN();	
-	return SF_ERROR_NO_RESULT;
-      }
-      
-      // Sort ww vector from lowest to highest
-      //quickSort(ww, 0, N-1);
-      //print_matrix(ww, N, 1);
-      
-      // Now figure out which one to return.
-      int idx = (m-1)/2;
-      *a = ww[idx];
-    }
+            char V = 'V';
+            char U = 'U';
+            double wkopt;
 
-    // printf("<-- mathieu_a\n");    
-    return retcode;
-  }
+            /* Query and allocate the optimal workspace */
+            int lwork = -1;
+            dsyev_(&V, &U, &N, A.data(), &N, ww.data(), &wkopt, &lwork, &retcode);
+            lwork = (int)wkopt;
+            std::vector<double> work(lwork);
 
-  //------------------------------------------------------
-  int mathieu_b(int m, double q, double *b) {
-    // This computes the Mathieu characteristic value (eigenvalue)
-    // for odd fcns.
-    // printf("--> mathieu_b, m = %d, q = %e\n", m, q);
-    int N = m+25;  // Sets size of recursion matrix
-    int retcode = SF_ERROR_OK;
+            /* Solve eigenproblem */
+            dsyev_(&V, &U, &N, A.data(), &N, ww.data(), work.data(), &lwork, &retcode);
 
-    if (m>500) {
-      // Don't support absurdly larger orders for now.
-      *b = std::numeric_limits<double>::quiet_NaN();
-      return SF_ERROR_DOMAIN;
+            // Check if dsyev was successful
+            if (retcode != 0) {
+                *a = std::numeric_limits<double>::quiet_NaN();
+                return SF_ERROR_NO_RESULT;
+            }
+
+            // Sort ww vector from lowest to highest
+            // quickSort(ww, 0, N-1);
+            // print_matrix(ww, N, 1);
+
+            // Now figure out which one to return.
+            int idx = m / 2;
+            *a = ww[idx];
+
+        } else {
+            // Odd order m
+            retcode = make_matrix_eo(N, q, A.data());
+            if (retcode != SF_ERROR_OK) {
+                *a = std::numeric_limits<double>::quiet_NaN();
+                return SF_ERROR_OTHER;
+            }
+
+            char V = 'V';
+            char U = 'U';
+            double wkopt;
+
+            /* Query and allocate the optimal workspace */
+            int lwork = -1;
+            dsyev_(&V, &U, &N, A.data(), &N, ww.data(), &wkopt, &lwork, &retcode);
+            lwork = (int)wkopt;
+            std::vector<double> work(lwork);
+
+            /* Solve eigenproblem */
+            dsyev_(&V, &U, &N, A.data(), &N, ww.data(), work.data(), &lwork, &retcode);
+
+            // Check if dsyev was successful
+            if (retcode != 0) {
+                *a = std::numeric_limits<double>::quiet_NaN();
+                return SF_ERROR_NO_RESULT;
+            }
+
+            // Sort ww vector from lowest to highest
+            // quickSort(ww, 0, N-1);
+            // print_matrix(ww, N, 1);
+
+            // Now figure out which one to return.
+            int idx = (m - 1) / 2;
+            *a = ww[idx];
+        }
+
+        // printf("<-- mathieu_a\n");
+        return retcode;
     }
 
-    // Allocate recursion matrix
-    std::vector<double> B(N*N);
+    //------------------------------------------------------
+    int mathieu_b(int m, double q, double *b) {
+        // This computes the Mathieu characteristic value (eigenvalue)
+        // for odd fcns.
+        // printf("--> mathieu_b, m = %d, q = %e\n", m, q);
+        int N = m + 25; // Sets size of recursion matrix
+        int retcode = SF_ERROR_OK;
 
-    // Allocate vector for eigenvalues
-    std::vector<double> ww(N);
+        if (m > 500) {
+            // Don't support absurdly larger orders for now.
+            *b = std::numeric_limits<double>::quiet_NaN();
+            return SF_ERROR_DOMAIN;
+        }
 
-    // Do EVD
-    if (m % 2 == 0) {
-      // Even order m
-      retcode = make_matrix_oe(N,q,B.data());
-      if (retcode != SF_ERROR_OK) {
-	*b = std::numeric_limits<double>::quiet_NaN();	
-	return SF_ERROR_OTHER;
-      }
+        // Allocate recursion matrix
+        std::vector<double> B(N * N);
 
-      char V = 'V';
-      char U = 'U';      
-      double wkopt;
-      
-      /* Query and allocate the optimal workspace */
-      int lwork = -1;
-      dsyev_( &V, &U, &N, B.data(), &N, ww.data(), &wkopt, &lwork, &retcode );
-      lwork = (int) wkopt;
-      std::vector<double> work(lwork);
+        // Allocate vector for eigenvalues
+        std::vector<double> ww(N);
 
-      /* Solve eigenproblem */
-      dsyev_( &V, &U, &N, B.data(), &N, ww.data(), work.data(), &lwork, &retcode );
-      
-      if (retcode != 0) {
-	*b = std::numeric_limits<double>::quiet_NaN();	
-	return SF_ERROR_NO_RESULT;
-      }
-      
-      // Sort ww vector from lowest to highest
-      // quickSort(ww, 0, N-1);
-      //print_matrix(ww, N, 1);
-      
-      // Now figure out which one to return.
-      int idx = (m-2)/2;
-      *b = ww[idx];
-      
-    } else {
-      // Odd order m
-      retcode = make_matrix_oo(N,q,B.data());      
-      if (retcode != SF_ERROR_OK) {
-	*b = std::numeric_limits<double>::quiet_NaN();	
-	return SF_ERROR_OTHER;
-      }
+        // Do EVD
+        if (m % 2 == 0) {
+            // Even order m
+            retcode = make_matrix_oe(N, q, B.data());
+            if (retcode != SF_ERROR_OK) {
+                *b = std::numeric_limits<double>::quiet_NaN();
+                return SF_ERROR_OTHER;
+            }
 
-      char V = 'V';
-      char U = 'U';      
-      double wkopt;
-      
-      /* Query and allocate the optimal workspace */
-      int lwork = -1;
-      dsyev_( &V, &U, &N, B.data(), &N, ww.data(), &wkopt, &lwork, &retcode );
-      lwork = (int) wkopt;
-      std::vector<double> work(lwork);
-      /* Solve eigenproblem */
-      dsyev_( &V, &U, &N, B.data(), &N, ww.data(), work.data(), &lwork, &retcode );
-      
-      if (retcode != 0) {
-	*b = std::numeric_limits<double>::quiet_NaN();	
-	return SF_ERROR_NO_RESULT;
-      }
-      
-      // Sort ww vector from lowest to highest
-      //quickSort(ww, 0, N-1);
-      //print_matrix(ww, N, 1);
+            char V = 'V';
+            char U = 'U';
+            double wkopt;
 
-      // Now figure out which one to return.
-      int idx = (m-1)/2;
-      *b = ww[idx];
-      
+            /* Query and allocate the optimal workspace */
+            int lwork = -1;
+            dsyev_(&V, &U, &N, B.data(), &N, ww.data(), &wkopt, &lwork, &retcode);
+            lwork = (int)wkopt;
+            std::vector<double> work(lwork);
+
+            /* Solve eigenproblem */
+            dsyev_(&V, &U, &N, B.data(), &N, ww.data(), work.data(), &lwork, &retcode);
+
+            if (retcode != 0) {
+                *b = std::numeric_limits<double>::quiet_NaN();
+                return SF_ERROR_NO_RESULT;
+            }
+
+            // Sort ww vector from lowest to highest
+            // quickSort(ww, 0, N-1);
+            // print_matrix(ww, N, 1);
+
+            // Now figure out which one to return.
+            int idx = (m - 2) / 2;
+            *b = ww[idx];
+
+        } else {
+            // Odd order m
+            retcode = make_matrix_oo(N, q, B.data());
+            if (retcode != SF_ERROR_OK) {
+                *b = std::numeric_limits<double>::quiet_NaN();
+                return SF_ERROR_OTHER;
+            }
+
+            char V = 'V';
+            char U = 'U';
+            double wkopt;
+
+            /* Query and allocate the optimal workspace */
+            int lwork = -1;
+            dsyev_(&V, &U, &N, B.data(), &N, ww.data(), &wkopt, &lwork, &retcode);
+            lwork = (int)wkopt;
+            std::vector<double> work(lwork);
+            /* Solve eigenproblem */
+            dsyev_(&V, &U, &N, B.data(), &N, ww.data(), work.data(), &lwork, &retcode);
+
+            if (retcode != 0) {
+                *b = std::numeric_limits<double>::quiet_NaN();
+                return SF_ERROR_NO_RESULT;
+            }
+
+            // Sort ww vector from lowest to highest
+            // quickSort(ww, 0, N-1);
+            // print_matrix(ww, N, 1);
+
+            // Now figure out which one to return.
+            int idx = (m - 1) / 2;
+            *b = ww[idx];
+        }
+
+        // printf("<-- mathieu_b\n");
+        return retcode;
     }
 
-    // printf("<-- mathieu_b\n"); 
-    return retcode;
-  }
-    
 } // namespace mathieu
 } // namespace xsf
 

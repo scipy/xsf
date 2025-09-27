@@ -12,7 +12,7 @@
  * which make the recursion matrices.
  *
  * Stuart Brorson, Summer 2025.
- * 
+ *
  */
 
 #define SQRT2 1.414213562373095
@@ -20,193 +20,191 @@
 namespace xsf {
 namespace mathieu {
 
-  /*-----------------------------------------------
-  This creates the recurrence relation matrix for
-  the even-even Mathieu fcns (ce_2n).
+    /*-----------------------------------------------
+    This creates the recurrence relation matrix for
+    the even-even Mathieu fcns (ce_2n).
 
-  Inputs:
-  N = matrix size (related to max order desired).
-  q = shape parameter.
+    Inputs:
+    N = matrix size (related to max order desired).
+    q = shape parameter.
 
-  Output:
-  A = recurrence matrix (must be calloc'ed in caller).
+    Output:
+    A = recurrence matrix (must be calloc'ed in caller).
 
-  Return:
-  return code = SF_ERROR_OK if OK.
-  -------------------------------------------------*/
-  int make_matrix_ee(int N, double q, double *A) {
-    int j;
-    int i;
+    Return:
+    return code = SF_ERROR_OK if OK.
+    -------------------------------------------------*/
+    int make_matrix_ee(int N, double q, double *A) {
+        int j;
+        int i;
 
-    // Symmetrize matrix here, then fix in caller.
-    i = MATRIX_IDX(N, 0, 1);
-    A[i] = SQRT2*q;
-    i = MATRIX_IDX(N, 1, 0);
-    A[i] = SQRT2*q;
-    i = MATRIX_IDX(N, 1, 1);
-    A[i] = 4.0;
-    i = MATRIX_IDX(N, 1, 2);
-    A[i] = q;
+        // Symmetrize matrix here, then fix in caller.
+        i = MATRIX_IDX(N, 0, 1);
+        A[i] = SQRT2 * q;
+        i = MATRIX_IDX(N, 1, 0);
+        A[i] = SQRT2 * q;
+        i = MATRIX_IDX(N, 1, 1);
+        A[i] = 4.0;
+        i = MATRIX_IDX(N, 1, 2);
+        A[i] = q;
 
-    for (j=2; j<=N-2; j++) {
-      i = MATRIX_IDX(N, j, j-1);
-      A[i] = q;
-      i = MATRIX_IDX(N, j, j);      
-      A[i]   = (2.0*j)*(2.0*j);
-      i = MATRIX_IDX(N, j, j+1);
-      A[i] = q;
+        for (j = 2; j <= N - 2; j++) {
+            i = MATRIX_IDX(N, j, j - 1);
+            A[i] = q;
+            i = MATRIX_IDX(N, j, j);
+            A[i] = (2.0 * j) * (2.0 * j);
+            i = MATRIX_IDX(N, j, j + 1);
+            A[i] = q;
+        }
+
+        i = MATRIX_IDX(N, N - 1, N - 2);
+        A[i] = q;
+        i = MATRIX_IDX(N, N - 1, N - 1);
+        A[i] = (2.0 * (N - 1)) * (2.0 * (N - 1));
+
+        return SF_ERROR_OK;
     }
 
-    i = MATRIX_IDX(N, N-1, N-2);    
-    A[i] = q;
-    i = MATRIX_IDX(N, N-1, N-1);    
-    A[i]   = (2.0*(N-1))*(2.0*(N-1));
+    /*-----------------------------------------------
+    This creates the recurrence relation matrix for the
+    even-odd Mathieu fcns (ce_2n+1).
 
-    return SF_ERROR_OK;
-  }
-  
-  /*-----------------------------------------------
-  This creates the recurrence relation matrix for the
-  even-odd Mathieu fcns (ce_2n+1).
-  
-  Inputs:
-  N = matrix size (related to max order desired).
-  q = shape parameter.
+    Inputs:
+    N = matrix size (related to max order desired).
+    q = shape parameter.
 
-  Output:
-  A = recurrence matrix (calloc in caller).
+    Output:
+    A = recurrence matrix (calloc in caller).
 
-  Return:
-  return code = SF_ERROR_OK if OK.
-  -------------------------------------------------*/
-  int make_matrix_eo(int N, double q, double *A) {
-    int j;
-    int i;
+    Return:
+    return code = SF_ERROR_OK if OK.
+    -------------------------------------------------*/
+    int make_matrix_eo(int N, double q, double *A) {
+        int j;
+        int i;
 
-    i = MATRIX_IDX(N, 0, 0);
-    A[i] = 1.0+q;
-    i = MATRIX_IDX(N, 0, 1);
-    A[i] = q;
-    i = MATRIX_IDX(N, 1, 0);
-    A[i] = q;
-    i = MATRIX_IDX(N, 1, 1);    
-    A[i] = 9.0;
-    i = MATRIX_IDX(N, 1, 2);    
-    A[i] = q;
-  
-    for (j=2; j<=N-2; j++) {
-      i = MATRIX_IDX(N, j, j-1);
-      A[i] = q;
-      i = MATRIX_IDX(N, j, j);      
-      A[i] = (2.0*j+1.0)*(2.0*j+1.0);
-      i = MATRIX_IDX(N, j, j+1);
-      A[i] = q;
+        i = MATRIX_IDX(N, 0, 0);
+        A[i] = 1.0 + q;
+        i = MATRIX_IDX(N, 0, 1);
+        A[i] = q;
+        i = MATRIX_IDX(N, 1, 0);
+        A[i] = q;
+        i = MATRIX_IDX(N, 1, 1);
+        A[i] = 9.0;
+        i = MATRIX_IDX(N, 1, 2);
+        A[i] = q;
+
+        for (j = 2; j <= N - 2; j++) {
+            i = MATRIX_IDX(N, j, j - 1);
+            A[i] = q;
+            i = MATRIX_IDX(N, j, j);
+            A[i] = (2.0 * j + 1.0) * (2.0 * j + 1.0);
+            i = MATRIX_IDX(N, j, j + 1);
+            A[i] = q;
+        }
+
+        i = MATRIX_IDX(N, N - 1, N - 2);
+        A[i] = q;
+        i = MATRIX_IDX(N, N - 1, N - 1);
+        A[i] = (2.0 * (N - 1) + 1.0) * (2.0 * (N - 1) + 1.0);
+
+        return SF_ERROR_OK;
     }
 
-    i = MATRIX_IDX(N, N-1, N-2);    
-    A[i] = q;
-    i = MATRIX_IDX(N, N-1, N-1);    
-    A[i] = (2.0*(N-1)+1.0)*(2.0*(N-1)+1.0);
+    /*-----------------------------------------------
+    This creates the recurrence relation matrix for
+    the odd-even Mathieu fcns (se_2n) -- sometimes called
+    se_2n+2.
 
-    return SF_ERROR_OK;
-  }
+    Inputs:
+    N = matrix size (related to max order desired).
+    q = shape parameter.
 
-  /*-----------------------------------------------
-  This creates the recurrence relation matrix for
-  the odd-even Mathieu fcns (se_2n) -- sometimes called
-  se_2n+2.
+    Output:
+    A = recurrence matrix (calloc in caller).
 
-  Inputs:
-  N = matrix size (related to max order desired).
-  q = shape parameter.
+    Return:
+    return code = SF_ERROR_OK if OK.
+    -------------------------------------------------*/
+    int make_matrix_oe(int N, double q, double *A) {
+        int j;
+        int i;
 
-  Output:
-  A = recurrence matrix (calloc in caller).
+        i = MATRIX_IDX(N, 0, 0);
+        A[i] = 4.0;
+        i = MATRIX_IDX(N, 0, 1);
+        A[i] = q;
+        i = MATRIX_IDX(N, 1, 0);
+        A[i] = q;
+        i = MATRIX_IDX(N, 1, 1);
+        A[i] = 16.0;
+        i = MATRIX_IDX(N, 1, 2);
+        A[i] = q;
 
-  Return:
-  return code = SF_ERROR_OK if OK.
-  -------------------------------------------------*/
-  int make_matrix_oe(int N, double q, double *A) {
-    int j;
-    int i;
+        for (j = 2; j <= N - 2; j++) {
+            i = MATRIX_IDX(N, j, j - 1);
+            A[i] = q;
+            i = MATRIX_IDX(N, j, j);
+            A[i] = (2.0 * (j + 1)) * (2.0 * (j + 1));
+            i = MATRIX_IDX(N, j, j + 1);
+            A[i] = q;
+        }
 
-    i = MATRIX_IDX(N, 0, 0);
-    A[i] = 4.0;
-    i = MATRIX_IDX(N, 0, 1);
-    A[i] = q;
-    i = MATRIX_IDX(N, 1, 0);
-    A[i] = q;
-    i = MATRIX_IDX(N, 1, 1);    
-    A[i] = 16.0;
-    i = MATRIX_IDX(N, 1, 2);    
-    A[i] = q;
-  
-    for (j=2; j<=N-2; j++) {
-      i = MATRIX_IDX(N, j, j-1);
-      A[i] = q;
-      i = MATRIX_IDX(N, j, j);      
-      A[i] = (2.0*(j+1))*(2.0*(j+1));
-      i = MATRIX_IDX(N, j, j+1);
-      A[i] = q;
+        i = MATRIX_IDX(N, N - 1, N - 2);
+        A[i] = q;
+        i = MATRIX_IDX(N, N - 1, N - 1);
+        A[i] = (2.0 * N) * (2.0 * N);
+
+        return SF_ERROR_OK;
     }
 
-    i = MATRIX_IDX(N, N-1, N-2);    
-    A[i] = q;
-    i = MATRIX_IDX(N, N-1, N-1);    
-    A[i] = (2.0*N)*(2.0*N);
+    /*-----------------------------------------------
+    This creates the recurrence relation matrix for
+    the odd-odd Mathieu fcns (se_2n+1).
 
-    return SF_ERROR_OK;
-  }
+    Inputs:
+    N = matrix size (related to max order desired).
+    q = shape parameter.
 
-    
-  /*-----------------------------------------------
-  This creates the recurrence relation matrix for
-  the odd-odd Mathieu fcns (se_2n+1).
+    Output:
+    A = recurrence matrix (calloc in caller).
 
-  Inputs:
-  N = matrix size (related to max order desired).
-  q = shape parameter.
+    Return:
+    return code = SF_ERROR_OK if OK.
+    -------------------------------------------------*/
+    int make_matrix_oo(int N, double q, double *A) {
+        int j;
+        int i;
 
-  Output:
-  A = recurrence matrix (calloc in caller).
+        i = MATRIX_IDX(N, 0, 0);
+        A[i] = 1.0 - q;
+        i = MATRIX_IDX(N, 0, 1);
+        A[i] = q;
+        i = MATRIX_IDX(N, 1, 0);
+        A[i] = q;
+        i = MATRIX_IDX(N, 1, 1);
+        A[i] = 9.0;
+        i = MATRIX_IDX(N, 1, 2);
+        A[i] = q;
 
-  Return:
-  return code = SF_ERROR_OK if OK.
-  -------------------------------------------------*/
-  int make_matrix_oo(int N, double q, double *A) {
-    int j;
-    int i;
+        for (j = 2; j <= N - 2; j++) {
+            i = MATRIX_IDX(N, j, j - 1);
+            A[i] = q;
+            i = MATRIX_IDX(N, j, j);
+            A[i] = (2.0 * j + 1.0) * (2.0 * j + 1.0);
+            i = MATRIX_IDX(N, j, j + 1);
+            A[i] = q;
+        }
 
-    i = MATRIX_IDX(N, 0, 0);
-    A[i] = 1.0 - q;
-    i = MATRIX_IDX(N, 0, 1);
-    A[i] = q;
-    i = MATRIX_IDX(N, 1, 0);
-    A[i] = q;
-    i = MATRIX_IDX(N, 1, 1);    
-    A[i] = 9.0;
-    i = MATRIX_IDX(N, 1, 2);    
-    A[i] = q;
-  
-    for (j=2; j<=N-2; j++) {
-      i = MATRIX_IDX(N, j, j-1);
-      A[i] = q;
-      i = MATRIX_IDX(N, j, j);      
-      A[i] = (2.0*j+1.0)*(2.0*j+1.0);
-      i = MATRIX_IDX(N, j, j+1);
-      A[i] = q;
+        i = MATRIX_IDX(N, N - 1, N - 2);
+        A[i] = q;
+        i = MATRIX_IDX(N, N - 1, N - 1);
+        A[i] = (2.0 * N - 1.0) * (2.0 * N - 1.0);
+
+        return SF_ERROR_OK;
     }
-
-    i = MATRIX_IDX(N, N-1, N-2);    
-    A[i] = q;
-    i = MATRIX_IDX(N, N-1, N-1);    
-    A[i] = (2.0*N-1.0)*(2.0*N-1.0);
-
-    return SF_ERROR_OK;
-  }
-
 
 } // namespace mathieu
 } // namespace xsf
- 
-#endif   // #ifndef MAKE_MATRIX_H
+
+#endif // #ifndef MAKE_MATRIX_H
