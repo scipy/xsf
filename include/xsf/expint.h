@@ -149,6 +149,9 @@ XSF_HOST_DEVICE inline double expi(double x) {
             }
         }
         ei = ga + std::log(x) + x * ei;
+    } else if (x == HUGE_VAL) {
+        // Special use-case needed because exp(inf) / inf is undefined/NaN
+        return HUGE_VAL;
     } else {
         // Asymptotic expansion (the series is not convergent)
         ei = 1.0;
