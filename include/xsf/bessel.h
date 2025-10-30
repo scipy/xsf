@@ -945,7 +945,7 @@ inline std::complex<double> cyl_bessel_y(double v, std::complex<double> z) {
 
     if (z.real() == 0 && z.imag() == 0) {
         /* overflow */
-        cy_y.real(-sign*INFINITY);
+        cy_y.real(-sign * INFINITY);
         cy_y.imag(0);
         set_error("yv", SF_ERROR_OVERFLOW, NULL);
         return cy_y;
