@@ -948,6 +948,7 @@ inline std::complex<double> cyl_bessel_y(double v, std::complex<double> z) {
         cy_y.real(-INFINITY);
         cy_y.imag(0);
         set_error("yv", SF_ERROR_OVERFLOW, NULL);
+        return cy_y;
     } else {
         nz = amos::besy(z, v, kode, n, &cy_y, &ierr);
         set_error_and_nan("yv:", ierr_to_sferr(nz, ierr), cy_y);
