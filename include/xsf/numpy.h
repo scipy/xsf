@@ -204,6 +204,8 @@ namespace numpy {
     using lD_D = cdouble (*)(long int, cdouble);
     using Dd_D = cdouble (*)(cdouble, double);
     using Ff_F = cfloat (*)(cfloat, float);
+    using dD_D1 = void (*)(double, cdouble, cdouble_1d);
+    using fF_F1 = void (*)(float, cfloat, cfloat_1d);
 
     // autodiff, 2 inputs, 1 output
     using autodiff0_if_f = autodiff0_float (*)(int, autodiff0_float);
