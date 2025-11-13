@@ -18,11 +18,11 @@
  *
  */
 
-/* DSYEV_ prototype */
+/* DSYEVD_ prototype */
 #ifdef __cplusplus
 extern "C" {
 #endif
-void dsyev_(char *jobz, char *uplo, int *n, double *a, int *lda, double *w, double *work, int *lwork, int *info);
+void dsyevd_(char *jobz, char *uplo, int *n, double *a, int *lda, double *w, double *work, int *lwork, int *info);
 #ifdef __cplusplus
 }
 #endif
@@ -66,14 +66,14 @@ namespace mathieu {
 
             /* Query and allocate the optimal workspace */
             int lwork = -1;
-            dsyev_(&V, &U, &N, A.data(), &N, ww.data(), &wkopt, &lwork, &retcode);
+            dsyevd_(&V, &U, &N, A.data(), &N, ww.data(), &wkopt, &lwork, &retcode);
             lwork = (int)wkopt;
             std::vector<double> work(lwork);
 
             /* Solve eigenproblem */
-            dsyev_(&V, &U, &N, A.data(), &N, ww.data(), work.data(), &lwork, &retcode);
+            dsyevd_(&V, &U, &N, A.data(), &N, ww.data(), work.data(), &lwork, &retcode);
 
-            // Check if dsyev was successful
+            // Check if dsyevd was successful
             if (retcode != 0) {
                 *a = std::numeric_limits<double>::quiet_NaN();
                 return SF_ERROR_NO_RESULT;
@@ -101,14 +101,14 @@ namespace mathieu {
 
             /* Query and allocate the optimal workspace */
             int lwork = -1;
-            dsyev_(&V, &U, &N, A.data(), &N, ww.data(), &wkopt, &lwork, &retcode);
+            dsyevd_(&V, &U, &N, A.data(), &N, ww.data(), &wkopt, &lwork, &retcode);
             lwork = (int)wkopt;
             std::vector<double> work(lwork);
 
             /* Solve eigenproblem */
-            dsyev_(&V, &U, &N, A.data(), &N, ww.data(), work.data(), &lwork, &retcode);
+            dsyevd_(&V, &U, &N, A.data(), &N, ww.data(), work.data(), &lwork, &retcode);
 
-            // Check if dsyev was successful
+            // Check if dsyevd was successful
             if (retcode != 0) {
                 *a = std::numeric_limits<double>::quiet_NaN();
                 return SF_ERROR_NO_RESULT;
@@ -162,12 +162,12 @@ namespace mathieu {
 
             /* Query and allocate the optimal workspace */
             int lwork = -1;
-            dsyev_(&V, &U, &N, B.data(), &N, ww.data(), &wkopt, &lwork, &retcode);
+            dsyevd_(&V, &U, &N, B.data(), &N, ww.data(), &wkopt, &lwork, &retcode);
             lwork = (int)wkopt;
             std::vector<double> work(lwork);
 
             /* Solve eigenproblem */
-            dsyev_(&V, &U, &N, B.data(), &N, ww.data(), work.data(), &lwork, &retcode);
+            dsyevd_(&V, &U, &N, B.data(), &N, ww.data(), work.data(), &lwork, &retcode);
 
             if (retcode != 0) {
                 *b = std::numeric_limits<double>::quiet_NaN();
@@ -196,11 +196,11 @@ namespace mathieu {
 
             /* Query and allocate the optimal workspace */
             int lwork = -1;
-            dsyev_(&V, &U, &N, B.data(), &N, ww.data(), &wkopt, &lwork, &retcode);
+            dsyevd_(&V, &U, &N, B.data(), &N, ww.data(), &wkopt, &lwork, &retcode);
             lwork = (int)wkopt;
             std::vector<double> work(lwork);
             /* Solve eigenproblem */
-            dsyev_(&V, &U, &N, B.data(), &N, ww.data(), work.data(), &lwork, &retcode);
+            dsyevd_(&V, &U, &N, B.data(), &N, ww.data(), work.data(), &lwork, &retcode);
 
             if (retcode != 0) {
                 *b = std::numeric_limits<double>::quiet_NaN();
