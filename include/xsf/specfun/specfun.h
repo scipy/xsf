@@ -6055,10 +6055,14 @@ namespace specfun {
                     }
                 }
                 cv0[k - 1] = x1;
+                int index = 0;
                 if (l == 0)
-                    eg[2 * k - 2] = cv0[k - 1];
+                    index = 2 * k - 2;
                 if (l == 1)
-                    eg[2 * k - 1] = cv0[k - 1];
+                    index = 2 * k - 1;
+                // boundary check
+                if (index >= n - m + 1) break;
+                eg[index] = cv0[k - 1];
             }
         }
         *cv = eg[n - m];
