@@ -20,11 +20,11 @@
  *
  */
 
-/* DSYEVD_ prototype */
+/* DSTEVD_ prototype */
 #ifdef __cplusplus
 extern "C" {
 #endif
-void dsyevd_(char *jobz, char *uplo, int *n, double *a, int *lda, double *w, double *work, int *lwork, int *info);
+void dstevd_(char *jobz, char *uplo, int *n, double *a, int *lda, double *w, double *work, int *lwork, int *info);
 #ifdef __cplusplus
 }
 #endif
@@ -64,14 +64,14 @@ namespace mathieu {
         double wkopt;
         /* Query and allocate the optimal workspace */
         int lwork = -1;
-        dsyevd_(V, U, &N, A.data(), &N, AA, &wkopt, &lwork, &retcode);
+        dstevd_(V, U, &N, A.data(), &N, AA, &wkopt, &lwork, &retcode);
         lwork = (int)wkopt;
         std::vector<double> work(lwork);
 
         /* Solve eigenproblem */
-        dsyevd_(V, U, &N, A.data(), &N, AA, work.data(), &lwork, &retcode);
+        dstevd_(V, U, &N, A.data(), &N, AA, work.data(), &lwork, &retcode);
 
-        // Check return code from dsyevd and bail if it's not 0.
+        // Check return code from dstevd and bail if it's not 0.
         if (retcode != 0) {
             return SF_ERROR_NO_RESULT;
         }
@@ -119,14 +119,14 @@ namespace mathieu {
 
         /* Query and allocate the optimal workspace */
         int lwork = -1;
-        dsyevd_(V, U, &N, A.data(), &N, AA, &wkopt, &lwork, &retcode);
+        dstevd_(V, U, &N, A.data(), &N, AA, &wkopt, &lwork, &retcode);
         lwork = (int)wkopt;
         std::vector<double> work(lwork);
 
         /* Solve eigenproblem */
-        dsyevd_(V, U, &N, A.data(), &N, AA, work.data(), &lwork, &retcode);
+        dstevd_(V, U, &N, A.data(), &N, AA, work.data(), &lwork, &retcode);
 
-        // Check return code from dsyevd and bail if it's not 0.
+        // Check return code from dstevd and bail if it's not 0.
         if (retcode != 0) {
             return SF_ERROR_NO_RESULT;
         }
@@ -181,14 +181,14 @@ namespace mathieu {
 
         /* Query and allocate the optimal workspace */
         int lwork = -1;
-        dsyevd_(V, U, &N, A.data(), &N, AA, &wkopt, &lwork, &retcode);
+        dstevd_(V, U, &N, A.data(), &N, AA, &wkopt, &lwork, &retcode);
         lwork = (int)wkopt;
         std::vector<double> work(lwork);
 
         /* Solve eigenproblem */
-        dsyevd_(V, U, &N, A.data(), &N, AA, work.data(), &lwork, &retcode);
+        dstevd_(V, U, &N, A.data(), &N, AA, work.data(), &lwork, &retcode);
 
-        // Bail out if dsyevd doesn't return 0.
+        // Bail out if dstevd doesn't return 0.
         if (retcode != 0) {
             return SF_ERROR_NO_RESULT;
         }
@@ -234,13 +234,13 @@ namespace mathieu {
 
         /* Query and allocate the optimal workspace */
         int lwork = -1;
-        dsyevd_(V, U, &N, A.data(), &N, AA, &wkopt, &lwork, &retcode);
+        dstevd_(V, U, &N, A.data(), &N, AA, &wkopt, &lwork, &retcode);
         lwork = (int)wkopt;
         std::vector<double> work(lwork);
         /* Solve eigenproblem */
-        dsyevd_(V, U, &N, A.data(), &N, AA, work.data(), &lwork, &retcode);
+        dstevd_(V, U, &N, A.data(), &N, AA, work.data(), &lwork, &retcode);
 
-        // Bail out if dsyevd didn't return 0;
+        // Bail out if dstevd didn't return 0;
         if (retcode != 0) {
             return SF_ERROR_NO_RESULT;
         }
