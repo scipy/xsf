@@ -24,8 +24,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-void dsyevd_(char *jobz, char *uplo, int *n, double *a, int *lda, double *w, double *work, int *lwork, int *iwork,
-             int *liwork, int *info);
+void dsyevd_(
+    char *jobz, char *uplo, int *n, double *a, int *lda, double *w, double *work, int *lwork, int *iwork, int *liwork,
+    int *info
+);
 #ifdef __cplusplus
 }
 #endif
