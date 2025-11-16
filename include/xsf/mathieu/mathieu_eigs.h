@@ -18,11 +18,12 @@
  *
  */
 
-/* DSTEVD_ prototype */
+/* DSYEVD_ prototype */
 #ifdef __cplusplus
 extern "C" {
 #endif
-void dstevd_(char *jobz, char *uplo, int *n, double *a, int *lda, double *w, double *work, int *lwork, int *info);
+void dsyevd_(char *jobz, char *uplo, int *n, double *a, int *lda, double *w, double *work, int *lwork, int *iwork,
+             int *liwork, int *info);
 #ifdef __cplusplus
 }
 #endif
@@ -60,20 +61,26 @@ namespace mathieu {
                 return SF_ERROR_OTHER; // Not sure what went wrong.
             }
 
-            char V = 'V';
+            char V = 'N';
             char U = 'U';
-            double wkopt;
 
             /* Query and allocate the optimal workspace */
             int lwork = -1;
-            dstevd_(&V, &U, &N, A.data(), &N, ww.data(), &wkopt, &lwork, &retcode);
-            lwork = (int)wkopt;
+            int liwork = -1;
+            double work_query;
+            int iwork_query;
+            dsyevd_(&V, &U, &N, A.data(), &N, ww.data(), &work_query, &lwork, &iwork_query, &liwork, &retcode);
+            lwork = (int)work_query;
+            liwork = iwork_query;
+
+            /* Allocate worksapce */
             std::vector<double> work(lwork);
+            std::vector<int> iwork(liwork);
 
             /* Solve eigenproblem */
-            dstevd_(&V, &U, &N, A.data(), &N, ww.data(), work.data(), &lwork, &retcode);
+            dsyevd_(&V, &U, &N, A.data(), &N, ww.data(), work.data(), &lwork, iwork.data(), &liwork, &retcode);
 
-            // Check if dstevd was successful
+            // Check if dsyevd was successful
             if (retcode != 0) {
                 *a = std::numeric_limits<double>::quiet_NaN();
                 return SF_ERROR_NO_RESULT;
@@ -97,18 +104,24 @@ namespace mathieu {
 
             char V = 'V';
             char U = 'U';
-            double wkopt;
 
             /* Query and allocate the optimal workspace */
             int lwork = -1;
-            dstevd_(&V, &U, &N, A.data(), &N, ww.data(), &wkopt, &lwork, &retcode);
-            lwork = (int)wkopt;
+            int liwork = -1;
+            double work_query;
+            int iwork_query;
+            dsyevd_(&V, &U, &N, A.data(), &N, ww.data(), &work_query, &lwork, &iwork_query, &liwork, &retcode);
+            lwork = (int)work_query;
+            liwork = iwork_query;
+
+            /* Allocate worksapce */
             std::vector<double> work(lwork);
+            std::vector<int> iwork(liwork);
 
             /* Solve eigenproblem */
-            dstevd_(&V, &U, &N, A.data(), &N, ww.data(), work.data(), &lwork, &retcode);
+            dsyevd_(&V, &U, &N, A.data(), &N, ww.data(), work.data(), &lwork, iwork.data(), &liwork, &retcode);
 
-            // Check if dstevd was successful
+            // Check if dsyevd was successful
             if (retcode != 0) {
                 *a = std::numeric_limits<double>::quiet_NaN();
                 return SF_ERROR_NO_RESULT;
@@ -158,16 +171,22 @@ namespace mathieu {
 
             char V = 'V';
             char U = 'U';
-            double wkopt;
 
             /* Query and allocate the optimal workspace */
             int lwork = -1;
-            dstevd_(&V, &U, &N, B.data(), &N, ww.data(), &wkopt, &lwork, &retcode);
-            lwork = (int)wkopt;
+            int liwork = -1;
+            double work_query;
+            int iwork_query;
+            dsyevd_(&V, &U, &N, B.data(), &N, ww.data(), &work_query, &lwork, &iwork_query, &liwork, &retcode);
+            lwork = (int)work_query;
+            liwork = iwork_query;
+
+            /* Allocate worksapce */
             std::vector<double> work(lwork);
+            std::vector<int> iwork(liwork);
 
             /* Solve eigenproblem */
-            dstevd_(&V, &U, &N, B.data(), &N, ww.data(), work.data(), &lwork, &retcode);
+            dsyevd_(&V, &U, &N, B.data(), &N, ww.data(), work.data(), &lwork, iwork.data(), &liwork, &retcode);
 
             if (retcode != 0) {
                 *b = std::numeric_limits<double>::quiet_NaN();
@@ -192,15 +211,22 @@ namespace mathieu {
 
             char V = 'V';
             char U = 'U';
-            double wkopt;
 
             /* Query and allocate the optimal workspace */
             int lwork = -1;
-            dstevd_(&V, &U, &N, B.data(), &N, ww.data(), &wkopt, &lwork, &retcode);
-            lwork = (int)wkopt;
+            int liwork = -1;
+            double work_query;
+            int iwork_query;
+            dsyevd_(&V, &U, &N, B.data(), &N, ww.data(), &work_query, &lwork, &iwork_query, &liwork, &retcode);
+            lwork = (int)work_query;
+            liwork = iwork_query;
+
+            /* Allocate worksapce */
             std::vector<double> work(lwork);
+            std::vector<int> iwork(liwork);
+
             /* Solve eigenproblem */
-            dstevd_(&V, &U, &N, B.data(), &N, ww.data(), work.data(), &lwork, &retcode);
+            dsyevd_(&V, &U, &N, B.data(), &N, ww.data(), work.data(), &lwork, iwork.data(), &liwork, &retcode);
 
             if (retcode != 0) {
                 *b = std::numeric_limits<double>::quiet_NaN();

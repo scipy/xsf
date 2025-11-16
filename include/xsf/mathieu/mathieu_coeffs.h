@@ -24,9 +24,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-void dsyevd_(char* jobz, char* uplo, int* n, double* a, int* lda,
-                    double* w, double* work, int* lwork, int* iwork,
-                    int* liwork, int* info);
+void dsyevd_(char *jobz, char *uplo, int *n, double *a, int *lda, double *w, double *work, int *lwork, int *iwork,
+             int *liwork, int *info);
 #ifdef __cplusplus
 }
 #endif
@@ -65,26 +64,20 @@ namespace mathieu {
         char U[1] = {'U'};
 
         /* Query and allocate the optimal workspace */
-	int lwork = -1;
-	int liwork = -1;
-	double work_query;
-	int iwork_query;
-        dsyevd_(V, U, &N, A.data(), &N, AA,
-	        &work_query, &lwork,
-		&iwork_query, &liwork,
-		&retcode);
-	lwork = (int)work_query;
-	liwork = iwork_query;
+        int lwork = -1;
+        int liwork = -1;
+        double work_query;
+        int iwork_query;
+        dsyevd_(V, U, &N, A.data(), &N, AA, &work_query, &lwork, &iwork_query, &liwork, &retcode);
+        lwork = (int)work_query;
+        liwork = iwork_query;
 
-	/* Allocate worksapce */
+        /* Allocate worksapce */
         std::vector<double> work(lwork);
-        std::vector<int> iwork(liwork);	
+        std::vector<int> iwork(liwork);
 
         /* Solve eigenproblem */
-        dsyevd_(V, U, &N, A.data(), &N, AA,
-		work.data(), &lwork,
-		iwork.data(), &liwork,		
-		&retcode);
+        dsyevd_(V, U, &N, A.data(), &N, AA, work.data(), &lwork, iwork.data(), &liwork, &retcode);
 
         // Check return code from dsyevd and bail if it's not 0.
         if (retcode != 0) {
@@ -132,26 +125,20 @@ namespace mathieu {
         char U[1] = {'U'};
 
         /* Query and allocate the optimal workspace */
-	int lwork = -1;
-	int liwork = -1;
-	double work_query;
-	int iwork_query;
-        dsyevd_(V, U, &N, A.data(), &N, AA,
-	        &work_query, &lwork,
-		&iwork_query, &liwork,
-		&retcode);
-	lwork = (int)work_query;
-	liwork = iwork_query;
+        int lwork = -1;
+        int liwork = -1;
+        double work_query;
+        int iwork_query;
+        dsyevd_(V, U, &N, A.data(), &N, AA, &work_query, &lwork, &iwork_query, &liwork, &retcode);
+        lwork = (int)work_query;
+        liwork = iwork_query;
 
-	/* Allocate worksapce */
+        /* Allocate worksapce */
         std::vector<double> work(lwork);
-        std::vector<int> iwork(liwork);	
+        std::vector<int> iwork(liwork);
 
         /* Solve eigenproblem */
-        dsyevd_(V, U, &N, A.data(), &N, AA,
-		work.data(), &lwork,
-		iwork.data(), &liwork,		
-		&retcode);
+        dsyevd_(V, U, &N, A.data(), &N, AA, work.data(), &lwork, iwork.data(), &liwork, &retcode);
 
         // Check return code from dsyevd and bail if it's not 0.
         if (retcode != 0) {
@@ -206,26 +193,20 @@ namespace mathieu {
         char U[1] = {'U'};
 
         /* Query and allocate the optimal workspace */
-	int lwork = -1;
-	int liwork = -1;
-	double work_query;
-	int iwork_query;
-        dsyevd_(V, U, &N, A.data(), &N, AA,
-	        &work_query, &lwork,
-		&iwork_query, &liwork,
-		&retcode);
-	lwork = (int)work_query;
-	liwork = iwork_query;
+        int lwork = -1;
+        int liwork = -1;
+        double work_query;
+        int iwork_query;
+        dsyevd_(V, U, &N, A.data(), &N, AA, &work_query, &lwork, &iwork_query, &liwork, &retcode);
+        lwork = (int)work_query;
+        liwork = iwork_query;
 
-	/* Allocate worksapce */
+        /* Allocate worksapce */
         std::vector<double> work(lwork);
-        std::vector<int> iwork(liwork);	
+        std::vector<int> iwork(liwork);
 
         /* Solve eigenproblem */
-        dsyevd_(V, U, &N, A.data(), &N, AA,
-		work.data(), &lwork,
-		iwork.data(), &liwork,		
-		&retcode);
+        dsyevd_(V, U, &N, A.data(), &N, AA, work.data(), &lwork, iwork.data(), &liwork, &retcode);
 
         // Bail out if dsyevd doesn't return 0.
         if (retcode != 0) {
@@ -271,26 +252,20 @@ namespace mathieu {
         char U[1] = {'U'};
 
         /* Query and allocate the optimal workspace */
-	int lwork = -1;
-	int liwork = -1;
-	double work_query;
-	int iwork_query;
-        dsyevd_(V, U, &N, A.data(), &N, AA,
-	        &work_query, &lwork,
-		&iwork_query, &liwork,
-		&retcode);
-	lwork = (int)work_query;
-	liwork = iwork_query;
+        int lwork = -1;
+        int liwork = -1;
+        double work_query;
+        int iwork_query;
+        dsyevd_(V, U, &N, A.data(), &N, AA, &work_query, &lwork, &iwork_query, &liwork, &retcode);
+        lwork = (int)work_query;
+        liwork = iwork_query;
 
-	/* Allocate worksapce */
+        /* Allocate worksapce */
         std::vector<double> work(lwork);
-        std::vector<int> iwork(liwork);	
+        std::vector<int> iwork(liwork);
 
         /* Solve eigenproblem */
-        dsyevd_(V, U, &N, A.data(), &N, AA,
-		work.data(), &lwork,
-		iwork.data(), &liwork,		
-		&retcode);
+        dsyevd_(V, U, &N, A.data(), &N, AA, work.data(), &lwork, iwork.data(), &liwork, &retcode);
 
         // Bail out if dsyevd didn't return 0;
         if (retcode != 0) {
