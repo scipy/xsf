@@ -310,7 +310,11 @@ void assoc_legendre_p_pm1(NormPolicy norm, int n, int m, T z, int branch_cut, T 
 template <typename NormPolicy, typename T, size_t Order>
 void assoc_legendre_p_pm1(NormPolicy norm, int n, int m, dual<T, Order> z, int branch_cut, dual<T, Order> &res) {
     if (m == 0) {
-        res[0] = T(1);
+        if (real(z[0]) >= 0) {
+            res[0] = T(1);
+        } else {
+            res[0] = T(-1);
+        }
     } else {
         res[0] = T(0);
     }
