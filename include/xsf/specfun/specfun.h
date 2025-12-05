@@ -6061,7 +6061,8 @@ namespace specfun {
                 if (l == 1)
                     index = 2 * k - 1;
                 // boundary check
-                if (index >= n - m + 1) break;
+                if (index >= n - m + 1)
+                    break;
                 eg[index] = cv0[k - 1];
             }
         }
