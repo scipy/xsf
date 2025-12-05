@@ -301,11 +301,11 @@ struct assoc_legendre_p_recurrence_n<T, assoc_legendre_norm_policy> {
 template <typename NormPolicy, typename T>
 void assoc_legendre_p_pm1(NormPolicy norm, int n, int m, T z, int branch_cut, T &res) {
     if (m == 0) {
-	if (real(z) >= 0) {
-	    res = T(1);
-	} else {
-	    res = T(std::pow(-1, n));
-	}
+        if (real(z) >= 0) {
+            res = T(1);
+        } else {
+            res = T(std::pow(-1, n));
+        }
     } else {
         res = T(0);
     }
