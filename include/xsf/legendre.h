@@ -313,7 +313,7 @@ void assoc_legendre_p_pm1(NormPolicy norm, int n, int m, dual<T, Order> z, int b
         if (real(z[0]) >= 0) {
             res[0] = T(1);
         } else {
-            res[0] = T(-1);
+            res[0] = T(std::pow(-1, n));
         }
     } else {
         res[0] = T(0);
