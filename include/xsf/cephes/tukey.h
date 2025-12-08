@@ -21,7 +21,7 @@ namespace cephes {
     namespace detail {
 
         constexpr double tukey_SMALLVAL = 1e-4;
-        constexpr double tukey_EPS = 1.0e-14;
+        constexpr double tukey_EPS = 1.0e-18;
         constexpr int tukey_MAXCOUNT = 60;
 
     } // namespace detail
