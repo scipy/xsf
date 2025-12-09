@@ -714,7 +714,7 @@ void lqn(T x, OutputVec1 qn, OutputVec2 qd) {
             q1 = qf;
         }
     } else {
-        qc1 = 0.0;
+        qc1 = (n == 0) ? 0.0 : 1.0 / x;
         qc2 = 1.0 / x;
 
         for (int j = 1; j <= n; j++) {
