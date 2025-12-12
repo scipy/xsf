@@ -14,7 +14,7 @@ TEST_CASE("itj0y0", "[itj0y0][xsf_tests]") {
     );
     double j0int, y0int;
     xsf::it1j0y0(x, j0int, y0int);
-    
+
     const auto rel_error_j0 = xsf::extended_relative_error(j0int, ref_j0);
     const auto rel_error_y0 = xsf::extended_relative_error(y0int, ref_y0);
 
