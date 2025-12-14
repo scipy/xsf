@@ -92,10 +92,9 @@
  */
 #pragma once
 
-#include <stdlib.h>
-
+#include <cmath>
 #include <complex>
-#include <math.h>
+#include <cstdlib>
 #include <memory> // unique_ptr
 
 namespace xsf {
@@ -467,8 +466,8 @@ namespace amos {
         csgn = std::complex<double>(0.0, sgn);
         if (kode != 1) {
             yy = -std::imag(zn);
-            cpn = cos(yy);
-            spn = sin(yy);
+            cpn = std::cos(yy);
+            spn = std::sin(yy);
             csgn *= std::complex<double>(cpn, spn);
         }
         //
@@ -477,8 +476,8 @@ namespace amos {
         //
         inu = (int)fnu;
         arg = (fnu - inu) * sgn;
-        cpn = cos(arg);
-        spn = sin(arg);
+        cpn = std::cos(arg);
+        spn = std::sin(arg);
         cspn = std::complex<double>(cpn, spn);
         if (inu % 2 == 1) {
             cspn = -cspn;
@@ -540,11 +539,11 @@ namespace amos {
                 csgn = std::complex<double>(0.0, sgn);
                 if (kode != 1) {
                     yy = -std::imag(zn);
-                    csgn *= std::complex<double>(cos(yy), sin(yy));
+                    csgn *= std::complex<double>(std::cos(yy), std::sin(yy));
                 }
                 inu = (int)fnu;
                 arg = (fnu - inu) * sgn;
-                cspn = std::complex<double>(cos(arg), sin(arg));
+                cspn = std::complex<double>(std::cos(arg), std::sin(arg));
                 if (inu % 2 == 1) {
                     cspn = -cspn;
                 }
@@ -629,9 +628,9 @@ namespace amos {
                     ck += rz;
                     cspn = -cspn;
                     if (kflag < 3) {
-                        c1r = fabs(std::real(c1));
-                        c1i = fabs(std::imag(c1));
-                        c1m = fmax(c1r, c1i);
+                        c1r = std::fabs(std::real(c1));
+                        c1i = std::fabs(std::imag(c1));
+                        c1m = std::fmax(c1r, c1i);
                         if (c1m > bscle) {
                             kflag += 1;
                             bscle = bry[kflag - 1];
@@ -824,7 +823,7 @@ namespace amos {
                     return ai;
                 }
                 ai = -c2;
-                aa = sqrt(aa);
+                aa = std::sqrt(aa);
                 if (az > aa) {
                     s1 = z * z * 0.5;
                 }
@@ -899,7 +898,7 @@ namespace amos {
         k1 = i1mach[14];
         k2 = i1mach[15];
         r1m5 = d1mach[4];
-        k = (abs(k1) > abs(k2) ? abs(k2) : abs(k1));
+        k = (std::abs(k1) > std::abs(k2) ? std::abs(k2) : std::abs(k1));
         elim = 2.303 * (k * r1m5 - 3.0);
         k1 = i1mach[13] - 1;
         aa = r1m5 * k1;
@@ -907,20 +906,20 @@ namespace amos {
         aa *= 2.303;
         alim = elim + (-aa > -41.45 ? -aa : -41.45);
         rl = 1.2 * dig + 3.0;
-        alaz = log(az);
+        alaz = std::log(az);
         //
         // TEST FOR RANGE
         //
         aa = 0.5 / tol;
         bb = i1mach[8] * 0.5;
         aa = (aa > bb ? bb : aa);
-        aa = pow(aa, tth);
+        aa = std::pow(aa, tth);
         if (az > aa) {
             *ierr = 4;
             *nz = 0;
             return 0.;
         }
-        aa = sqrt(aa);
+        aa = std::sqrt(aa);
         if (az > aa) {
             *ierr = 3;
         }
@@ -936,7 +935,7 @@ namespace amos {
         ak = std::imag(zta);
         if (zr < 0.0) {
             bk = std::real(zta);
-            ck = -fabs(bk);
+            ck = -std::fabs(bk);
             zta = std::complex<double>(ck, ak);
         }
         if ((zi == 0.0) && (zr <= 0.0)) {
@@ -1039,7 +1038,7 @@ namespace amos {
         az = std::abs(z);
         x = std::real(z);
         arm = 1e3 * d1mach[0];
-        rtr1 = sqrt(arm);
+        rtr1 = std::sqrt(arm);
         il = (n > 2 ? 2 : n);
         dfnu = fnu + (n - il);
         // OVERFLOW TEST
@@ -1049,10 +1048,10 @@ namespace amos {
             cz = std::complex<double>(0.0, std::imag(z));
         }
         acz = std::real(cz);
-        if (fabs(acz) <= elim) {
+        if (std::fabs(acz) <= elim) {
             dnu2 = dfnu + dfnu;
             koded = 1;
-            if (!((fabs(acz) > alim) && (n > 2))) {
+            if (!((std::fabs(acz) > alim) && (n > 2))) {
                 koded = 0;
                 ak1 *= std::exp(cz);
             }
@@ -1074,8 +1073,8 @@ namespace amos {
                 inu = (int)fnu;
                 arg = (fnu - inu) * pi;
                 inu += n - il;
-                ak = -sin(arg);
-                bk = cos(arg);
+                ak = -std::sin(arg);
+                bk = std::cos(arg);
                 if (yy < 0.) {
                     bk = -bk;
                 }
@@ -1086,7 +1085,7 @@ namespace amos {
             }
             for (int k = 1; k < (il + 1); k++) {
                 sqk = fdn - 1.;
-                atol = s * fabs(sqk);
+                atol = s * std::fabs(sqk);
                 sgn = 1.;
                 cs1 = 1.;
                 cs2 = 1.;
@@ -1102,7 +1101,7 @@ namespace amos {
                     sgn = -sgn;
                     cs1 += ck * sgn;
                     dk += ez;
-                    aa *= fabs(sqk) / bb;
+                    aa *= std::fabs(sqk) / bb;
                     bb += aez;
                     ak += 8.;
                     sqk -= ak;
@@ -1351,17 +1350,17 @@ namespace amos {
         //  DIG = NUMBER OF BASE 10 DIGITS IN TOL = 10**(-DIG).
         //  FNUL IS THE LOWER BOUNDARY OF THE ASYMPTOTIC SERIES FOR LARGE FNU
         //
-        tol = fmax(d1mach[3], 1e-18);
+        tol = std::fmax(d1mach[3], 1e-18);
         k1 = i1mach[14];
         k2 = i1mach[15];
         r1m5 = d1mach[4];
-        k = (abs(k1) > abs(k2) ? abs(k2) : abs(k1));
+        k = (std::abs(k1) > std::abs(k2) ? std::abs(k2) : std::abs(k1));
         elim = 2.303 * (k * r1m5 - 3.0);
         k1 = i1mach[13] - 1;
         aa = r1m5 * k1;
-        dig = fmin(aa, 18.0);
+        dig = std::fmin(aa, 18.0);
         aa *= 2.303;
-        alim = elim + fmax(-aa, -41.45);
+        alim = elim + std::fmax(-aa, -41.45);
         fnul = 10.0 + 6.0 * (dig - 3.0);
         rl = 1.2 * dig + 3.0;
         fn = fnu + (nn - 1);
@@ -1375,12 +1374,12 @@ namespace amos {
         //
         az = std::abs(z);
         bb = d1mach[1] * 0.5;
-        aa = fmin(0.5 / tol, bb);
+        aa = std::fmin(0.5 / tol, bb);
         if ((az > aa) || (fn > aa)) {
             *ierr = 4;
             return 0;
         } /* GO TO 260 */
-        aa = sqrt(aa);
+        aa = std::sqrt(aa);
         if (az > aa) {
             *ierr = 3;
         }
@@ -1402,7 +1401,7 @@ namespace amos {
             if ((fn > 1.0) && (fn <= 2.0) && (az <= tol)) {
                 /* Failed through all checks */
                 arg = 0.5 * az;
-                aln = -fn * log(arg);
+                aln = -fn * std::log(arg);
                 if (aln > elim) {
                     *ierr = 2;
                     return 0;
@@ -1503,8 +1502,8 @@ namespace amos {
         ir = inu - 2 * inuh;
         arg = (fnu - (inu - ir)) * sgn;
         rhpi = 1.0 / sgn;
-        cpn = rhpi * cos(arg);
-        spn = -rhpi * sin(arg);
+        cpn = rhpi * std::cos(arg);
+        spn = -rhpi * std::sin(arg);
         csgn = std::complex<double>(spn, cpn);
         if (inuh % 2 == 1) {
             csgn = -csgn;
@@ -1515,7 +1514,7 @@ namespace amos {
         for (i = 1; i < (nn + 1); i++) {
             zn = cy[i - 1];
             atol = 1.0;
-            if (fmax(fabs(std::real(zn)), fabs(std::imag(zn))) <= ascle) {
+            if (std::fmax(std::fabs(std::real(zn)), std::fabs(std::imag(zn))) <= ascle) {
                 zn *= rtol;
                 atol = tol;
             }
@@ -1711,17 +1710,17 @@ namespace amos {
         //  DIG = NUMBER OF BASE 10 DIGITS IN TOL = 10**(-DIG).
         //  FNUL IS THE LOWER BOUNDARY OF THE ASYMPTOTIC SERIES FOR LARGE FNU
         //
-        tol = fmax(d1mach[3], 1e-18);
+        tol = std::fmax(d1mach[3], 1e-18);
         k1 = i1mach[14];
         k2 = i1mach[15];
         r1m5 = d1mach[4];
-        k = (abs(k1) > abs(k2) ? abs(k2) : abs(k1));
+        k = (std::abs(k1) > std::abs(k2) ? std::abs(k2) : std::abs(k1));
         elim = 2.303 * (k * r1m5 - 3.0);
         k1 = i1mach[13] - 1;
         aa = r1m5 * k1;
-        dig = fmin(aa, 18.0);
+        dig = std::fmin(aa, 18.0);
         aa *= 2.303;
-        alim = elim + fmax(-aa, -41.45);
+        alim = elim + std::fmax(-aa, -41.45);
         rl = 1.2 * dig + 3.0;
         fnul = 10.0 + 6.0 * (dig - 3.0);
         //
@@ -1731,12 +1730,12 @@ namespace amos {
         fn = fnu + (n - 1);
         aa = 0.5 / tol;
         bb = i1mach[8] * 0.5;
-        aa = fmin(aa, bb);
+        aa = std::fmin(aa, bb);
         if ((az > aa) || (fn > aa)) {
             *ierr = 4;
             return 0;
         }
-        aa = sqrt(aa);
+        aa = std::sqrt(aa);
         if (az > aa) {
             *ierr = 3;
         }
@@ -1756,7 +1755,7 @@ namespace amos {
             if (yy < 0.0) {
                 arg = -arg;
             }
-            csgn = std::complex<double>(cos(arg), sin(arg));
+            csgn = std::complex<double>(std::cos(arg), std::sin(arg));
             if (inu % 2 == 1) {
                 csgn = -csgn;
             }
@@ -1786,7 +1785,7 @@ namespace amos {
         for (i = 1; i < (nn + 1); i++) {
             zn = cy[i - 1];
             atol = 1.0;
-            if (fmax(fabs(std::real(zn)), fabs(std::imag(zn))) <= ascle) {
+            if (std::fmax(std::fabs(std::real(zn)), std::fabs(std::imag(zn))) <= ascle) {
                 zn *= rtol;
                 atol = tol;
             }
@@ -1970,17 +1969,17 @@ namespace amos {
         // DIG = NUMBER OF BASE 10 DIGITS IN TOL = 10**(-DIG).
         // FNUL IS THE LOWER BOUNDARY OF THE ASYMPTOTIC SERIES FOR LARGE FNU.
         //
-        tol = fmax(d1mach[3], 1e-18);
+        tol = std::fmax(d1mach[3], 1e-18);
         k1 = i1mach[14];
         k2 = i1mach[15];
         r1m5 = d1mach[4];
-        k = (abs(k1) > abs(k2) ? abs(k2) : abs(k1));
+        k = (std::abs(k1) > std::abs(k2) ? std::abs(k2) : std::abs(k1));
         elim = 2.303 * (k * r1m5 - 3.0);
         k1 = i1mach[13] - 1;
         aa = r1m5 * k1;
-        dig = fmin(aa, 18.0);
+        dig = std::fmin(aa, 18.0);
         aa *= 2.303;
-        alim = elim + fmax(-aa, -41.45);
+        alim = elim + std::fmax(-aa, -41.45);
         fnul = 10.0 + 6.0 * (dig - 3.0);
         rl = 1.2 * dig + 3.0;
         //
@@ -1992,12 +1991,12 @@ namespace amos {
 
         aa = 0.5 / tol;
         bb = d1mach[1] * 0.5;
-        aa = fmin(aa, bb);
+        aa = std::fmin(aa, bb);
         if ((az > aa) || (fn > aa)) {
             *ierr = 4;
             return 0;
         }
-        aa = sqrt(aa);
+        aa = std::sqrt(aa);
         if (az > aa) {
             *ierr = 3;
         }
@@ -2013,8 +2012,8 @@ namespace amos {
         inuh = inu / 2;
         ir = inu - 2 * inuh;
         arg = (fnu - (inu - ir)) * hpi;
-        r1 = cos(arg);
-        r2 = sin(arg);
+        r1 = std::cos(arg);
+        r2 = std::sin(arg);
         csgn = std::complex<double>(r1, r2);
         if (inuh % 2 == 1) {
             csgn = -csgn;
@@ -2048,7 +2047,7 @@ namespace amos {
             aa = std::real(zn);
             bb = std::imag(zn);
             atol = 1.0;
-            if (fmax(fabs(aa), fabs(bb)) <= ascle) {
+            if (std::fmax(std::fabs(aa), std::fabs(bb)) <= ascle) {
                 zn *= rtol;
                 atol = tol;
             }
@@ -2247,17 +2246,17 @@ namespace amos {
         //  DIG = NUMBER OF BASE 10 DIGITS IN TOL = 10**(-DIG).
         //  FNUL IS THE LOWER BOUNDARY OF THE ASYMPTOTIC SERIES FOR LARGE FNU
         //
-        tol = fmax(d1mach[3], 1e-18);
+        tol = std::fmax(d1mach[3], 1e-18);
         k1 = i1mach[14];
         k2 = i1mach[15];
         r1m5 = d1mach[4];
-        k = (abs(k1) > abs(k2) ? abs(k2) : abs(k1));
+        k = (std::abs(k1) > std::abs(k2) ? std::abs(k2) : std::abs(k1));
         elim = 2.303 * (k * r1m5 - 3.0);
         k1 = i1mach[13] - 1;
         aa = r1m5 * k1;
-        dig = fmin(aa, 18.0);
+        dig = std::fmin(aa, 18.0);
         aa *= 2.303;
-        alim = elim + fmax(-aa, -41.45);
+        alim = elim + std::fmax(-aa, -41.45);
         fnul = 10.0 + 6.0 * (dig - 3.0);
         rl = 1.2 * dig + 3.0;
         //
@@ -2267,12 +2266,12 @@ namespace amos {
         fn = fnu + (nn - 1);
         aa = 0.5 / tol;
         bb = i1mach[8] * 0.5;
-        aa = fmin(aa, bb);
+        aa = std::fmin(aa, bb);
         if ((az > aa) || (fn > aa)) {
             *ierr = 4;
             return 0;
         }
-        aa = sqrt(aa);
+        aa = std::sqrt(aa);
         if (az > aa) {
             *ierr = 3;
         }
@@ -2292,7 +2291,7 @@ namespace amos {
                 if (fn <= 2.0) {
                     if (az <= tol) {
                         arg = 0.5 * az;
-                        aln = -fn * log(arg);
+                        aln = -fn * std::log(arg);
                         if (aln > elim) {
                             *ierr = 2;
                             return 0;
@@ -2586,21 +2585,21 @@ namespace amos {
             return nz;
         }
 
-        tol = fmax(d1mach[3], 1e-18);
+        tol = std::fmax(d1mach[3], 1e-18);
         k1 = i1mach[14];
         k2 = i1mach[15];
         r1m5 = d1mach[4];
-        k = (abs(k1) > abs(k2) ? abs(k2) : abs(k1));
+        k = (std::abs(k1) > std::abs(k2) ? std::abs(k2) : std::abs(k1));
         //
         // ELIM IS THE APPROXIMATE EXPONENTIAL UNDER- AND OVERFLOW LIMIT
         //
         elim = 2.303 * (k * r1m5 - 3.0);
-        exr = cos(xx);
-        exi = sin(xx);
+        exr = std::cos(xx);
+        exi = std::sin(xx);
         ey = 0.0;
-        tay = fabs(yy + yy);
+        tay = std::fabs(yy + yy);
         if (tay < elim) {
-            ey = exp(-tay);
+            ey = std::exp(-tay);
         }
         if (yy < 0.0) {
             /* 90 */
@@ -2618,7 +2617,7 @@ namespace amos {
             aa = std::real(cwrk[i - 1]);
             bb = std::imag(cwrk[i - 1]);
             atol = 1.0;
-            if (fmax(fabs(aa), fabs(bb)) <= ascle) {
+            if (std::fmax(std::fabs(aa), std::fabs(bb)) <= ascle) {
                 aa *= rtol;
                 bb *= rtol;
                 atol = tol;
@@ -2628,7 +2627,7 @@ namespace amos {
             aa = std::real(cy[i - 1]);
             bb = std::imag(cy[i - 1]);
             atol = 1.0;
-            if (fmax(fabs(aa), fabs(bb)) <= ascle) {
+            if (std::fmax(std::fabs(aa), std::fabs(bb)) <= ascle) {
                 aa *= rtol;
                 bb *= rtol;
                 atol = tol;
@@ -2668,7 +2667,7 @@ namespace amos {
         if ((az <= 2.) || (az * az * 0.25 <= (dfnu + 1.0))) {
             /* GOTO 10 */
             nw = seri(z, fnu, kode, n, cy, tol, elim, alim);
-            inw = abs(nw);
+            inw = std::abs(nw);
             nz += inw;
             nn -= inw;
             if (nn == 0) {
@@ -2949,7 +2948,7 @@ namespace amos {
             return 0.0;
         }
         az = std::abs(z);
-        tol = fmax(d1mach[3], 1e-18);
+        tol = std::fmax(d1mach[3], 1e-18);
         fid = id;
         if (az <= 1.0) {
             //
@@ -2974,7 +2973,7 @@ namespace amos {
                 dk = 3.0 + fid + fid;
                 d1 = ak * dk;
                 d2 = bk * ck;
-                ad = fmin(d1, d2);
+                ad = std::fmin(d1, d2);
                 ak = 24.0 + 9.0 * fid;
                 bk = 30.0 - 9.0 * fid;
                 for (k = 1; k < 26; k++) {
@@ -2985,7 +2984,7 @@ namespace amos {
                     atrm *= az3 / ad;
                     d1 += ak;
                     d2 += bk;
-                    ad = fmin(d1, d2);
+                    ad = std::fmin(d1, d2);
                     if (atrm < tol * ad) {
                         break;
                     }
@@ -3001,8 +3000,8 @@ namespace amos {
                     return bi;
                 }
                 zta = z * std::sqrt(z) * tth;
-                aa = -fabs(std::real(zta));
-                bi *= exp(aa);
+                aa = -std::fabs(std::real(zta));
+                bi *= std::exp(aa);
                 return bi;
             }
             /* 50 */
@@ -3014,8 +3013,8 @@ namespace amos {
                 return bi;
             }
             zta = z * std::sqrt(z) * tth;
-            aa = -fabs(std::real(zta));
-            bi *= exp(aa);
+            aa = -std::fabs(std::real(zta));
+            bi *= std::exp(aa);
             return bi;
         }
         /* 70 */
@@ -3037,13 +3036,13 @@ namespace amos {
         k1 = i1mach[14];
         k2 = i1mach[15];
         r1m5 = d1mach[4];
-        k = (abs(k1) > abs(k2) ? abs(k2) : abs(k1));
+        k = (std::abs(k1) > std::abs(k2) ? std::abs(k2) : std::abs(k1));
         elim = 2.303 * (k * r1m5 - 3.0);
         k1 = i1mach[13] - 1;
         aa = r1m5 * k1;
-        dig = fmin(aa, 18.0);
+        dig = std::fmin(aa, 18.0);
         aa *= 2.303;
-        alim = elim + fmax(-aa, -41.45);
+        alim = elim + std::fmax(-aa, -41.45);
         rl = 1.2 * dig + 3.0;
         fnul = 10.0 + 6.0 * (dig - 3.0);
         //
@@ -3051,13 +3050,13 @@ namespace amos {
         //
         aa = 0.5 / tol;
         bb = i1mach[8] * 0.5;
-        aa = fmin(aa, bb);
-        aa = pow(aa, tth);
+        aa = std::fmin(aa, bb);
+        aa = std::pow(aa, tth);
         if (az > aa) {
             *ierr = 4;
             return 0.0;
         }
-        aa = sqrt(aa);
+        aa = std::sqrt(aa);
         if (az > aa) {
             *ierr = 3;
         }
@@ -3072,7 +3071,7 @@ namespace amos {
         ak = std::imag(zta);
         if (zr < 0.0) {
             bk = std::real(zta);
-            ck = -fabs(bk);
+            ck = -std::fabs(bk);
             zta = std::complex<double>(ck, ak);
         }
         /* 80 */
@@ -3085,9 +3084,9 @@ namespace amos {
             //
             // OVERFLOW TEST
             //
-            bb = fabs(aa);
+            bb = std::fabs(aa);
             if (bb >= alim) {
-                bb += 0.25 * log(az);
+                bb += 0.25 * std::log(az);
                 sfac = tol;
                 if (bb > elim) {
                     *ierr = 2;
@@ -3120,7 +3119,7 @@ namespace amos {
         }
         aa = fmr * fnu;
         z3 = sfac;
-        s1 = cy[0] * std::complex<double>(cos(aa), sin(aa)) * z3;
+        s1 = cy[0] * std::complex<double>(std::cos(aa), std::sin(aa)) * z3;
         fnu = (2.0 - fid) / 3.0;
         nz = binu(zta, fnu, kode, 2, cy, rl, fnul, tol, elim, alim);
         cy[0] *= z3;
@@ -3130,7 +3129,7 @@ namespace amos {
         //
         s2 = cy[0] * (fnu + fnu) / zta + cy[1];
         aa = fmr * (fnu - 1.0);
-        s1 = (s1 + s2 * std::complex<double>(cos(aa), sin(aa))) * coef;
+        s1 = (s1 + s2 * std::complex<double>(std::cos(aa), std::sin(aa))) * coef;
         if (id != 1) {
             s1 *= csq;
             bi = s1 / sfac;
@@ -3192,8 +3191,8 @@ namespace amos {
         s2 = 0.0;
         ck = 0.0;
         dnu2 = 0.0;
-        if (fabs(dnu) != 0.5) {
-            if (fabs(dnu) > tol) {
+        if (std::fabs(dnu) != 0.5) {
+            if (std::fabs(dnu) > tol) {
                 dnu2 = dnu * dnu;
             }
             if (caz <= r1) {
@@ -3207,16 +3206,16 @@ namespace amos {
                 cch = std::cosh(fmu);
                 if (dnu != 0.0) {
                     fc = dnu * pi;
-                    fc *= 1. / sin(fc);
+                    fc *= 1. / std::sin(fc);
                     smu = csh / dnu;
                 }
                 a2 = 1. + dnu;
                 //
                 // GAM(1-Z)*GAM(1+Z)=PI*Z/SIN(PI*Z), T1=1/GAM(1-DNU), T2=1/GAM(1+DNU)
                 //
-                t2 = exp(-gamln(a2));
+                t2 = std::exp(-gamln(a2));
                 t1 = 1. / (t2 * fc);
-                if (fabs(dnu) <= 0.1) {
+                if (std::fabs(dnu) <= 0.1) {
                     //
                     // SERIES FOR F0 TO RESOLVE INDETERMINACY FOR SMALL ABS(DNU)
                     //
@@ -3226,7 +3225,7 @@ namespace amos {
                         ak *= dnu2;
                         tm = cc[k - 1] * ak;
                         s += tm;
-                        if (fabs(tm) < tol) {
+                        if (std::fabs(tm) < tol) {
                             break;
                         }
                     }
@@ -3293,7 +3292,7 @@ namespace amos {
                 kflag = 2;
                 bk = std::real(smu);
                 a1 = fnu + 1.;
-                ak = a1 * fabs(bk);
+                ak = a1 * std::fabs(bk);
                 if (ak > alim) {
                     kflag = 3;
                 }
@@ -3322,13 +3321,13 @@ namespace amos {
                 iflag = 1;
                 kflag = 2;
             } else {
-                a1 = exp(-xx) * std::real(css[kflag - 1]);
-                pt = a1 * std::complex<double>(cos(yy), -sin(yy));
+                a1 = std::exp(-xx) * std::real(css[kflag - 1]);
+                pt = a1 * std::complex<double>(std::cos(yy), -std::sin(yy));
                 coef *= pt;
             }
         }
 
-        if (fabs(dnu) == 0.5) {
+        if (std::fabs(dnu) == 0.5) {
             s1 = coef;
             s2 = coef;
             goto L100;
@@ -3336,13 +3335,13 @@ namespace amos {
         //
         //    MILLER ALGORITHM FOR ABS(Z) > R1
         //
-        ak = fabs(cos(pi * dnu));
+        ak = std::fabs(std::cos(pi * dnu));
         if (ak == 0.) {
             s1 = coef;
             s2 = coef;
             goto L100;
         }
-        fhs = fabs(0.25 - dnu2);
+        fhs = std::fabs(0.25 - dnu2);
         if (fhs == 0.) {
             s1 = coef;
             s2 = coef;
@@ -3354,13 +3353,13 @@ namespace amos {
         // 12 <= E <= 60. E IS COMPUTED FROM 2**(-E)=B**(1-DIGITS(0.0_dp))=
         // TOL WHERE B IS THE BASE OF THE ARITHMETIC.
         //
-        t1 = (i1mach[13] - 1) * d1mach[4] * (log(10) / log(2));
-        t1 = fmin(fmax(t1, 12.0), 60.0);
+        t1 = (i1mach[13] - 1) * d1mach[4] * (std::log(10) / std::log(2));
+        t1 = std::fmin(std::fmax(t1, 12.0), 60.0);
         t2 = tth * t1 - 6.0;
         if (xx == 0.) {
             t1 = hpi;
         } else {
-            t1 = fabs(atan(yy / xx));
+            t1 = std::fabs(std::atan(yy / xx));
         }
         if (t2 <= caz) {
             //
@@ -3385,7 +3384,7 @@ namespace amos {
                 fks += fk + fk + 2.0;
                 fhs += fk + fk;
                 fk += 1.0;
-                tm = fabs(a2) * fk;
+                tm = std::fabs(a2) * fk;
                 if (etest < tm) {
                     /* goto 160 */
                     break;
@@ -3397,17 +3396,17 @@ namespace amos {
             }
 
             /* 160 */
-            fk += spi * t1 * sqrt(t2 / caz);
-            fhs = fabs(0.25 - dnu2);
+            fk += spi * t1 * std::sqrt(t2 / caz);
+            fhs = std::fabs(0.25 - dnu2);
         } else {
             //
             // COMPUTE BACKWARD INDEX K FOR ABS(Z) < R2
             //
-            a2 = sqrt(caz);
-            ak *= fpi / (tol * sqrt(a2));
+            a2 = std::sqrt(caz);
+            ak *= fpi / (tol * std::sqrt(a2));
             aa = 3.0 * t1 / (1.0 + caz);
             bb = 14.7 * t1 / (28.0 + caz);
-            ak = (log(ak) + caz * cos(aa) / (1.0 + 0.008 * caz)) / cos(bb);
+            ak = (std::log(ak) + caz * std::cos(aa) / (1.0 + 0.008 * caz)) / std::cos(bb);
             fk = 0.12125 * ak * ak / caz + 1.5;
         }
     L80:
@@ -3491,7 +3490,7 @@ namespace amos {
             ck += rz;
             if (kflag < 3) {
                 p2 = s2 * p1;
-                p2m = fmax(fabs(std::real(p2)), fabs(std::imag(p2)));
+                p2m = std::fmax(std::fabs(std::real(p2)), std::fabs(std::imag(p2)));
                 if (p2m > ascle) {
                     kflag += 1;
                     ascle = bry[kflag - 1];
@@ -3532,7 +3531,7 @@ namespace amos {
             p2 = s2 * p1;
             y[i - 1] = p2;
             if (kflag < 3) {
-                p2m = fmax(fabs(std::real(p2)), fabs(std::imag(p2)));
+                p2m = std::fmax(std::fabs(std::real(p2)), std::fabs(std::imag(p2)));
                 if (p2m > ascle) {
                     kflag += 1;
                     ascle = bry[kflag - 1];
@@ -3549,7 +3548,7 @@ namespace amos {
     // IFLAG=1 CASES, FORWARD RECURRENCE ON SCALED VALUES ON UNDERFLOW
     //
     L160:
-        elm = exp(-elim);
+        elm = std::exp(-elim);
         ascle = bry[0];
         zd = z;
         xd = xx;
@@ -3562,14 +3561,14 @@ namespace amos {
             s1 = st;
             ck += rz;
             as = std::abs(s2);
-            alas = log(as);
+            alas = std::log(as);
             p2r = alas - xd;
             if (p2r >= -elim) {
                 p2 = -zd + std::log(s2);
                 p2r = std::real(p2);
                 p2i = std::imag(p2);
-                p2m = exp(p2r) / tol;
-                p1 = p2m * std::complex<double>(cos(p2i), sin(p2i));
+                p2m = std::exp(p2r) / tol;
+                p1 = p2m * std::complex<double>(std::cos(p2i), std::sin(p2i));
                 if (!(uchk(p1, ascle, tol))) {
                     j = 3 - j;
                     cy[j - 1] = p1;
@@ -3659,8 +3658,8 @@ namespace amos {
         nz = 0;
         xx = std::real(z);
         yy = std::imag(z);
-        ax = fabs(xx) + sqrt(3.);
-        ay = fabs(yy);
+        ax = std::fabs(xx) + std::sqrt(3.);
+        ay = std::fabs(yy);
         iform = 1;
         if (ay > ax) {
             iform = 2;
@@ -3734,9 +3733,9 @@ namespace amos {
                 fnui -= 1.0;
                 if (iflag < 3) {
                     st = s2 * cscr;
-                    str = fabs(std::real(st));
-                    sti = fabs(std::imag(st));
-                    stm = fmax(str, sti);
+                    str = std::fabs(std::real(st));
+                    sti = std::fabs(std::imag(st));
+                    stm = std::fmax(str, sti);
                     if (stm > ascle) {
                         iflag += 1;
                         ascle = bry[iflag - 1];
@@ -3768,9 +3767,9 @@ namespace amos {
                 k -= 1;
                 if (iflag < 3) {
                     st = s2 * cscr;
-                    str = fabs(std::real(st));
-                    sti = fabs(std::imag(st));
-                    stm = fmax(str, sti);
+                    str = std::fabs(std::real(st));
+                    sti = std::fabs(std::imag(st));
+                    stm = std::fmax(str, sti);
                     if (stm > ascle) {
                         iflag += 1;
                         ascle = bry[iflag - 1];
@@ -3812,8 +3811,8 @@ namespace amos {
         double ax, ay;
 
         int nz = 0;
-        ax = fabs(std::real(z)) * 1.7321;
-        ay = fabs(std::imag(z));
+        ax = std::fabs(std::real(z)) * 1.7321;
+        ay = std::fabs(std::imag(z));
 
         if (ay <= ax) {
             //
@@ -3885,10 +3884,10 @@ namespace amos {
                     }
                 }
             }
-            wdtol = fmax(d1mach[3], 1e-18);
+            wdtol = std::fmax(d1mach[3], 1e-18);
             i1m = i1mach[13];
             rln = d1mach[4] * i1m;
-            fln = fmax(fmin(rln, 20.), 3.0) - 3.0;
+            fln = std::fmax(std::fmin(rln, 20.), 3.0) - 3.0;
             zm = 1.8 + 0.3875 * fln;
             mz = ((int)zm) + 1;
             zmin = mz;
@@ -3907,7 +3906,7 @@ namespace amos {
                 for (int i = 2; i < 23; i++) {
                     zp *= zsq;
                     trm = dgamln_cf[i - 1] * zp;
-                    if (fabs(trm) < tst) {
+                    if (std::fabs(trm) < tst) {
                         break;
                     }
                     s += trm;
@@ -3915,7 +3914,7 @@ namespace amos {
             }
 
             if (zinc == 0.) {
-                tlg = log(z);
+                tlg = std::log(z);
                 return z * (tlg - 1.0) + 0.5 * (con - tlg) + s;
             }
             zp = 1.0;
@@ -3923,8 +3922,8 @@ namespace amos {
             for (int i = 0; i < nz; i++) {
                 zp *= (z + i);
             }
-            tlg = log(zdmy);
-            return zdmy * (tlg - 1.0) - log(zp) + 0.5 * (con - tlg) + s;
+            tlg = std::log(zdmy);
+            return zdmy * (tlg - 1.0) - std::log(zp) + 0.5 * (con - tlg) + s;
         }
         // Zero or negative argument
         return NAN;
@@ -3957,7 +3956,7 @@ namespace amos {
         p1 = 0.;
         p2 = 1.;
         ack = (at + 1.0) / az;
-        rho = ack + sqrt(ack * ack - 1.);
+        rho = ack + std::sqrt(ack * ack - 1.);
         rho2 = rho * rho;
         tst = (rho2 + rho2) / ((rho2 - 1.0) * (rho - 1.0));
         tst /= tol;
@@ -3992,7 +3991,7 @@ namespace amos {
             at = inu + 1;
             ck = at / z;
             ack = at / az;
-            tst = sqrt(ack / tol);
+            tst = std::sqrt(ack / tol);
             itime = 1;
             k = 1;
             for (k = 1; k < 81; k++) {
@@ -4006,10 +4005,10 @@ namespace amos {
                         break;
                     }
                     ack = std::abs(ck);
-                    flam = ack + sqrt(ack * ack - 1.0);
+                    flam = ack + std::sqrt(ack * ack - 1.0);
                     fkap = ap / std::abs(p1);
-                    rho = fmin(flam, fkap);
-                    tst *= sqrt(rho / (rho * rho - 1.0));
+                    rho = std::fmin(flam, fkap);
+                    tst *= std::sqrt(rho / (rho * rho - 1.0));
                     itime = 2;
                 }
                 if (k == 80) {
@@ -4022,7 +4021,7 @@ namespace amos {
         // BACKWARD RECURRENCE AND SUM NORMALIZING RELATION
         //
         k += 1;
-        kk = fmax(i + iaz, k + inu);
+        kk = std::fmax(i + iaz, k + inu);
         fkk = kk;
         p1 = 0.0;
         //
@@ -4032,7 +4031,7 @@ namespace amos {
         fnf = fnu - ifnu;
         tfnf = fnf + fnf;
         bk = gamln(fkk + tfnf + 1.0) - gamln(fkk + 1.0) - gamln(tfnf + 1.0);
-        bk = exp(bk);
+        bk = std::exp(bk);
         sum = 0.;
         km = kk - inu;
         for (i = 1; i < (km + 1); i++) {
@@ -4118,21 +4117,22 @@ namespace amos {
         int nn = (n > 2 ? 2 : n);
         int kk = 0;
         int i;
-        double elm = exp(-elim);
+        double elm = std::exp(-elim);
         xx = std::real(zr);
 
         for (i = 1; i < (nn + 1); i++) {
             s1 = y[i - 1];
             cy[i - 1] = s1;
             as = std::abs(s1);
-            acs = -std::real(zr) + log(as);
+            acs = -std::real(zr) + std::log(as);
             nz += 1;
             y[i - 1] = 0.;
             if (acs < -elim) {
                 continue;
             }
             cs = -zr + std::log(s1);
-            cs = (exp(std::real(cs)) / tol) * std::complex<double>(cos(std::imag(cs)), sin(std::imag(cs)));
+            cs = (std::exp(std::real(cs)) / tol) *
+                 std::complex<double>(std::cos(std::imag(cs)), std::sin(std::imag(cs)));
             if (!uchk(cs, *ascle, tol)) {
                 y[i - 1] = cs;
                 nz -= 1;
@@ -4167,14 +4167,15 @@ namespace amos {
             s1 = cs;
             ck += rz;
             as = std::abs(s2);
-            alas = log(as);
+            alas = std::log(as);
             acs = alas - xx;
             nz += 1;
             y[i - 1] = 0.;
             if (acs >= -elim) {
                 cs = std::log(s2);
                 cs -= zd;
-                cs = (exp(std::real(cs)) / tol) * std::complex<double>(cos(std::imag(cs)), sin(std::imag(cs)));
+                cs = (std::exp(std::real(cs)) / tol) *
+                     std::complex<double>(std::cos(std::imag(cs)), std::sin(std::imag(cs)));
                 if (!uchk(cs, *ascle, tol)) {
                     y[i - 1] = cs;
                     nz -= 1;
@@ -4232,7 +4233,7 @@ namespace amos {
         fdnu = idnu;
         magz = az;
         amagz = magz + 1;
-        fnup = fmax(amagz, fdnu);
+        fnup = std::fmax(amagz, fdnu);
         id = idnu - magz - 1;
         itime = 1;
         k = 1;
@@ -4253,7 +4254,7 @@ namespace amos {
         // VALUES BY AP1 TO ENSURE THAT AN OVERFLOW DOES NOT OCCUR PREMATURELY.
         //
         arg = (ap2 + ap2) / (ap1 * tol);
-        test1 = sqrt(arg);
+        test1 = std::sqrt(arg);
         test = test1;
         rap1 = 1.0 / ap1;
         p1 *= rap1;
@@ -4273,9 +4274,9 @@ namespace amos {
             }
             if (itime != 2) {
                 ak = std::abs(t1) * 0.5;
-                flam = ak + sqrt(ak * ak - 1.0);
-                rho = fmin(ap2 / ap1, flam);
-                test = test1 * sqrt(rho / (rho * rho - 1.0));
+                flam = ak + std::sqrt(ak * ak - 1.0);
+                rho = std::fmin(ap2 / ap1, flam);
+                test = test1 * std::sqrt(rho / (rho * rho - 1.0));
                 itime = 2;
             }
         }
@@ -4359,7 +4360,7 @@ namespace amos {
         }
         x = std::real(z);
         arm = 1e3 * d1mach[0];
-        rtr1 = sqrt(arm);
+        rtr1 = std::sqrt(arm);
         crsc = 1.0;
         iflag = 0;
         if (az >= arm) {
@@ -4410,11 +4411,11 @@ namespace amos {
                 ascle = arm * ss;
             }
             ak = std::imag(ak1);
-            aa = exp(rak1);
+            aa = std::exp(rak1);
             if (iflag == 1) {
                 aa *= ss;
             }
-            coef = aa * std::complex<double>(cos(ak), sin(ak));
+            coef = aa * std::complex<double>(std::cos(ak), std::sin(ak));
             atol = tol * acz / fnup;
             il = (nn > 2 ? 2 : nn);
             for (int i = 1; i < (il + 1); i++) {
@@ -4547,7 +4548,7 @@ namespace amos {
         if ((aa != 0.) || (aln != 0.)) {
             if (as1 != 0.) {
                 xx = std::real(zr);
-                aln = -xx - xx + log(as1);
+                aln = -xx - xx + std::log(as1);
                 s1d = *s1;
                 *s1 = 0.;
                 as1 = 0.;
@@ -4559,7 +4560,7 @@ namespace amos {
                 }
             }
         }
-        aa = fmax(as1, as2);
+        aa = std::fmax(as1, as2);
         if (aa > ascle) {
             return nz;
         }
@@ -4585,10 +4586,10 @@ namespace amos {
         //***ROUTINES CALLED  (NONE)
         //***END PROLOGUE  ZUCHK
 
-        double yr = fabs(std::real(y));
-        double yi = fabs(std::imag(y));
-        double ss = fmax(yr, yi);
-        double st = fmin(yr, yi);
+        double yr = std::fabs(std::real(y));
+        double yi = std::fabs(std::imag(y));
+        double ss = std::fmax(yr, yi);
+        double st = std::fmin(yr, yi);
         if (st > ascle) {
             return 0;
         } else {
@@ -4662,8 +4663,8 @@ namespace amos {
         //
         test = d1mach[0] * 1e3;
         ac = fnu * test;
-        if ((fabs(std::real(z)) <= ac) && (fabs(std::imag(z)) <= ac)) {
-            *zeta1 = 2.0 * fabs(log(test)) + fnu;
+        if ((std::fabs(std::real(z)) <= ac) && (std::fabs(std::imag(z)) <= ac)) {
+            *zeta1 = 2.0 * std::fabs(std::log(test)) + fnu;
             *zeta2 = fnu;
             *phi = 1.;
             *arg = 1.;
@@ -4674,7 +4675,7 @@ namespace amos {
         //
         // COMPUTE IN THE FOURTH QUADRANT
         //
-        fn13 = pow(fnu, ex1);
+        fn13 = std::pow(fnu, ex1);
         fn23 = fn13 * fn13;
         rfn13 = 1.0 / fn13;
         w2 = 1.0 - zb * zb;
@@ -4729,7 +4730,7 @@ namespace amos {
             *bsum = sumb;
             l1 = 0;
             l2 = 30;
-            btol = tol * (fabs(std::real(*bsum)) + fabs(std::imag(*bsum)));
+            btol = tol * (std::fabs(std::real(*bsum)) + std::fabs(std::imag(*bsum)));
             atol = tol;
             pp = 1.0;
             ias = 0;
@@ -4818,16 +4819,16 @@ namespace amos {
             if ((zthr < 0.) || (zthi >= 0.)) {
                 ang = hpi;
                 if (zthr != 0.) {
-                    ang = atan(zthi / zthr);
+                    ang = std::atan(zthi / zthr);
                     if (zthr < 0.) {
                         ang += pi;
                     }
                 }
             }
-            pp = pow(azth, ex2);
+            pp = std::pow(azth, ex2);
             ang *= ex2;
-            zetar = pp * cos(ang);
-            zetai = pp * sin(ang);
+            zetar = pp * std::cos(ang);
+            zetai = pp * std::sin(ang);
             if (zetai < 0.) {
                 zetai = 0.;
             }
@@ -4859,7 +4860,7 @@ namespace amos {
             pp = 1.0;
             bsumr = std::real(*bsum);
             bsumi = std::imag(*bsum);
-            btol = tol * (fabs(bsumr) + fabs(bsumi));
+            btol = tol * (std::fabs(bsumr) + std::fabs(bsumi));
             ks = 0;
             kp1 = 2;
             l = 3;
@@ -4898,7 +4899,7 @@ namespace amos {
                     *asum += suma;
                     asumr = std::real(*asum);
                     asumi = std::imag(*asum);
-                    test = fabs(asumr) + fabs(asumi);
+                    test = std::fabs(asumr) + std::fabs(asumi);
                     if ((pp < tol) && (test < tol)) {
                         ias = 1;
                     }
@@ -4913,7 +4914,7 @@ namespace amos {
                     *bsum += sumb;
                     bsumr = std::real(*bsum);
                     bsumi = std::imag(*bsum);
-                    test = fabs(bsumr) + fabs(bsumi);
+                    test = std::fabs(bsumr) + std::fabs(bsumi);
                     if ((pp < tol) && (test < tol)) {
                         ibs = 1;
                     }
@@ -4971,7 +4972,7 @@ namespace amos {
         //
         // CHECK FOR UNDERFLOW AND OVERFLOW ON FIRST MEMBER
         //
-        fn = fmax(fnu, 1.0);
+        fn = std::fmax(fnu, 1.0);
         init = 0;
         unik(z, fn, 1, 1, tol, &init, &phi, &zeta1, &zeta2, &sum, &cwrk[0]);
         if (kode != 1) {
@@ -4981,7 +4982,7 @@ namespace amos {
         }
 
         rs1 = std::real(s1);
-        if (fabs(rs1) > elim) {
+        if (std::fabs(rs1) > elim) {
             if (rs1 > 0) {
                 *nz = -1;
                 return;
@@ -5006,19 +5007,19 @@ namespace amos {
             // TEST FOR UNDERFLOW AND OVERFLOW
             //
             rs1 = std::real(s1);
-            if (fabs(rs1) > elim) {
+            if (std::fabs(rs1) > elim) {
                 goto L110;
             }
             if (i == 1) {
                 iflag = 2;
             }
-            if (fabs(rs1) >= alim) {
+            if (std::fabs(rs1) >= alim) {
                 //
                 // REFINE TEST AND SCALE
                 //
                 aphi = std::abs(phi);
-                rs1 += log(aphi);
-                if (fabs(rs1) > elim) {
+                rs1 += std::log(aphi);
+                if (std::fabs(rs1) > elim) {
                     goto L110;
                 }
                 if (i == 1) {
@@ -5035,7 +5036,8 @@ namespace amos {
             // SCALE S1 IF CABS(S1) < ASCLE
             //
             s2 = phi * sum;
-            s1 = exp(std::real(s1)) * css[iflag - 1] * std::complex<double>(cos(std::imag(s1)), sin(std::imag(s1)));
+            s1 = std::exp(std::real(s1)) * css[iflag - 1] *
+                 std::complex<double>(std::cos(std::imag(s1)), std::sin(std::imag(s1)));
             s2 *= s1;
             if (iflag == 1) {
                 if (uchk(s2, bry[0], tol)) {
@@ -5067,7 +5069,7 @@ namespace amos {
                 if (iflag >= 3) {
                     continue;
                 }
-                if (fmax(fabs(std::real(c2)), fabs(std::imag(c2))) <= ascle) {
+                if (std::fmax(std::fabs(std::real(c2)), std::fabs(std::imag(c2))) <= ascle) {
                     continue;
                 }
                 iflag += 1;
@@ -5163,7 +5165,7 @@ namespace amos {
         cid = -ci;
         inu = (int)fnu;
         ang = hpi * (fnu - inu);
-        c2 = std::complex<double>(cos(ang), sin(ang));
+        c2 = std::complex<double>(std::cos(ang), std::sin(ang));
         zar = c2;
         in = inu + n - 1;
         in = in % 4;
@@ -5177,7 +5179,7 @@ namespace amos {
         //
         // CHECK FOR UNDERFLOW AND OVERFLOW ON FIRST MEMBER
         //
-        fn = fmax(fnu, 1.0);
+        fn = std::fmax(fnu, 1.0);
         unhj(zn, fn, 0, tol, &phi, &arg, &zeta1, &zeta2, &asum, &bsum);
         if (kode != 1) {
             cfn = fnu;
@@ -5186,7 +5188,7 @@ namespace amos {
             s1 = -zeta1 + zeta2;
         }
         rs1 = std::real(s1);
-        if (fabs(rs1) > elim) {
+        if (std::fabs(rs1) > elim) {
             if (rs1 > 0.) {
                 *nz = -1;
                 return;
@@ -5204,7 +5206,7 @@ namespace amos {
             unhj(zn, fn, 0, tol, &phi, &arg, &zeta1, &zeta2, &asum, &bsum);
             if (kode != 1) {
                 cfn = fn;
-                ay = fabs(yy);
+                ay = std::fabs(yy);
                 s1 = -zeta1 + cfn * (cfn / (zb + zeta2)) + ay * std::complex<double>(0, 1);
             } else {
                 s1 = -zeta1 + zeta2;
@@ -5213,20 +5215,20 @@ namespace amos {
             // TEST FOR UNDERFLOW AND OVERFLOW
             //
             rs1 = std::real(s1);
-            if (fabs(rs1) > elim) {
+            if (std::fabs(rs1) > elim) {
                 goto L50;
             }
             if (i == 1) {
                 iflag = 2;
             }
-            if (fabs(rs1) >= alim) {
+            if (std::fabs(rs1) >= alim) {
                 //
                 // REFINE TEST AND SCALE
                 //
                 aphi = std::abs(phi);
                 aarg = std::abs(arg);
-                rs1 += log(aphi) - 0.25 * log(aarg) - aic;
-                if (fabs(rs1) > elim) {
+                rs1 += std::log(aphi) - 0.25 * std::log(aarg) - aic;
+                if (std::fabs(rs1) > elim) {
                     goto L50;
                 }
                 if (i == 1) {
@@ -5247,7 +5249,7 @@ namespace amos {
             s2 = phi * (ai * asum + dai * bsum);
             c2r = std::exp(std::real(s1)) * std::real(css[iflag - 1]);
             c2i = std::imag(s1);
-            s1 = c2r * std::complex<double>(cos(c2i), sin(c2i));
+            s1 = c2r * std::complex<double>(std::cos(c2i), std::sin(c2i));
             s2 *= s1;
             if (iflag == 1) {
                 if (uchk(s2, bry[0], tol)) {
@@ -5282,9 +5284,9 @@ namespace amos {
                 k -= 1;
                 fn -= 1.0;
                 if (iflag < 3) {
-                    c2r = fabs(std::real(c2));
-                    c2i = fabs(std::imag(c2));
-                    c2m = fmax(c2r, c2i);
+                    c2r = std::fabs(std::real(c2));
+                    c2i = std::fabs(std::imag(c2));
+                    c2m = std::fmax(c2r, c2i);
                     if (c2m > ascle) {
                         iflag += 1;
                         ascle = bry[iflag - 1];
@@ -5384,8 +5386,8 @@ namespace amos {
             tsti = std::imag(zr);
             test = d1mach[0] * 1e3;
             ac = fnu * test;
-            if ((fabs(tstr) <= ac) && (fabs(tsti) <= ac)) {
-                ac = 2.0 * fabs(log(test)) + fnu;
+            if ((std::fabs(tstr) <= ac) && (std::fabs(tsti) <= ac)) {
+                ac = 2.0 * std::fabs(std::log(test)) + fnu;
                 *zeta1 = ac;
                 *zeta2 = fnu;
                 *phi = 1.0;
@@ -5421,7 +5423,7 @@ namespace amos {
                 ac *= rfn;
                 tstr = std::real(cwrk[k - 1]);
                 tsti = std::imag(cwrk[k - 1]);
-                test = fabs(tstr) + fabs(tsti);
+                test = std::fabs(tstr) + std::fabs(tsti);
                 if ((ac < tol) && (test < tol)) {
                     break;
                 }
@@ -5515,17 +5517,17 @@ namespace amos {
             // TEST FOR UNDERFLOW AND OVERFLOW
             //
             rs1 = std::real(s1);
-            if (fabs(rs1) <= elim) {
+            if (std::fabs(rs1) <= elim) {
                 if (kdflg == 1) {
                     kflag = 2;
                 }
-                if (fabs(rs1) >= alim) {
+                if (std::fabs(rs1) >= alim) {
                     //
                     // REFINE TEST AND SCALE
                     //
                     aphi = std::abs(phi[jc]);
-                    rs1 += log(aphi);
-                    if (fabs(rs1) > elim) {
+                    rs1 += std::log(aphi);
+                    if (std::fabs(rs1) > elim) {
                         goto L10;
                     }
                     if (kdflg == 1) {
@@ -5545,8 +5547,8 @@ namespace amos {
                 s2 = phi[jc] * sum[jc];
                 c2r = std::real(s1);
                 c2i = std::imag(s1);
-                c2m = exp(c2r) * std::real(css[kflag - 1]);
-                s1 = c2m * std::complex<double>(cos(c2i), sin(c2i));
+                c2m = std::exp(c2r) * std::real(css[kflag - 1]);
+                s1 = c2m * std::complex<double>(std::cos(c2i), std::sin(c2i));
                 s2 *= s1;
                 if (!((kflag == 1) && (uchk(s2, bry[0], tol)))) {
                     cy[kdflg - 1] = s2;
@@ -5602,16 +5604,16 @@ namespace amos {
                 s1 = zeta1d - zeta2d;
             }
             rs1 = std::real(s1);
-            if (fabs(rs1) <= elim) {
-                if (fabs(rs1) < alim) {
+            if (std::fabs(rs1) <= elim) {
+                if (std::fabs(rs1) < alim) {
                     goto L50;
                 }
                 //
                 // REFINE ESTIMATE AND TEST
                 //
                 aphi = std::abs(phid);
-                rs1 += log(aphi);
-                if (fabs(rs1) < elim) {
+                rs1 += std::log(aphi);
+                if (std::fabs(rs1) < elim) {
                     goto L50;
                 }
             }
@@ -5645,7 +5647,7 @@ namespace amos {
                 c2 = s2 * c1;
                 y[i - 1] = c2;
                 if (kflag < 3) {
-                    c2m = fmax(fabs(std::real(c2)), fabs(std::imag(c2)));
+                    c2m = std::fmax(std::fabs(std::real(c2)), std::fabs(std::imag(c2)));
                     if (c2m > ascle) {
                         kflag += 1;
                         ascle = bry[kflag - 1];
@@ -5675,7 +5677,7 @@ namespace amos {
         fnf = fnu - inu;
         ifn = inu + n - 1;
         ang = fnf * sgn;
-        cspn = std::complex<double>(cos(ang), sin(ang));
+        cspn = std::complex<double>(std::cos(ang), std::sin(ang));
         if (ifn % 2 == 1) {
             cspn = -cspn;
         }
@@ -5724,19 +5726,19 @@ namespace amos {
             // TEST FOR UNDERFLOW AND OVERFLOW
             //
             rs1 = std::real(s1);
-            if (fabs(rs1) > elim) {
+            if (std::fabs(rs1) > elim) {
                 goto L110;
             }
             if (kdflg == 1) {
                 iflag = 2;
             }
-            if (fabs(rs1) >= alim) {
+            if (std::fabs(rs1) >= alim) {
                 //
                 // REFINE TEST AND SCALE
                 //
                 aphi = std::abs(phid);
-                rs1 += log(aphi);
-                if (fabs(rs1) > elim) {
+                rs1 += std::log(aphi);
+                if (std::fabs(rs1) > elim) {
                     goto L110;
                 }
                 if (kdflg == 1) {
@@ -5752,8 +5754,8 @@ namespace amos {
             s2 = csgn * phid * sumd;
             c2r = std::real(s1);
             c2i = std::imag(s1);
-            c2m = exp(c2r) * std::real(css[iflag - 1]);
-            s1 = c2m * std::complex<double>(cos(c2i), sin(c2i));
+            c2m = std::exp(c2r) * std::real(css[iflag - 1]);
+            s1 = c2m * std::complex<double>(std::cos(c2i), std::sin(c2i));
             s2 *= s1;
             if (iflag == 1) {
                 if (uchk(s2, bry[0], tol)) {
@@ -5821,7 +5823,7 @@ namespace amos {
             kk -= 1;
             cspn = -cspn;
             if (iflag < 3) {
-                c2m = fmax(fabs(std::real(c2)), fabs(std::imag(c2)));
+                c2m = std::fmax(std::fabs(std::real(c2)), std::fabs(std::imag(c2)));
                 if (c2m > ascle) {
                     iflag += 1;
                     ascle = bry[iflag - 1];
@@ -5900,8 +5902,8 @@ namespace amos {
         inu = (int)fnu;
         fnf = fnu - inu;
         ang = -hpi * fnf;
-        car = cos(ang);
-        sar = sin(ang);
+        car = std::cos(ang);
+        sar = std::sin(ang);
         cpn = hpi * car;
         spn = hpi * sar;
         c2 = std::complex<double>(spn, -cpn);
@@ -5931,18 +5933,18 @@ namespace amos {
             // TEST FOR UNDERFLOW AND OVERFLOW
             //
             rs1 = std::real(s1);
-            if (fabs(rs1) <= elim) {
+            if (std::fabs(rs1) <= elim) {
                 if (kdflg == 1) {
                     kflag = 2;
                 }
-                if (fabs(rs1) >= alim) {
+                if (std::fabs(rs1) >= alim) {
                     //
                     // REFINE TEST AND SCALE
                     //
                     aphi = std::abs(phi[j - 1]);
                     aarg = std::abs(arg[j - 1]);
-                    rs1 += log(aphi) - 0.25 * log(aarg) - aic;
-                    if (fabs(rs1) > elim) {
+                    rs1 += std::log(aphi) - 0.25 * std::log(aarg) - aic;
+                    if (std::fabs(rs1) > elim) {
                         /* GO TO 70 */
                         if (rs1 > 0.0) {
                             return -1;
@@ -5982,8 +5984,8 @@ namespace amos {
                 s2 = cs * phi[j - 1] * (ai * asum[j - 1] + cr2 * dai * bsum[j - 1]);
                 c2r = std::real(s1);
                 c2i = std::imag(s1);
-                c2m = exp(c2r) * std::real(css[kflag - 1]);
-                s1 = c2m * std::complex<double>(cos(c2i), sin(c2i));
+                c2m = std::exp(c2r) * std::real(css[kflag - 1]);
+                s1 = c2m * std::complex<double>(std::cos(c2i), std::sin(c2i));
                 s2 *= s1;
                 if (kflag == 1) {
                     if (uchk(s2, bry[0], tol)) {
@@ -6062,8 +6064,8 @@ namespace amos {
                 s1 = zeta1d - zeta2d;
             }
             rs1 = std::real(s1);
-            if (fabs(rs1) <= elim) {
-                if (fabs(rs1) < alim) {
+            if (std::fabs(rs1) <= elim) {
+                if (std::fabs(rs1) < alim) {
                     goto L120;
                 }
                 //
@@ -6071,8 +6073,8 @@ namespace amos {
                 //
                 aphi = std::abs(phid);
                 aarg = std::abs(argd);
-                rs1 += log(aphi) - 0.25 * log(aarg) - aic;
-                if (fabs(rs1) < elim) {
+                rs1 += std::log(aphi) - 0.25 * std::log(aarg) - aic;
+                if (std::fabs(rs1) < elim) {
                     goto L120;
                 }
             }
@@ -6106,7 +6108,7 @@ namespace amos {
                 c2 = s2 * c1;
                 y[i - 1] = c2;
                 if (kflag < 3) {
-                    c2m = fmax(fabs(std::real(c2)), fabs(std::imag(c2)));
+                    c2m = std::fmax(std::fabs(std::real(c2)), std::fabs(std::imag(c2)));
                     if (c2m > ascle) {
                         kflag += 1;
                         ascle = bry[kflag - 1];
@@ -6137,7 +6139,7 @@ namespace amos {
         }
         ifn = inu + n - 1;
         ang = fnf * sgn;
-        cspn = std::complex<double>(cos(ang), sin(ang));
+        cspn = std::complex<double>(std::cos(ang), std::sin(ang));
         if (ifn % 2 == 1) {
             cspn = -cspn;
         }
@@ -6189,7 +6191,7 @@ namespace amos {
             // TEST FOR UNDERFLOW AND OVERFLOW
             //
             rs1 = std::real(s1);
-            if (fabs(rs1) > elim) {
+            if (std::fabs(rs1) > elim) {
                 if (rs1 > 0.0) {
                     return -1;
                 }
@@ -6199,14 +6201,14 @@ namespace amos {
             if (kdflg == 1) {
                 iflag = 2;
             }
-            if (fabs(rs1) >= alim) {
+            if (std::fabs(rs1) >= alim) {
                 //
                 // REFINE  TEST AND SCALE
                 //
                 aphi = std::abs(phid);
                 aarg = std::abs(argd);
-                rs1 += log(aphi) - 0.25f * log(aarg) - aic;
-                if (fabs(rs1) > elim) {
+                rs1 += std::log(aphi) - 0.25f * std::log(aarg) - aic;
+                if (std::fabs(rs1) > elim) {
                     if (rs1 > 0.0) {
                         return -1;
                     }
@@ -6228,8 +6230,8 @@ namespace amos {
             s2 = cs * phid * (ai * asumd + dai * bsumd);
             c2r = std::real(s1);
             c2i = std::imag(s1);
-            c2m = exp(c2r) * std::real(css[iflag - 1]);
-            s1 = c2m * std::complex<double>(cos(c2i), sin(c2i));
+            c2m = std::exp(c2r) * std::real(css[iflag - 1]);
+            s1 = c2m * std::complex<double>(std::cos(c2i), std::sin(c2i));
             s2 *= s1;
             if (iflag == 1) {
                 if (uchk(s2, bry[0], tol)) {
@@ -6300,7 +6302,7 @@ namespace amos {
             kk -= 1;
             cspn = -cspn;
             if (iflag < 3) {
-                c2m = fmax(fabs(std::real(ck)), fabs(std::imag(ck)));
+                c2m = std::fmax(std::fabs(std::real(ck)), std::fabs(std::imag(ck)));
                 if (c2m > ascle) {
                     iflag += 1;
                     ascle = bry[iflag - 1];
@@ -6362,17 +6364,17 @@ namespace amos {
         }
         zb = zr;
         yy = std::imag(zr);
-        ax = fabs(x) * sqrt(3.);
-        ay = fabs(yy);
+        ax = std::fabs(x) * std::sqrt(3.);
+        ay = std::fabs(yy);
         iform = 1;
         if (ay > ax) {
             iform = 2;
         }
-        gnu = fmax(fnu, 1.);
+        gnu = std::fmax(fnu, 1.);
         if (ikflg != 1) {
             fnn = nn;
             gnn = fnu + fnn - 1;
-            gnu = fmax(gnn, fnn);
+            gnu = std::fmax(gnn, fnn);
         }
 
         if (iform != 2) {
@@ -6402,9 +6404,9 @@ namespace amos {
             return -1;
         }
         if (rcz >= alim) {
-            rcz += log(aphi);
+            rcz += std::log(aphi);
             if (iform == 2) {
-                rcz -= 0.25 * log(aarg) + aic;
+                rcz -= 0.25 * std::log(aarg) + aic;
             }
             if (rcz > elim) {
                 return -1;
@@ -6415,18 +6417,18 @@ namespace amos {
                 if (rcz > -alim) {
                     /* pass */
                 } else {
-                    rcz += log(aphi);
+                    rcz += std::log(aphi);
                     if (iform == 2) {
-                        rcz -= 0.25 * log(aarg) + aic;
+                        rcz -= 0.25 * std::log(aarg) + aic;
                     }
                     if (rcz > -elim) {
                         /* goto 30 */
                         ascle = 1e3 * d1mach[0] / tol;
                         cz += std::log(phi);
                         if (iform != 1) {
-                            cz -= 0.25 * log(arg) + aic;
+                            cz -= 0.25 * std::log(arg) + aic;
                         }
-                        ax = exp(rcz) / tol;
+                        ax = std::exp(rcz) / tol;
                         ay = std::imag(cz);
                         cz = ax * std::exp(ay);
                         if (uchk(cz, ascle, tol)) {
@@ -6476,9 +6478,9 @@ namespace amos {
                 if (rcz > -alim) {
                     return nuf;
                 }
-                rcz += log(aphi);
+                rcz += std::log(aphi);
                 if (iform == 2) {
-                    rcz -= 0.25 * log(aarg) + aic;
+                    rcz -= 0.25 * std::log(aarg) + aic;
                 }
                 if (rcz > -elim) {
                     ascle = 1e3 * d1mach[0] / tol;
@@ -6486,9 +6488,9 @@ namespace amos {
                     if (iform != 1) {
                         cz -= 0.25 * std::log(arg) + aic;
                     }
-                    ax = exp(rcz) / tol;
+                    ax = std::exp(rcz) / tol;
                     ay = std::imag(cz);
-                    cz = ax * (cos(ay) + sin(ay * std::complex<double>(0, 1)));
+                    cz = ax * (std::cos(ay) + std::sin(ay * std::complex<double>(0, 1)));
                     if (!(uchk(cz, ascle, tol))) {
                         return nuf;
                     }
@@ -6546,7 +6548,7 @@ namespace amos {
         cinu = 1.0;
         if (kode != 1) {
             yy = std::imag(zr);
-            cinu = std::complex<double>(cos(yy), sin(yy));
+            cinu = std::complex<double>(std::cos(yy), std::sin(yy));
         }
         //
         // ON LOW EXPONENT MACHINES THE K FUNCTIONS CAN BE CLOSE TO BOTH THE
