@@ -303,12 +303,12 @@ void assoc_legendre_p_pm1(NormPolicy norm, int n, int m, T z, int branch_cut, T 
     if (m == 0) {
         if (real(z) >= 0) {
             res = T(1);
-            // Apply normalization for m=0
-            if (std::is_same_v<NormPolicy, assoc_legendre_norm_policy>) {
-                res *= sqrt(T(2 * n + 1) / T(2));
-            }
         } else {
             res = T(std::pow(-1, n));
+        }
+        // Apply normalization for m=0
+        if (std::is_same_v<NormPolicy, assoc_legendre_norm_policy>) {
+            res *= sqrt(T(2 * n + 1) / T(2));
         }
     } else {
         res = T(0);
@@ -320,12 +320,12 @@ void assoc_legendre_p_pm1(NormPolicy norm, int n, int m, dual<T, Order> z, int b
     if (m == 0) {
         if (real(z[0]) >= 0) {
             res[0] = T(1);
-            // Apply normalization for m=0
-            if (std::is_same_v<NormPolicy, assoc_legendre_norm_policy>) {
-                res[0] *= sqrt(T(2 * n + 1) / T(2));
-            }
         } else {
             res[0] = T(std::pow(-1, n));
+        }
+        // Apply normalization for m=0
+        if (std::is_same_v<NormPolicy, assoc_legendre_norm_policy>) {
+            res[0] *= sqrt(T(2 * n + 1) / T(2));
         }
     } else {
         res[0] = T(0);
