@@ -4221,7 +4221,8 @@ namespace specfun {
         double vx, pmv, v0, p0, p1, g1, g2;
         if ((x == -1.0) && (v != (int)v)) {
             if (m == 0) {
-                pmv = -1e300;
+                double vs = sin(v * M_PI) / (v * M_PI);
+                pmv = (vs > 0) ? -1e300 : 1e300;
             } else {
                 pmv = 1e300;
             }
