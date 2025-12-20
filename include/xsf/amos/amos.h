@@ -5306,7 +5306,7 @@ namespace amos {
             // SET UNDERFLOW AND UPDATE PARAMETERS
             //
             y[nd - 1] = 0.0;
-            nz += 1;
+            *nz += 1;
             nd -= 1;
             if (nd == 0) {
                 return;
@@ -5314,7 +5314,7 @@ namespace amos {
             nuf = uoik(z, fnu, kode, 1, nd, y, tol, elim, alim);
             if (nuf >= 0) {
                 nd -= nuf;
-                nz += nuf;
+                *nz += nuf;
                 if (nd == 0) {
                     return;
                 }
