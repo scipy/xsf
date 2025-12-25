@@ -9,6 +9,12 @@
 #include <math.h>
 #include <vector>
 
+// In case of gcc use Float128 for more accuracy.
+#ifndef _Float128
+  #define _Float128 long double
+#endif
+
+
 /*
  *
  * This is part of the Mathieu function suite -- a reimplementation
