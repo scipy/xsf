@@ -37,7 +37,7 @@ namespace mathieu {
         //*******************************************************
         {
             double *A = (double *)calloc(N * N, sizeof(double));
-            double q = 2.0d;
+            double q = 2.0;
 
             make_matrix_ee(N, q, A);
             print_matrix(A, N, N);
@@ -204,7 +204,7 @@ namespace mathieu {
         double *AA = (double *)calloc(N, sizeof(double));
         N = 5;
         {
-            double q = 1.0d;
+            double q = 1.0;
             double tol = 1e-13;
             double AA_true[5] = {
                 6.72989672316633203e-01, -3.06303580036475842e-01, 1.86455593633495648e-02, -5.11683638542392003e-04,
@@ -237,7 +237,7 @@ namespace mathieu {
         }
         printf("----------------------------------------------\n");
         {
-            double q = 1.0d;
+            double q = 1.0;
             double tol = 1e-13;
             m = 1;
             double AA_true[5] = {
@@ -268,7 +268,7 @@ namespace mathieu {
         }
         printf("----------------------------------------------\n");
         {
-            double q = 1.0d;
+            double q = 1.0;
             double tol = 1e-13;
             m = 2;
             double AA_true[5] = {
@@ -300,7 +300,7 @@ namespace mathieu {
 
         printf("----------------------------------------------\n");
         {
-            double q = 1.0d;
+            double q = 1.0;
             double tol = 1e-13;
             m = 3;
             double AA_true[5] = {
@@ -333,7 +333,7 @@ namespace mathieu {
         printf("----------------------------------------------\n");
         {
             printf("This should fail -- calling coeffs_eo with even m\n");
-            double q = 1.0d;
+            double q = 1.0;
             m = 4;
             printf("N = %d, q = %f, m = %d\n", N, q, m);
             retcode = mathieu_coeffs_eo(N, q, m, AA);
@@ -351,7 +351,7 @@ namespace mathieu {
         printf("Test B Fourier coeffs\n");
         {
             printf("This should fail -- calling coeffs_oe with m=0\n");
-            double q = 1.0d;
+            double q = 1.0;
             m = 0;
             printf("N = %d, q = %f, m = %d\n", N, q, m);
             retcode = mathieu_coeffs_oe(N, q, m, AA);
@@ -366,7 +366,7 @@ namespace mathieu {
 
         printf("----------------------------------------------\n");
         {
-            double q = 1.0d;
+            double q = 1.0;
             double tol = 1e-13;
             m = 1;
             double AA_true[5] = {
@@ -397,7 +397,7 @@ namespace mathieu {
         }
         printf("----------------------------------------------\n");
         {
-            double q = 1.0d;
+            double q = 1.0;
             double tol = 1e-13;
             m = 2;
             double AA_true[5] = {
@@ -429,7 +429,7 @@ namespace mathieu {
         }
         printf("----------------------------------------------\n");
         {
-            double q = 1.0d;
+            double q = 1.0;
             double tol = 1e-13;
             m = 3;
             double AA_true[5] = {
@@ -461,7 +461,7 @@ namespace mathieu {
         }
         printf("----------------------------------------------\n");
         {
-            double q = 1.0d;
+            double q = 1.0;
             double tol = 1e-13;
             m = 4;
             double AA_true[5] = {
@@ -503,7 +503,7 @@ namespace mathieu {
         double ced;
         N = 6;
         {
-            double v = 1.0d;
+            double v = 1.0;
             double q = 0.001;
             double tol = 1e-13;
             // Golden values obtained from Matlab for m = 0, 1, 2, 3, 4, 5.
@@ -528,7 +528,7 @@ namespace mathieu {
         }
         printf("----------------------------------------------\n");
         {
-            double v = 1.0d;
+            double v = 1.0;
             double q = 100;
             double tol = 1e-13;
             double ce_true[6] = {0.086725459442521, 0.315928563892497, 0.737195938153019,
@@ -559,7 +559,7 @@ namespace mathieu {
         double sed;
         N = 6;
         {
-            double v = 1.0d;
+            double v = 1.0;
             double q = 0.001;
             double tol = 1e-13;
             // Golden values obtained from Matlab for m = 1, 2, 3, 4, 5, 6.
@@ -584,7 +584,7 @@ namespace mathieu {
         }
         printf("----------------------------------------------\n");
         {
-            double v = 1.0d;
+            double v = 1.0;
             double q = 100;
             double tol = 1e-13;
             // Golden values obtained from Matlab for m = 1, 2, 3, 4, 5, 6.
@@ -617,7 +617,7 @@ namespace mathieu {
         double Y;
         {
             // Golden values obtained from Matlab for z = 1 and m = -3, -2, -1, 0, 1, 2, 3..
-            double z = 1.0d;
+            double z = 1.0;
             double tol = 1e-13;
             double J_true[7] = {-0.019563353982668, 0.114903484931901, -0.440050585744934, 0.765197686557967,
                                 0.440050585744934,  0.114903484931901, 0.019563353982668};
@@ -640,7 +640,7 @@ namespace mathieu {
         printf("Test my BesselY implementation, z = 1 ... \n");
         {
             // Golden values obtained from Matlab for z = 1 and m = -3, -2, -1, 0, 1, 2, 3..
-            double z = 1.0d;
+            double z = 1.0;
             double tol = 1e-13;
             double Y_true[7] = {5.821517605964731,  -1.650682606816255, 0.781212821300289, 0.088256964215677,
                                 -0.781212821300289, -1.650682606816255, -5.821517605964731};
@@ -663,7 +663,7 @@ namespace mathieu {
         printf("Test my BesselY implementation, z = .01 ... \n");
         {
             // Golden values obtained from Matlab for z = 1 and m = -3, -2, -1, 0, 1, 2, 3..
-            double z = 0.01d;
+            double z = 0.01;
             double tol = 1e-13;
             double Y_true[7] = {5.093021841713738e+06, -1.273271380077505e+04, 63.678596282060660,
                                 -3.005455637083646,    -63.678596282060660,    -1.273271380077505e+04,
@@ -690,7 +690,7 @@ namespace mathieu {
         N = 6;
         {
             double q = 0.01;
-            double v = 4.0d;
+            double v = 4.0;
             double tol = 1e-12;
             double rtol = 1e-11;
             // Golden values obtained using Matlab.  I get values
@@ -745,7 +745,7 @@ namespace mathieu {
         printf("----------------------------------------------\n");
         {
             double q = 100;
-            double v = 4.0d;
+            double v = 4.0;
             double tol = 1e-14;
             double rtol = 1e-13;
             // Golden values obtained using Matlab.  I get values
@@ -801,7 +801,7 @@ namespace mathieu {
         N = 6;
         {
             double q = 0.01;
-            double v = 4.0d;
+            double v = 4.0;
             double tol = 1e-6;
             double rtol = 1e-11; // I use different tol for relative err test.
             // Golden values obtained using Matlab.  I used
@@ -855,7 +855,7 @@ namespace mathieu {
         printf("----------------------------------------------\n");
         {
             double q = 100;
-            double v = 4.0d;
+            double v = 4.0;
             double tol = 1e-14;
             double rtol = 1e-14;
             // Golden values obtained using Matlab.  I used
@@ -908,7 +908,7 @@ namespace mathieu {
         double mc2d;
         N = 6;
         {
-            double v = 4.0d; // Test at v=4 since the value is extremely large for
+            double v = 4.0; // Test at v=4 since the value is extremely large for
                              // smaller v.
             double q = 0.01;
             double tol = 1e-9;
@@ -963,7 +963,7 @@ namespace mathieu {
         printf("----------------------------------------------\n");
         {
             double q = 100;
-            double v = 4.0d; // Test at v=4 since the value is extremely large for smaller v.
+            double v = 4.0; // Test at v=4 since the value is extremely large for smaller v.
             double tol = 1e-14;
             double rtol = 1e-12;
             // Golden values obtained using Matlab.  I get values
@@ -1018,7 +1018,7 @@ namespace mathieu {
         N = 6;
         {
             double q = 0.01;
-            double v = 4.0d; // Test at v=4 since the value is extremely large for smaller v.
+            double v = 4.0; // Test at v=4 since the value is extremely large for smaller v.
             double tol = 1e-2;
             double rtol = 1e-8;
             // Golden values obtained using Matlab.  I used
@@ -1073,7 +1073,7 @@ namespace mathieu {
         printf("----------------------------------------------\n");
         {
             double q = 100;
-            double v = 4.0d; // Test at v=4 since the value is extremely large for smaller v.
+            double v = 4.0; // Test at v=4 since the value is extremely large for smaller v.
             double tol = 1e-14;
             double rtol = 1e-14;
             // Golden values obtained using Matlab.  I used
