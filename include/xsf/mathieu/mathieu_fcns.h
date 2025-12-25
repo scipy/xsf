@@ -1428,7 +1428,7 @@ namespace mathieu {
         }
 
         // abs(q) > 1000 leads to low accuracy.
-        if (abs(q) > 1.0e3d)
+        if (abs(q) > 1.0e3)
             retcode = SF_ERROR_LOSS;
 
         return retcode;
@@ -1448,9 +1448,9 @@ namespace mathieu {
         }
 
         // Don't need to bail out of main computation for these, just set retcode.
-        if (abs(q) > 1.0e3d)
+        if (abs(q) > 1.0e3)
             retcode = SF_ERROR_LOSS; // q>1000 is inaccurate
-        if (m > 15 && q > 0.1d)
+        if (m > 15 && q > 0.1)
             retcode = SF_ERROR_LOSS;
 
         return retcode;
