@@ -14,7 +14,6 @@
 #define _Float128 long double
 #endif
 
-
 /*
  *
  * This is part of the Mathieu function suite -- a reimplementation
