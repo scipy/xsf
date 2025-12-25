@@ -301,7 +301,15 @@ struct assoc_legendre_p_recurrence_n<T, assoc_legendre_norm_policy> {
 template <typename NormPolicy, typename T>
 void assoc_legendre_p_pm1(NormPolicy norm, int n, int m, T z, int branch_cut, T &res) {
     if (m == 0) {
-        res = T(1);
+        if (real(z) >= 0) {
+            res = T(1);
+        } else {
+            res = T(std::pow(-1, n));
+        }
+        // Apply normalization for m=0
+        if (std::is_same_v<NormPolicy, assoc_legendre_norm_policy>) {
+            res *= sqrt(T(2 * n + 1) / T(2));
+        }
     } else {
         res = T(0);
     }
@@ -310,7 +318,15 @@ void assoc_legendre_p_pm1(NormPolicy norm, int n, int m, T z, int branch_cut, T 
 template <typename NormPolicy, typename T, size_t Order>
 void assoc_legendre_p_pm1(NormPolicy norm, int n, int m, dual<T, Order> z, int branch_cut, dual<T, Order> &res) {
     if (m == 0) {
-        res[0] = T(1);
+        if (real(z[0]) >= 0) {
+            res[0] = T(1);
+        } else {
+            res[0] = T(std::pow(-1, n));
+        }
+        // Apply normalization for m=0
+        if (std::is_same_v<NormPolicy, assoc_legendre_norm_policy>) {
+            res[0] *= sqrt(T(2 * n + 1) / T(2));
+        }
     } else {
         res[0] = T(0);
     }
@@ -706,7 +722,7 @@ void lqn(T x, OutputVec1 qn, OutputVec2 qd) {
             q1 = qf;
         }
     } else {
-        qc1 = 0.0;
+        qc1 = (n == 0) ? 0.0 : 1.0 / x;
         qc2 = 1.0 / x;
 
         for (int j = 1; j <= n; j++) {

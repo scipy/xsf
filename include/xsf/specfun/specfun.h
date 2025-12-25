@@ -4221,7 +4221,8 @@ namespace specfun {
         double vx, pmv, v0, p0, p1, g1, g2;
         if ((x == -1.0) && (v != (int)v)) {
             if (m == 0) {
-                pmv = -1e300;
+                double vs = sin(v * M_PI) / (v * M_PI);
+                pmv = (vs > 0) ? -1e300 : 1e300;
             } else {
                 pmv = 1e300;
             }
@@ -6055,10 +6056,15 @@ namespace specfun {
                     }
                 }
                 cv0[k - 1] = x1;
+                int index = 0;
                 if (l == 0)
-                    eg[2 * k - 2] = cv0[k - 1];
+                    index = 2 * k - 2;
                 if (l == 1)
-                    eg[2 * k - 1] = cv0[k - 1];
+                    index = 2 * k - 1;
+                // boundary check
+                if (index >= n - m + 1)
+                    break;
+                eg[index] = cv0[k - 1];
             }
         }
         *cv = eg[n - m];

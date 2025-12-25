@@ -266,6 +266,8 @@ namespace numpy {
     using qqd_ddd = void (*)(long long int, long long int, double, double &, double &, double &);
 
     // 4 inputs, 1 output
+    using llld_d = double (*)(long int, long int, long int, double);
+    using qqqd_d = double (*)(long long int, long long int, long long int, double);
     using qqqF_F = cfloat (*)(long long int, long long int, long long int, cfloat);
     using qqqD_D = cdouble (*)(long long int, long long int, long long int, cdouble);
     using qqff_F = cfloat (*)(long long int, long long int, float, float);
