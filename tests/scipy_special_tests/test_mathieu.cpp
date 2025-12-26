@@ -909,7 +909,7 @@ namespace mathieu {
         N = 6;
         {
             double v = 4.0; // Test at v=4 since the value is extremely large for
-                             // smaller v.
+                            // smaller v.
             double q = 0.01;
             double tol = 1e-9;
             double rtol = 1e-12; // I use different tol for relative err test.

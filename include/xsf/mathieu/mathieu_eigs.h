@@ -22,13 +22,46 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+// void dsyevd_(
+//     char *jobz, char *uplo, int *n, double *a, int *lda, double *w, double *work, int *lwork, int *iwork, int
+//     *liwork, int *info
+//);
+extern "C" {
 void dsyevd_(
-    char *jobz, char *uplo, int *n, double *a, int *lda, double *w, double *work, int *lwork, int *iwork, int *liwork,
-    int *info
+    char *jobz,   // 'N' = eigenvalues only, 'V' = eigenvalues + eigenvectors
+    char *uplo,   // 'U' = upper triangle, 'L' = lower triangle
+    int *n,       // Matrix dimension
+    double *a,    // Input: matrix, Output: eigenvectors (if jobz='V')
+    int *lda,     // Leading dimension of a (>= n)
+    double *w,    // Output: eigenvalues in ascending order
+    double *work, // Workspace array
+    int *lwork,   // Size of work array
+    int *iwork,   // Integer workspace array
+    int *liwork,  // Size of iwork array
+    int *info     // Status: 0 = success, <0 = illegal arg, >0 = convergence failure
 );
+}
 #ifdef __cplusplus
 }
 #endif
+
+/*
+extern "C" {
+    void dstevd_(
+        const char* jobz,      // 'N' = eigenvalues only, 'V' = eigenvalues + eigenvectors
+        const int* n,          // Matrix dimension
+        double* d,             // Diagonal elements (input), eigenvalues (output)
+        double* e,             // Off-diagonal elements (input), destroyed on output
+        double* z,             // Eigenvectors (output if jobz='V')
+        const int* ldz,        // Leading dimension of z (>= n if jobz='V', >= 1 if 'N')
+        double* work,          // Workspace array
+        const int* lwork,      // Size of work array
+        int* iwork,            // Integer workspace array
+        const int* liwork,     // Size of iwork array
+        int* info              // Status: 0 = success, <0 = illegal argument, >0 = convergence failure
+    );
+}
+*/
 
 namespace xsf {
 namespace mathieu {

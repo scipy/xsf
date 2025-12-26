@@ -15,6 +15,9 @@ version = "0.1.5"
 cmake = ">=3.30.5,<4"
 cxx-compiler = ">=1.8.0,<2"
 make = ">=4.4.1,<5"
+openblas = "*"
+pkg-config = "*"
+
 
 [feature.build.tasks.configure]
 cmd = [
@@ -23,6 +26,7 @@ cmd = [
   "-S .",
   # We want to build in the build directory
   "-B build",
+  "-DCMAKE_PREFIX_PATH=$CONDA_PREFIX",
 ]
 cwd = "."
 
@@ -170,4 +174,8 @@ test-cupy.depends-on = ["install-xsref-test-cupy"]
 default = { features = ["build", "tests"], solve-group = "default" }
 tests-ci = { features = ["build", "tests", "tests-ci", "coverage"], solve-group = "default" }
 lint = { features = ["clang-format"], solve-group = "default" }
-cupy-tests = { features = ["cupy-tests"], solve-group = "default" }
+cupy-tests = { features = ["cupy-tests"], solve-group = "cupy" }
+
+[dependencies]
+pkg-config = ">=0.29.2,<0.30"
+openblas = ">=0.3.30,<0.4"
