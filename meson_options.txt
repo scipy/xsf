@@ -1,0 +1,7 @@
+option('blas', type: 'string', value: '',
+       description: 'BLAS library to use (empty for auto-detect)')
+option('lapack', type: 'string', value: '',
+       description: 'LAPACK library to use (empty for auto-detect)')
+option('build_tests', type: 'boolean', value: false,
+       description: 'Build test suite')
+
