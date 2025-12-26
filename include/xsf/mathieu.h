@@ -22,14 +22,14 @@
 
 namespace xsf {
 
-/* Characteristic values */
 //-------------------------------------------------------------
+/* Characteristic values */
 /**
  * Mathieu characteristic values (eigenvalues) for even parity functions.
  *
  * Even parity characteristic values a.
  *
- * @param  m    Eigenvalue order.  Must be positive integer less than 500.
+ * @param  m    Eigenvalue order.  Must be non-negative integer less than 500.
  * @param  q    Mathieu parameter q.  Real number.
  * @return      Mathieu eigenvalue a.
  */
@@ -102,7 +102,7 @@ T sem_cva(T m, T q) {
  * Even parity Mathieu angular function ce(m, q, x)
  *
  * This implementation of ce follows the definitions on the
- * DLMF, https://dlmf.nist.gov/28
+ * DLMF, https://dlmf.nist.gov/28, specifically 28.4.1 -- 28.4.2.
  *
  * @param  m    Function order.  Must be positive integer less than 500.
  * @param  q    Parameter q.  Real number.
@@ -144,7 +144,7 @@ void cem(T m, T q, T x, T &csf, T &csd) {
  * Odd parity Mathieu angular function se(m, q, x)
  *
  * This implementation of ce follows the definitions on the
- * DLMF, https://dlmf.nist.gov/28
+ * DLMF, https://dlmf.nist.gov/28, specifically 28.4.3 -- 28.4.4.
  *
  * @param  m    Function order.  Must be positive integer less than 500.
  * @param  q    Parameter q.  Real number.
@@ -186,7 +186,7 @@ void sem(T m, T q, T x, T &ssf, T &ssd) {
  * Even parity modified (radial) Mathieu function of first kind Mc1(m, q, x)
  *
  * This implementation of ce follows the definitions on the
- * DLMF, https://dlmf.nist.gov/28
+ * DLMF, https://dlmf.nist.gov/28, specifically 28.24.2 -- 28.24.3
  *
  * @param  m    Function order.  Must be positive integer less than 500.
  * @param  q    Parameter q.  Positive real number
@@ -228,7 +228,7 @@ void mcm1(T m, T q, T x, T &f1r, T &d1r) {
  * Odd parity modified (radial) Mathieu function of first kind Ms1(m, q, x)
  *
  * This implementation of ce follows the definitions on the
- * DLMF, https://dlmf.nist.gov/28
+ * DLMF, https://dlmf.nist.gov/28, specifically, 28.24.4 -- 28.24.5
  *
  * @param  m    Function order.  Must be positive integer less than 500.
  * @param  q    Parameter q.  Positive real number
@@ -270,7 +270,7 @@ void msm1(T m, T q, T x, T &f1r, T &d1r) {
  * Even parity modified (radial) Mathieu function of second kind Mc2(m, q, x)
  *
  * This implementation of ce follows the definitions on the
- * DLMF, https://dlmf.nist.gov/28
+ * DLMF, https://dlmf.nist.gov/28, specifically 28.24.2 -- 28.24.3
  *
  * @param  m    Function order.  Must be positive integer less than 500.
  * @param  q    Parameter q.  Positive real number
@@ -312,7 +312,7 @@ void mcm2(T m, T q, T x, T &f2r, T &d2r) {
  * Odd parity modified (radial) Mathieu function of second kind Ms2(m, q, x)
  *
  * This implementation of ce follows the definitions on the
- * DLMF, https://dlmf.nist.gov/28
+ * DLMF, https://dlmf.nist.gov/28, specifically 28.24.4 -- 28.24.5
  *
  * @param  m    Function order.  Must be positive integer less than 500.
  * @param  q    Parameter q.  Positive real number

@@ -15,7 +15,7 @@
  *
  */
 
-#define SQRT2 1.414213562373095
+// #define SQRT2 1.414213562373095
 
 namespace xsf {
 namespace mathieu {
@@ -40,9 +40,9 @@ namespace mathieu {
 
         // Symmetrize matrix here, then fix in caller.
         i = MATRIX_IDX(N, 0, 1);
-        A[i] = SQRT2 * q;
+        A[i] = M_SQRT2 * q;
         i = MATRIX_IDX(N, 1, 0);
-        A[i] = SQRT2 * q;
+        A[i] = M_SQRT2 * q;
         i = MATRIX_IDX(N, 1, 1);
         A[i] = 4.0;
         i = MATRIX_IDX(N, 1, 2);
