@@ -36,26 +36,40 @@ namespace mathieu {
         // are correct.
         //*******************************************************
         {
-            double *A = (double *)calloc(N * N, sizeof(double));
+            double *D = (double *)calloc(N, sizeof(double));
+            double *E = (double *)calloc(N-1, sizeof(double));	    
             double q = 2.0;
 
-            make_matrix_ee(N, q, A);
-            print_matrix(A, N, N);
+            make_matrix_ee(N, q, D, E);
+	    printf("D = \n");
+            print_matrix(D, N, 1);
+	    printf("E = \n");
+            print_matrix(E, N-1, 1);	    
             printf("----------------------------------------------\n");
 
-            make_matrix_eo(N, q, A);
-            print_matrix(A, N, N);
+            make_matrix_eo(N, q, D, E);
+	    printf("D = \n");
+            print_matrix(D, N, 1);
+	    printf("E = \n");
+            print_matrix(E, N-1, 1);
             printf("----------------------------------------------\n");
 
-            make_matrix_oe(N, q, A);
-            print_matrix(A, N, N);
+            make_matrix_oe(N, q, D, E);
+	    printf("D = \n");
+            print_matrix(D, N, 1);
+	    printf("E = \n");
+            print_matrix(E, N-1, 1);
             printf("----------------------------------------------\n");
 
-            make_matrix_oo(N, q, A);
-            print_matrix(A, N, N);
+            make_matrix_oo(N, q, D, E);
+	    printf("D = \n");
+            print_matrix(D, N, 1);
+	    printf("E = \n");
+            print_matrix(E, N-1, 1);	    
             printf("----------------------------------------------\n");
 
-            free(A);
+            free(D);
+            free(E);	    
         }
 
         //*******************************************************
