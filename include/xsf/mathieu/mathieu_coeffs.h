@@ -20,7 +20,6 @@
  *
  */
 
-
 /* DSTEDC_ prototype */
 #ifdef __cplusplus
 extern "C" {
@@ -28,23 +27,21 @@ extern "C" {
 // This Lapack routine computes the eigenvalues/vectors of a symmetric tridiagonal matrix.
 // I need to do a forward declaration here.
 void dstevd_(
-               const char* jobz,         // 'N' = eigenvalues only, 'V' = eigenvalues + eigenvectors
-               const int* n,             // Matrix dimension
-               double* d,                // Diagonal elements (input), eigenvalues (output)
-               double* e,                // Off-diagonal elements (input), destroyed on output
-               double* z,                // Eigenvectors (output if jobz='V')
-               const int* ldz,           // Leading dimension of z (>= n if jobz='V', >= 1 if 'N')
-               double* work,             // Workspace array
-               const int* lwork,         // Size of work array
-               int* iwork,               // Integer workspace array
-               const int* liwork,        // Size of iwork array
-               int* info                 // Status: 0 = success, <0 = illegal argument, >0 = convergence failure
-               );
+    const char *jobz,  // 'N' = eigenvalues only, 'V' = eigenvalues + eigenvectors
+    const int *n,      // Matrix dimension
+    double *d,         // Diagonal elements (input), eigenvalues (output)
+    double *e,         // Off-diagonal elements (input), destroyed on output
+    double *z,         // Eigenvectors (output if jobz='V')
+    const int *ldz,    // Leading dimension of z (>= n if jobz='V', >= 1 if 'N')
+    double *work,      // Workspace array
+    const int *lwork,  // Size of work array
+    int *iwork,        // Integer workspace array
+    const int *liwork, // Size of iwork array
+    int *info          // Status: 0 = success, <0 = illegal argument, >0 = convergence failure
+);
 #ifdef __cplusplus
 }
 #endif
-
-
 
 namespace xsf {
 namespace mathieu {
@@ -67,39 +64,37 @@ namespace mathieu {
         if (m % 2 != 0)
             return SF_ERROR_ARG;
 
-       // Allocate diag part of recursion matrix
+        // Allocate diag part of recursion matrix
         std::vector<double> D(N);
 
         // Allocate off-diag part of recursion matrix.
-        std::vector<double> E(N-1);
+        std::vector<double> E(N - 1);
 
-        // Allocate return matrix for eigenvectors.  
-        std::vector<double> Z(N*N);
-	// If we think of Z as a matrix of column eigenvectors, then
+        // Allocate return matrix for eigenvectors.
+        std::vector<double> Z(N * N);
+        // If we think of Z as a matrix of column eigenvectors, then
         // access return via eigenvector_i[row] = Z[row + i*N];
 
-	
         // Do EVD
         retcode = make_matrix_ee(N, q, D.data(), E.data());
         if (retcode != 0) {
             return SF_ERROR_NO_RESULT;
         }
 
-         char jobz = 'V';  // Eigenvalues & eigenvecs
+        char jobz = 'V'; // Eigenvalues & eigenvecs
 
-          /* Allocate the optimal workspace */
-	 int lwork = 1 + 4*N + N*N;
-	 int liwork = 3 + 5*N;
+        /* Allocate the optimal workspace */
+        int lwork = 1 + 4 * N + N * N;
+        int liwork = 3 + 5 * N;
 
-          /* Allocate worksapce */
-          std::vector<double> work(lwork);
-          std::vector<int> iwork(liwork);
+        /* Allocate worksapce */
+        std::vector<double> work(lwork);
+        std::vector<int> iwork(liwork);
 
-          int info;
-          
-          /* Solve eigenproblem */
-          dstevd_(&jobz, &N, D.data(), E.data(), Z.data(), &N, work.data(), &lwork, iwork.data(), &liwork, &info);
+        int info;
 
+        /* Solve eigenproblem */
+        dstevd_(&jobz, &N, D.data(), E.data(), Z.data(), &N, work.data(), &lwork, iwork.data(), &liwork, &info);
 
         // Check return code from dsyevd and bail if it's not 0.
         if (info != 0) {
@@ -138,11 +133,10 @@ namespace mathieu {
         std::vector<double> D(N);
 
         // Allocate off-diag part of recursion matrix.
-        std::vector<double> E(N-1);
+        std::vector<double> E(N - 1);
 
         // Allocate matrix for eigenvectors
-        std::vector<double> Z(N*N);
-	
+        std::vector<double> Z(N * N);
 
         // Do EVD
         retcode = make_matrix_eo(N, q, D.data(), E.data());
@@ -150,20 +144,20 @@ namespace mathieu {
             return SF_ERROR_NO_RESULT;
         }
 
-         char jobz = 'V';  // Eigenvalues & eigenvecs
+        char jobz = 'V'; // Eigenvalues & eigenvecs
 
-          /* Allocate the optimal workspace */
-	 int lwork = 1 + 4*N + N*N;
-	 int liwork = 3 + 5*N;
+        /* Allocate the optimal workspace */
+        int lwork = 1 + 4 * N + N * N;
+        int liwork = 3 + 5 * N;
 
-          /* Allocate worksapce */
-          std::vector<double> work(lwork);
-          std::vector<int> iwork(liwork);
+        /* Allocate worksapce */
+        std::vector<double> work(lwork);
+        std::vector<int> iwork(liwork);
 
-          int info;
-          
-          /* Solve eigenproblem */
-          dstevd_(&jobz, &N, D.data(), E.data(), Z.data(), &N, work.data(), &lwork, iwork.data(), &liwork, &info);
+        int info;
+
+        /* Solve eigenproblem */
+        dstevd_(&jobz, &N, D.data(), E.data(), Z.data(), &N, work.data(), &lwork, iwork.data(), &liwork, &info);
 
         // Check return code from dsyevd and bail if it's not 0.
         if (retcode != 0) {
@@ -204,37 +198,36 @@ namespace mathieu {
         if ((m % 2 != 0) || (m < 2))
             return SF_ERROR_ARG;
 
-      // Allocate diag part of recursion matrix
+        // Allocate diag part of recursion matrix
         std::vector<double> D(N);
 
         // Allocate off-diag part of recursion matrix.
-        std::vector<double> E(N-1);
+        std::vector<double> E(N - 1);
 
         // Allocate matrix for eigenvectors
-        std::vector<double> Z(N*N);
-	
+        std::vector<double> Z(N * N);
+
         // Do EVD
         retcode = make_matrix_oe(N, q, D.data(), E.data());
         if (retcode != 0) {
             return SF_ERROR_NO_RESULT;
         }
 
-         char jobz = 'V';  // Eigenvalues & eigenvecs
+        char jobz = 'V'; // Eigenvalues & eigenvecs
 
-          /* Allocate the optimal workspace */
-         int lwork = 1 + 4*N + N*N;
-         int liwork = 3 + 5*N;
+        /* Allocate the optimal workspace */
+        int lwork = 1 + 4 * N + N * N;
+        int liwork = 3 + 5 * N;
 
-          /* Allocate worksapce */
-          std::vector<double> work(lwork);
-          std::vector<int> iwork(liwork);
+        /* Allocate worksapce */
+        std::vector<double> work(lwork);
+        std::vector<int> iwork(liwork);
 
-          int info;
-          
-          /* Solve eigenproblem */
-          dstevd_(&jobz, &N, D.data(), E.data(), Z.data(), &N, work.data(), &lwork, iwork.data(), &liwork, &info);
+        int info;
 
-	
+        /* Solve eigenproblem */
+        dstevd_(&jobz, &N, D.data(), E.data(), Z.data(), &N, work.data(), &lwork, iwork.data(), &liwork, &info);
+
         // Bail out if dsyevd doesn't return 0.
         if (retcode != 0) {
             return SF_ERROR_NO_RESULT;
@@ -265,36 +258,35 @@ namespace mathieu {
         if (m % 2 != 1)
             return SF_ERROR_ARG;
 
-
         // Allocate diag part of recursion matrix
         std::vector<double> D(N);
 
         // Allocate off-diag part of recursion matrix.
-        std::vector<double> E(N-1);
+        std::vector<double> E(N - 1);
 
         // Allocate matrix for eigenvectors
-        std::vector<double> Z(N*N);
-	
+        std::vector<double> Z(N * N);
+
         // Do EVD
         retcode = make_matrix_oo(N, q, D.data(), E.data());
         if (retcode != 0) {
             return SF_ERROR_NO_RESULT;
         }
 
-         char jobz = 'V';  // Eigenvalues & eigenvecs
+        char jobz = 'V'; // Eigenvalues & eigenvecs
 
-          /* Allocate the optimal workspace */
-         int lwork = 1 + 4*N + N*N;
-         int liwork = 3 + 5*N;
+        /* Allocate the optimal workspace */
+        int lwork = 1 + 4 * N + N * N;
+        int liwork = 3 + 5 * N;
 
-          /* Allocate worksapce */
-          std::vector<double> work(lwork);
-          std::vector<int> iwork(liwork);
+        /* Allocate worksapce */
+        std::vector<double> work(lwork);
+        std::vector<int> iwork(liwork);
 
-          int info;
-          
-          /* Solve eigenproblem */
-          dstevd_(&jobz, &N, D.data(), E.data(), Z.data(), &N, work.data(), &lwork, iwork.data(), &liwork, &info);
+        int info;
+
+        /* Solve eigenproblem */
+        dstevd_(&jobz, &N, D.data(), E.data(), Z.data(), &N, work.data(), &lwork, iwork.data(), &liwork, &info);
 
         // Bail out if dsyevd didn't return 0;
         if (retcode != 0) {

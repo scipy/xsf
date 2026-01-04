@@ -25,22 +25,21 @@ extern "C" {
 // This Lapack routine computes the eigenvalues/vectors of a symmetric tridiagonal matrix.
 // I need to do a forward declaration here.
 void dstevd_(
-	       const char* jobz,         // 'N' = eigenvalues only, 'V' = eigenvalues + eigenvectors
-	       const int* n,             // Matrix dimension
-	       double* d,                // Diagonal elements (input), eigenvalues (output)
-	       double* e,                // Off-diagonal elements (input), destroyed on output
-	       double* z,                // Eigenvectors (output if jobz='V')
-	       const int* ldz,           // Leading dimension of z (>= n if jobz='V', >= 1 if 'N')
-	       double* work,             // Workspace array
-	       const int* lwork,         // Size of work array
-	       int* iwork,               // Integer workspace array
-	       const int* liwork,        // Size of iwork array
-	       int* info                 // Status: 0 = success, <0 = illegal argument, >0 = convergence failure
-	       );
+    const char *jobz,  // 'N' = eigenvalues only, 'V' = eigenvalues + eigenvectors
+    const int *n,      // Matrix dimension
+    double *d,         // Diagonal elements (input), eigenvalues (output)
+    double *e,         // Off-diagonal elements (input), destroyed on output
+    double *z,         // Eigenvectors (output if jobz='V')
+    const int *ldz,    // Leading dimension of z (>= n if jobz='V', >= 1 if 'N')
+    double *work,      // Workspace array
+    const int *lwork,  // Size of work array
+    int *iwork,        // Integer workspace array
+    const int *liwork, // Size of iwork array
+    int *info          // Status: 0 = success, <0 = illegal argument, >0 = convergence failure
+);
 #ifdef __cplusplus
 }
 #endif
-
 
 namespace xsf {
 namespace mathieu {
@@ -52,7 +51,7 @@ namespace mathieu {
         // printf("--> mathieu_a, m = %d, q = %e\n", m, q);
 
         int N = m + 25; // Sets size of recursion matrix.  I make it larger than the order
-	                // for accuracy's sake.
+                        // for accuracy's sake.
         int retcode = SF_ERROR_OK;
 
         if (m > 500) {
@@ -64,35 +63,35 @@ namespace mathieu {
         // Allocate diag part of recursion matrix
         std::vector<double> D(N);
 
-	// Allocate off-diag part of recursion matrix.
-        std::vector<double> E(N-1);
+        // Allocate off-diag part of recursion matrix.
+        std::vector<double> E(N - 1);
 
         // Allocate vector for eigenvectors
         std::vector<double> Z(N);
 
         // Do EVD
         if (m % 2 == 0) {
-	  // Even order m
-	  retcode = make_matrix_ee(N, q, D.data(), E.data());
-	  if (retcode != SF_ERROR_OK) {
-	    *a = std::numeric_limits<double>::quiet_NaN();
-	    return SF_ERROR_OTHER; // Not sure what went wrong.
-	  }
-	  
-	  char jobz = 'N';  // Eigenvalues only.
+            // Even order m
+            retcode = make_matrix_ee(N, q, D.data(), E.data());
+            if (retcode != SF_ERROR_OK) {
+                *a = std::numeric_limits<double>::quiet_NaN();
+                return SF_ERROR_OTHER; // Not sure what went wrong.
+            }
 
-	  /* Allocate the optimal workspace */
-	  int lwork = 1 + 2*N;
-	  int liwork = 1;
+            char jobz = 'N'; // Eigenvalues only.
 
-	  /* Allocate worksapce */
-	  std::vector<double> work(lwork);
-	  std::vector<int> iwork(liwork);
+            /* Allocate the optimal workspace */
+            int lwork = 1 + 2 * N;
+            int liwork = 1;
 
-	  int info;
-	  
-	  /* Solve eigenproblem */
-	  dstevd_(&jobz, &N, D.data(), E.data(), Z.data(), &N, work.data(), &lwork, iwork.data(), &liwork, &info);
+            /* Allocate worksapce */
+            std::vector<double> work(lwork);
+            std::vector<int> iwork(liwork);
+
+            int info;
+
+            /* Solve eigenproblem */
+            dstevd_(&jobz, &N, D.data(), E.data(), Z.data(), &N, work.data(), &lwork, iwork.data(), &liwork, &info);
 
             // Check if dstevd was successful
             if (info != 0) {
@@ -110,26 +109,26 @@ namespace mathieu {
 
         } else {
             // Odd order m
-	  retcode = make_matrix_eo(N, q, D.data(), E.data());
+            retcode = make_matrix_eo(N, q, D.data(), E.data());
             if (retcode != SF_ERROR_OK) {
                 *a = std::numeric_limits<double>::quiet_NaN();
                 return SF_ERROR_OTHER;
             }
 
-	  char jobz = 'N';  // Eigenvalues only.
-	  
-	  /* Allocate the optimal workspace */
-	  int lwork = 1 + 2*N;
-	  int liwork = 1;
+            char jobz = 'N'; // Eigenvalues only.
 
-	  /* Allocate worksapce */
-	  std::vector<double> work(lwork);
-	  std::vector<int> iwork(liwork);
+            /* Allocate the optimal workspace */
+            int lwork = 1 + 2 * N;
+            int liwork = 1;
 
-	  int info;
-	  
-	  /* Solve eigenproblem */
-	  dstevd_(&jobz, &N, D.data(), E.data(), Z.data(), &N, work.data(), &lwork, iwork.data(), &liwork, &info);
+            /* Allocate worksapce */
+            std::vector<double> work(lwork);
+            std::vector<int> iwork(liwork);
+
+            int info;
+
+            /* Solve eigenproblem */
+            dstevd_(&jobz, &N, D.data(), E.data(), Z.data(), &N, work.data(), &lwork, iwork.data(), &liwork, &info);
 
             // Check if dstevd was successful
             if (info != 0) {
@@ -167,8 +166,8 @@ namespace mathieu {
         // Allocate diag part of recursion matrix
         std::vector<double> D(N);
 
-	// Allocate off-diag part of recursion matrix.
-        std::vector<double> E(N-1);
+        // Allocate off-diag part of recursion matrix.
+        std::vector<double> E(N - 1);
 
         // Allocate vector for eigenvectors
         std::vector<double> Z(N);
@@ -176,26 +175,26 @@ namespace mathieu {
         // Do EVD
         if (m % 2 == 0) {
             // Even order m
-	  retcode = make_matrix_oe(N, q, D.data(), E.data());
+            retcode = make_matrix_oe(N, q, D.data(), E.data());
             if (retcode != SF_ERROR_OK) {
                 *b = std::numeric_limits<double>::quiet_NaN();
                 return SF_ERROR_OTHER;
             }
 
-	  char jobz = 'N';  // Eigenvalues only.
-	  
-	  /* Allocate the optimal workspace */
-	  int lwork = 1 + 2*N;
-	  int liwork = 1;
+            char jobz = 'N'; // Eigenvalues only.
 
-	  /* Allocate worksapce */
-	  std::vector<double> work(lwork);
-	  std::vector<int> iwork(liwork);
+            /* Allocate the optimal workspace */
+            int lwork = 1 + 2 * N;
+            int liwork = 1;
 
-	  int info;
-	  
-	  /* Solve eigenproblem */
-	  dstevd_(&jobz, &N, D.data(), E.data(), Z.data(), &N, work.data(), &lwork, iwork.data(), &liwork, &info);
+            /* Allocate worksapce */
+            std::vector<double> work(lwork);
+            std::vector<int> iwork(liwork);
+
+            int info;
+
+            /* Solve eigenproblem */
+            dstevd_(&jobz, &N, D.data(), E.data(), Z.data(), &N, work.data(), &lwork, iwork.data(), &liwork, &info);
 
             if (retcode != 0) {
                 *b = std::numeric_limits<double>::quiet_NaN();
@@ -212,26 +211,26 @@ namespace mathieu {
 
         } else {
             // Odd order m
-	  retcode = make_matrix_oo(N, q, D.data(), E.data());
+            retcode = make_matrix_oo(N, q, D.data(), E.data());
             if (retcode != SF_ERROR_OK) {
                 *b = std::numeric_limits<double>::quiet_NaN();
                 return SF_ERROR_OTHER;
             }
 
-	  char jobz = 'N';  // Eigenvalues only.
-	  
-	  /* Allocate the optimal workspace */
-	  int lwork = 1 + 2*N;
-	  int liwork = 1;
+            char jobz = 'N'; // Eigenvalues only.
 
-	  /* Allocate worksapce */
-	  std::vector<double> work(lwork);
-	  std::vector<int> iwork(liwork);
+            /* Allocate the optimal workspace */
+            int lwork = 1 + 2 * N;
+            int liwork = 1;
 
-	  int info;
-	  
-	  /* Solve eigenproblem */
-	  dstevd_(&jobz, &N, D.data(), E.data(), Z.data(), &N, work.data(), &lwork, iwork.data(), &liwork, &info);
+            /* Allocate worksapce */
+            std::vector<double> work(lwork);
+            std::vector<int> iwork(liwork);
+
+            int info;
+
+            /* Solve eigenproblem */
+            dstevd_(&jobz, &N, D.data(), E.data(), Z.data(), &N, work.data(), &lwork, iwork.data(), &liwork, &info);
 
             if (retcode != 0) {
                 *b = std::numeric_limits<double>::quiet_NaN();
