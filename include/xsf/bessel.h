@@ -211,7 +211,7 @@ namespace detail {
             bg = a[0] / x;
             r = 1.0 / x;
             for (int k = 1; k <= 8; k++) {
-                r = -1.0 / (x * x);
+                r = -r / (x * x);
                 bg += a[2 * k] * r;
             }
             xp = x + 0.25 * pi;
