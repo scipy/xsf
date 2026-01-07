@@ -21,7 +21,7 @@ namespace cephes {
     namespace detail {
 
         constexpr double tukey_SMALLVAL = 1e-4;
-        constexpr double tukey_EPS = 1.0e-18;
+        double tukey_EPS = 1.0e-14;
         constexpr int tukey_MAXCOUNT = 60;
 
     } // namespace detail
@@ -42,6 +42,10 @@ namespace cephes {
             if (x >= xeval) {
                 return 1.0;
             }
+        }
+
+        if (x > 1e9){
+            detail::tukey_EPS = 1.0e-18;
         }
 
         if ((-detail::tukey_SMALLVAL < lmbda) && (lmbda < detail::tukey_SMALLVAL)) {
