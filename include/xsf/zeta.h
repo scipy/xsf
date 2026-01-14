@@ -345,11 +345,24 @@ XSF_HOST_DEVICE inline double riemann_zeta(double x) { return cephes::riemann_ze
 
 XSF_HOST_DEVICE inline float riemann_zeta(float x) { return riemann_zeta(static_cast<double>(x)); }
 
-XSF_HOST_DEVICE inline double zeta(double x, double q) { return cephes::zeta(x, q); }
+XSF_HOST_DEVICE inline double zeta(double x, double q) {
+    if (q == 1.0) {
+        return riemann_zeta(x);
+    }
+    return cephes::zeta(x, q);
+}
 
-XSF_HOST_DEVICE inline float zeta(float x, float q) { return zeta(static_cast<double>(x), static_cast<double>(q)); }
+XSF_HOST_DEVICE inline float zeta(float x, float q) {
+    if (q == 1.0f) {
+        return riemann_zeta(x);
+    }
+    return zeta(static_cast<double>(x), static_cast<double>(q));
+}
 
 XSF_HOST_DEVICE inline std::complex<double> zeta(std::complex<double> z, double q) {
+    if (q == 1.0) {
+        return riemann_zeta(z);
+    }
     if (z.imag() == 0.0) {
         return zeta(z.real(), q);
     }
