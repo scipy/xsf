@@ -945,9 +945,32 @@ inline std::complex<double> cyl_bessel_y(double v, std::complex<double> z) {
 
     if (z.real() == 0 && z.imag() == 0) {
         /* overflow */
-        cy_y.real(-INFINITY);
+        double re;
+        if (sign == 1 || v < 0.5) {
+            re = -INFINITY;
+        } else {
+            if (v >= std::pow(2.0, 53)) {
+                // The original v (before sign flip) is an even negative integer.
+                re = -INFINITY;
+            } else {
+                double s = v - 0.5;
+                if (s != v && std::rint(s) == s) {
+                    re = 0.0;
+                } else {
+                    double si = std::floor(s);
+                    double half_si = si / 2;
+                    if (std::floor(half_si) == half_si) {
+                        re = INFINITY;
+                    } else {
+                        re = -INFINITY;
+                    }
+                }
+            }
+        }
+        cy_y.real(re);
         cy_y.imag(0);
         set_error("yv", SF_ERROR_OVERFLOW, NULL);
+        return cy_y;
     } else {
         nz = amos::besy(z, v, kode, n, &cy_y, &ierr);
         set_error_and_nan("yv:", ierr_to_sferr(nz, ierr), cy_y);
