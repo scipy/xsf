@@ -109,10 +109,10 @@ namespace mathieu {
         idx = MATRIX_IDX(N, 0, col);
         AA[0] = Z[idx] / SQRT2;
         // Transfer remaining elets in correct col to coeff vector.
-	// Lapack is column major
+        // Lapack is column major
         for (int j = 1; j < N; j++) {
-	  idx = MATRIX_IDX(N, j, col);
-	  AA[j] = Z[idx];
+            idx = MATRIX_IDX(N, j, col);
+            AA[j] = Z[idx];
         }
         return retcode;
     }
@@ -172,8 +172,8 @@ namespace mathieu {
         int col = (m - 1) / 2;
         // Transfer elets in correct col to coeff vector.
         for (int j = 0; j < N; j++) {
-	  idx = MATRIX_IDX(N, j, col);
-	  AA[j] = Z[idx];
+            idx = MATRIX_IDX(N, j, col);
+            AA[j] = Z[idx];
         }
         return retcode;
     }
@@ -194,7 +194,7 @@ namespace mathieu {
         int retcode = SF_ERROR_OK;
 
         // Bail out if m is not even or >= 2.
-        //if ((m % 2 != 0) || (m < 2))
+        // if ((m % 2 != 0) || (m < 2))
         //    return SF_ERROR_ARG;
 
         // Bail out if m is not even.
@@ -242,10 +242,10 @@ namespace mathieu {
 
         // Transfer remaining elets in correct col to coeff vector.
         int idx;
-	int col = m / 2;	
+        int col = m / 2;
         for (int j = 0; j < N; j++) {
-	  idx = MATRIX_IDX(N, j, col);
-	  AA[j] = Z[idx];
+            idx = MATRIX_IDX(N, j, col);
+            AA[j] = Z[idx];
         }
         return retcode;
     }
@@ -305,8 +305,8 @@ namespace mathieu {
         int col = (m - 1) / 2;
         // Transfer elets in correct col to coeff vector.
         for (int j = 0; j < N; j++) {
-	  idx = MATRIX_IDX(N, j, col);
-	  AA[j] = Z[idx];
+            idx = MATRIX_IDX(N, j, col);
+            AA[j] = Z[idx];
         }
         return retcode;
     }

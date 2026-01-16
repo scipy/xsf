@@ -355,8 +355,8 @@ namespace mathieu {
                 return retcode;
             }
 
-	    // Set offset c for adaptive calc.
-	    c = set_adaptive_offset_c(AA);
+            // Set offset c for adaptive calc.
+            c = set_adaptive_offset_c(AA);
 
             // Local scope variables used in summing the Fourier series.
             // These are Float128 since some of the terms are near
@@ -406,43 +406,43 @@ namespace mathieu {
 
                 } else {
 #endif
-                    // Adaptive calc
-                    double Jkmcs = besselj(k - c, s);
-                    double Jkpcs = besselj(k + c, s);
-                    double Jkpct = besselj(k + c, t);
-                    double Jkmct = besselj(k - c, t);
+                // Adaptive calc
+                double Jkmcs = besselj(k - c, s);
+                double Jkpcs = besselj(k + c, s);
+                double Jkpct = besselj(k + c, t);
+                double Jkmct = besselj(k - c, t);
 
-                    double Jdkmcs = besseljd(k - c, s);
-                    double Jdkpcs = besseljd(k + c, s);
-                    double Jdkpct = besseljd(k + c, t);
-                    double Jdkmct = besseljd(k - c, t);
+                double Jdkmcs = besseljd(k - c, s);
+                double Jdkpcs = besseljd(k + c, s);
+                double Jdkpct = besseljd(k + c, t);
+                double Jdkmct = besseljd(k - c, t);
 
-                    _Float128 tt = AA[k] * (Jkmcs * Jkpct + Jkpcs * Jkmct);
-                    _Float128 ttd =
-                        AA[k] * (exppu * (Jkmcs * Jdkpct + Jkpcs * Jdkmct) - expmu * (Jdkmcs * Jkpct + Jdkpcs * Jkmct));
+                _Float128 tt = AA[k] * (Jkmcs * Jkpct + Jkpcs * Jkmct);
+                _Float128 ttd =
+                    AA[k] * (exppu * (Jkmcs * Jdkpct + Jkpcs * Jdkmct) - expmu * (Jdkmcs * Jkpct + Jdkpcs * Jkmct));
 
-                    // Even terms have + sign, odd terms have - sign
-                    int sgn = (k % 2 == 0) ? 1 : -1;
+                // Even terms have + sign, odd terms have - sign
+                int sgn = (k % 2 == 0) ? 1 : -1;
 
-                    // Do sum using separate sums for + and -
-                    tt = sgn * tt;
-                    if (tt < 0) {
-                        // Neg terms
-                        mc1m = mc1m + tt;
-                    } else {
-                        // Pos terms
-                        mc1p = mc1p + tt;
-                    }
+                // Do sum using separate sums for + and -
+                tt = sgn * tt;
+                if (tt < 0) {
+                    // Neg terms
+                    mc1m = mc1m + tt;
+                } else {
+                    // Pos terms
+                    mc1p = mc1p + tt;
+                }
 
-                    // Do sum using separate sums for + and -
-                    ttd = sgn * ttd;
-                    if (ttd < 0) {
-                        // Neg terms
-                        mc1dm = mc1dm + ttd;
-                    } else {
-                        // Pos terms
-                        mc1dp = mc1dp + ttd;
-                    }
+                // Do sum using separate sums for + and -
+                ttd = sgn * ttd;
+                if (ttd < 0) {
+                    // Neg terms
+                    mc1dm = mc1dm + ttd;
+                } else {
+                    // Pos terms
+                    mc1dp = mc1dp + ttd;
+                }
 
 #if 0		    
                 } // if (c==0)
@@ -476,8 +476,8 @@ namespace mathieu {
                 return retcode;
             }
 
-	    // Set offset c for adaptive calc.
-	    c = set_adaptive_offset_c(AA);
+            // Set offset c for adaptive calc.
+            c = set_adaptive_offset_c(AA);
 
             // Variables used in summing the Fourier series.
             _Float128 mc1p, mc1m, mc1dp, mc1dm;
@@ -529,42 +529,42 @@ namespace mathieu {
 
                 } else {
 #endif
-                    // Adaptive calc
-                    double Jkmcs = besselj(k - c, s);
-                    double Jkpcs = besselj(k + c + 1, s);
-                    double Jkpct = besselj(k + c + 1, t);
-                    double Jkmct = besselj(k - c, t);
+                // Adaptive calc
+                double Jkmcs = besselj(k - c, s);
+                double Jkpcs = besselj(k + c + 1, s);
+                double Jkpct = besselj(k + c + 1, t);
+                double Jkmct = besselj(k - c, t);
 
-                    double Jdkmcs = besseljd(k - c, s);
-                    double Jdkpcs = besseljd(k + c + 1, s);
-                    double Jdkpct = besseljd(k + c + 1, t);
-                    double Jdkmct = besseljd(k - c, t);
+                double Jdkmcs = besseljd(k - c, s);
+                double Jdkpcs = besseljd(k + c + 1, s);
+                double Jdkpct = besseljd(k + c + 1, t);
+                double Jdkmct = besseljd(k - c, t);
 
-                    _Float128 tt = AA[k] * (Jkmcs * Jkpct + Jkpcs * Jkmct);
-                    _Float128 ttd =
-                        AA[k] * (exppu * (Jkmcs * Jdkpct + Jkpcs * Jdkmct) - expmu * (Jdkmcs * Jkpct + Jdkpcs * Jkmct));
+                _Float128 tt = AA[k] * (Jkmcs * Jkpct + Jkpcs * Jkmct);
+                _Float128 ttd =
+                    AA[k] * (exppu * (Jkmcs * Jdkpct + Jkpcs * Jdkmct) - expmu * (Jdkmcs * Jkpct + Jdkpcs * Jkmct));
 
-                    int sgn = (k % 2 == 0) ? 1 : -1;
+                int sgn = (k % 2 == 0) ? 1 : -1;
 
-                    // Do sum using separate sums for + and -
-                    tt = sgn * tt;
-                    if (tt < 0) {
-                        // Neg terms
-                        mc1m = mc1m + tt;
-                    } else {
-                        // Pos terms
-                        mc1p = mc1p + tt;
-                    }
+                // Do sum using separate sums for + and -
+                tt = sgn * tt;
+                if (tt < 0) {
+                    // Neg terms
+                    mc1m = mc1m + tt;
+                } else {
+                    // Pos terms
+                    mc1p = mc1p + tt;
+                }
 
-                    // Do sum using separate sums for + and -
-                    ttd = sgn * ttd;
-                    if (ttd < 0) {
-                        // Neg terms
-                        mc1dm = mc1dm + ttd;
-                    } else {
-                        // Pos terms
-                        mc1dp = mc1dp + ttd;
-                    }
+                // Do sum using separate sums for + and -
+                ttd = sgn * ttd;
+                if (ttd < 0) {
+                    // Neg terms
+                    mc1dm = mc1dm + ttd;
+                } else {
+                    // Pos terms
+                    mc1dp = mc1dp + ttd;
+                }
 
 #if 0
                 } // if (c==0)
@@ -641,8 +641,8 @@ namespace mathieu {
                 return retcode;
             }
 
-	    // Set offset c for adaptive calc.
-	    c = set_adaptive_offset_c(BB);
+            // Set offset c for adaptive calc.
+            c = set_adaptive_offset_c(BB);
 
             // Variables used in summing the Fourier series.
             // These are Float128 since some of the terms are near
@@ -697,43 +697,43 @@ namespace mathieu {
 
                 } else {
 #endif
-                    // Adaptive calc
-                    double Jkmcs = besselj(k - c, s);
-                    double Jkpct = besselj(k + c + 2, t);
-                    double Jkpcs = besselj(k + c + 2, s);
-                    double Jkmct = besselj(k - c, t);
+                // Adaptive calc
+                double Jkmcs = besselj(k - c, s);
+                double Jkpct = besselj(k + c + 2, t);
+                double Jkpcs = besselj(k + c + 2, s);
+                double Jkmct = besselj(k - c, t);
 
-                    double Jdkmcs = besseljd(k - c, s);
-                    double Jdkpct = besseljd(k + c + 2, t);
-                    double Jdkpcs = besseljd(k + c + 2, s);
-                    double Jdkmct = besseljd(k - c, t);
+                double Jdkmcs = besseljd(k - c, s);
+                double Jdkpct = besseljd(k + c + 2, t);
+                double Jdkpcs = besseljd(k + c + 2, s);
+                double Jdkmct = besseljd(k - c, t);
 
-                    _Float128 tt = BB[k] * (Jkmcs * Jkpct - Jkpcs * Jkmct);
-                    _Float128 ttd =
-                        BB[k] * (exppu * (Jkmcs * Jdkpct - Jkpcs * Jdkmct) - expmu * (Jdkmcs * Jkpct - Jdkpcs * Jkmct));
+                _Float128 tt = BB[k] * (Jkmcs * Jkpct - Jkpcs * Jkmct);
+                _Float128 ttd =
+                    BB[k] * (exppu * (Jkmcs * Jdkpct - Jkpcs * Jdkmct) - expmu * (Jdkmcs * Jkpct - Jdkpcs * Jkmct));
 
-                    // Even terms have + sign, odd terms have - sign
-                    int sgn = (k % 2 == 0) ? 1 : -1;
+                // Even terms have + sign, odd terms have - sign
+                int sgn = (k % 2 == 0) ? 1 : -1;
 
-                    // Do sum using separate sums for + and -
-                    tt = sgn * tt;
-                    if (tt < 0) {
-                        // Neg terms
-                        ms1m = ms1m + tt;
-                    } else {
-                        // Pos terms
-                        ms1p = ms1p + tt;
-                    }
+                // Do sum using separate sums for + and -
+                tt = sgn * tt;
+                if (tt < 0) {
+                    // Neg terms
+                    ms1m = ms1m + tt;
+                } else {
+                    // Pos terms
+                    ms1p = ms1p + tt;
+                }
 
-                    // Do sum using separate sums for + and -
-                    ttd = sgn * ttd;
-                    if (ttd < 0) {
-                        // Neg terms
-                        ms1dm = ms1dm + ttd;
-                    } else {
-                        // Pos terms
-                        ms1dp = ms1dp + ttd;
-                    }
+                // Do sum using separate sums for + and -
+                ttd = sgn * ttd;
+                if (ttd < 0) {
+                    // Neg terms
+                    ms1dm = ms1dm + ttd;
+                } else {
+                    // Pos terms
+                    ms1dp = ms1dp + ttd;
+                }
 #if 0
                 } // if (c==0)
 #endif
@@ -765,8 +765,8 @@ namespace mathieu {
                 return retcode;
             }
 
-	    // Set offset c for adaptive calc.
-	    c = set_adaptive_offset_c(BB);
+            // Set offset c for adaptive calc.
+            c = set_adaptive_offset_c(BB);
 
             // Variables used in summing the Fourier series.
             _Float128 ms1p, ms1m, ms1dp, ms1dm;
@@ -818,42 +818,42 @@ namespace mathieu {
 
                 } else {
 #endif
-                    // Adaptive calc
-                    double Jkmcs = besselj(k - c, s);
-                    double Jkpcs = besselj(k + c + 1, s);
-                    double Jkpct = besselj(k + c + 1, t);
-                    double Jkmct = besselj(k - c, t);
+                // Adaptive calc
+                double Jkmcs = besselj(k - c, s);
+                double Jkpcs = besselj(k + c + 1, s);
+                double Jkpct = besselj(k + c + 1, t);
+                double Jkmct = besselj(k - c, t);
 
-                    double Jdkmcs = besseljd(k - c, s);
-                    double Jdkpcs = besseljd(k + c + 1, s);
-                    double Jdkpct = besseljd(k + c + 1, t);
-                    double Jdkmct = besseljd(k - c, t);
+                double Jdkmcs = besseljd(k - c, s);
+                double Jdkpcs = besseljd(k + c + 1, s);
+                double Jdkpct = besseljd(k + c + 1, t);
+                double Jdkmct = besseljd(k - c, t);
 
-                    _Float128 tt = BB[k] * (Jkmcs * Jkpct - Jkpcs * Jkmct);
-                    _Float128 ttd =
-                        BB[k] * (exppu * (Jkmcs * Jdkpct - Jkpcs * Jdkmct) - expmu * (Jdkmcs * Jkpct - Jdkpcs * Jkmct));
+                _Float128 tt = BB[k] * (Jkmcs * Jkpct - Jkpcs * Jkmct);
+                _Float128 ttd =
+                    BB[k] * (exppu * (Jkmcs * Jdkpct - Jkpcs * Jdkmct) - expmu * (Jdkmcs * Jkpct - Jdkpcs * Jkmct));
 
-                    int sgn = (k % 2 == 0) ? 1 : -1;
+                int sgn = (k % 2 == 0) ? 1 : -1;
 
-                    // Do sum using separate sums for + and -
-                    tt = sgn * tt;
-                    if (tt < 0) {
-                        // Neg terms
-                        ms1m = ms1m + tt;
-                    } else {
-                        // Pos terms
-                        ms1p = ms1p + tt;
-                    }
+                // Do sum using separate sums for + and -
+                tt = sgn * tt;
+                if (tt < 0) {
+                    // Neg terms
+                    ms1m = ms1m + tt;
+                } else {
+                    // Pos terms
+                    ms1p = ms1p + tt;
+                }
 
-                    // Do sum using separate sums for + and -
-                    ttd = sgn * ttd;
-                    if (ttd < 0) {
-                        // Neg terms
-                        ms1dm = ms1dm + ttd;
-                    } else {
-                        // Pos terms
-                        ms1dp = ms1dp + ttd;
-                    }
+                // Do sum using separate sums for + and -
+                ttd = sgn * ttd;
+                if (ttd < 0) {
+                    // Neg terms
+                    ms1dm = ms1dm + ttd;
+                } else {
+                    // Pos terms
+                    ms1dp = ms1dp + ttd;
+                }
 #if 0
                 } // if (c==0)
 #endif
@@ -928,8 +928,8 @@ namespace mathieu {
                 return retcode;
             }
 
-	    // Set offset c for adaptive calc.
-	    c = set_adaptive_offset_c(AA);
+            // Set offset c for adaptive calc.
+            c = set_adaptive_offset_c(AA);
 
             // Variables used in summing the Fourier series.
             // These are Float128 since some of the terms are near
@@ -978,43 +978,43 @@ namespace mathieu {
 
                 } else {
 #endif
-                    // Adaptive calc
-                    double Jkmcs = besselj(k - c, s);
-                    double Jkpcs = besselj(k + c, s);
-                    double Ykpct = bessely(k + c, t);
-                    double Ykmct = bessely(k - c, t);
+                // Adaptive calc
+                double Jkmcs = besselj(k - c, s);
+                double Jkpcs = besselj(k + c, s);
+                double Ykpct = bessely(k + c, t);
+                double Ykmct = bessely(k - c, t);
 
-                    double Jdkmcs = besseljd(k - c, s);
-                    double Jdkpcs = besseljd(k + c, s);
-                    double Ydkpct = besselyd(k + c, t);
-                    double Ydkmct = besselyd(k - c, t);
+                double Jdkmcs = besseljd(k - c, s);
+                double Jdkpcs = besseljd(k + c, s);
+                double Ydkpct = besselyd(k + c, t);
+                double Ydkmct = besselyd(k - c, t);
 
-                    _Float128 tt = AA[k] * (Jkmcs * Ykpct + Jkpcs * Ykmct);
-                    _Float128 ttd =
-                        AA[k] * (exppu * (Jkmcs * Ydkpct + Jkpcs * Ydkmct) - expmu * (Jdkmcs * Ykpct + Jdkpcs * Ykmct));
+                _Float128 tt = AA[k] * (Jkmcs * Ykpct + Jkpcs * Ykmct);
+                _Float128 ttd =
+                    AA[k] * (exppu * (Jkmcs * Ydkpct + Jkpcs * Ydkmct) - expmu * (Jdkmcs * Ykpct + Jdkpcs * Ykmct));
 
-                    // Even terms have + sign, odd terms have - sign
-                    int sgn = (k % 2 == 0) ? 1 : -1;
+                // Even terms have + sign, odd terms have - sign
+                int sgn = (k % 2 == 0) ? 1 : -1;
 
-                    // Do sum using separate sums for + and -
-                    tt = sgn * tt;
-                    if (tt < 0) {
-                        // Neg terms
-                        mc2m = mc2m + tt;
-                    } else {
-                        // Pos terms
-                        mc2p = mc2p + tt;
-                    }
+                // Do sum using separate sums for + and -
+                tt = sgn * tt;
+                if (tt < 0) {
+                    // Neg terms
+                    mc2m = mc2m + tt;
+                } else {
+                    // Pos terms
+                    mc2p = mc2p + tt;
+                }
 
-                    // Do sum using separate sums for + and -
-                    ttd = sgn * ttd;
-                    if (ttd < 0) {
-                        // Neg terms
-                        mc2dm = mc2dm + ttd;
-                    } else {
-                        // Pos terms
-                        mc2dp = mc2dp + ttd;
-                    }
+                // Do sum using separate sums for + and -
+                ttd = sgn * ttd;
+                if (ttd < 0) {
+                    // Neg terms
+                    mc2dm = mc2dm + ttd;
+                } else {
+                    // Pos terms
+                    mc2dp = mc2dp + ttd;
+                }
 #if 0
                 } // if (c==0)
 #endif
@@ -1046,8 +1046,8 @@ namespace mathieu {
                 return retcode;
             }
 
-	    // Set offset c for adaptive calc.
-	    c = set_adaptive_offset_c(AA);
+            // Set offset c for adaptive calc.
+            c = set_adaptive_offset_c(AA);
 
             // Variables used in summing the Fourier series.
             _Float128 mc2p, mc2m, mc2dp, mc2dm;
@@ -1100,42 +1100,42 @@ namespace mathieu {
 
                 } else {
 #endif
-                    // Adaptive calc
-                    double Jkmcs = besselj(k - c, s);
-                    double Jkpcs = besselj(k + c + 1, s);
-                    double Ykpct = bessely(k + c + 1, t);
-                    double Ykmct = bessely(k - c, t);
+                // Adaptive calc
+                double Jkmcs = besselj(k - c, s);
+                double Jkpcs = besselj(k + c + 1, s);
+                double Ykpct = bessely(k + c + 1, t);
+                double Ykmct = bessely(k - c, t);
 
-                    double Jdkmcs = besseljd(k - c, s);
-                    double Jdkpcs = besseljd(k + c + 1, s);
-                    double Ydkpct = besselyd(k + c + 1, t);
-                    double Ydkmct = besselyd(k - c, t);
+                double Jdkmcs = besseljd(k - c, s);
+                double Jdkpcs = besseljd(k + c + 1, s);
+                double Ydkpct = besselyd(k + c + 1, t);
+                double Ydkmct = besselyd(k - c, t);
 
-                    _Float128 tt = AA[k] * (Jkmcs * Ykpct + Jkpcs * Ykmct);
-                    _Float128 ttd =
-                        AA[k] * (exppu * (Jkmcs * Ydkpct + Jkpcs * Ydkmct) - expmu * (Jdkmcs * Ykpct + Jdkpcs * Ykmct));
+                _Float128 tt = AA[k] * (Jkmcs * Ykpct + Jkpcs * Ykmct);
+                _Float128 ttd =
+                    AA[k] * (exppu * (Jkmcs * Ydkpct + Jkpcs * Ydkmct) - expmu * (Jdkmcs * Ykpct + Jdkpcs * Ykmct));
 
-                    int sgn = (k % 2 == 0) ? 1 : -1;
+                int sgn = (k % 2 == 0) ? 1 : -1;
 
-                    // Do sum using separate sums for + and -
-                    tt = sgn * tt;
-                    if (tt < 0) {
-                        // Neg terms
-                        mc2m = mc2m + tt;
-                    } else {
-                        // Pos terms
-                        mc2p = mc2p + tt;
-                    }
+                // Do sum using separate sums for + and -
+                tt = sgn * tt;
+                if (tt < 0) {
+                    // Neg terms
+                    mc2m = mc2m + tt;
+                } else {
+                    // Pos terms
+                    mc2p = mc2p + tt;
+                }
 
-                    // Do sum using separate sums for + and -
-                    ttd = sgn * ttd;
-                    if (ttd < 0) {
-                        // Neg terms
-                        mc2dm = mc2dm + ttd;
-                    } else {
-                        // Pos terms
-                        mc2dp = mc2dp + ttd;
-                    }
+                // Do sum using separate sums for + and -
+                ttd = sgn * ttd;
+                if (ttd < 0) {
+                    // Neg terms
+                    mc2dm = mc2dm + ttd;
+                } else {
+                    // Pos terms
+                    mc2dp = mc2dp + ttd;
+                }
 #if 0
                 } // if (c==0)
 #endif
@@ -1210,8 +1210,8 @@ namespace mathieu {
                 return retcode;
             }
 
-	    // Set offset c for adaptive calc.
-	    c = set_adaptive_offset_c(BB);
+            // Set offset c for adaptive calc.
+            c = set_adaptive_offset_c(BB);
 
             // Variables used in summing the Fourier series.
             // These are Float128 since some of the terms are near
@@ -1266,43 +1266,43 @@ namespace mathieu {
 
                 } else {
 #endif
-                    // Adaptive calc
-                    double Jkmcs = besselj(k - c, s);
-                    double Ykpct = bessely(k + c + 2, t);
-                    double Jkpcs = besselj(k + c + 2, s);
-                    double Ykmct = bessely(k - c, t);
+                // Adaptive calc
+                double Jkmcs = besselj(k - c, s);
+                double Ykpct = bessely(k + c + 2, t);
+                double Jkpcs = besselj(k + c + 2, s);
+                double Ykmct = bessely(k - c, t);
 
-                    double Jdkmcs = besseljd(k - c, s);
-                    double Ydkpct = besselyd(k + c + 2, t);
-                    double Jdkpcs = besseljd(k + c + 2, s);
-                    double Ydkmct = besselyd(k - c, t);
+                double Jdkmcs = besseljd(k - c, s);
+                double Ydkpct = besselyd(k + c + 2, t);
+                double Jdkpcs = besseljd(k + c + 2, s);
+                double Ydkmct = besselyd(k - c, t);
 
-                    _Float128 tt = BB[k] * (Jkmcs * Ykpct - Jkpcs * Ykmct);
-                    _Float128 ttd =
-                        BB[k] * (exppu * (Jkmcs * Ydkpct - Jkpcs * Ydkmct) - expmu * (Jdkmcs * Ykpct - Jdkpcs * Ykmct));
+                _Float128 tt = BB[k] * (Jkmcs * Ykpct - Jkpcs * Ykmct);
+                _Float128 ttd =
+                    BB[k] * (exppu * (Jkmcs * Ydkpct - Jkpcs * Ydkmct) - expmu * (Jdkmcs * Ykpct - Jdkpcs * Ykmct));
 
-                    // Even terms have + sign, odd terms have - sign
-                    int sgn = (k % 2 == 0) ? 1 : -1;
+                // Even terms have + sign, odd terms have - sign
+                int sgn = (k % 2 == 0) ? 1 : -1;
 
-                    // Do sum using separate sums for + and -
-                    tt = sgn * tt;
-                    if (tt < 0) {
-                        // Neg terms
-                        ms2m = ms2m + tt;
-                    } else {
-                        // Pos terms
-                        ms2p = ms2p + tt;
-                    }
+                // Do sum using separate sums for + and -
+                tt = sgn * tt;
+                if (tt < 0) {
+                    // Neg terms
+                    ms2m = ms2m + tt;
+                } else {
+                    // Pos terms
+                    ms2p = ms2p + tt;
+                }
 
-                    // Do sum using separate sums for + and -
-                    ttd = sgn * ttd;
-                    if (ttd < 0) {
-                        // Neg terms
-                        ms2dm = ms2dm + ttd;
-                    } else {
-                        // Pos terms
-                        ms2dp = ms2dp + ttd;
-                    }
+                // Do sum using separate sums for + and -
+                ttd = sgn * ttd;
+                if (ttd < 0) {
+                    // Neg terms
+                    ms2dm = ms2dm + ttd;
+                } else {
+                    // Pos terms
+                    ms2dp = ms2dp + ttd;
+                }
 #if 0
                 } // if (c==0)
 #endif
@@ -1334,8 +1334,8 @@ namespace mathieu {
                 return retcode;
             }
 
-	    // Set offset c for adaptive calc.
-	    c = set_adaptive_offset_c(BB);
+            // Set offset c for adaptive calc.
+            c = set_adaptive_offset_c(BB);
 
             // Variables used in summing the Fourier series.
             _Float128 ms2p, ms2m, ms2dp, ms2dm;
@@ -1387,42 +1387,42 @@ namespace mathieu {
 
                 } else {
 #endif
-                    // Adaptive calc
-                    double Jkmcs = besselj(k - c, s);
-                    double Jkpcs = besselj(k + c + 1, s);
-                    double Ykpct = bessely(k + c + 1, t);
-                    double Ykmct = bessely(k - c, t);
+                // Adaptive calc
+                double Jkmcs = besselj(k - c, s);
+                double Jkpcs = besselj(k + c + 1, s);
+                double Ykpct = bessely(k + c + 1, t);
+                double Ykmct = bessely(k - c, t);
 
-                    double Jdkmcs = besseljd(k - c, s);
-                    double Jdkpcs = besseljd(k + c + 1, s);
-                    double Ydkpct = besselyd(k + c + 1, t);
-                    double Ydkmct = besselyd(k - c, t);
+                double Jdkmcs = besseljd(k - c, s);
+                double Jdkpcs = besseljd(k + c + 1, s);
+                double Ydkpct = besselyd(k + c + 1, t);
+                double Ydkmct = besselyd(k - c, t);
 
-                    _Float128 tt = BB[k] * (Jkmcs * Ykpct - Jkpcs * Ykmct);
-                    _Float128 ttd =
-                        BB[k] * (exppu * (Jkmcs * Ydkpct - Jkpcs * Ydkmct) - expmu * (Jdkmcs * Ykpct - Jdkpcs * Ykmct));
+                _Float128 tt = BB[k] * (Jkmcs * Ykpct - Jkpcs * Ykmct);
+                _Float128 ttd =
+                    BB[k] * (exppu * (Jkmcs * Ydkpct - Jkpcs * Ydkmct) - expmu * (Jdkmcs * Ykpct - Jdkpcs * Ykmct));
 
-                    int sgn = (k % 2 == 0) ? 1 : -1;
+                int sgn = (k % 2 == 0) ? 1 : -1;
 
-                    // Do sum using separate sums for + and -
-                    tt = sgn * tt;
-                    if (tt < 0) {
-                        // Neg terms
-                        ms2m = ms2m + tt;
-                    } else {
-                        // Pos terms
-                        ms2p = ms2p + tt;
-                    }
+                // Do sum using separate sums for + and -
+                tt = sgn * tt;
+                if (tt < 0) {
+                    // Neg terms
+                    ms2m = ms2m + tt;
+                } else {
+                    // Pos terms
+                    ms2p = ms2p + tt;
+                }
 
-                    // Do sum using separate sums for + and -
-                    ttd = sgn * ttd;
-                    if (ttd < 0) {
-                        // Neg terms
-                        ms2dm = ms2dm + ttd;
-                    } else {
-                        // Pos terms
-                        ms2dp = ms2dp + ttd;
-                    }
+                // Do sum using separate sums for + and -
+                ttd = sgn * ttd;
+                if (ttd < 0) {
+                    // Neg terms
+                    ms2dm = ms2dm + ttd;
+                } else {
+                    // Pos terms
+                    ms2dp = ms2dp + ttd;
+                }
 #if 0
                 } // if (c==0)
 #endif
@@ -1488,7 +1488,7 @@ namespace mathieu {
     }
 
     //---------------------------------------------------
-  int set_adaptive_offset_c(std::vector<double> x) {
+    int set_adaptive_offset_c(std::vector<double> x) {
         // This is used to set the c used in the adaptive computation.
         // I set the offset used in Bessel fcn depending upon order m
         // and shape/frequency parameter q.  This improves the accuracy
@@ -1496,29 +1496,29 @@ namespace mathieu {
         // The idea comes from the book "Accurate Computation of Mathieu Functions",
         // Malcolm M. Bibby & Andrew F. Peterson.  Also used in the paper
         // "Accurate calculation of the modified Mathieu functions of
-        // integer order", Van Buren & Boisvert.  
+        // integer order", Van Buren & Boisvert.
         // Finally, the specific calc I use is presented in Numerical Review of Mathieu
         // Function Programs for Integer Orders and Real Parameters, Ho-Chul Shin,
         // SIAM Review, Dec 2025.
         int c;
 
-	// Get iterator to max element
-	auto max_it = std::max_element(x.begin(), x.end());
+        // Get iterator to max element
+        auto max_it = std::max_element(x.begin(), x.end());
 
-	// Get the index and return it
-	c = std::distance(x.begin(), max_it);
-	
-	/*
-	// The values I use here
+        // Get the index and return it
+        c = std::distance(x.begin(), max_it);
+
+        /*
+        // The values I use here
         // were found from experiment using my Matlab prototype.  However,
-        // better values are likely -- finding them is a future project.	  
+        // better values are likely -- finding them is a future project.
         if ((m > 5 && q < .001) || (m > 7 && q < .01) || (m > 10 && q < .1) || (m > 15 && q < 1) ||
             (m > 20 && q < 10) || (m > 30 && q < 100)) {
             c = m / 2;
         } else {
             c = 0;
         }
-	*/
+        */
         return c;
     }
 

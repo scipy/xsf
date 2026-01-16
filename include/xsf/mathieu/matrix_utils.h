@@ -15,7 +15,7 @@
 // Macros to extract matrix index and element.
 // Matrix is NxN, i = row idx, j = col idx.
 // MATRIX_IDX is where col major format is enforced.
-#define MATRIX_IDX(N, I, J) (I + (J*N))
+#define MATRIX_IDX(N, I, J) (I + (J * N))
 #define MATRIX_ELEMENT(A, m, n, i, j) A[MATRIX_IDX(n, i, j)]
 
 // Min and max macros for scalars.
