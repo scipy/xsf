@@ -31,7 +31,7 @@ namespace mathieu {
     // Forward declarations
     int check_angular_fcn_domain(int m, double q);
     int check_modified_fcn_domain(int m, double q);
-    int set_adaptive_offset_c(int m, double q);
+    int set_adaptive_offset_c(std::vector<double> A);
 
     //==================================================================
     int mathieu_ce(int m, double q, double v, double *ce, double *ced) {
@@ -61,7 +61,7 @@ namespace mathieu {
         // adjust the matrix size based on order m.  Later make this
         // a fcn of q also since the distribution of coeff mags allegedly
         // flattens out for large q.
-        int N = m + 25; // N = size of recursion matrix to use.
+        int N = m + 50; // N = size of recursion matrix to use.
 
         // Use different coeffs depending upon whether m is even or odd.
         if (m % 2 == 0) {
@@ -197,7 +197,7 @@ namespace mathieu {
         // adjust the matrix size based on order m.  Later make this
         // a fcn of q also since the distribution of coeff mags allegedly
         // flattens out for large q.
-        int N = m + 25; // N = size of recursion matrix to use.
+        int N = m + 50; // N = size of recursion matrix to use.
 
         // Use different coeffs depending upon whether m is even or odd.
         if (m % 2 == 0) {
@@ -333,7 +333,7 @@ namespace mathieu {
         // adjust the matrix size based on order m.  Later make this
         // a fcn of q also since the distribution of coeff mags allegedly
         // flattens out for large q.
-        int N = m + 25; // N = size of recursion matrix to use.
+        int N = m + 50; // N = size of recursion matrix to use.
 
         // Utility vars.
         double sqq = sqrt(q);
@@ -341,9 +341,6 @@ namespace mathieu {
         double expmu = exp(-u);
         double s = sqq * expmu;
         double t = sqq * exppu;
-
-        // Set offset c for adaptive calc.
-        c = set_adaptive_offset_c(m, q);
 
         // Use different coeffs depending upon whether m is even or odd.
         if (m % 2 == 0) {
@@ -358,6 +355,9 @@ namespace mathieu {
                 return retcode;
             }
 
+	    // Set offset c for adaptive calc.
+	    c = set_adaptive_offset_c(AA);
+
             // Local scope variables used in summing the Fourier series.
             // These are Float128 since some of the terms are near
             // equal amplitude, but different sign, and I want to
@@ -370,6 +370,7 @@ namespace mathieu {
 
             // Sum from smallest to largest coeff.
             for (int k = (N - 1); k >= 0; k--) {
+#if 0	      
                 if (c == 0) {
                     // Non-adaptive calc
                     double Jks = besselj(k, s);
@@ -404,6 +405,7 @@ namespace mathieu {
                     }
 
                 } else {
+#endif
                     // Adaptive calc
                     double Jkmcs = besselj(k - c, s);
                     double Jkpcs = besselj(k + c, s);
@@ -442,7 +444,9 @@ namespace mathieu {
                         mc1dp = mc1dp + ttd;
                     }
 
+#if 0		    
                 } // if (c==0)
+#endif
 
             } // for (int k=(N-1) ...
 
@@ -472,6 +476,9 @@ namespace mathieu {
                 return retcode;
             }
 
+	    // Set offset c for adaptive calc.
+	    c = set_adaptive_offset_c(AA);
+
             // Variables used in summing the Fourier series.
             _Float128 mc1p, mc1m, mc1dp, mc1dm;
             mc1p = 0.0;
@@ -481,6 +488,7 @@ namespace mathieu {
 
             // Sum from smallest to largest coeff.
             for (int k = (N - 1); k >= 0; k--) {
+#if 0
                 if (c == 0) {
                     // Non-adaptive calc
                     double Jks = besselj(k, s);
@@ -520,6 +528,7 @@ namespace mathieu {
                     }
 
                 } else {
+#endif
                     // Adaptive calc
                     double Jkmcs = besselj(k - c, s);
                     double Jkpcs = besselj(k + c + 1, s);
@@ -557,7 +566,9 @@ namespace mathieu {
                         mc1dp = mc1dp + ttd;
                     }
 
+#if 0
                 } // if (c==0)
+#endif
 
             } // for (int k=(N-1) ...
 
@@ -608,7 +619,7 @@ namespace mathieu {
         // adjust the matrix size based on order m.  Later make this
         // a fcn of q also since the distribution of coeff mags allegedly
         // flattens out for large q.
-        int N = m + 25; // N = size of recursion matrix to use.
+        int N = m + 50; // N = size of recursion matrix to use.
 
         // Utility vars.
         double sqq = sqrt(q);
@@ -616,9 +627,6 @@ namespace mathieu {
         double expmu = exp(-u);
         double s = sqq * expmu;
         double t = sqq * exppu;
-
-        // Set offset c for adaptive calc.
-        c = set_adaptive_offset_c(m, q);
 
         // Use different coeffs depending upon whether m is even or odd.
         if (m % 2 == 0) {
@@ -633,6 +641,9 @@ namespace mathieu {
                 return retcode;
             }
 
+	    // Set offset c for adaptive calc.
+	    c = set_adaptive_offset_c(BB);
+
             // Variables used in summing the Fourier series.
             // These are Float128 since some of the terms are near
             // equal amplitude, but different sign.
@@ -644,6 +655,7 @@ namespace mathieu {
 
             // Sum from smallest to largest coeff.
             for (int k = (N - 1); k >= 0; k--) {
+#if 0
                 if (c == 0) {
                     // Non-adaptive calc
                     double Jks = besselj(k, s);
@@ -684,6 +696,7 @@ namespace mathieu {
                     }
 
                 } else {
+#endif
                     // Adaptive calc
                     double Jkmcs = besselj(k - c, s);
                     double Jkpct = besselj(k + c + 2, t);
@@ -721,9 +734,9 @@ namespace mathieu {
                         // Pos terms
                         ms1dp = ms1dp + ttd;
                     }
-
+#if 0
                 } // if (c==0)
-
+#endif
             } // for (int k=(N-1) ...
 
             // Sum pos and neg terms to get final result
@@ -752,6 +765,9 @@ namespace mathieu {
                 return retcode;
             }
 
+	    // Set offset c for adaptive calc.
+	    c = set_adaptive_offset_c(BB);
+
             // Variables used in summing the Fourier series.
             _Float128 ms1p, ms1m, ms1dp, ms1dm;
             ms1p = 0.0;
@@ -761,6 +777,7 @@ namespace mathieu {
 
             // Sum from smallest to largest coeff.
             for (int k = (N - 1); k >= 0; k--) {
+#if 0
                 if (c == 0) {
                     // Non-adaptive calc
                     double Jks = besselj(k, s);
@@ -800,6 +817,7 @@ namespace mathieu {
                     }
 
                 } else {
+#endif
                     // Adaptive calc
                     double Jkmcs = besselj(k - c, s);
                     double Jkpcs = besselj(k + c + 1, s);
@@ -836,9 +854,9 @@ namespace mathieu {
                         // Pos terms
                         ms1dp = ms1dp + ttd;
                     }
-
+#if 0
                 } // if (c==0)
-
+#endif
             } // for (int k=(N-1) ...
 
             // Sum pos and neg terms to get final answer
@@ -888,7 +906,7 @@ namespace mathieu {
         // adjust the matrix size based on order m.  Later make this
         // a fcn of q also since the distribution of coeff mags allegedly
         // flattens out for large q.
-        int N = m + 25; // N = size of recursion matrix to use.
+        int N = m + 50; // N = size of recursion matrix to use.
 
         // Utility vars.
         double sqq = sqrt(q);
@@ -896,9 +914,6 @@ namespace mathieu {
         double expmu = exp(-u);
         double s = sqq * expmu;
         double t = sqq * exppu;
-
-        // Set offset c for adaptive calc.
-        c = set_adaptive_offset_c(m, q);
 
         // Use different coeffs depending upon whether m is even or odd.
         if (m % 2 == 0) {
@@ -913,6 +928,9 @@ namespace mathieu {
                 return retcode;
             }
 
+	    // Set offset c for adaptive calc.
+	    c = set_adaptive_offset_c(AA);
+
             // Variables used in summing the Fourier series.
             // These are Float128 since some of the terms are near
             // equal amplitude, but different sign.
@@ -924,6 +942,7 @@ namespace mathieu {
             mc2dp = 0.0;
             mc2dm = 0.0;
             for (int k = (N - 1); k >= 0; k--) {
+#if 0
                 if (c == 0) {
                     // Non-adaptive calc
                     double Jks = besselj(k, s);
@@ -958,6 +977,7 @@ namespace mathieu {
                     }
 
                 } else {
+#endif
                     // Adaptive calc
                     double Jkmcs = besselj(k - c, s);
                     double Jkpcs = besselj(k + c, s);
@@ -995,9 +1015,9 @@ namespace mathieu {
                         // Pos terms
                         mc2dp = mc2dp + ttd;
                     }
-
+#if 0
                 } // if (c==0)
-
+#endif
             } // for (int k=(N-1) ...
 
             // Sum pos and neg terms to get final result
@@ -1026,6 +1046,9 @@ namespace mathieu {
                 return retcode;
             }
 
+	    // Set offset c for adaptive calc.
+	    c = set_adaptive_offset_c(AA);
+
             // Variables used in summing the Fourier series.
             _Float128 mc2p, mc2m, mc2dp, mc2dm;
             mc2p = 0.0;
@@ -1035,7 +1058,9 @@ namespace mathieu {
 
             // Sum from smallest to largest coeff.
             for (int k = (N - 1); k >= 0; k--) {
+#if 0
                 if (c == 0) {
+
                     // Non-adaptive calc
                     double Jks = besselj(k, s);
                     double Ykt = bessely(k, t);
@@ -1074,6 +1099,7 @@ namespace mathieu {
                     }
 
                 } else {
+#endif
                     // Adaptive calc
                     double Jkmcs = besselj(k - c, s);
                     double Jkpcs = besselj(k + c + 1, s);
@@ -1110,9 +1136,9 @@ namespace mathieu {
                         // Pos terms
                         mc2dp = mc2dp + ttd;
                     }
-
+#if 0
                 } // if (c==0)
-
+#endif
             } // for (int k=(N-1) ...
 
             // Sum pos and neg terms to get final answer
@@ -1162,7 +1188,7 @@ namespace mathieu {
         // adjust the matrix size based on order m.  Later make this
         // a fcn of q also since the distribution of coeff mags allegedly
         // flattens out for large q.
-        int N = m + 25; // N = size of recursion matrix to use.
+        int N = m + 50; // N = size of recursion matrix to use.
 
         // Utility vars.
         double sqq = sqrt(q);
@@ -1170,10 +1196,6 @@ namespace mathieu {
         double expmu = exp(-u);
         double s = sqq * expmu;
         double t = sqq * exppu;
-
-        // Set offset c for adaptive calc.
-        // c = set_adaptive_offset_c(m, q);
-        c = 0; // Turn off adaptive c in modms2 for now ...
 
         // Use different coeffs depending upon whether m is even or odd.
         if (m % 2 == 0) {
@@ -1188,6 +1210,9 @@ namespace mathieu {
                 return retcode;
             }
 
+	    // Set offset c for adaptive calc.
+	    c = set_adaptive_offset_c(BB);
+
             // Variables used in summing the Fourier series.
             // These are Float128 since some of the terms are near
             // equal amplitude, but different sign.
@@ -1199,6 +1224,7 @@ namespace mathieu {
 
             // Sum from smallest to largest coeff.
             for (int k = (N - 1); k >= 0; k--) {
+#if 0
                 if (c == 0) {
                     // Non-adaptive calc
                     double Jks = besselj(k, s);
@@ -1239,6 +1265,7 @@ namespace mathieu {
                     }
 
                 } else {
+#endif
                     // Adaptive calc
                     double Jkmcs = besselj(k - c, s);
                     double Ykpct = bessely(k + c + 2, t);
@@ -1276,9 +1303,9 @@ namespace mathieu {
                         // Pos terms
                         ms2dp = ms2dp + ttd;
                     }
-
+#if 0
                 } // if (c==0)
-
+#endif
             } // for (int k=(N-1) ...
 
             // Sum pos and neg terms to get final result
@@ -1307,6 +1334,9 @@ namespace mathieu {
                 return retcode;
             }
 
+	    // Set offset c for adaptive calc.
+	    c = set_adaptive_offset_c(BB);
+
             // Variables used in summing the Fourier series.
             _Float128 ms2p, ms2m, ms2dp, ms2dm;
             ms2p = 0.0;
@@ -1316,6 +1346,7 @@ namespace mathieu {
 
             // Sum from smallest to largest coeff.
             for (int k = (N - 1); k >= 0; k--) {
+#if 0
                 if (c == 0) {
                     // Non-adaptive calc
                     double Jks = besselj(k, s);
@@ -1355,6 +1386,7 @@ namespace mathieu {
                     }
 
                 } else {
+#endif
                     // Adaptive calc
                     double Jkmcs = besselj(k - c, s);
                     double Jkpcs = besselj(k + c + 1, s);
@@ -1391,9 +1423,9 @@ namespace mathieu {
                         // Pos terms
                         ms2dp = ms2dp + ttd;
                     }
-
+#if 0
                 } // if (c==0)
-
+#endif
             } // for (int k=(N-1) ...
 
             // Sum pos and neg terms to get final answer
@@ -1456,7 +1488,7 @@ namespace mathieu {
     }
 
     //---------------------------------------------------
-    int set_adaptive_offset_c(int m, double q) {
+  int set_adaptive_offset_c(std::vector<double> x) {
         // This is used to set the c used in the adaptive computation.
         // I set the offset used in Bessel fcn depending upon order m
         // and shape/frequency parameter q.  This improves the accuracy
@@ -1464,18 +1496,29 @@ namespace mathieu {
         // The idea comes from the book "Accurate Computation of Mathieu Functions",
         // Malcolm M. Bibby & Andrew F. Peterson.  Also used in the paper
         // "Accurate calculation of the modified Mathieu functions of
-        // integer order", Van Buren & Boisvert.  The values I use here
-        // were found from experiment using my Matlab prototype.  However,
-        // better values are likely -- finding them is a future project.
+        // integer order", Van Buren & Boisvert.  
+        // Finally, the specific calc I use is presented in Numerical Review of Mathieu
+        // Function Programs for Integer Orders and Real Parameters, Ho-Chul Shin,
+        // SIAM Review, Dec 2025.
         int c;
 
+	// Get iterator to max element
+	auto max_it = std::max_element(x.begin(), x.end());
+
+	// Get the index and return it
+	c = std::distance(x.begin(), max_it);
+	
+	/*
+	// The values I use here
+        // were found from experiment using my Matlab prototype.  However,
+        // better values are likely -- finding them is a future project.	  
         if ((m > 5 && q < .001) || (m > 7 && q < .01) || (m > 10 && q < .1) || (m > 15 && q < 1) ||
             (m > 20 && q < 10) || (m > 30 && q < 100)) {
             c = m / 2;
         } else {
             c = 0;
         }
-
+	*/
         return c;
     }
 

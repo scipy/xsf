@@ -20,7 +20,7 @@
  *
  */
 
-/* DSTEDC_ prototype */
+/* DSTEVD_ prototype */
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -72,8 +72,6 @@ namespace mathieu {
 
         // Allocate return matrix for eigenvectors.
         std::vector<double> Z(N * N);
-        // If we think of Z as a matrix of column eigenvectors, then
-        // access return via eigenvector_i[row] = Z[row + i*N];
 
         // Do EVD
         retcode = make_matrix_ee(N, q, D.data(), E.data());
@@ -96,7 +94,7 @@ namespace mathieu {
         /* Solve eigenproblem */
         dstevd_(&jobz, &N, D.data(), E.data(), Z.data(), &N, work.data(), &lwork, iwork.data(), &liwork, &info);
 
-        // Check return code from dsyevd and bail if it's not 0.
+        // Check return code from dstevd and bail if it's not 0.
         if (info != 0) {
             return SF_ERROR_NO_RESULT;
         }
@@ -107,13 +105,14 @@ namespace mathieu {
 
         // Undo sqrt(2) in make_matrix by normalizing elet in first col by sqrt(2).
         int idx;
-        int row = m / 2;
-        idx = MATRIX_IDX(N, row, 0);
+        int col = m / 2;
+        idx = MATRIX_IDX(N, 0, col);
         AA[0] = Z[idx] / SQRT2;
-        // Transfer remaining elets in correct row to coeff vector.
+        // Transfer remaining elets in correct col to coeff vector.
+	// Lapack is column major
         for (int j = 1; j < N; j++) {
-            idx = MATRIX_IDX(N, row, j);
-            AA[j] = Z[idx];
+	  idx = MATRIX_IDX(N, j, col);
+	  AA[j] = Z[idx];
         }
         return retcode;
     }
@@ -159,8 +158,8 @@ namespace mathieu {
         /* Solve eigenproblem */
         dstevd_(&jobz, &N, D.data(), E.data(), Z.data(), &N, work.data(), &lwork, iwork.data(), &liwork, &info);
 
-        // Check return code from dsyevd and bail if it's not 0.
-        if (retcode != 0) {
+        // Check return code from dstevd and bail if it's not 0.
+        if (info != 0) {
             return SF_ERROR_NO_RESULT;
         }
 
@@ -168,21 +167,21 @@ namespace mathieu {
         // quickSort(D, 0, N-1);
         // print_matrix(D, N, 1);
 
-        // Transfer correct row to coeff vector.
+        // Transfer correct col to coeff vector.
         int idx;
-        int row = (m - 1) / 2;
-        // Transfer elets in correct row to coeff vector.
+        int col = (m - 1) / 2;
+        // Transfer elets in correct col to coeff vector.
         for (int j = 0; j < N; j++) {
-            idx = MATRIX_IDX(N, row, j);
-            AA[j] = Z[idx];
+	  idx = MATRIX_IDX(N, j, col);
+	  AA[j] = Z[idx];
         }
         return retcode;
     }
 
     //------------------------------------------------------
     int mathieu_coeffs_oe(int N, double q, int m, double *AA) {
-        // Returns Fourier coeffs for the mth order se_2n Mathieu fcn.
-        // Allowed value of m = 2, 4, 6, ...
+        // Returns Fourier coeffs for the mth order se_2n+2 Mathieu fcn.
+        // Allowed value of m = 0, 2, 4, 6, ...
         // Inputs:
         // N = size of recursion matrix to use.
         // q = frequency parameter
@@ -195,7 +194,11 @@ namespace mathieu {
         int retcode = SF_ERROR_OK;
 
         // Bail out if m is not even or >= 2.
-        if ((m % 2 != 0) || (m < 2))
+        //if ((m % 2 != 0) || (m < 2))
+        //    return SF_ERROR_ARG;
+
+        // Bail out if m is not even.
+        if (m % 2 != 0)
             return SF_ERROR_ARG;
 
         // Allocate diag part of recursion matrix
@@ -228,8 +231,8 @@ namespace mathieu {
         /* Solve eigenproblem */
         dstevd_(&jobz, &N, D.data(), E.data(), Z.data(), &N, work.data(), &lwork, iwork.data(), &liwork, &info);
 
-        // Bail out if dsyevd doesn't return 0.
-        if (retcode != 0) {
+        // Bail out if dstevd doesn't return 0.
+        if (info != 0) {
             return SF_ERROR_NO_RESULT;
         }
 
@@ -237,12 +240,12 @@ namespace mathieu {
         // quickSort(D, 0, N-1);
         // print_matrix(D, N, 1);
 
-        // Transfer remaining elets in correct row to coeff vector.
+        // Transfer remaining elets in correct col to coeff vector.
         int idx;
-        int row = (m - 2) / 2;
+	int col = m / 2;	
         for (int j = 0; j < N; j++) {
-            idx = MATRIX_IDX(N, row, j);
-            AA[j] = Z[idx];
+	  idx = MATRIX_IDX(N, j, col);
+	  AA[j] = Z[idx];
         }
         return retcode;
     }
@@ -288,8 +291,8 @@ namespace mathieu {
         /* Solve eigenproblem */
         dstevd_(&jobz, &N, D.data(), E.data(), Z.data(), &N, work.data(), &lwork, iwork.data(), &liwork, &info);
 
-        // Bail out if dsyevd didn't return 0;
-        if (retcode != 0) {
+        // Bail out if dstevd didn't return 0;
+        if (info != 0) {
             return SF_ERROR_NO_RESULT;
         }
 
@@ -297,13 +300,13 @@ namespace mathieu {
         // quickSort(D, 0, N-1);
         // print_matrix(D, N, 1);
 
-        // Transfer correct row to coeff vector.
+        // Transfer correct col to coeff vector.
         int idx;
-        int row = (m - 1) / 2;
-        // Transfer elets in correct row to coeff vector.
+        int col = (m - 1) / 2;
+        // Transfer elets in correct col to coeff vector.
         for (int j = 0; j < N; j++) {
-            idx = MATRIX_IDX(N, row, j);
-            AA[j] = Z[idx];
+	  idx = MATRIX_IDX(N, j, col);
+	  AA[j] = Z[idx];
         }
         return retcode;
     }

@@ -15,7 +15,7 @@
 // Macros to extract matrix index and element.
 // Matrix is NxN, i = row idx, j = col idx.
 // MATRIX_IDX is where col major format is enforced.
-#define MATRIX_IDX(N, I, J) (((N) * (I)) + (J))
+#define MATRIX_IDX(N, I, J) (I + (J*N))
 #define MATRIX_ELEMENT(A, m, n, i, j) A[MATRIX_IDX(n, i, j)]
 
 // Min and max macros for scalars.
@@ -27,14 +27,15 @@
 // and matrices.  The idea is to be able to reuse common matrix
 // operations.  I will name the utils analogously to their names
 // in Matlab.
-// Note that C matrices are row-major.
+// Note that C matrices are row-major, but Lapack is col-major.
+// Be careful about how these are used!
 
 namespace xsf {
 namespace mathieu {
 
     //-----------------------------------------------------
     void print_matrix(const double *A, int m, int n) {
-        // prints matrix as 2-dimensional tablei -- this is how we
+        // prints matrix as 2-dimensional table -- this is how we
         // usually think of matrices.
         int i, j;
         for (i = 0; i < m; i++) {

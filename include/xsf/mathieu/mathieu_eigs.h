@@ -18,7 +18,7 @@
  *
  */
 
-/* DSTEDC_ prototype */
+/* DSTEVD_ prototype */
 #ifdef __cplusplus
 extern "C" {
 #endif
