@@ -38,6 +38,7 @@ namespace mathieu {
       return code = SF_ERROR_OK if OK.
       -------------------------------------------------*/
     int make_matrix_ee(int N, double q, double *D, double *E) {
+      // Coeffs for ce_2n
         int j;
 
         // Make diagonal entries
@@ -104,11 +105,12 @@ namespace mathieu {
       return code = SF_ERROR_OK if OK.
       -------------------------------------------------*/
     int make_matrix_oe(int N, double q, double *D, double *E) {
+        // Coeffs for se_2n+2
         int j;
 
         // Make diagonal entries
         for (j = 0; j < N; j++) {
-            D[j] = (2.0 * (j + 1)) * (2.0 * (j + 1));
+            D[j] = (2.0 * (j + 1.0)) * (2.0 * (j + 1.0));
         }
 
         // Make off-diagonal entries
@@ -135,6 +137,7 @@ namespace mathieu {
       return code = SF_ERROR_OK if OK.
       -------------------------------------------------*/
     int make_matrix_oo(int N, double q, double *D, double *E) {
+        // Coeffs for se_2n+1
         int j;
 
         // Make diagonal entries

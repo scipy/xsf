@@ -61,7 +61,7 @@ namespace mathieu {
         // adjust the matrix size based on order m.  Later make this
         // a fcn of q also since the distribution of coeff mags allegedly
         // flattens out for large q.
-        int N = m + 50; // N = size of recursion matrix to use.
+        int N = m + 150; // N = size of recursion matrix to use.
 
         // Use different coeffs depending upon whether m is even or odd.
         if (m % 2 == 0) {
@@ -197,7 +197,7 @@ namespace mathieu {
         // adjust the matrix size based on order m.  Later make this
         // a fcn of q also since the distribution of coeff mags allegedly
         // flattens out for large q.
-        int N = m + 50; // N = size of recursion matrix to use.
+        int N = m + 150; // N = size of recursion matrix to use.
 
         // Use different coeffs depending upon whether m is even or odd.
         if (m % 2 == 0) {
@@ -333,7 +333,7 @@ namespace mathieu {
         // adjust the matrix size based on order m.  Later make this
         // a fcn of q also since the distribution of coeff mags allegedly
         // flattens out for large q.
-        int N = m + 50; // N = size of recursion matrix to use.
+        int N = m + 150; // N = size of recursion matrix to use.
 
         // Utility vars.
         double sqq = sqrt(q);
@@ -370,42 +370,6 @@ namespace mathieu {
 
             // Sum from smallest to largest coeff.
             for (int k = (N - 1); k >= 0; k--) {
-#if 0	      
-                if (c == 0) {
-                    // Non-adaptive calc
-                    double Jks = besselj(k, s);
-                    double Jkt = besselj(k, t);
-                    double Jdks = besseljd(k, s);
-                    double Jdkt = besseljd(k, t);
-
-                    _Float128 tt = AA[k] * (Jks * Jkt);
-                    _Float128 ttd = AA[k] * (exppu * Jks * Jdkt - expmu * Jdks * Jkt);
-
-                    // Even terms have + sign, odd terms have - sign
-                    int sgn = (k % 2 == 0) ? 1 : -1;
-
-                    // Do sum using separate sums for + and -
-                    tt = sgn * tt;
-                    if (tt < 0) {
-                        // Neg terms
-                        mc1m = mc1m + tt;
-                    } else {
-                        // Pos terms
-                        mc1p = mc1p + tt;
-                    }
-
-                    // Do sum using separate sums for + and -
-                    ttd = sgn * ttd;
-                    if (ttd < 0) {
-                        // Neg terms
-                        mc1dm = mc1dm + ttd;
-                    } else {
-                        // Pos terms
-                        mc1dp = mc1dp + ttd;
-                    }
-
-                } else {
-#endif
                 // Adaptive calc
                 double Jkmcs = besselj(k - c, s);
                 double Jkpcs = besselj(k + c, s);
@@ -423,9 +387,10 @@ namespace mathieu {
 
                 // Even terms have + sign, odd terms have - sign
                 int sgn = (k % 2 == 0) ? 1 : -1;
+                tt = sgn * tt;
+                ttd = sgn * ttd;
 
                 // Do sum using separate sums for + and -
-                tt = sgn * tt;
                 if (tt < 0) {
                     // Neg terms
                     mc1m = mc1m + tt;
@@ -435,7 +400,6 @@ namespace mathieu {
                 }
 
                 // Do sum using separate sums for + and -
-                ttd = sgn * ttd;
                 if (ttd < 0) {
                     // Neg terms
                     mc1dm = mc1dm + ttd;
@@ -443,10 +407,6 @@ namespace mathieu {
                     // Pos terms
                     mc1dp = mc1dp + ttd;
                 }
-
-#if 0		    
-                } // if (c==0)
-#endif
 
             } // for (int k=(N-1) ...
 
@@ -488,47 +448,6 @@ namespace mathieu {
 
             // Sum from smallest to largest coeff.
             for (int k = (N - 1); k >= 0; k--) {
-#if 0
-                if (c == 0) {
-                    // Non-adaptive calc
-                    double Jks = besselj(k, s);
-                    double Jkp1s = besselj(k + 1, s);
-                    double Jkt = besselj(k, t);
-                    double Jkp1t = besselj(k + 1, t);
-
-                    double Jdks = besseljd(k, s);
-                    double Jdkp1s = besseljd(k + 1, s);
-                    double Jdkt = besseljd(k, t);
-                    double Jdkp1t = besseljd(k + 1, t);
-
-                    _Float128 tt = AA[k] * (Jks * Jkp1t + Jkp1s * Jkt);
-                    _Float128 ttd =
-                        AA[k] * (exppu * (Jks * Jdkp1t + Jkp1s * Jdkt) - expmu * (Jdks * Jkp1t + Jdkp1s * Jkt));
-
-                    int sgn = (k % 2 == 0) ? 1 : -1;
-
-                    // Do sum using separate sums for + and -
-                    tt = sgn * tt;
-                    if (tt < 0) {
-                        // Neg terms
-                        mc1m = mc1m + tt;
-                    } else {
-                        // Pos terms
-                        mc1p = mc1p + tt;
-                    }
-
-                    // Do sum using separate sums for + and -
-                    ttd = sgn * ttd;
-                    if (ttd < 0) {
-                        // Neg terms
-                        mc1dm = mc1dm + ttd;
-                    } else {
-                        // Pos terms
-                        mc1dp = mc1dp + ttd;
-                    }
-
-                } else {
-#endif
                 // Adaptive calc
                 double Jkmcs = besselj(k - c, s);
                 double Jkpcs = besselj(k + c + 1, s);
@@ -544,10 +463,13 @@ namespace mathieu {
                 _Float128 ttd =
                     AA[k] * (exppu * (Jkmcs * Jdkpct + Jkpcs * Jdkmct) - expmu * (Jdkmcs * Jkpct + Jdkpcs * Jkmct));
 
+
+                // Even terms in k have + sign, odd terms have - sign
                 int sgn = (k % 2 == 0) ? 1 : -1;
+                tt = sgn * tt;
+                ttd = sgn * ttd;
 
                 // Do sum using separate sums for + and -
-                tt = sgn * tt;
                 if (tt < 0) {
                     // Neg terms
                     mc1m = mc1m + tt;
@@ -557,7 +479,6 @@ namespace mathieu {
                 }
 
                 // Do sum using separate sums for + and -
-                ttd = sgn * ttd;
                 if (ttd < 0) {
                     // Neg terms
                     mc1dm = mc1dm + ttd;
@@ -565,10 +486,6 @@ namespace mathieu {
                     // Pos terms
                     mc1dp = mc1dp + ttd;
                 }
-
-#if 0
-                } // if (c==0)
-#endif
 
             } // for (int k=(N-1) ...
 
@@ -619,7 +536,7 @@ namespace mathieu {
         // adjust the matrix size based on order m.  Later make this
         // a fcn of q also since the distribution of coeff mags allegedly
         // flattens out for large q.
-        int N = m + 50; // N = size of recursion matrix to use.
+        int N = m + 150; // N = size of recursion matrix to use.
 
         // Utility vars.
         double sqq = sqrt(q);
@@ -655,48 +572,6 @@ namespace mathieu {
 
             // Sum from smallest to largest coeff.
             for (int k = (N - 1); k >= 0; k--) {
-#if 0
-                if (c == 0) {
-                    // Non-adaptive calc
-                    double Jks = besselj(k, s);
-                    double Jkp2t = besselj(k + 2, t);
-                    double Jkp2s = besselj(k + 2, s);
-                    double Jkt = besselj(k, t);
-
-                    double Jdks = besseljd(k, s);
-                    double Jdkp2t = besseljd(k + 2, t);
-                    double Jdkp2s = besseljd(k + 2, s);
-                    double Jdkt = besseljd(k, t);
-
-                    _Float128 tt = BB[k] * (Jks * Jkp2t - Jkp2s * Jkt);
-                    _Float128 ttd =
-                        BB[k] * (exppu * (Jks * Jdkp2t - Jkp2s * Jdkt) - expmu * (Jdks * Jkp2t - Jdkp2s * Jkt));
-
-                    // Even terms have + sign, odd terms have - sign
-                    int sgn = (k % 2 == 0) ? 1 : -1;
-
-                    // Do sum using separate sums for + and -
-                    tt = sgn * tt;
-                    if (tt < 0) {
-                        // Neg terms
-                        ms1m = ms1m + tt;
-                    } else {
-                        // Pos terms
-                        ms1p = ms1p + tt;
-                    }
-
-                    // Do sum using separate sums for + and -
-                    ttd = sgn * ttd;
-                    if (ttd < 0) {
-                        // Neg terms
-                        ms1dm = ms1dm + ttd;
-                    } else {
-                        // Pos terms
-                        ms1dp = ms1dp + ttd;
-                    }
-
-                } else {
-#endif
                 // Adaptive calc
                 double Jkmcs = besselj(k - c, s);
                 double Jkpct = besselj(k + c + 2, t);
@@ -712,11 +587,12 @@ namespace mathieu {
                 _Float128 ttd =
                     BB[k] * (exppu * (Jkmcs * Jdkpct - Jkpcs * Jdkmct) - expmu * (Jdkmcs * Jkpct - Jdkpcs * Jkmct));
 
-                // Even terms have + sign, odd terms have - sign
+                // Even terms in k have + sign, odd terms have - sign
                 int sgn = (k % 2 == 0) ? 1 : -1;
+                tt = sgn * tt;
+                ttd = sgn * ttd;
 
                 // Do sum using separate sums for + and -
-                tt = sgn * tt;
                 if (tt < 0) {
                     // Neg terms
                     ms1m = ms1m + tt;
@@ -726,7 +602,6 @@ namespace mathieu {
                 }
 
                 // Do sum using separate sums for + and -
-                ttd = sgn * ttd;
                 if (ttd < 0) {
                     // Neg terms
                     ms1dm = ms1dm + ttd;
@@ -734,9 +609,7 @@ namespace mathieu {
                     // Pos terms
                     ms1dp = ms1dp + ttd;
                 }
-#if 0
-                } // if (c==0)
-#endif
+		
             } // for (int k=(N-1) ...
 
             // Sum pos and neg terms to get final result
@@ -777,47 +650,6 @@ namespace mathieu {
 
             // Sum from smallest to largest coeff.
             for (int k = (N - 1); k >= 0; k--) {
-#if 0
-                if (c == 0) {
-                    // Non-adaptive calc
-                    double Jks = besselj(k, s);
-                    double Jkt = besselj(k, t);
-                    double Jkp1s = besselj(k + 1, s);
-                    double Jkp1t = besselj(k + 1, t);
-
-                    double Jdks = besseljd(k, s);
-                    double Jdkt = besseljd(k, t);
-                    double Jdkp1s = besseljd(k + 1, s);
-                    double Jdkp1t = besseljd(k + 1, t);
-
-                    _Float128 tt = BB[k] * (Jks * Jkp1t - Jkp1s * Jkt);
-                    _Float128 ttd =
-                        BB[k] * (exppu * (Jks * Jdkp1t - Jkp1s * Jdkt) - expmu * (Jdks * Jkp1t - Jdkp1s * Jkt));
-
-                    int sgn = (k % 2 == 0) ? 1 : -1;
-
-                    // Do sum using separate sums for + and -
-                    tt = sgn * tt;
-                    if (tt < 0) {
-                        // Neg terms
-                        ms1m = ms1m + tt;
-                    } else {
-                        // Pos terms
-                        ms1p = ms1p + tt;
-                    }
-
-                    // Do sum using separate sums for + and -
-                    ttd = sgn * ttd;
-                    if (ttd < 0) {
-                        // Neg terms
-                        ms1dm = ms1dm + ttd;
-                    } else {
-                        // Pos terms
-                        ms1dp = ms1dp + ttd;
-                    }
-
-                } else {
-#endif
                 // Adaptive calc
                 double Jkmcs = besselj(k - c, s);
                 double Jkpcs = besselj(k + c + 1, s);
@@ -833,10 +665,13 @@ namespace mathieu {
                 _Float128 ttd =
                     BB[k] * (exppu * (Jkmcs * Jdkpct - Jkpcs * Jdkmct) - expmu * (Jdkmcs * Jkpct - Jdkpcs * Jkmct));
 
+		
+                // Even terms have + sign, odd terms have - sign
                 int sgn = (k % 2 == 0) ? 1 : -1;
-
-                // Do sum using separate sums for + and -
                 tt = sgn * tt;
+                ttd = sgn * ttd;
+
+                // Do sum using separate sums for pos and neg
                 if (tt < 0) {
                     // Neg terms
                     ms1m = ms1m + tt;
@@ -846,7 +681,6 @@ namespace mathieu {
                 }
 
                 // Do sum using separate sums for + and -
-                ttd = sgn * ttd;
                 if (ttd < 0) {
                     // Neg terms
                     ms1dm = ms1dm + ttd;
@@ -854,9 +688,7 @@ namespace mathieu {
                     // Pos terms
                     ms1dp = ms1dp + ttd;
                 }
-#if 0
-                } // if (c==0)
-#endif
+		
             } // for (int k=(N-1) ...
 
             // Sum pos and neg terms to get final answer
@@ -906,7 +738,7 @@ namespace mathieu {
         // adjust the matrix size based on order m.  Later make this
         // a fcn of q also since the distribution of coeff mags allegedly
         // flattens out for large q.
-        int N = m + 50; // N = size of recursion matrix to use.
+        int N = m + 150; // N = size of recursion matrix to use.
 
         // Utility vars.
         double sqq = sqrt(q);
@@ -942,42 +774,6 @@ namespace mathieu {
             mc2dp = 0.0;
             mc2dm = 0.0;
             for (int k = (N - 1); k >= 0; k--) {
-#if 0
-                if (c == 0) {
-                    // Non-adaptive calc
-                    double Jks = besselj(k, s);
-                    double Ykt = bessely(k, t);
-                    double Jdks = besseljd(k, s);
-                    double Ydkt = besselyd(k, t);
-
-                    _Float128 tt = AA[k] * Jks * Ykt;
-                    _Float128 ttd = AA[k] * (exppu * Jks * Ydkt - expmu * Jdks * Ykt);
-
-                    // Even terms have + sign, odd terms have - sign
-                    int sgn = (k % 2 == 0) ? 1 : -1;
-
-                    // Do sum using separate sums for + and -
-                    tt = sgn * tt;
-                    if (tt < 0) {
-                        // Neg terms
-                        mc2m = mc2m + tt;
-                    } else {
-                        // Pos terms
-                        mc2p = mc2p + tt;
-                    }
-
-                    // Do sum using separate sums for + and -
-                    ttd = sgn * ttd;
-                    if (ttd < 0) {
-                        // Neg terms
-                        mc2dm = mc2dm + ttd;
-                    } else {
-                        // Pos terms
-                        mc2dp = mc2dp + ttd;
-                    }
-
-                } else {
-#endif
                 // Adaptive calc
                 double Jkmcs = besselj(k - c, s);
                 double Jkpcs = besselj(k + c, s);
@@ -993,11 +789,12 @@ namespace mathieu {
                 _Float128 ttd =
                     AA[k] * (exppu * (Jkmcs * Ydkpct + Jkpcs * Ydkmct) - expmu * (Jdkmcs * Ykpct + Jdkpcs * Ykmct));
 
-                // Even terms have + sign, odd terms have - sign
+                // Even k terms have + sign, odd terms have - sign
                 int sgn = (k % 2 == 0) ? 1 : -1;
+                tt = sgn * tt;
+                ttd = sgn * ttd;
 
                 // Do sum using separate sums for + and -
-                tt = sgn * tt;
                 if (tt < 0) {
                     // Neg terms
                     mc2m = mc2m + tt;
@@ -1007,7 +804,6 @@ namespace mathieu {
                 }
 
                 // Do sum using separate sums for + and -
-                ttd = sgn * ttd;
                 if (ttd < 0) {
                     // Neg terms
                     mc2dm = mc2dm + ttd;
@@ -1015,9 +811,7 @@ namespace mathieu {
                     // Pos terms
                     mc2dp = mc2dp + ttd;
                 }
-#if 0
-                } // if (c==0)
-#endif
+
             } // for (int k=(N-1) ...
 
             // Sum pos and neg terms to get final result
@@ -1058,48 +852,6 @@ namespace mathieu {
 
             // Sum from smallest to largest coeff.
             for (int k = (N - 1); k >= 0; k--) {
-#if 0
-                if (c == 0) {
-
-                    // Non-adaptive calc
-                    double Jks = besselj(k, s);
-                    double Ykt = bessely(k, t);
-                    double Jkp1s = besselj(k + 1, s);
-                    double Ykp1t = bessely(k + 1, t);
-
-                    double Jdks = besseljd(k, s);
-                    double Ydkt = besselyd(k, t);
-                    double Jdkp1s = besseljd(k + 1, s);
-                    double Ydkp1t = besselyd(k + 1, t);
-
-                    _Float128 tt = AA[k] * (Jks * Ykp1t + Jkp1s * Ykt);
-                    _Float128 ttd =
-                        AA[k] * (exppu * (Jks * Ydkp1t + Jkp1s * Ydkt) - expmu * (Jdks * Ykp1t + Jdkp1s * Ykt));
-
-                    int sgn = (k % 2 == 0) ? 1 : -1;
-
-                    // Do sum using separate sums for + and -
-                    tt = sgn * tt;
-                    if (tt < 0) {
-                        // Neg terms
-                        mc2m = mc2m + tt;
-                    } else {
-                        // Pos terms
-                        mc2p = mc2p + tt;
-                    }
-
-                    // Do sum using separate sums for + and -
-                    ttd = sgn * ttd;
-                    if (ttd < 0) {
-                        // Neg terms
-                        mc2dm = mc2dm + ttd;
-                    } else {
-                        // Pos terms
-                        mc2dp = mc2dp + ttd;
-                    }
-
-                } else {
-#endif
                 // Adaptive calc
                 double Jkmcs = besselj(k - c, s);
                 double Jkpcs = besselj(k + c + 1, s);
@@ -1115,10 +867,12 @@ namespace mathieu {
                 _Float128 ttd =
                     AA[k] * (exppu * (Jkmcs * Ydkpct + Jkpcs * Ydkmct) - expmu * (Jdkmcs * Ykpct + Jdkpcs * Ykmct));
 
+		// Even k terms are plus, odd are neg.
                 int sgn = (k % 2 == 0) ? 1 : -1;
+                tt = sgn * tt;
+                ttd = sgn * ttd;
 
                 // Do sum using separate sums for + and -
-                tt = sgn * tt;
                 if (tt < 0) {
                     // Neg terms
                     mc2m = mc2m + tt;
@@ -1128,7 +882,6 @@ namespace mathieu {
                 }
 
                 // Do sum using separate sums for + and -
-                ttd = sgn * ttd;
                 if (ttd < 0) {
                     // Neg terms
                     mc2dm = mc2dm + ttd;
@@ -1136,9 +889,6 @@ namespace mathieu {
                     // Pos terms
                     mc2dp = mc2dp + ttd;
                 }
-#if 0
-                } // if (c==0)
-#endif
             } // for (int k=(N-1) ...
 
             // Sum pos and neg terms to get final answer
@@ -1188,7 +938,7 @@ namespace mathieu {
         // adjust the matrix size based on order m.  Later make this
         // a fcn of q also since the distribution of coeff mags allegedly
         // flattens out for large q.
-        int N = m + 50; // N = size of recursion matrix to use.
+        int N = m + 150; // N = size of recursion matrix to use.
 
         // Utility vars.
         double sqq = sqrt(q);
@@ -1224,48 +974,6 @@ namespace mathieu {
 
             // Sum from smallest to largest coeff.
             for (int k = (N - 1); k >= 0; k--) {
-#if 0
-                if (c == 0) {
-                    // Non-adaptive calc
-                    double Jks = besselj(k, s);
-                    double Ykp2t = bessely(k + 2, t);
-                    double Jkp2s = besselj(k + 2, s);
-                    double Ykt = bessely(k, t);
-
-                    double Jdks = besseljd(k, s);
-                    double Ydkp2t = besselyd(k + 2, t);
-                    double Jdkp2s = besseljd(k + 2, s);
-                    double Ydkt = besselyd(k, t);
-
-                    _Float128 tt = BB[k] * (Jks * Ykp2t - Jkp2s * Ykt);
-                    _Float128 ttd =
-                        BB[k] * (exppu * (Jks * Ydkp2t - Jkp2s * Ydkt) - expmu * (Jdks * Ykp2t - Jdkp2s * Ykt));
-
-                    // Even terms have + sign, odd terms have - sign
-                    int sgn = (k % 2 == 0) ? 1 : -1;
-
-                    // Do sum using separate sums for + and -
-                    tt = sgn * tt;
-                    if (tt < 0) {
-                        // Neg terms
-                        ms2m = ms2m + tt;
-                    } else {
-                        // Pos terms
-                        ms2p = ms2p + tt;
-                    }
-
-                    // Do sum using separate sums for + and -
-                    ttd = sgn * ttd;
-                    if (ttd < 0) {
-                        // Neg terms
-                        ms2dm = ms2dm + ttd;
-                    } else {
-                        // Pos terms
-                        ms2dp = ms2dp + ttd;
-                    }
-
-                } else {
-#endif
                 // Adaptive calc
                 double Jkmcs = besselj(k - c, s);
                 double Ykpct = bessely(k + c + 2, t);
@@ -1281,11 +989,12 @@ namespace mathieu {
                 _Float128 ttd =
                     BB[k] * (exppu * (Jkmcs * Ydkpct - Jkpcs * Ydkmct) - expmu * (Jdkmcs * Ykpct - Jdkpcs * Ykmct));
 
-                // Even terms have + sign, odd terms have - sign
+                // Even k terms have + sign, odd terms have - sign
                 int sgn = (k % 2 == 0) ? 1 : -1;
+                tt = sgn * tt;
+                ttd = sgn * ttd;
 
                 // Do sum using separate sums for + and -
-                tt = sgn * tt;
                 if (tt < 0) {
                     // Neg terms
                     ms2m = ms2m + tt;
@@ -1295,7 +1004,6 @@ namespace mathieu {
                 }
 
                 // Do sum using separate sums for + and -
-                ttd = sgn * ttd;
                 if (ttd < 0) {
                     // Neg terms
                     ms2dm = ms2dm + ttd;
@@ -1303,9 +1011,7 @@ namespace mathieu {
                     // Pos terms
                     ms2dp = ms2dp + ttd;
                 }
-#if 0
-                } // if (c==0)
-#endif
+
             } // for (int k=(N-1) ...
 
             // Sum pos and neg terms to get final result
@@ -1346,47 +1052,6 @@ namespace mathieu {
 
             // Sum from smallest to largest coeff.
             for (int k = (N - 1); k >= 0; k--) {
-#if 0
-                if (c == 0) {
-                    // Non-adaptive calc
-                    double Jks = besselj(k, s);
-                    double Ykt = bessely(k, t);
-                    double Jkp1s = besselj(k + 1, s);
-                    double Ykp1t = bessely(k + 1, t);
-
-                    double Jdks = besseljd(k, s);
-                    double Ydkt = besselyd(k, t);
-                    double Jdkp1s = besseljd(k + 1, s);
-                    double Ydkp1t = besselyd(k + 1, t);
-
-                    _Float128 tt = BB[k] * (Jks * Ykp1t - Jkp1s * Ykt);
-                    _Float128 ttd =
-                        BB[k] * (exppu * (Jks * Ydkp1t - Jkp1s * Ydkt) - expmu * (Jdks * Ykp1t - Jdkp1s * Ykt));
-
-                    int sgn = (k % 2 == 0) ? 1 : -1;
-
-                    // Do sum using separate sums for + and -
-                    tt = sgn * tt;
-                    if (tt < 0) {
-                        // Neg terms
-                        ms2m = ms2m + tt;
-                    } else {
-                        // Pos terms
-                        ms2p = ms2p + tt;
-                    }
-
-                    // Do sum using separate sums for + and -
-                    ttd = sgn * ttd;
-                    if (ttd < 0) {
-                        // Neg terms
-                        ms2dm = ms2dm + ttd;
-                    } else {
-                        // Pos terms
-                        ms2dp = ms2dp + ttd;
-                    }
-
-                } else {
-#endif
                 // Adaptive calc
                 double Jkmcs = besselj(k - c, s);
                 double Jkpcs = besselj(k + c + 1, s);
@@ -1402,10 +1067,12 @@ namespace mathieu {
                 _Float128 ttd =
                     BB[k] * (exppu * (Jkmcs * Ydkpct - Jkpcs * Ydkmct) - expmu * (Jdkmcs * Ykpct - Jdkpcs * Ykmct));
 
+		// Even k terms are +, odd or -
                 int sgn = (k % 2 == 0) ? 1 : -1;
+                tt = sgn * tt;
+                ttd = sgn * ttd;
 
                 // Do sum using separate sums for + and -
-                tt = sgn * tt;
                 if (tt < 0) {
                     // Neg terms
                     ms2m = ms2m + tt;
@@ -1415,7 +1082,6 @@ namespace mathieu {
                 }
 
                 // Do sum using separate sums for + and -
-                ttd = sgn * ttd;
                 if (ttd < 0) {
                     // Neg terms
                     ms2dm = ms2dm + ttd;
@@ -1423,9 +1089,7 @@ namespace mathieu {
                     // Pos terms
                     ms2dp = ms2dp + ttd;
                 }
-#if 0
-                } // if (c==0)
-#endif
+
             } // for (int k=(N-1) ...
 
             // Sum pos and neg terms to get final answer
@@ -1501,12 +1165,23 @@ namespace mathieu {
         // Function Programs for Integer Orders and Real Parameters, Ho-Chul Shin,
         // SIAM Review, Dec 2025.
         int c;
+	double tmpmax = 0.0;
+	int idx=0;
 
+	for (size_t i = 0; i < x.size(); ++i) {
+	  if (abs(x[i]) > tmpmax) {
+	    tmpmax = abs(x[i]);
+	    idx = i;
+	  }
+	}
+	c = idx;
+
+	// C++ stuff to find max only find max, not max(abs).  To find
+	// max(abs) in C++ involves jumping through hoops.
         // Get iterator to max element
-        auto max_it = std::max_element(x.begin(), x.end());
-
+        //auto max_it = std::max_element(x.begin(), x.end());
         // Get the index and return it
-        c = std::distance(x.begin(), max_it);
+        //c = std::distance(x.begin(), max_it);
 
         /*
         // The values I use here
