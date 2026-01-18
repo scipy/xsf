@@ -38,7 +38,7 @@ namespace mathieu {
       return code = SF_ERROR_OK if OK.
       -------------------------------------------------*/
     int make_matrix_ee(int N, double q, double *D, double *E) {
-      // Coeffs for ce_2n
+        // Coeffs for ce_2n
         int j;
 
         // Make diagonal entries

@@ -32,6 +32,7 @@ namespace mathieu {
     int check_angular_fcn_domain(int m, double q);
     int check_modified_fcn_domain(int m, double q);
     int set_adaptive_offset_c(std::vector<double> A);
+    int get_partial_sum_N(int m, double q);
 
     //==================================================================
     int mathieu_ce(int m, double q, double v, double *ce, double *ced) {
@@ -57,11 +58,9 @@ namespace mathieu {
             return retcode;
         }
 
-        // I find the peak Fourier coeff tracks m.  Therefore,
-        // adjust the matrix size based on order m.  Later make this
-        // a fcn of q also since the distribution of coeff mags allegedly
-        // flattens out for large q.
-        int N = m + 50; // N = size of recursion matrix to use.
+        // The peak Fourier coeff tracks m.  Therefore,
+        // adjust the matrix size based on order m and q.
+        int N = get_partial_sum_N(m, q); // N = size of recursion matrix to use.
 
         // Use different coeffs depending upon whether m is even or odd.
         if (m % 2 == 0) {
@@ -193,11 +192,9 @@ namespace mathieu {
             return retcode;
         }
 
-        // I find the peak Fourier coeff tracks m.  Therefore,
-        // adjust the matrix size based on order m.  Later make this
-        // a fcn of q also since the distribution of coeff mags allegedly
-        // flattens out for large q.
-        int N = m + 50; // N = size of recursion matrix to use.
+        // The peak Fourier coeff tracks m.  Therefore,
+        // adjust the matrix size based on order m and q.
+        int N = get_partial_sum_N(m, q); // N = size of recursion matrix to use.
 
         // Use different coeffs depending upon whether m is even or odd.
         if (m % 2 == 0) {
@@ -329,11 +326,9 @@ namespace mathieu {
             return retcode;
         }
 
-        // I find the peak Fourier coeff tracks m.  Therefore,
-        // adjust the matrix size based on order m.  Later make this
-        // a fcn of q also since the distribution of coeff mags allegedly
-        // flattens out for large q.
-        int N = m + 50; // N = size of recursion matrix to use.
+        // The peak Fourier coeff tracks m.  Therefore,
+        // adjust the matrix size based on order m and q.
+        int N = get_partial_sum_N(m, q); // N = size of recursion matrix to use.
 
         // Utility vars.
         double sqq = sqrt(q);
@@ -463,7 +458,6 @@ namespace mathieu {
                 _Float128 ttd =
                     AA[k] * (exppu * (Jkmcs * Jdkpct + Jkpcs * Jdkmct) - expmu * (Jdkmcs * Jkpct + Jdkpcs * Jkmct));
 
-
                 // Even terms in k have + sign, odd terms have - sign
                 int sgn = (k % 2 == 0) ? 1 : -1;
                 tt = sgn * tt;
@@ -532,11 +526,9 @@ namespace mathieu {
             return retcode;
         }
 
-        // I find the peak Fourier coeff tracks m.  Therefore,
-        // adjust the matrix size based on order m.  Later make this
-        // a fcn of q also since the distribution of coeff mags allegedly
-        // flattens out for large q.
-        int N = m + 50; // N = size of recursion matrix to use.
+        // The peak Fourier coeff tracks m.  Therefore,
+        // adjust the matrix size based on order m and q.
+        int N = get_partial_sum_N(m, q); // N = size of recursion matrix to use.
 
         // Utility vars.
         double sqq = sqrt(q);
@@ -609,7 +601,7 @@ namespace mathieu {
                     // Pos terms
                     ms1dp = ms1dp + ttd;
                 }
-		
+
             } // for (int k=(N-1) ...
 
             // Sum pos and neg terms to get final result
@@ -665,7 +657,6 @@ namespace mathieu {
                 _Float128 ttd =
                     BB[k] * (exppu * (Jkmcs * Jdkpct - Jkpcs * Jdkmct) - expmu * (Jdkmcs * Jkpct - Jdkpcs * Jkmct));
 
-		
                 // Even terms have + sign, odd terms have - sign
                 int sgn = (k % 2 == 0) ? 1 : -1;
                 tt = sgn * tt;
@@ -688,7 +679,7 @@ namespace mathieu {
                     // Pos terms
                     ms1dp = ms1dp + ttd;
                 }
-		
+
             } // for (int k=(N-1) ...
 
             // Sum pos and neg terms to get final answer
@@ -734,11 +725,9 @@ namespace mathieu {
             return retcode;
         }
 
-        // I find the peak Fourier coeff tracks m.  Therefore,
-        // adjust the matrix size based on order m.  Later make this
-        // a fcn of q also since the distribution of coeff mags allegedly
-        // flattens out for large q.
-        int N = m + 50; // N = size of recursion matrix to use.
+        // The peak Fourier coeff tracks m.  Therefore,
+        // adjust the matrix size based on order m and q.
+        int N = get_partial_sum_N(m, q); // N = size of recursion matrix to use.
 
         // Utility vars.
         double sqq = sqrt(q);
@@ -867,7 +856,7 @@ namespace mathieu {
                 _Float128 ttd =
                     AA[k] * (exppu * (Jkmcs * Ydkpct + Jkpcs * Ydkmct) - expmu * (Jdkmcs * Ykpct + Jdkpcs * Ykmct));
 
-		// Even k terms are plus, odd are neg.
+                // Even k terms are plus, odd are neg.
                 int sgn = (k % 2 == 0) ? 1 : -1;
                 tt = sgn * tt;
                 ttd = sgn * ttd;
@@ -934,11 +923,9 @@ namespace mathieu {
             return retcode;
         }
 
-        // I find the peak Fourier coeff tracks m.  Therefore,
-        // adjust the matrix size based on order m.  Later make this
-        // a fcn of q also since the distribution of coeff mags allegedly
-        // flattens out for large q.
-        int N = m + 50; // N = size of recursion matrix to use.
+        // The peak Fourier coeff tracks m.  Therefore,
+        // adjust the matrix size based on order m and q.
+        int N = get_partial_sum_N(m, q); // N = size of recursion matrix to use.
 
         // Utility vars.
         double sqq = sqrt(q);
@@ -1067,7 +1054,7 @@ namespace mathieu {
                 _Float128 ttd =
                     BB[k] * (exppu * (Jkmcs * Ydkpct - Jkpcs * Ydkmct) - expmu * (Jdkmcs * Ykpct - Jdkpcs * Ykmct));
 
-		// Even k terms are +, odd or -
+                // Even k terms are +, odd or -
                 int sgn = (k % 2 == 0) ? 1 : -1;
                 tt = sgn * tt;
                 ttd = sgn * ttd;
@@ -1165,36 +1152,32 @@ namespace mathieu {
         // Function Programs for Integer Orders and Real Parameters, Ho-Chul Shin,
         // SIAM Review, Dec 2025.
         int c;
-	double tmpmax = 0.0;
-	int idx=0;
+        double tmpmax = 0.0;
+        int idx = 0;
 
-	for (size_t i = 0; i < x.size(); ++i) {
-	  if (abs(x[i]) > tmpmax) {
-	    tmpmax = abs(x[i]);
-	    idx = i;
-	  }
-	}
-	c = idx;
-
-	// C++ stuff to find max only find max, not max(abs).  To find
-	// max(abs) in C++ involves jumping through hoops.
-        // Get iterator to max element
-        //auto max_it = std::max_element(x.begin(), x.end());
-        // Get the index and return it
-        //c = std::distance(x.begin(), max_it);
-
-        /*
-        // The values I use here
-        // were found from experiment using my Matlab prototype.  However,
-        // better values are likely -- finding them is a future project.
-        if ((m > 5 && q < .001) || (m > 7 && q < .01) || (m > 10 && q < .1) || (m > 15 && q < 1) ||
-            (m > 20 && q < 10) || (m > 30 && q < 100)) {
-            c = m / 2;
-        } else {
-            c = 0;
+        for (size_t i = 0; i < x.size(); ++i) {
+            if (abs(x[i]) > tmpmax) {
+                tmpmax = abs(x[i]);
+                idx = i;
+            }
         }
-        */
+        c = idx;
+
         return c;
+    }
+
+    //---------------------------------------------------
+    int get_partial_sum_N(int m, double q) {
+        int N;
+
+        // This is sort of ad-hoc ...
+        if (q > 1.0) {
+            double qq = log10(q); // I need to use size of q to compute N.
+            N = m + 25 + 10 * qq;
+        } else {
+            N = m + 25;
+        }
+        return N;
     }
 
 } // namespace mathieu
