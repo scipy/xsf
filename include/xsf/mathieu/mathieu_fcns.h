@@ -61,7 +61,7 @@ namespace mathieu {
         // adjust the matrix size based on order m.  Later make this
         // a fcn of q also since the distribution of coeff mags allegedly
         // flattens out for large q.
-        int N = m + 150; // N = size of recursion matrix to use.
+        int N = m + 50; // N = size of recursion matrix to use.
 
         // Use different coeffs depending upon whether m is even or odd.
         if (m % 2 == 0) {
@@ -197,7 +197,7 @@ namespace mathieu {
         // adjust the matrix size based on order m.  Later make this
         // a fcn of q also since the distribution of coeff mags allegedly
         // flattens out for large q.
-        int N = m + 150; // N = size of recursion matrix to use.
+        int N = m + 50; // N = size of recursion matrix to use.
 
         // Use different coeffs depending upon whether m is even or odd.
         if (m % 2 == 0) {
@@ -333,7 +333,7 @@ namespace mathieu {
         // adjust the matrix size based on order m.  Later make this
         // a fcn of q also since the distribution of coeff mags allegedly
         // flattens out for large q.
-        int N = m + 150; // N = size of recursion matrix to use.
+        int N = m + 50; // N = size of recursion matrix to use.
 
         // Utility vars.
         double sqq = sqrt(q);
@@ -536,7 +536,7 @@ namespace mathieu {
         // adjust the matrix size based on order m.  Later make this
         // a fcn of q also since the distribution of coeff mags allegedly
         // flattens out for large q.
-        int N = m + 150; // N = size of recursion matrix to use.
+        int N = m + 50; // N = size of recursion matrix to use.
 
         // Utility vars.
         double sqq = sqrt(q);
@@ -738,7 +738,7 @@ namespace mathieu {
         // adjust the matrix size based on order m.  Later make this
         // a fcn of q also since the distribution of coeff mags allegedly
         // flattens out for large q.
-        int N = m + 150; // N = size of recursion matrix to use.
+        int N = m + 50; // N = size of recursion matrix to use.
 
         // Utility vars.
         double sqq = sqrt(q);
@@ -938,7 +938,7 @@ namespace mathieu {
         // adjust the matrix size based on order m.  Later make this
         // a fcn of q also since the distribution of coeff mags allegedly
         // flattens out for large q.
-        int N = m + 150; // N = size of recursion matrix to use.
+        int N = m + 50; // N = size of recursion matrix to use.
 
         // Utility vars.
         double sqq = sqrt(q);

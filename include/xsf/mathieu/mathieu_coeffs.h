@@ -242,7 +242,7 @@ namespace mathieu {
 
         // Transfer remaining elets in correct col to coeff vector.
         int idx;
-        int col = m / 2;
+        int col = (m-2) / 2;
         for (int j = 0; j < N; j++) {
             idx = MATRIX_IDX(N, j, col);
             AA[j] = Z[idx];
