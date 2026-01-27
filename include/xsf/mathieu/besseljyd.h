@@ -50,9 +50,11 @@ namespace mathieu {
         }
 
         // Must flip sign for negative k and odd k.
+        /*
         if (k < 0 && ((k % 2) != 0)) {
             y = -y;
         }
+        */
 
         return y;
     }
@@ -73,9 +75,11 @@ namespace mathieu {
         }
 
         // Must flip sign for negative k and odd k.
+        /*
         if (k < 0 && ((k % 2) != 0)) {
             y = -y;
         }
+        */
 
         return y;
     }

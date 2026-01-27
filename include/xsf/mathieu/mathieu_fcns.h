@@ -315,7 +315,8 @@ namespace mathieu {
         // Success = 0
 
         int retcode = SF_ERROR_OK;
-        int c; // Offset used in adaptive computation.
+        int c;     // Offset used in adaptive computation.
+        double ee; // Divide result by 2 when offset c == 0.  Used only for even Mc1 and Mc2.
 
         // Check inputs.  Note that retcode can include SF_ERROR_LOSS
         // but the program can keep going in that case.
@@ -352,6 +353,12 @@ namespace mathieu {
 
             // Set offset c for adaptive calc.
             c = set_adaptive_offset_c(AA);
+            // Set division factor for even Mc.
+            if (c == 0) {
+                ee = 2.0;
+            } else {
+                ee = 1.0;
+            }
 
             // Local scope variables used in summing the Fourier series.
             // These are Float128 since some of the terms are near
@@ -412,11 +419,11 @@ namespace mathieu {
             // Do normalization.  Note normalization depends upon c.
             int sgn = m / 2;
             if (sgn % 2 == 0) {
-                *mc1 = (*mc1) / AA[c];
-                *mc1d = sqq * (*mc1d) / AA[c];
+                *mc1 = (*mc1) / (ee * AA[c]);
+                *mc1d = sqq * (*mc1d) / (ee * AA[c]);
             } else {
-                *mc1 = -(*mc1) / AA[c];
-                *mc1d = -sqq * (*mc1d) / AA[c];
+                *mc1 = -(*mc1) / (ee * AA[c]);
+                *mc1d = -sqq * (*mc1d) / (ee * AA[c]);
             }
 
         } else {
@@ -714,7 +721,8 @@ namespace mathieu {
         // Success = 0
 
         int retcode = SF_ERROR_OK;
-        int c; // Offset used in adaptive computation.
+        int c;     // Offset used in adaptive computation.
+        double ee; // Divide result by 2 when offset c == 0.  Used only for even Mc1 and Mc2.
 
         // Check inputs.  Note that retcode can include SF_ERROR_LOSS
         // but the program can keep going in that case.
@@ -751,6 +759,12 @@ namespace mathieu {
 
             // Set offset c for adaptive calc.
             c = set_adaptive_offset_c(AA);
+            // Set division factor for even Mc.
+            if (c == 0) {
+                ee = 2.0;
+            } else {
+                ee = 1.0;
+            }
 
             // Variables used in summing the Fourier series.
             // These are Float128 since some of the terms are near
@@ -810,11 +824,11 @@ namespace mathieu {
             // Do normalization.  Note normalization depends upon c.
             int sgn = m / 2;
             if (sgn % 2 == 0) {
-                *mc2 = (*mc2) / AA[c];
-                *mc2d = sqq * (*mc2d) / AA[c];
+                *mc2 = (*mc2) / (ee * AA[c]);
+                *mc2d = sqq * (*mc2d) / (ee * AA[c]);
             } else {
-                *mc2 = -(*mc2) / AA[c];
-                *mc2d = -sqq * (*mc2d) / AA[c];
+                *mc2 = -(*mc2) / (ee * AA[c]);
+                *mc2d = -sqq * (*mc2d) / (ee * AA[c]);
             }
 
         } else {
