@@ -4760,7 +4760,7 @@ namespace specfun {
 
         T eps = 1.0e-14;
         T a, qm, c1, c2, u1, u2, w1, w2;
-        int kd, km, ic, k, nm = 0;
+        int kd = 0, km, ic, k, nm = 0;
 
         if ((kf == 1) && (m % 2 == 0)) {
             kd = 1;
