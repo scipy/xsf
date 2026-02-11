@@ -49,3 +49,13 @@ TEST_CASE("hyp2f1(nan, nan, nan, complex('nan')) / gh-94", "[hyp2f1][xsf_tests]"
     REQUIRE(std::isnan(result.real()));
     REQUIRE(std::isnan(result.imag()));
 }
+
+
+TEST_CASE("hyp1f1(nan, nan, complex('nan')) / gh-94", "[hyp1f1][xsf_tests]") {
+    double a = std::numeric_limits<double>::quiet_NaN();
+    std::complex<double> z = {std::numeric_limits<double>::quiet_NaN(), 0.0};
+
+    std::complex<double> result = xsf::hyp1f1(a, a, z);
+    REQUIRE(std::isnan(result.real()));
+    REQUIRE(std::isnan(result.imag()));
+}
