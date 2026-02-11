@@ -157,7 +157,7 @@ coverage.cwd = "."
 
 [feature.tests-debug-ci.tasks]
 build-tests-debug-ci.cmd = ["cmake", "--build", "build-debug", "-j3", "--config", "Debug"]
-build-tests-debug-ci.depends-on = ["configure-tests-debug"]
+build-tests-debug-ci.depends-on = ["clone-xsref", "configure-tests-debug"]
 build-tests-debug-ci.cwd = "."
 
 tests-debug-ci.cmd = [
