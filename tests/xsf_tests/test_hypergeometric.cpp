@@ -3,6 +3,7 @@
 #include <limits>
 #include <tuple>
 #include <xsf/hyp2f1.h>
+#include <xsf/specfun.h>
 
 TEST_CASE("hyp2f1(-1, b, c, z) / gh-4446", "[hyp2f1][xsf_tests]") {
     constexpr double rtol = 1e-14;
