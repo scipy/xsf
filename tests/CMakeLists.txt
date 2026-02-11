@@ -3,6 +3,19 @@ find_package(Catch2 3 REQUIRED)
 find_package(Arrow REQUIRED)
 find_package(Parquet REQUIRED)
 
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  # Enable debug assertions to make sure they won't get triggered in debug builds of
+  # downstream code.
+    if(MSVC OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_SIMULATE_ID MATCHES "MSVC"))
+        add_compile_definitions(_ITERATOR_DEBUG_LEVEL=2)
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+        add_compile_definitions(_GLIBCXX_ASSERTIONS)
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        add_compile_definitions(_LIBCPP_ENABLE_ASSERTIONS=1)
+    endif()
+endif()
+
 add_library(xsf INTERFACE)
 target_include_directories(xsf INTERFACE ${CMAKE_SOURCE_DIR}/include)
 
