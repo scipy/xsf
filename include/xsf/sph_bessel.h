@@ -112,7 +112,7 @@ std::complex<T> sph_bessel_j(long n, std::complex<T> z) {
         return 0;
     }
 
-    std::complex<T> out = std::sqrt(static_cast<T>(M_PI_2)) * cyl_bessel_j(n + static_cast<T>(0.5), z) / std::sqrt(z);
+    std::complex<T> out = std::sqrt(static_cast<T>(M_PI_2)) / cyl_bessel_j(n + static_cast<T>(0.5), z) / std::sqrt(z);
     if (std::imag(z) == 0) {
         return std::real(out); // Small imaginary part is spurious
     }
