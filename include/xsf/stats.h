@@ -1,5 +1,6 @@
 #pragma once
 
+#include "xsf/bessel.h"
 #include "xsf/cephes/bdtr.h"
 #include "xsf/cephes/chdtr.h"
 #include "xsf/cephes/fdtr.h"
@@ -14,6 +15,7 @@
 #include "xsf/cephes/pdtr.h"
 #include "xsf/cephes/tukey.h"
 #include "xsf/erf.h"
+#include "xsf/gamma.h"
 
 namespace xsf {
 
@@ -32,6 +34,34 @@ inline double chdtrc(double df, double x) { return cephes::chdtrc(df, x); }
 inline float chdtrc(float df, float x) { return static_cast<float>(cephes::chdtrc(df, x)); }
 
 inline double chdtri(double df, double y) { return cephes::chdtri(df, y); }
+
+inline double cvm_cdf_inf(double x) {
+    if (std::isnan(x)) {
+        return x;
+    }
+    if (x <= 0) {
+        return 0.0;
+    }
+
+    double total = 0.0;
+    int k = 0;
+
+    while (true) {
+        double u = std::exp(gammaln(k + 0.5) - gammaln(k + 1.0)) / (std::pow(M_PI, 1.5) * std::sqrt(x));
+        double y = 4.0 * k + 1.0;
+        double q = (y * y) / (16.0 * x);
+        double b = cyl_bessel_k(0.25, q);
+        double z = u * std::sqrt(y) * std::exp(-q) * b;
+
+        total += z;
+        if (std::abs(z) < 1e-7) {
+            break;
+        }
+        ++k;
+    }
+
+    return total;
+}
 
 inline double fdtr(double a, double b, double x) { return cephes::fdtr(a, b, x); }
 
