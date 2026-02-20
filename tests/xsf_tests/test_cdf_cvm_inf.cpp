@@ -2,7 +2,11 @@
 #include <xsf/stats.h>
 
 TEST_CASE("cvm_cdf_inf test", "[cvm_cdf_inf][xsf_tests]") {
-    // Generate linspace: xs = np.linspace(2e-3, 1 - 2e-3, 51)
+    // Reference values computed with scipy.stats._hypotests._cdf_cvm_inf
+    // from scipy.stats._hypotests import _cdf_cvm_inf
+    // xs = np.linspace(2e-3, 1-2e-3, 51)
+    // expected = _cdf_cvm_inf(xs)
+
     const int n_points = 51;
     const double start = 2e-3;
     const double end = 1.0 - 2e-3;
@@ -11,7 +15,6 @@ TEST_CASE("cvm_cdf_inf test", "[cvm_cdf_inf][xsf_tests]") {
         xs[i] = start + (end - start) * i / (n_points - 1);
     }
 
-    // Reference values computed with scipy.stats._hypotests._cdf_cvm_inf
     const std::vector<double> expected = {
         1.14362132e-27, 5.17604145e-03, 7.65622444e-02, 1.97103480e-01, 3.17803769e-01, 4.22913972e-01, 5.10702567e-01,
         5.83253490e-01, 6.43255891e-01, 6.93126921e-01, 7.34842094e-01, 7.69965969e-01, 7.99727106e-01, 8.25091357e-01,
