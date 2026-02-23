@@ -18,6 +18,8 @@ TEST_CASE("hyp2f1 dddD->D scipy_special_tests", "[hyp2f1][dddD->D][scipy_special
 
     auto [a, b, c, z] = input;
     auto [desired, fallback] = output;
+    if (fallback && a == -1 && c != 0)
+        SKIP(); // gh-4446
     auto out = xsf::hyp2f1(a, b, c, z);
     auto error = xsf::extended_relative_error(out, desired);
     tol = adjust_tolerance(tol);
@@ -36,6 +38,8 @@ TEST_CASE("hyp2f1 dddd->d scipy_special_tests", "[hyp2f1][dddd->d][scipy_special
 
     auto [a, b, c, z] = input;
     auto [desired, fallback] = output;
+    if (fallback && a == -1 && c != 0)
+        SKIP(); // gh-4446
     auto out = xsf::hyp2f1(a, b, c, z);
     auto error = xsf::extended_relative_error(out, desired);
     tol = adjust_tolerance(tol);

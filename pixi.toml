@@ -70,6 +70,30 @@ tests.cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests"]
 tests.depends-on = ["clone-xsref", "build-tests"]
 tests.cwd = "."
 
+## Tests of debug build (catches asserts that can cause program to abort)
+
+[feature.tests-debug.tasks]
+configure-tests-debug.cmd = [
+  "cmake",
+  # Enable building tests
+  "-DBUILD_TESTS=ON",
+  # set as debug build
+  "-DCMAKE_BUILD_TYPE=Debug",
+  # The source is in the root directory
+  "-S .",
+  # use build-debug directory to avoid overwriting build directory.
+  "-B build-debug",
+]
+configure-tests-debug.cwd = "."
+
+build-tests-debug.cmd = ["cmake", "--build", "build-debug", "--config", "Debug"]
+build-tests-debug.depends-on = ["configure-tests-debug"]
+build-tests-debug.cwd = "."
+
+tests-debug.cmd = ["ctest", "--output-on-failure", "--test-dir", "build-debug/tests"]
+tests-debug.depends-on = ["clone-xsref", "build-tests-debug"]
+tests-debug.cwd = "."
+
 ## clang-format
 
 [feature.clang-format.dependencies]
@@ -135,6 +159,24 @@ coverage.cmd = [
 coverage.depends-on = ["tests-ci"]
 coverage.cwd = "."
 
+[feature.tests-debug-ci.tasks]
+build-tests-debug-ci.cmd = ["cmake", "--build", "build-debug", "-j3", "--config", "Debug"]
+build-tests-debug-ci.depends-on = ["clone-xsref", "configure-tests-debug"]
+build-tests-debug-ci.cwd = "."
+
+tests-debug-ci.cmd = [
+  "ctest",
+  "--output-on-failure",
+  "--test-dir",
+  "build-debug/tests",
+  "-j3",
+  "--build-config",
+  "Debug",
+]
+tests-debug-ci.depends-on = ["clone-xsref", "build-tests-debug-ci"]
+tests-debug-ci.cwd = "."
+
+
 # CuPy tests
 [feature.cupy-tests]
 platforms = ["linux-64"]
@@ -171,8 +213,8 @@ test-cupy.cwd = "."
 test-cupy.depends-on = ["install-xsref-test-cupy"]
 
 [environments]
-default = { features = ["build", "tests"], solve-group = "default" }
-tests-ci = { features = ["build", "tests", "tests-ci", "coverage"], solve-group = "default" }
+default = { features = ["build", "tests", "tests-debug"], solve-group = "default" }
+tests-ci = { features = ["build", "tests", "tests-ci", "tests-debug", "tests-debug-ci", "coverage"], solve-group = "default"}
 lint = { features = ["clang-format"], solve-group = "default" }
 cupy-tests = { features = ["cupy-tests"], solve-group = "cupy" }
 
