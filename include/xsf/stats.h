@@ -36,6 +36,9 @@ inline float chdtrc(float df, float x) { return static_cast<float>(cephes::chdtr
 inline double chdtri(double df, double y) { return cephes::chdtri(df, y); }
 
 inline double cvm_cdf_inf(double x) {
+    // CDF of the Cramer-von Mises test statistic (infinite sample limit).
+    // Accurate for practical hypothesis testing but not expected to be accurate
+    // for large values of x, e.g. x > 4, when the cdf is very close to 1.
     if (std::isnan(x)) {
         return x;
     }
