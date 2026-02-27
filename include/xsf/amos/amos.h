@@ -3757,7 +3757,7 @@ namespace amos {
             nl = n - 1;
             fnui = nl;
             k = nl;
-            for (i = 0; i < (nl + 1); i++) {
+            for (i = 0; i < nl; i++) {
                 st = s2;
                 s2 = (fnu + fnui) * rz * s2 + s1;
                 s1 = st;
