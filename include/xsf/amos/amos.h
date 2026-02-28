@@ -4481,8 +4481,8 @@ namespace amos {
             //
             s1 = w[0];
             s2 = w[1];
-            l = 3;
-            for (int l = 3; l < (nn + 1); l++) {
+            int l;
+            for (l = 3; l < (nn + 1); l++) {
                 ck = s2;
                 s2 = s1 + (ak + fnu) * rz * s2;
                 s1 = ck;
