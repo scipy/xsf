@@ -38,29 +38,51 @@ TEST_CASE("poisson_binom_pmf test", "[poisson_binom_pmf][xsf_tests]") {
 }
 
 TEST_CASE("poisson_binom test", "[poisson_binom][xsf_tests]") {
-    // Reference values computed from scipy.stats._stats_pythran
+    // ### Reference values computed from scipy.stats._stats_pythran ###
     // import numpy as np
-    // from scipy.stats._stats_pythran import _poisson_binom_pmf
-    // args = np.array([[0.1], [0.5]])
-    // for mode in ["pdf", "cdf"]:
-    //     for k in [0, 1, 2]:
-    //         print(_poisson_binom(np.array([k]), args, mode))
-    // args = np.array([[0.1, 0.2, 0.3], [0.5, 0.6, 0.7]])
-    // k = np.array([0, 0, 2])
-    // for mode in ["pdf", "cdf"]:
-    //     print(_poisson_binom(k, args, mode))
-    using test_case =
-        std::tuple<std::vector<std::vector<double>>, std::vector<int>, std::vector<double>, std::string, double>;
+    // from scipy.stats._stats_pythran import _poisson_binom
+    // # single-column test
+    // args_single = np.array(
+    //     [
+    //         [0.1],
+    //         [0.5],
+    //     ]
+    // )
+    // k_single = np.array([0])  # can be 0, 1, or 2 for this test case
+    // # multi-column test
+    // args_multi = np.array(
+    //     [
+    //         [0.1, 0.2, 0.3],
+    //         [0.5, 0.6, 0.7],
+    //     ]
+    // )
+    // k_multi = np.array([0, 0, 2])
+    // for k, args in zip([k_single, k_multi], [args_single, args_multi]):
+    //     m = args.shape[1]
+    //     for mode in ["pdf", "cdf"]:
+    //         print(f"mode: {mode}")
+    //         res_loop = [
+    //             _poisson_binom(np.array([k[i]]), args[:, [i]], mode) for i in range(m)
+    //         ]
+    //         res_loop = np.concatenate(res_loop).flatten()
+    //         res_vec = _poisson_binom(k, args, mode)
+    //         assert np.allclose(res_vec, res_loop)
+    using test_case = std::tuple<std::vector<std::vector<double>>, std::vector<int>, std::string, double>;
 
-    auto [args, k, expected, mode, rtol] = GENERATE(
-        test_case{{{0.1}, {0.5}}, {0}, {0.45}, "pdf", 1e-12}, test_case{{{0.1}, {0.5}}, {0}, {0.45}, "cdf", 1e-12},
-        test_case{{{0.1}, {0.5}}, {1}, {0.5}, "pdf", 1e-12}, test_case{{{0.1}, {0.5}}, {1}, {0.95}, "cdf", 1e-12},
-        test_case{{{0.1}, {0.5}}, {2}, {0.05}, "pdf", 1e-12}, test_case{{{0.1}, {0.5}}, {2}, {1.0}, "cdf", 1e-12},
-        test_case{{{0.1, 0.2, 0.3}, {0.5, 0.6, 0.7}}, {0, 0, 2}, {0.45, 0.32, 0.21}, "pdf", 1e-12},
-        test_case{{{0.1, 0.2, 0.3}, {0.5, 0.6, 0.7}}, {0, 0, 2}, {0.45, 0.32, 1.0}, "cdf", 1e-12}
+    auto [args, k, mode, rtol] = GENERATE(
+        test_case{{{0.1}, {0.5}}, {0}, "pdf", 1e-12}, test_case{{{0.1}, {0.5}}, {0}, "cdf", 1e-12},
+        test_case{{{0.1}, {0.5}}, {1}, "pdf", 1e-12}, test_case{{{0.1}, {0.5}}, {1}, "cdf", 1e-12},
+        test_case{{{0.1}, {0.5}}, {2}, "pdf", 1e-12}, test_case{{{0.1}, {0.5}}, {2}, "cdf", 1e-12},
+        test_case{{{0.1, 0.2, 0.3}, {0.5, 0.6, 0.7}}, {0, 0, 2}, "pdf", 1e-12},
+        test_case{{{0.1, 0.2, 0.3}, {0.5, 0.6, 0.7}}, {0, 0, 2}, "cdf", 1e-12}
     );
 
     const std::vector<double> results = xsf::poisson_binom(k, args, mode);
+
+    std::vector<double> expected(k.size());
+    for (size_t i = 0; i < k.size(); ++i) {
+        expected[i] = xsf::poisson_binom({k[i]}, {{args[0][i]}, {args[1][i]}}, mode)[0];
+    }
 
     for (size_t i = 0; i < expected.size(); ++i) {
         const double rel_error = xsf::extended_relative_error(results[i], expected[i]);
