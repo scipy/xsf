@@ -214,7 +214,7 @@ namespace cephes {
 
             /* Reduce the argument to sine */
             x_shift = std::fmod(x, 4);
-            small_term = -SQRT2PI * sin(0.5 * M_PI * x_shift);
+            small_term = -SQRT2OPI * sin(0.5 * M_PI * x_shift);
             small_term *= xsf::cephes::lanczos_sum_expg_scaled(x + 1) * xsf::cephes::zeta(x + 1, 1);
 
             /* Group large terms together to prevent overflow */
