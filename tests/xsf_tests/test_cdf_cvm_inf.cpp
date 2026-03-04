@@ -1,7 +1,7 @@
 #include "../testing_utils.h"
 #include <xsf/stats.h>
 
-TEST_CASE("cvm_cdf_inf test", "[cvm_cdf_inf][xsf_tests]") {
+TEST_CASE("cdf_cvm_inf test", "[cdf_cvm_inf][xsf_tests]") {
     // Reference values computed with scipy.stats._hypotests._cdf_cvm_inf
     // from scipy.stats._hypotests import _cdf_cvm_inf
     // xs = np.linspace(2e-3, 1-2e-3, 51)
@@ -31,7 +31,7 @@ TEST_CASE("cvm_cdf_inf test", "[cvm_cdf_inf][xsf_tests]") {
     for (int i = 0; i < n_points; ++i) {
         const double x = xs[i];
         const double ref = expected[i];
-        const double result = xsf::cvm_cdf_inf(x);
+        const double result = xsf::cdf_cvm_inf(x);
         const auto rel_error = xsf::extended_relative_error(result, ref);
 
         CAPTURE(i, x, result, ref, rtol, rel_error);
