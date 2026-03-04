@@ -3356,11 +3356,7 @@ namespace amos {
         t1 = (i1mach[13] - 1) * d1mach[4] * (std::log(10) / std::log(2));
         t1 = std::fmin(std::fmax(t1, 12.0), 60.0);
         t2 = tth * t1 - 6.0;
-        if (xx == 0.) {
-            t1 = hpi;
-        } else {
-            t1 = std::fabs(std::atan(yy / xx));
-        }
+        t1 = std::fabs(std::atan2(yy, xx));
         if (t2 <= caz) {
             //
             // FORWARD RECURRENCE LOOP WHEN ABS(Z) >= R2
