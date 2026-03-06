@@ -3,11 +3,7 @@
 
 namespace {
 
-const int n_points = 51;
-const double start = 2e-3;
-const double end = 1.0 - 2e-3;
-
-std::vector<double> make_xs() {
+std::vector<double> make_xs(double start, double end, int n_points) {
     std::vector<double> xs(n_points);
     for (int i = 0; i < n_points; ++i) {
         xs[i] = start + (end - start) * i / (n_points - 1);
@@ -15,10 +11,8 @@ std::vector<double> make_xs() {
     return xs;
 }
 
-const std::vector<double> xs = make_xs();
-
-void check_cdf(const std::vector<double> &expected, int n, double rtol = 1e-12) {
-    for (int i = 0; i < n_points; ++i) {
+void check_cdf(const std::vector<double> &xs, const std::vector<double> &expected, int n, double rtol = 1e-12) {
+    for (int i = 0; i < xs.size(); ++i) {
         const double result = xsf::cdf_cvm(xs[i], n);
         const auto rel_error = xsf::extended_relative_error(result, expected[i]);
         CAPTURE(i, xs[i], n, result, expected[i], rtol, rel_error);
@@ -56,67 +50,76 @@ const std::vector<double> expected_n_inf = {
 
 const std::vector<double> expected_n_10 = {
     0.,
-    0.0030589048899929954,
-    0.0673304065708938,
-    0.18574849404342234,
-    0.30720490368650677,
-    0.413925988371887,
-    0.5034242973475932,
-    0.5775415452429734,
-    0.6389054618066644,
-    0.6899338489134077,
-    0.7326228341757939,
-    0.7685622230100523,
-    0.7990048296623964,
-    0.8249378564805038,
-    0.8471428982610355,
-    0.8662430863316606,
-    0.8827391798704515,
-    0.8970369467842458,
-    0.9094679107388989,
-    0.9203051143603324,
-    0.9297751544920294,
-    0.9380674282130427,
-    0.9453412862104374,
-    0.9517316094440662,
-    0.9573531915590892,
-    0.9623042112467177,
-    0.9666690064825132,
-    0.9705203093627187,
-    0.9739210610063278,
-    0.9769258969528326,
-    0.9795823719303957,
-    0.9819319768033516,
-    0.9840109884777481,
-    0.9858511844883349,
-    0.9874804471351779,
-    0.9889232768160711,
-    0.9902012301965315,
-    0.991333295767238,
-    0.9923362169336412,
-    0.9932247708982962,
-    0.9940120101088166,
-    0.994709471861316,
-    0.9953273607013794,
-    0.9958747074997525,
-    0.9963595084585039,
-    0.9967888467950952,
-    0.9971689994334287,
-    0.9975055306845169,
-    0.997803374610999,
-    0.9980669075283305,
-    0.9983000118924547
+    0.30142064363602883,
+    0.6171562716813203,
+    0.7781501473708698,
+    0.8657378548074194,
+    0.9166296801414354,
+    0.947471730015775,
+    0.9666408872017962,
+    0.9787337815065694,
+    0.9864289403414447,
+    0.9913489626856629,
+    0.9945012589632174,
+    0.9965211845209974,
+    0.9978135194658495,
+    0.9986378194232566,
+    0.999161174297481,
+    0.999491369374648,
+    0.9996979717974336,
+    0.9998258481904505,
+    0.9999038787884099,
+    0.9999505957510425,
+    0.9999778393308453,
+    0.9999931309483924,
+    1.000001213309659,
+    1.0000050487947476,
+    1.0000064653628036,
+    1.0000065731540428,
+    1.000006032108419,
+    1.0000052229847072,
+    1.000004355929261,
+    1.0000035388284674,
+    1.0000028198915138,
+    1.000002213823316,
+    1.000001717629139,
+    1.0000013199320752,
+    1.0000010062820168,
+    1.0000007620926568,
+    1.000000573851733,
+    1.0000004299797818,
+    1.0000003207931465,
+    1.0000002384261597,
+    1.000000176611692,
+    1.0000001304297244,
+    1.0000000960629287,
+    1.0000000705776748,
+    1.000000051737207,
+    1.,
+    1.,
+    1.,
+    1.,
+    1.
 };
+
+const int n_points = 51;
+const std::vector<double> xs_n_inf = make_xs(2e-3, 1.0 - 2e-3, n_points);
+// For n=10, the finite-sample support is [1/(12*n), n/3] = [1/120, 10/3].
+// We sample 10% beyond both bounds to include points where the CDF is clamped to 0 and 1.
+// For large values of x, expected CDF values exceed 1.0 due to the limitations of the approximation
+// by Csörgő and Faraway (1996) implemented in xsf::cdf_cvm
+const int n = 10;
+const std::vector<double> xs_n_10 = make_xs((1.0 / (12.0 * n)) * (1.0 - 1e-1), (n / 3.0) * (1.0 + 1e-1), n_points);
 
 } // namespace
 
-TEST_CASE("cdf_cvm n=10", "[cdf_cvm][xsf_tests]") { check_cdf(expected_n_10, 10); }
-TEST_CASE("cdf_cvm n=inf", "[cdf_cvm][xsf_tests]") { check_cdf(expected_n_inf, -1); }
+TEST_CASE("cdf_cvm n=10", "[cdf_cvm][xsf_tests]") { check_cdf(xs_n_10, expected_n_10, 10); }
+TEST_CASE("cdf_cvm n=inf", "[cdf_cvm][xsf_tests]") { check_cdf(xs_n_inf, expected_n_inf, -1); }
 TEST_CASE("cdf_cvm default parameter (n=-1)", "[cdf_cvm][xsf_tests]") {
     for (int i = 0; i < n_points; ++i) {
-        const double res_default = xsf::cdf_cvm(xs[i]);
-        const double res_explicit = xsf::cdf_cvm(xs[i], -1);
-        CAPTURE(i, xs[i], res_default, res_explicit);
+        const double res_default = xsf::cdf_cvm(xs_n_inf[i]);
+        const double res_explicit = xsf::cdf_cvm(xs_n_inf[i], -1);
+        CAPTURE(i, xs_n_inf[i], res_default, res_explicit);
         REQUIRE(res_default == res_explicit);
     }
 }
