@@ -213,13 +213,13 @@ inline std::vector<double> poisson_binom_pmf(const std::vector<double> &p) {
     pmf[1] = p[0];
     for (std::size_t i = 1; i < n; ++i) {
         std::vector<double> tmp(i + 1);
-        for (std::size_t j = 0; j <= i; ++j) {
+        for (std::size_t j = 0; j < i + 1; ++j) {
             tmp[j] = pmf[j] * p[i];
         }
-        for (std::size_t j = 0; j <= i; ++j) {
+        for (std::size_t j = 0; j < i + 1; ++j) {
             pmf[j] *= (1.0 - p[i]);
         }
-        for (std::size_t j = 0; j <= i; ++j) {
+        for (std::size_t j = 0; j < i + 1; ++j) {
             pmf[j + 1] += tmp[j];
         }
     }
