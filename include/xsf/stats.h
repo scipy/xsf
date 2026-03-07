@@ -124,18 +124,15 @@ inline double psi1_mod(double x) {
 }
 
 inline double cdf_cvm(double x, int n = -1) {
-    // Calculate the cdf of the Cramér-von Mises statistic for a finite sample
-    // size n. If n=-1, use the asymptotic cdf (n=inf).
-
+    // Calculate the CDF of the Cramér-von Mises statistic for a finite sample
+    // size n. If n=-1, use the asymptotic CDF (n=inf).
+    //
     // See equation 1.8 in Csörgő, S. and Faraway, J. (1996) for finite samples,
-    // 1.2 for the asymptotic cdf.
-
-    // The function is not expected to be accurate for large values of x, say
-    // x > 2, when the cdf is very close to 1 and it might return values > 1.
-    // Moreover, it is not accurate for small values of n, especially close to the
-    // bounds of the distribution's domain, [1/(12*n), n/3], where the value jumps to 0
-    // and 1, respectively. These are limitations of the approximation by Csörgő
-    // and Faraway (1996) implemented in this function.
+    // 1.2 for the asymptotic CDF.
+    //
+    // For finite n, the approximation is less accurate near the support boundaries
+    // [1/(12*n), n/3] and for larger x values where the CDF is close to 1.
+    // The returned value is clipped to [0, 1].
     if (n == -1) {
         return cdf_cvm_inf(x);
     }
@@ -147,7 +144,8 @@ inline double cdf_cvm(double x, int n = -1) {
     if (x >= upper) {
         return 1.0;
     }
-    return cdf_cvm_inf(x) * (1.0 + lower) + psi1_mod(x) / n;
+    double cdf = cdf_cvm_inf(x) * (1.0 + lower) + psi1_mod(x) / n;
+    return std::min(std::max(cdf, 0.0), 1.0);
 }
 
 inline double fdtr(double a, double b, double x) { return cephes::fdtr(a, b, x); }
