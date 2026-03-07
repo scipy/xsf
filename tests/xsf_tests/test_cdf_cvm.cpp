@@ -23,13 +23,22 @@ void check_cdf(const std::vector<double> &xs, const std::vector<double> &expecte
 // Reference values computed with scipy.stats._hypotests._cdf_cvm_inf
 // import numpy as np
 // from scipy.stats._hypotests import _cdf_cvm, _cdf_cvm_inf
-//
+
 // np.set_printoptions(precision=20)
-// xs = np.linspace(2e-3, 1 - 2e-3, 51)
-// expected_n_inf = _cdf_cvm(xs)
-// expected_n_10 = _cdf_cvm(xs, n=10)
-// assert np.allclose(expected_n_inf, _cdf_cvm_inf(xs))
+
+// print("n=inf")
+// xs_n_inf = np.linspace(2e-3, 1 - 2e-3, 51)
+// expected_n_inf = _cdf_cvm(xs_n_inf)
+// assert np.allclose(expected_n_inf, _cdf_cvm_inf(xs_n_inf))
 // print("expected_n_inf:", expected_n_inf)
+
+// print("\nn=10")
+// n = 10  # support is [1/(12*n), n/3]
+// lower = 1 / (12 * n)
+// upper = n / 3
+// eps_abs = 0.1 * (upper - lower)
+// xs_n_10 = np.linspace(lower - eps_abs, upper + eps_abs, 51)
+// expected_n_10 = np.clip(_cdf_cvm(xs_n_10, n=10), 0, 1)
 // print("expected_n_10:", expected_n_10)
 
 const std::vector<double> expected_n_inf = {
@@ -50,51 +59,51 @@ const std::vector<double> expected_n_inf = {
 
 const std::vector<double> expected_n_10 = {
     0.,
-    0.30142064363602883,
-    0.6171562716813203,
-    0.7781501473708698,
-    0.8657378548074194,
-    0.9166296801414354,
-    0.947471730015775,
-    0.9666408872017962,
-    0.9787337815065694,
-    0.9864289403414447,
-    0.9913489626856629,
-    0.9945012589632174,
-    0.9965211845209974,
-    0.9978135194658495,
-    0.9986378194232566,
-    0.999161174297481,
-    0.999491369374648,
-    0.9996979717974336,
-    0.9998258481904505,
-    0.9999038787884099,
-    0.9999505957510425,
-    0.9999778393308453,
-    0.9999931309483924,
-    1.000001213309659,
-    1.0000050487947476,
-    1.0000064653628036,
-    1.0000065731540428,
-    1.000006032108419,
-    1.0000052229847072,
-    1.000004355929261,
-    1.0000035388284674,
-    1.0000028198915138,
-    1.000002213823316,
-    1.000001717629139,
-    1.0000013199320752,
-    1.0000010062820168,
-    1.0000007620926568,
-    1.000000573851733,
-    1.0000004299797818,
-    1.0000003207931465,
-    1.0000002384261597,
-    1.000000176611692,
-    1.0000001304297244,
-    1.0000000960629287,
-    1.0000000705776748,
-    1.000000051737207,
+    0.,
+    0.,
+    0.,
+    0.,
+    0.26671805597982823,
+    0.6194519411038519,
+    0.7894518664504734,
+    0.87762684010206,
+    0.926884872096052,
+    0.9556668307472429,
+    0.9729196588715867,
+    0.9834106045043685,
+    0.9898395691044443,
+    0.9937938275270536,
+    0.996228007757172,
+    0.9977243562086301,
+    0.9986410813136646,
+    0.9991996874665492,
+    0.9995374987804108,
+    0.9997397024352754,
+    0.9998590871289252,
+    0.9999282800630996,
+    0.9999673639639962,
+    0.9999886286430856,
+    0.9999995369701493,
+    1.,
+    1.,
+    1.,
+    1.,
+    1.,
+    1.,
+    1.,
+    1.,
+    1.,
+    1.,
+    1.,
+    1.,
+    1.,
+    1.,
+    1.,
+    1.,
+    1.,
+    1.,
+    1.,
+    1.,
     1.,
     1.,
     1.,
@@ -103,13 +112,18 @@ const std::vector<double> expected_n_10 = {
 };
 
 const int n_points = 51;
+// Case: n=inf
 const std::vector<double> xs_n_inf = make_xs(2e-3, 1.0 - 2e-3, n_points);
+// Case: n=10
 // For n=10, the finite-sample support is [1/(12*n), n/3] = [1/120, 10/3].
-// We sample 10% beyond both bounds to include points where the CDF is clamped to 0 and 1.
-// For large values of x, expected CDF values exceed 1.0 due to the limitations of the approximation
-// by Csörgő and Faraway (1996) implemented in xsf::cdf_cvm
+// This interval is extended symmetrically by +/- eps_abs, where
+// eps_abs = 10% of the support width (upper - lower), so the test
+// includes points outside the support where cdf_cvm should be 0 or 1.
 const int n = 10;
-const std::vector<double> xs_n_10 = make_xs((1.0 / (12.0 * n)) * (1.0 - 1e-1), (n / 3.0) * (1.0 + 1e-1), n_points);
+const double lower = 1.0 / (12.0 * n);
+const double upper = n / 3.0;
+const double eps_abs = 0.1 * (upper - lower);
+const std::vector<double> xs_n_10 = make_xs(lower - eps_abs, upper + eps_abs, n_points);
 
 } // namespace
 
