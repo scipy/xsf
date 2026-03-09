@@ -156,23 +156,27 @@ std::string get_platform_str() {
 }
 
 template <typename T = double>
-std::vector<T> linspace(T start, T end, size_t n_points) {
-    // Generate n_points evenly spaced points in [start, end].
-    // Same as np.linspace(start, end, n_points) in Python.
-    std::vector<T> xs(n_points);
+std::vector<T> linspace(T start, T end, std::size_t n) {
+    // Generate n evenly spaced points in [start, end].
+    // Same as np.linspace(start, end, n) in Python.
+    std::vector<T> xs(n);
 
-    if (n_points == 1) {
+    if (n == 0) {
+        return xs;
+    }
+
+    if (n == 1) {
         xs[0] = start;
         return xs;
     }
 
-    T step = (end - start) / static_cast<T>(n_points - 1);
+    T step = (end - start) / static_cast<T>(n - 1);
 
-    for (size_t i = 0; i < n_points - 1; ++i) {
+    for (std::size_t i = 0; i < n - 1; ++i) {
         xs[i] = start + step * i;
     }
 
-    xs[n_points - 1] = end;
+    xs[n - 1] = end;
 
     return xs;
 }
