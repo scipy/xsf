@@ -29,10 +29,7 @@ TEST_CASE("assoc_legendre_p norm m0 gh-78", "[assoc_legendre_p][xsf_tests]") {
     const double left = -1.0;
     const double right = 1.0;
 
-    std::vector<double> z(num_points);
-    for (int i = 0; i < num_points; ++i) {
-        z[i] = left + (right - left) * i / (num_points - 1);
-    }
+    const std::vector<double> z = linspace(left, right, num_points);
 
     for (int n = 0; n <= n_max; ++n) {
         for (const auto z_val : z) {

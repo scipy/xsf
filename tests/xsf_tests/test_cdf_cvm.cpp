@@ -3,14 +3,6 @@
 
 namespace {
 
-std::vector<double> make_xs(double start, double end, int n_points) {
-    std::vector<double> xs(n_points);
-    for (int i = 0; i < n_points; ++i) {
-        xs[i] = start + (end - start) * i / (n_points - 1);
-    }
-    return xs;
-}
-
 void check_cdf(const std::vector<double> &xs, const std::vector<double> &expected, int n, double rtol = 1e-12) {
     for (int i = 0; i < xs.size(); ++i) {
         const double result = xsf::cdf_cvm(xs[i], n);
@@ -113,7 +105,7 @@ const std::vector<double> expected_n_10 = {
 
 const int n_points = 51;
 // Case: n=inf
-const std::vector<double> xs_n_inf = make_xs(2e-3, 1.0 - 2e-3, n_points);
+const std::vector<double> xs_n_inf = linspace(2e-3, 1.0 - 2e-3, n_points);
 // Case: n=10
 // For n=10, the finite-sample support is [1/(12*n), n/3] = [1/120, 10/3].
 // This interval is extended symmetrically by +/- eps_abs, where
@@ -123,7 +115,7 @@ const int n = 10;
 const double lower = 1.0 / (12.0 * n);
 const double upper = n / 3.0;
 const double eps_abs = 0.1 * (upper - lower);
-const std::vector<double> xs_n_10 = make_xs(lower - eps_abs, upper + eps_abs, n_points);
+const std::vector<double> xs_n_10 = linspace(lower - eps_abs, upper + eps_abs, n_points);
 
 } // namespace
 

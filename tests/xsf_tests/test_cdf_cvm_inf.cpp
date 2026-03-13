@@ -10,11 +10,7 @@ TEST_CASE("cdf_cvm_inf test", "[cdf_cvm_inf][xsf_tests]") {
     const int n_points = 51;
     const double start = 2e-3;
     const double end = 1.0 - 2e-3;
-    std::vector<double> xs(n_points);
-    for (int i = 0; i < n_points; ++i) {
-        xs[i] = start + (end - start) * i / (n_points - 1);
-    }
-
+    const std::vector<double> xs = linspace(start, end, n_points);
     const std::vector<double> expected = {
         1.14362132e-27, 5.17604145e-03, 7.65622444e-02, 1.97103480e-01, 3.17803769e-01, 4.22913972e-01, 5.10702567e-01,
         5.83253490e-01, 6.43255891e-01, 6.93126921e-01, 7.34842094e-01, 7.69965969e-01, 7.99727106e-01, 8.25091357e-01,
