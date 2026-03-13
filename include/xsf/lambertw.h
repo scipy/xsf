@@ -89,7 +89,7 @@ XSF_HOST_DEVICE inline std::complex<double> lambertw(std::complex<double> z, lon
         // Split out this case because the asymptotic series blows up
         return OMEGA;
     }
-    if (z == -EXPN1 &&  (k == 0 || k == -1)) {
+    if (z == -EXPN1 && (k == 0 || k == -1)) {
         // Split out this case because Halley's method blows up
         return -1.0;
     }
