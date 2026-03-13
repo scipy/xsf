@@ -16,6 +16,7 @@
 #include "xsf/cephes/tukey.h"
 #include "xsf/erf.h"
 #include "xsf/gamma.h"
+#include <numeric>
 
 namespace xsf {
 
@@ -283,6 +284,87 @@ inline double pdtr(double k, double m) { return cephes::pdtr(k, m); }
 inline double pdtrc(double k, double m) { return cephes::pdtrc(k, m); }
 
 inline double pdtri(int k, double y) { return cephes::pdtri(k, y); }
+
+inline int64_t comb(int64_t n, int64_t k) {
+    // binomial coefficient n choose k, i.e. n! / (k! * (n - k)!)
+    if (k > n - k)
+        k = n - k;
+    int64_t result = 1;
+    for (int64_t i = 0; i < k; ++i) {
+        result = result * (n - i) / (i + 1);
+    }
+    return result;
+}
+
+/*
+ * Compute the exact p-value of the Cramer-von Mises two-sample test
+ * for a given value s of the test statistic.
+ * m and n are the sizes of the samples.
+ *
+ * [1] Y. Xiao, A. Gordon, and A. Yakovlev, "A C++ Program for
+ *     the Cramér-Von Mises Two-Sample Test", J. Stat. Soft.,
+ *     vol. 17, no. 8, pp. 1-15, Dec. 2006.
+ * [2] T. W. Anderson "On the Distribution of the Two-Sample Cramer-von Mises
+ *     Criterion," The Annals of Mathematical Statistics, Ann. Math. Statist.
+ *     33(3), 1148-1159, (September, 1962)
+ */
+inline double pval_cvm_2samp_exact(double s, int64_t m, int64_t n) {
+    // [1, p. 3]
+    int64_t lcm = std::lcm(m, n);
+    // [1, p. 4], below eq. 3
+    int64_t a = lcm / m;
+    int64_t b = lcm / n;
+    // Combine Eq. 9 in [2] with Eq. 2 in [1] and solve for $\zeta$
+    // Hint: `s` is $U$ in [2], and $T_2$ in [1] is $T$ in [2]
+    int64_t mn = m * n;
+    // Uses double floor division since s is double
+    int64_t zeta = std::floor((lcm * lcm * (m + n) * (6.0 * s - mn * (4.0 * mn - 1))) / (6.0 * mn * mn));
+    int64_t combinations = comb(m + n, m);
+    // Each frequency table maps value -> frequency,
+    // mirroring the 2-row numpy array where row 0 = values, row 1 = frequencies
+    using FreqTable = std::map<int64_t, int64_t>;
+    // the frequency table of g_{u, v}^+ defined in [1, p. 6]
+    // gs[0] = {0: 1}, gs[1..m] = empty
+    std::vector<FreqTable> gs(m + 1);
+    gs[0][0] = 1;
+    for (int64_t u = 0; u < n + 1; ++u) {
+        std::vector<FreqTable> next_gs;
+        FreqTable tmp;
+        for (int64_t v = 0; v < m + 1; ++v) {
+            // Calculate g recursively with eq. 11 in [1]. Even though it
+            // doesn't look like it, this also does 12/13 (all of Algorithm 1).
+            const FreqTable &g = gs[v];
+            // Merge tmp and g: for common keys sum frequencies,
+            // keep unique keys from both sides.
+            // (equivalent to np.intersect1d + concatenate logic)
+            FreqTable merged;
+            for (const auto &[key, freq] : tmp) {
+                merged[key] += freq;
+            }
+            for (const auto &[key, freq] : g) {
+                merged[key] += freq;
+            }
+            int64_t diff = a * v - b * u;
+            int64_t res = diff * diff;
+            // tmp[0] += res  (shift all keys by res)
+            tmp.clear();
+            for (const auto &[key, freq] : merged) {
+                tmp[key + res] += freq;
+            }
+            next_gs.push_back(tmp);
+        }
+        gs = std::move(next_gs);
+    }
+    // (equivalent to return np.float64(np.sum(freq[value >= zeta]) / combinations))
+    const FreqTable &final_table = gs[m];
+    int64_t sum_freq = 0;
+    for (const auto &[value, freq] : final_table) {
+        if (value >= zeta) {
+            sum_freq += freq;
+        }
+    }
+    return static_cast<double>(sum_freq) / static_cast<double>(combinations);
+}
 
 inline double smirnov(int n, double x) { return cephes::smirnov(n, x); }
 
