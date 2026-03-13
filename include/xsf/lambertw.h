@@ -90,8 +90,11 @@ XSF_HOST_DEVICE inline std::complex<double> lambertw(std::complex<double> z, lon
         return OMEGA;
     }
     if (z == -EXPN1 && (k == 0 || k == -1)) {
-        // Split out this case because Halley's method blows up
-        return -1.0;
+        // Split out this case because Halley's method blows up.
+        // The imaginary return value is calculated from mpmath using the
+        // double precision floating point value -0.36787944117144233,
+        // which is slightly less than the mathematical value of -1/e.
+        return std::complex<double>(-1.0, (k ? -1:+1) * 8.220079714836618e-9);
     }
 
     absz = std::abs(z);
