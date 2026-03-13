@@ -284,6 +284,67 @@ inline double pdtrc(double k, double m) { return cephes::pdtrc(k, m); }
 
 inline double pdtri(int k, double y) { return cephes::pdtri(k, y); }
 
+inline std::vector<double> poisson_binom_pmf(const std::vector<double> &p) {
+    // PMF of Poisson binomial distribution with Bernoulli probabilities p.
+    if (p.empty()) {
+        return {1.0}; // with zero Bernoulli trials return 1
+    }
+    std::size_t n = p.size();
+    std::vector<double> pmf(n + 1, 0.0);
+    pmf[0] = 1.0 - p[0];
+    pmf[1] = p[0];
+    for (std::size_t i = 1; i < n; ++i) {
+        std::vector<double> tmp(i + 1);
+        for (std::size_t j = 0; j < i + 1; ++j) {
+            tmp[j] = pmf[j] * p[i];
+        }
+        for (std::size_t j = 0; j < i + 1; ++j) {
+            pmf[j] *= (1.0 - p[i]);
+        }
+        for (std::size_t j = 0; j < i + 1; ++j) {
+            pmf[j + 1] += tmp[j];
+        }
+    }
+    return pmf;
+}
+
+inline std::vector<double>
+poisson_binom(const std::vector<int> &k, const std::vector<std::vector<double>> &args, const std::string &tp) {
+    // PMF/CDF of Poisson binomial distribution
+    // k    - arguments, length m
+    // args - shape (n, m), args[j][i] = probability of Bernoulli trial j `p_j` for batch i
+    assert(!args.empty());
+    std::size_t n = args.size();    // number of shapes
+    std::size_t m = args[0].size(); // batch size
+    assert(k.size() == m);
+
+    const bool is_cdf = (tp == "cdf");
+
+    std::map<std::vector<double>, std::vector<double>> cache;
+    std::vector<double> out(m, 0.0);
+
+    for (std::size_t i = 0; i < m; ++i) {
+        // extract probability vector for batch i
+        std::vector<double> p(n);
+        for (std::size_t j = 0; j < n; ++j) {
+            p[j] = args[j][i];
+        }
+
+        // compute and cache PMF/CDF if not seen before
+        if (cache.find(p) == cache.end()) {
+            std::vector<double> pmf = poisson_binom_pmf(p);
+            if (is_cdf) {
+                for (std::size_t j = 1; j < pmf.size(); ++j) {
+                    pmf[j] += pmf[j - 1];
+                }
+            }
+            cache[p] = pmf;
+        }
+        out[i] = cache[p][k[i]];
+    }
+    return out;
+}
+
 inline double smirnov(int n, double x) { return cephes::smirnov(n, x); }
 
 inline double smirnovc(int n, double x) { return cephes::smirnovc(n, x); }
