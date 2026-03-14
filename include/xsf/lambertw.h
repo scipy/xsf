@@ -94,7 +94,7 @@ XSF_HOST_DEVICE inline std::complex<double> lambertw(std::complex<double> z, lon
         // The imaginary return value is calculated from mpmath using the
         // double precision floating point value -0.36787944117144233,
         // which is slightly less than the mathematical value of -1/e.
-        return std::complex<double>(-1.0, (k ? -1:+1) * 8.220079714836618e-9);
+        return std::complex<double>(-1.0, (k ? -1 : +1) * 8.220079714836618e-9);
     }
 
     absz = std::abs(z);
