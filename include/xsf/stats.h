@@ -1,6 +1,7 @@
 #pragma once
 
 #include "xsf/bessel.h"
+#include "xsf/binom.h"
 #include "xsf/cephes/bdtr.h"
 #include "xsf/cephes/chdtr.h"
 #include "xsf/cephes/fdtr.h"
@@ -285,17 +286,6 @@ inline double pdtrc(double k, double m) { return cephes::pdtrc(k, m); }
 
 inline double pdtri(int k, double y) { return cephes::pdtri(k, y); }
 
-inline int64_t comb(int64_t n, int64_t k) {
-    // binomial coefficient n choose k, i.e. n! / (k! * (n - k)!)
-    if (k > n - k)
-        k = n - k;
-    int64_t result = 1;
-    for (int64_t i = 0; i < k; ++i) {
-        result = result * (n - i) / (i + 1);
-    }
-    return result;
-}
-
 /*
  * Compute the exact p-value of the Cramer-von Mises two-sample test
  * for a given value s of the test statistic.
@@ -319,7 +309,7 @@ inline double pval_cvm_2samp_exact(double s, int64_t m, int64_t n) {
     int64_t mn = m * n;
     // Uses double floor division since s is double
     int64_t zeta = std::floor((lcm * lcm * (m + n) * (6.0 * s - mn * (4.0 * mn - 1))) / (6.0 * mn * mn));
-    int64_t combinations = comb(m + n, m);
+    int64_t combinations = static_cast<int64_t>(xsf::binom(static_cast<double>(m + n), static_cast<double>(m)));
     // Each frequency table maps value -> frequency,
     // mirroring the 2-row numpy array where row 0 = values, row 1 = frequencies
     using FreqTable = std::map<int64_t, int64_t>;
