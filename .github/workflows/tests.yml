@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: prefix-dev/setup-pixi@92815284c57faa15cd896c4d5cfb2d59f32dc43d # v0.8.3
         with:
-          pixi-version: v0.45.0
+          pixi-version: v0.48.2
           cache: true
           environments: ${{ matrix.environment }}
       - name:  Prepare compiler cache
@@ -44,12 +44,22 @@ jobs:
           path: ${{ steps.prep-ccache.outputs.dir }}
           key:  ${{ github.workflow }}-ccache-${{ matrix.environment }}-${{ matrix.runs-on }}-${{ steps.prep-ccache.outputs.timestamp }}
           restore-keys: ${{ github.workflow }}-ccache-${{ matrix.environment }}-${{ matrix.runs-on }}-
+      - name: Determine number of workers
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            echo "NUM_WORKERS=$(nproc)" >> $GITHUB_ENV
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            echo "NUM_WORKERS=$(sysctl -n hw.ncpu)" >> $GITHUB_ENV
+          elif [[ "$RUNNER_OS" == "Windows" ]]; then
+            echo "NUM_WORKERS=$($Env:NUMBER_OF_PROCESSORS)" >> $env:GITHUB_ENV
+          fi
+        shell: bash
       - name: Build xsf
-        run: pixi run --environment=tests-ci build-tests-ci
+        run: pixi run --environment=tests-ci build-tests-ci $NUM_WORKERS
       - name: Run tests
-        run: pixi run --skip-deps --environment=tests-ci tests-ci
+        run: pixi run --skip-deps --environment=tests-ci tests-ci $NUM_WORKERS
       - name: Generate converage
-        run: pixi run --skip-deps --environment=tests-ci coverage
+        run: pixi run --skip-deps --environment=tests-ci coverage $NUM_WORKERS
       - name: Upload HTML coverage report
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882  # v4.4.3
         with:
