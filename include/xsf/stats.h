@@ -302,6 +302,16 @@ inline float tukeylambdacdf(float x, double lmbda) {
 
 template <typename InputMat, typename OutputMat>
 XSF_HOST_DEVICE inline void poisson_binom_pmf_all(InputMat p, OutputMat res) {
+    /* Outputs the full pmf of a Poisson-Binomial distribution
+     *
+     * p should be an std::mdspan view of a 1d array of length n containing
+     * the success probabilities for the n bernoulli trials. res should be
+     * a std::mdspan view of 1d array of zeros of length n + 1. It is up to
+     * the caller to get pass valid values for p and res.
+     *
+     * Upon completion, res[k] will contain the probability of observing k
+     * successes for k from 0 to n.
+     */
     using T = typename OutputMat::value_type;
     auto n = p.extent(0);
     auto out_size = res.extent(0);
