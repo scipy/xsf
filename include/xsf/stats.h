@@ -307,27 +307,26 @@ XSF_HOST_DEVICE inline void poisson_binom_pmf_all(InputMat p, OutputMat res) {
     auto out_size = res.extent(0);
 
     if (out_size != n + 1) {
-	set_error("poisson_binom_pmf", SF_ERROR_MEMORY, "out.shape[-1] must be p.shape[-1] + 1");
+        set_error("poisson_binom_pmf", SF_ERROR_MEMORY, "out.shape[-1] must be p.shape[-1] + 1");
     }
 
     if (n == 0) {
         res[0] = T(1.0);
-	return;
+        return;
     }
 
     res[0] = T(1.0) - p[0];
     res[1] = p[0];
 
     for (decltype(n) i = 1; i < n; i++) {
-	T p_i = p[i];
-	T q_i = 1 - p_i;
-	for (decltype(n) j = i + 1; j >= 1; j--) {
-	    T tmp = res[j - 1] * p_i;
-	    res[j - 1] *= q_i;
-	    res[j] += tmp;
-	}
+        T p_i = p[i];
+        T q_i = 1 - p_i;
+        for (decltype(n) j = i + 1; j >= 1; j--) {
+            T tmp = res[j - 1] * p_i;
+            res[j - 1] *= q_i;
+            res[j] += tmp;
+        }
     }
 }
-
 
 } // namespace xsf
