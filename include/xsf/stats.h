@@ -3,6 +3,7 @@
 #include "xsf/bessel.h"
 #include "xsf/cephes/bdtr.h"
 #include "xsf/cephes/chdtr.h"
+#include "xsf/cephes/const.h"
 #include "xsf/cephes/fdtr.h"
 #include "xsf/cephes/gdtr.h"
 #include "xsf/cephes/incbet.h"
@@ -298,6 +299,72 @@ inline double tukeylambdacdf(double x, double lmbda) { return cephes::tukeylambd
 
 inline float tukeylambdacdf(float x, double lmbda) {
     return tukeylambdacdf(static_cast<double>(x), static_cast<double>(lmbda));
+}
+
+inline double von_mises_cdf_series(double k, double x, unsigned int p) {
+    double s, c, sn, cn, R, V;
+    unsigned int n;
+    s = std::sin(x);
+    c = std::cos(x);
+    sn = std::sin(p * x);
+    cn = std::cos(p * x);
+    R = 0;
+    V = 0;
+    for (n = p - 1; n > 0; --n) {
+        double sn_new = sn * c - cn * s;
+        double cn_new = cn * c + sn * s;
+        sn = sn_new;
+        cn = cn_new;
+        R = k / (2 * n + k * R);
+        V = R * (sn / n + V);
+    }
+    return 0.5 + x / (2.0 * M_PI) + V / M_PI;
+}
+
+inline double von_mises_cdf_normalapprox(double k, double x) {
+    double b = xsf::cephes::detail::SQRT2OPI / cephes::i0e(k); // Check for negative k
+    double z = b * std::sin(x / 2.0);
+    return ndtr(z);
+}
+
+inline std::vector<double> von_mises_cdf(const std::vector<double> &k_obj, const std::vector<double> &x_obj) {
+    // Compute the CDF of the von Mises distribution with concentration parameter k at angle x
+
+    if (k_obj.size() != 1 && x_obj.size() != 1 && k_obj.size() != x_obj.size()) {
+        throw std::invalid_argument("Incompatible sizes for broadcasting.");
+    }
+
+    bool zerodim = (k_obj.size() == 1 && x_obj.size() == 1);
+    size_t n = std::max(k_obj.size(), x_obj.size());
+    std::vector<double> k(n), x(n);
+    for (size_t i = 0; i < n; ++i) {
+        k[i] = k_obj.size() == 1 ? k_obj[0] : k_obj[i];
+        x[i] = x_obj.size() == 1 ? x_obj[0] : x_obj[i];
+    }
+    std::vector<double> ix(n);
+    for (size_t i = 0; i < n; ++i) {
+        ix[i] = std::round(x[i] / (2 * M_PI));
+        x[i] -= ix[i] * 2.0 * M_PI;
+    }
+
+    // These values should give 12 decimal digits
+    const double CK = 50.0;
+    const double a1 = 28.0, a2 = 0.5, a3 = 100.0, a4 = 5.0;
+    std::vector<double> result(n);
+    for (size_t i = 0; i < n; ++i) {
+        if (k[i] < CK) {
+            unsigned int p = static_cast<unsigned int>(1 + a1 + a2 * k[i] - a3 / (k[i] + a4));
+            double val = von_mises_cdf_series(k[i], x[i], p);
+            val = std::min(std::max(val, 0.0), 1.0);
+            result[i] = val;
+        } else {
+            result[i] = von_mises_cdf_normalapprox(k[i], x[i]);
+        }
+    }
+    for (size_t i = 0; i < n; ++i) {
+        result[i] += ix[i];
+    }
+    return result;
 }
 
 } // namespace xsf
