@@ -12,9 +12,7 @@ TEST_CASE("poisson_binom_pmf test", "[poisson_binom_pmf][xsf_tests]") {
     const int n_trials = 51;
     const double start = 1e-5;
     const double end = 1.0 - 1e-5;
-    std::vector<double> ps(n_trials);
     std::vector<double> ps = linspace(start, end, n_trials);
-    }
 
     const std::vector<double> expected = {
         3.42860361e-26, 3.43456678e-21, 6.00201383e-19, 4.62011334e-17, 2.11987726e-15, 6.59045259e-14, 1.49189489e-12,
