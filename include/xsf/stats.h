@@ -341,7 +341,6 @@ XSF_HOST_DEVICE inline void poisson_binom_pmf_all(InputMat p, OutputMat res) {
 
 template <typename InputMat, typename OutputMat>
 XSF_HOST_DEVICE inline void poisson_binom_cdf_all(InputMat p, OutputMat res) {
-    using T = typename OutputMat::value_type;
     auto n = res.extent(0);
     poisson_binom_pmf_all(p, res);
     for (decltype(n) i = 1; i < n; i++) {
