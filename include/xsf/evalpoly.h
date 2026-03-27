@@ -20,28 +20,41 @@
 #pragma once
 
 #include "config.h"
+#include "cephes/polevl.h"
 
 namespace xsf {
 
-XSF_HOST_DEVICE inline std::complex<double> cevalpoly(const double *coeffs, int degree, std::complex<double> z) {
-    /* Evaluate a polynomial with real coefficients at a complex point.
-     *
-     * Uses equation (3) in section 4.6.4 of [1]. Note that it is more
-     * efficient than Horner's method.
-     */
-    double a = coeffs[0];
-    double b = coeffs[1];
-    double r = 2 * z.real();
-    double s = std::norm(z);
-    double tmp;
+namespace detail {
 
-    for (int j = 2; j < degree + 1; j++) {
-        tmp = b;
-        b = std::fma(-s, a, coeffs[j]);
-        a = std::fma(r, a, tmp);
+    XSF_HOST_DEVICE inline std::complex<double> cevalpoly(const double *coeffs, int degree, std::complex<double> z) {
+        /* Evaluate a polynomial with real coefficients at a complex point.
+        *
+        * Uses equation (3) in section 4.6.4 of [1]. Note that it is more
+        * efficient than Horner's method.
+        */
+        double a = coeffs[0];
+        double b = coeffs[1];
+        double r = 2 * z.real();
+        double s = std::norm(z);
+        double tmp;
+
+        for (int j = 2; j < degree + 1; j++) {
+            tmp = b;
+            b = std::fma(-s, a, coeffs[j]);
+            a = std::fma(r, a, tmp);
+        }
+
+        return z * a + b;
     }
 
-    return z * a + b;
+} // namespace detail
+
+XSF_HOST_DEVICE inline std::complex<double> evalpoly(const double *coeffs, int degree, std::complex<double> z) {
+    return detail::cevalpoly(coeffs, degree, z);
+}
+
+XSF_HOST_DEVICE inline double evalpoly(const double *coeffs, int degree, double x) {
+    return cephes::polevl(x, coeffs, degree);
 }
 
 } // namespace xsf
