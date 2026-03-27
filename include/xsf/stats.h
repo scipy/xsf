@@ -339,6 +339,16 @@ XSF_HOST_DEVICE inline void poisson_binom_pmf_all(InputMat p, OutputMat res) {
     }
 }
 
+template <typename InputMat, typename OutputMat>
+XSF_HOST_DEVICE inline void poisson_binom_cdf_all(InputMat p, OutputMat res) {
+    using T = typename OutputMat::value_type;
+    auto n = res.extent(0);
+    poisson_binom_pmf_all(p, res);
+    for (decltype(n) i = 1; i < n; i++) {
+	res(i) += res(i - 1);
+    }
+}
+
 template <typename InputMat>
 XSF_HOST_DEVICE inline typename InputMat::value_type take_from_pmf(InputMat pmf, long long int k) {
     using T = typename InputMat::value_type;
@@ -356,7 +366,7 @@ XSF_HOST_DEVICE inline typename InputMat::value_type take_from_discrete_cdf(Inpu
     if (k < 0) {
 	return T(0.0);
     }
-    if (k >= static_cast<long long int>(size)) {
+    if (k >= static_cast<long long int>(size) - 1) {
 	return T(1.0);
     }
     return cdf(k);
