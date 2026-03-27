@@ -339,4 +339,27 @@ XSF_HOST_DEVICE inline void poisson_binom_pmf_all(InputMat p, OutputMat res) {
     }
 }
 
+template <typename InputMat>
+XSF_HOST_DEVICE inline typename InputMat::value_type take_from_pmf(InputMat pmf, std::int64_t k) {
+    using T = typename InputMat::value_type;
+    auto size = pmf.extent(0);
+    if ((k < 0) || (k >= static_cast<std::int64_t>(size))) {
+	return T(0.0);
+    }
+    return pmf(k);
+}
+
+template <typename InputMat>
+XSF_HOST_DEVICE inline typename InputMat::value_type take_from_discrete_cdf(InputMat cdf, std::int64_t k) {
+    using T = typename InputMat::value_type;
+    auto size = cdf.extent(0);
+    if (k < 0) {
+	return T(0.0);
+    }
+    if (k >= static_cast<std::int64_t>(size)) {
+	return T(1.0);
+    }
+    return cdf(k);
+}
+
 } // namespace xsf
