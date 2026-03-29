@@ -353,7 +353,8 @@ XSF_HOST_DEVICE inline void poisson_binom_pmf_all(InputMat p, OutputMat res) {
 template <typename InputMat, typename OutputMat>
 XSF_HOST_DEVICE inline void poisson_binom_cdf_all(InputMat p, OutputMat res) {
     /* Outputs the full cdf of a Poisson-Binomial distribution */
-    auto n = res.extent(0);
+    using T = typename OutputMat::value_type;
+    auto n = p.extent(0);
     auto out_size = res.extent(0);
 
     if (out_size != n + 1) {
@@ -362,8 +363,9 @@ XSF_HOST_DEVICE inline void poisson_binom_cdf_all(InputMat p, OutputMat res) {
 
     detail::poisson_binom_pmf_all_impl(p, res);
     for (decltype(n) i = 1; i < n; i++) {
-        res(i) += res(i - 1);
+        res(i) = std::min(res(i) + res(i - 1), T(1.0));
     }
+    res(n) = T(1.0);
 }
 
 template <typename InputMat>
