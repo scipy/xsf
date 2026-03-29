@@ -345,7 +345,7 @@ XSF_HOST_DEVICE inline void poisson_binom_pmf_all(InputMat p, OutputMat res) {
 
     if (out_size != n + 1) {
         set_error("_poisson_binom_pmf_all", SF_ERROR_MEMORY, "out.shape[-1] must be p.shape[-1] + 1");
-	return;
+        return;
     }
 
     detail::poisson_binom_pmf_all_impl(p, res);
@@ -360,7 +360,7 @@ XSF_HOST_DEVICE inline void poisson_binom_cdf_all(InputMat p, OutputMat res) {
 
     if (out_size != n + 1) {
         set_error("_poisson_binom_cdf_all", SF_ERROR_MEMORY, "out.shape[-1] must be p.shape[-1] + 1");
-	return;
+        return;
     }
 
     detail::poisson_binom_pmf_all_impl(p, res);
