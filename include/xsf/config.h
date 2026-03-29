@@ -53,6 +53,17 @@
 #define M_SQRT1_2 0.707106781186547524401
 #endif
 
+namespace xsf {
+
+template<typename T>
+constexpr bool is_supported_int_v =
+    std::is_same_v<T, int32_t> || std::is_same_v<T, int64_t>;
+
+template<typename T>
+using enable_if_supported_int_t = std::enable_if_t<is_supported_int_v<T>, int>;
+
+}
+
 #ifdef __CUDACC__
 #define XSF_HOST_DEVICE __host__ __device__
 
