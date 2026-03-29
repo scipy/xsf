@@ -300,6 +300,34 @@ inline float tukeylambdacdf(float x, double lmbda) {
     return tukeylambdacdf(static_cast<double>(x), static_cast<double>(lmbda));
 }
 
+namespace detail {
+
+    template <typename InputMat, typename OutputMat>
+    XSF_HOST_DEVICE inline void poisson_binom_pmf_all_impl(InputMat p, OutputMat res) {
+        using T = typename OutputMat::value_type;
+        auto n = p.extent(0);
+
+        if (n == 0) {
+            res(0) = T(1.0);
+            return;
+        }
+
+        res(0) = T(1.0) - p(0);
+        res(1) = p(0);
+
+        for (decltype(n) i = 1; i < n; i++) {
+            T p_i = p(i);
+            T q_i = 1 - p_i;
+            for (decltype(n) j = i + 1; j >= 1; j--) {
+                T tmp = res(j - 1) * p_i;
+                res(j - 1) *= q_i;
+                res(j) += tmp;
+            }
+        }
+    }
+
+} // namespace detail
+
 template <typename InputMat, typename OutputMat>
 XSF_HOST_DEVICE inline void poisson_binom_pmf_all(InputMat p, OutputMat res) {
     /* Outputs the full pmf of a Poisson-Binomial distribution
@@ -309,34 +337,60 @@ XSF_HOST_DEVICE inline void poisson_binom_pmf_all(InputMat p, OutputMat res) {
      * a std::mdspan view of a 1d array of zeros of length n + 1. It is up to
      * the caller to pass valid values for p and res.
      *
-     * Upon completion, res[k] will contain the probability of observing k
+     * Upon completion, res(k) will contain the probability of observing k
      * successes for k from 0 to n.
      */
+    auto n = p.extent(0);
+    auto out_size = res.extent(0);
+
+    if (out_size != n + 1) {
+        set_error("_poisson_binom_pmf_all", SF_ERROR_MEMORY, "out.shape[-1] must be p.shape[-1] + 1");
+        return;
+    }
+
+    detail::poisson_binom_pmf_all_impl(p, res);
+}
+
+template <typename InputMat, typename OutputMat>
+XSF_HOST_DEVICE inline void poisson_binom_cdf_all(InputMat p, OutputMat res) {
+    /* Outputs the full cdf of a Poisson-Binomial distribution */
     using T = typename OutputMat::value_type;
     auto n = p.extent(0);
     auto out_size = res.extent(0);
 
     if (out_size != n + 1) {
-        set_error("poisson_binom_pmf", SF_ERROR_MEMORY, "out.shape[-1] must be p.shape[-1] + 1");
-    }
-
-    if (n == 0) {
-        res[0] = T(1.0);
+        set_error("_poisson_binom_cdf_all", SF_ERROR_MEMORY, "out.shape[-1] must be p.shape[-1] + 1");
         return;
     }
 
-    res[0] = T(1.0) - p[0];
-    res[1] = p[0];
-
+    detail::poisson_binom_pmf_all_impl(p, res);
     for (decltype(n) i = 1; i < n; i++) {
-        T p_i = p[i];
-        T q_i = 1 - p_i;
-        for (decltype(n) j = i + 1; j >= 1; j--) {
-            T tmp = res[j - 1] * p_i;
-            res[j - 1] *= q_i;
-            res[j] += tmp;
-        }
+        res(i) = std::min(res(i) + res(i - 1), T(1.0));
     }
+    res(n) = T(1.0);
+}
+
+template <typename InputMat>
+XSF_HOST_DEVICE inline typename InputMat::value_type take_from_pmf(InputMat pmf, long long int k) {
+    using T = typename InputMat::value_type;
+    auto size = pmf.extent(0);
+    if ((k < 0) || (k >= static_cast<long long int>(size))) {
+        return T(0.0);
+    }
+    return pmf(k);
+}
+
+template <typename InputMat>
+XSF_HOST_DEVICE inline typename InputMat::value_type take_from_discrete_cdf(InputMat cdf, long long int k) {
+    using T = typename InputMat::value_type;
+    auto size = cdf.extent(0);
+    if (k < 0) {
+        return T(0.0);
+    }
+    if (k >= static_cast<long long int>(size) - 1) {
+        return T(1.0);
+    }
+    return cdf(k);
 }
 
 } // namespace xsf
