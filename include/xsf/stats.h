@@ -300,6 +300,34 @@ inline float tukeylambdacdf(float x, double lmbda) {
     return tukeylambdacdf(static_cast<double>(x), static_cast<double>(lmbda));
 }
 
+namespace detail {
+
+    template <typename InputMat, typename OutputMat>
+    XSF_HOST_DEVICE inline void poisson_binom_pmf_all_impl(InputMat p, OutputMat res) {
+        using T = typename OutputMat::value_type;
+        auto n = p.extent(0);
+
+        if (n == 0) {
+            res(0) = T(1.0);
+            return;
+        }
+
+        res(0) = T(1.0) - p(0);
+        res(1) = p(0);
+
+        for (decltype(n) i = 1; i < n; i++) {
+            T p_i = p(i);
+            T q_i = 1 - p_i;
+            for (decltype(n) j = i + 1; j >= 1; j--) {
+                T tmp = res(j - 1) * p_i;
+                res(j - 1) *= q_i;
+                res(j) += tmp;
+            }
+        }
+    }
+
+} // namespace detail
+
 template <typename InputMat, typename OutputMat>
 XSF_HOST_DEVICE inline void poisson_binom_pmf_all(InputMat p, OutputMat res) {
     /* Outputs the full pmf of a Poisson-Binomial distribution
@@ -312,37 +340,27 @@ XSF_HOST_DEVICE inline void poisson_binom_pmf_all(InputMat p, OutputMat res) {
      * Upon completion, res(k) will contain the probability of observing k
      * successes for k from 0 to n.
      */
-    using T = typename OutputMat::value_type;
-    auto n = p.extent(0);
+    auto n = res.extent(0);
     auto out_size = res.extent(0);
 
     if (out_size != n + 1) {
-        set_error("poisson_binom_pmf", SF_ERROR_MEMORY, "out.shape[-1] must be p.shape[-1] + 1");
+        set_error("_poisson_binom_pmf_all", SF_ERROR_MEMORY, "out.shape[-1] must be p.shape[-1] + 1");
     }
 
-    if (n == 0) {
-        res(0) = T(1.0);
-        return;
-    }
-
-    res(0) = T(1.0) - p(0);
-    res(1) = p(0);
-
-    for (decltype(n) i = 1; i < n; i++) {
-        T p_i = p(i);
-        T q_i = 1 - p_i;
-        for (decltype(n) j = i + 1; j >= 1; j--) {
-            T tmp = res(j - 1) * p_i;
-            res(j - 1) *= q_i;
-            res(j) += tmp;
-        }
-    }
+    detail::poisson_binom_pmf_all_impl(p, res);
 }
 
 template <typename InputMat, typename OutputMat>
 XSF_HOST_DEVICE inline void poisson_binom_cdf_all(InputMat p, OutputMat res) {
+    /* Outputs the full cdf of a Poisson-Binomial distribution */
     auto n = res.extent(0);
-    poisson_binom_pmf_all(p, res);
+    auto out_size = res.extent(0);
+
+    if (out_size != n + 1) {
+        set_error("_poisson_binom_cdf_all", SF_ERROR_MEMORY, "out.shape[-1] must be p.shape[-1] + 1");
+    }
+
+    detail::poisson_binom_pmf_all_impl(p, res);
     for (decltype(n) i = 1; i < n; i++) {
         res(i) += res(i - 1);
     }
