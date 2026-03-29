@@ -340,11 +340,12 @@ XSF_HOST_DEVICE inline void poisson_binom_pmf_all(InputMat p, OutputMat res) {
      * Upon completion, res(k) will contain the probability of observing k
      * successes for k from 0 to n.
      */
-    auto n = res.extent(0);
+    auto n = p.extent(0);
     auto out_size = res.extent(0);
 
     if (out_size != n + 1) {
         set_error("_poisson_binom_pmf_all", SF_ERROR_MEMORY, "out.shape[-1] must be p.shape[-1] + 1");
+	return;
     }
 
     detail::poisson_binom_pmf_all_impl(p, res);
@@ -359,6 +360,7 @@ XSF_HOST_DEVICE inline void poisson_binom_cdf_all(InputMat p, OutputMat res) {
 
     if (out_size != n + 1) {
         set_error("_poisson_binom_cdf_all", SF_ERROR_MEMORY, "out.shape[-1] must be p.shape[-1] + 1");
+	return;
     }
 
     detail::poisson_binom_pmf_all_impl(p, res);
