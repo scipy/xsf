@@ -1,6 +1,7 @@
 #pragma once
 
 #include "xsf/bessel.h"
+#include "xsf/binom.h"
 #include "xsf/cephes/bdtr.h"
 #include "xsf/cephes/chdtr.h"
 #include "xsf/cephes/fdtr.h"
@@ -283,6 +284,135 @@ inline double pdtr(double k, double m) { return cephes::pdtr(k, m); }
 inline double pdtrc(double k, double m) { return cephes::pdtrc(k, m); }
 
 inline double pdtri(int k, double y) { return cephes::pdtri(k, y); }
+
+namespace detail {
+
+    // Device-safe greatest common divisor (gcd) for 64-bit integers
+    XSF_HOST_DEVICE inline int64_t gcd(int64_t a, int64_t b) {
+        a = (a < 0) ? -a : a;
+        b = (b < 0) ? -b : b;
+        while (b != 0) {
+            int64_t t = a % b;
+            a = b;
+            b = t;
+        }
+        return a;
+    }
+
+    // Device-safe least common multiple (lcm) for 64-bit integers
+    XSF_HOST_DEVICE inline int64_t lcm(int64_t a, int64_t b) {
+        if (a == 0 || b == 0) {
+            return 0;
+        }
+        int64_t g = gcd(a, b);
+        int64_t res = (a / g) * b;
+        return (res < 0) ? -res : res;
+    }
+
+    template <typename FreqTable2D>
+    XSF_HOST_DEVICE inline void
+    cvm_freq_table_all(int64_t m, int64_t n, int64_t a, int64_t b, FreqTable2D gs, FreqTable2D next_gs) {
+        using T = typename FreqTable2D::value_type;
+        int64_t K = static_cast<int64_t>(gs.extent(1));
+
+        // initialize gs to 0
+        for (int64_t v = 0; v < m + 1; ++v)
+            for (int64_t k = 0; k < K; ++k)
+                gs(v, k) = T(0);
+        // base case: gs(0, 0) = 1
+        gs(0, 0) = T(1);
+
+        for (int64_t u = 0; u < n + 1; ++u) {
+            // v = 0: no next_gs(v-1, ...) term
+            {
+                int64_t d = -b * u;
+                int64_t d2 = d * d;
+                int64_t kstart = (d2 < K) ? d2 : K;
+                // next_gs(0, k) = gs(0, k - d2) for k >= d2, else 0
+                for (int64_t k = 0; k < kstart; ++k) {
+                    next_gs(0, k) = T(0);
+                }
+                for (int64_t k = kstart; k < K; ++k) {
+                    next_gs(0, k) = gs(0, k - d2);
+                }
+            }
+            // v > 0: both terms contribute
+            for (int64_t v = 1; v < m + 1; ++v) {
+                int64_t d = a * v - b * u;
+                int64_t d2 = d * d; // d^2 = (a*v - b*u)^2
+                int64_t kstart = (d2 < K) ? d2 : K;
+                for (int64_t k = 0; k < kstart; ++k) {
+                    next_gs(v, k) = T(0);
+                }
+                for (int64_t k = kstart; k < K; ++k) {
+                    next_gs(v, k) = next_gs(v - 1, k - d2) + gs(v, k - d2);
+                }
+            }
+            FreqTable2D tmp = gs;
+            gs = next_gs;
+            next_gs = tmp;
+        }
+        // We swap `gs` and `next_gs` at each u-step, so buffer parity depends on n.
+        // If n is even, the final table ends up in the original `next_gs` buffer;
+        // copy it back so the caller can always read results from the original `gs`.
+        if (n % 2 == 0) {
+            for (int64_t v = 0; v < m + 1; ++v) {
+                for (int64_t k = 0; k < K; ++k) {
+                    next_gs(v, k) = gs(v, k);
+                }
+            }
+        }
+    }
+
+} // namespace detail
+
+template <typename FreqTable2D>
+XSF_HOST_DEVICE inline double
+pval_cvm_2samp_exact(double s, int64_t m, int64_t n, FreqTable2D gs, FreqTable2D next_gs) {
+    /*
+     * Compute the exact p-value of the Cramér-von Mises two-sample test
+     * for a given value s of the test statistic and where m and n are the sizes
+     * of the samples.
+     *
+     * [1] Y. Xiao, A. Gordon, and A. Yakovlev, "A C++ Program for
+     *     the Cramér-Von Mises Two-Sample Test", J. Stat. Soft.,
+     *     vol. 17, no. 8, pp. 1-15, Dec. 2006.
+     * [2] T. W. Anderson "On the Distribution of the Two-Sample Cramér-von Mises
+     *     Criterion," The Annals of Mathematical Statistics, Ann. Math. Statist.
+     *     33(3), 1148-1159, (September, 1962)
+     */
+    if (m <= 0 || n <= 0) {
+        set_error("pval_cvm_2samp_exact", SF_ERROR_DOMAIN, "m and n must be positive");
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    // [1, p. 3]
+    int64_t lcm = detail::lcm(m, n);
+    // [1, p. 4], below eq. 3
+    int64_t a = lcm / m;
+    int64_t b = lcm / n;
+    // Combine Eq. 9 in [2] with Eq. 2 in [1] and solve for $\zeta$
+    // Hint: `s` is $U$ in [2], and $T_2$ in [1] is $T$ in [2]
+    int64_t mn = m * n;
+
+    // Uses double floor division since s is double
+    int64_t zeta =
+        static_cast<int64_t>(std::floor((lcm * lcm * (m + n) * (6.0 * s - mn * (4.0 * mn - 1))) / (6.0 * mn * mn)));
+
+    detail::cvm_freq_table_all(m, n, a, b, gs, next_gs);
+
+    int64_t K = static_cast<int64_t>(gs.extent(1));
+
+    // Clamp to prevent negative indexing when zeta < 0.
+    int64_t k0 = (zeta < 0) ? 0 : zeta;
+
+    int64_t sum_freq = 0;
+    for (int64_t k = k0; k < K; ++k) {
+        sum_freq += gs(m, k);
+    }
+
+    double combinations = xsf::binom(static_cast<double>(m + n), static_cast<double>(m));
+    return sum_freq / combinations;
+}
 
 inline double smirnov(int n, double x) { return cephes::smirnov(n, x); }
 
