@@ -194,6 +194,7 @@ namespace numpy {
     using qd_d = double (*)(long long int, double);
     using ff_f = float (*)(float, float);
     using dd_d = double (*)(double, double);
+    using dl_d = double (*)(double, long);
     using FF_F = cfloat (*)(cfloat, cfloat);
     using DD_D = cdouble (*)(cdouble, cdouble);
     using fF_F = cfloat (*)(float, cfloat);
