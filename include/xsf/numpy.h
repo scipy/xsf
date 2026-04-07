@@ -239,6 +239,7 @@ namespace numpy {
     // 3 inputs, 1 output
     using fff_f = float (*)(float, float, float);
     using ddd_d = double (*)(double, double, double);
+    using flf_f = double (*)(double, long, double);
     using dld_d = double (*)(double, long, double);
     using Flf_F = cfloat (*)(cfloat, long int, float);
     using Dld_D = cdouble (*)(cdouble, long int, double);
