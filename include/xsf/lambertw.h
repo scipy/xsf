@@ -466,4 +466,10 @@ XSF_HOST_DEVICE inline double lambertw(double z, long k, double tol) {
     return detail_real::lambertw_impl(z, k);
 }
 
+XSF_HOST_DEVICE inline float lambertw(float z, long k, float tol) {
+    // tol not used in this method
+    return static_cast<float>(detail_real::lambertw_impl(static_cast<double>(z), k)
+    );
+}
+
 } // namespace xsf
