@@ -35,7 +35,7 @@ TEST_CASE("pval_cvm_2samp_exact test", "[pval_cvm_2samp_exact][xsf_tests]") {
         test_case{8901.0, 23, 5, 0.9907610907610908, 1e-10} //, test_case{119376.0, 20, 21, 0.5716351061359124, 1e-10}
     );
 
-    const int64_t lcm = xsf::detail::lcm(m, n);
+    const int64_t lcm = std::lcm(m, n);
     const int64_t K = (m + n) * lcm * lcm + 1;
 
     std::vector<int64_t> buf1((m + 1) * K, 0);
