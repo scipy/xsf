@@ -287,28 +287,6 @@ inline double pdtri(int k, double y) { return cephes::pdtri(k, y); }
 
 namespace detail {
 
-    // Device-safe greatest common divisor (gcd) for 64-bit integers
-    XSF_HOST_DEVICE inline int64_t gcd(int64_t a, int64_t b) {
-        a = (a < 0) ? -a : a;
-        b = (b < 0) ? -b : b;
-        while (b != 0) {
-            int64_t t = a % b;
-            a = b;
-            b = t;
-        }
-        return a;
-    }
-
-    // Device-safe least common multiple (lcm) for 64-bit integers
-    XSF_HOST_DEVICE inline int64_t lcm(int64_t a, int64_t b) {
-        if (a == 0 || b == 0) {
-            return 0;
-        }
-        int64_t g = gcd(a, b);
-        int64_t res = (a / g) * b;
-        return (res < 0) ? -res : res;
-    }
-
     template <typename FreqTable2D>
     XSF_HOST_DEVICE inline void
     cvm_freq_table_all(int64_t m, int64_t n, int64_t a, int64_t b, FreqTable2D gs, FreqTable2D next_gs) {
@@ -386,7 +364,7 @@ pval_cvm_2samp_exact(double s, int64_t m, int64_t n, FreqTable2D gs, FreqTable2D
         return std::numeric_limits<double>::quiet_NaN();
     }
     // [1, p. 3]
-    int64_t lcm = detail::lcm(m, n);
+    int64_t lcm = std::lcm(m, n);
     // [1, p. 4], below eq. 3
     int64_t a = lcm / m;
     int64_t b = lcm / n;
