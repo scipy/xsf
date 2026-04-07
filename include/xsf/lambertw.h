@@ -343,7 +343,7 @@ namespace fukushima {
 
 } // namespace fukushima
 
-XSF_HOST_DEVICE inline double lambertw(double z, long k) {
+XSF_HOST_DEVICE inline double lambertw(double z, long k, double tol) {
     return fukushima::lambertw(z, k);
 }
 
