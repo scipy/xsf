@@ -419,40 +419,40 @@ namespace detail_real {
         if(std::isnan(z)){ return std::numeric_limits<double>::quiet_NaN(); }
         if(z == std::numeric_limits<double>::infinity()){ return std::numeric_limits<double>::infinity(); }
         if(z == -std::numeric_limits<double>::infinity()){ return -std::numeric_limits<double>::infinity(); }
+        if(z < z0){ return std::numeric_limits<double>::quiet_NaN(); }
 
         if(k == 0){
-            if(z < -0.36787944117144232160){ return std::numeric_limits<double>::quiet_NaN(); }
-            if(z < +2.1820144653320312500){ return rational_function(std::sqrt(z - z0), P1, 9, Q1, 8); }
-            if(z < +4.3246045021497925573E+1){ return rational_function(std::sqrt(z - z0), P2, 8, Q2, 8); }
-            if(z < +5.9808565427761132714E+2){ return rational_function(std::sqrt(z - z0), P3, 8, Q3, 8); }
-            if(z < +8.0491241056345904686E+3){ return rational_function(std::sqrt(z - z0), P4, 8, Q4, 8); }
-            if(z < +1.1112458624177664276E+5){ return rational_function(std::sqrt(z - z0), P5, 8, Q5, 8); }
-            if(z < +1.5870426133287885398E+6){ return rational_function(std::sqrt(z - z0), P6, 8, Q6, 8); }
-            if(z < +2.3414708033996018338E+7){ return rational_function(std::sqrt(z - z0), P7, 8, Q7, 8); }
-            if(z < +3.5576474271222021108E+8){ return rational_function(std::sqrt(z - z0), P8, 8, Q8, 8); }
-            if(z < +5.5501716292484833443E+9){ return rational_function(std::sqrt(z - z0), P9, 8, Q9, 8); }
-            if(z < +8.8674704839289895890E+10){ return rational_function(std::sqrt(z - z0), P10, 8, Q10, 8); }
-            if(z < +1.4477791865269224022E+12){ return rational_function(std::sqrt(z - z0), P11, 8, Q11, 8); }
-            if(z < +2.4111458632511484051E+13){ return rational_function(std::sqrt(z - z0), P12, 8, Q12, 8); }
-            if(z < +4.0897036442600808776E+14){ return rational_function(std::sqrt(z - z0), P13, 8, Q13, 8); }
-            if(z < +7.0555901476789968723E+15){ return rational_function(std::sqrt(z - z0), P14, 8, Q14, 8); }
-            if(z < +1.2366607557976727250E+17){ return rational_function(std::sqrt(z - z0), P15, 8, Q15, 8); }
-            if(z < +2.1999373487930999771E+18){ return rational_function(std::sqrt(z - z0), P16, 8, Q16, 8); }
-            if(z < +3.9685392198344016155E+19){ return rational_function(std::sqrt(z - z0), P17, 8, Q17, 8); }
-            if(z < +1.4127075145274652069E+104){ return rational_function(std::log(z), P18, 8, Q18, 8); }
-            if(z < +2.8134195736211426913E+618){ return rational_function(std::log(z), P19, 8, Q19, 8); }
+            if(z < +2.1820144653320312500){ return rational_function(std::sqrt(z - z0), P1, 8, Q1, 7); }
+            if(z < +4.3246045021497925573E+1){ return rational_function(std::sqrt(z - z0), P2, 7, Q2, 7); }
+            if(z < +5.9808565427761132714E+2){ return rational_function(std::sqrt(z - z0), P3, 7, Q3, 7); }
+            if(z < +8.0491241056345904686E+3){ return rational_function(std::sqrt(z - z0), P4, 7, Q4, 7); }
+            if(z < +1.1112458624177664276E+5){ return rational_function(std::sqrt(z - z0), P5, 7, Q5, 7); }
+            if(z < +1.5870426133287885398E+6){ return rational_function(std::sqrt(z - z0), P6, 7, Q6, 7); }
+            if(z < +2.3414708033996018338E+7){ return rational_function(std::sqrt(z - z0), P7, 7, Q7, 7); }
+            if(z < +3.5576474271222021108E+8){ return rational_function(std::sqrt(z - z0), P8, 7, Q8, 7); }
+            if(z < +5.5501716292484833443E+9){ return rational_function(std::sqrt(z - z0), P9, 7, Q9, 7); }
+            if(z < +8.8674704839289895890E+10){ return rational_function(std::sqrt(z - z0), P10, 7, Q10, 7); }
+            if(z < +1.4477791865269224022E+12){ return rational_function(std::sqrt(z - z0), P11, 7, Q11, 7); }
+            if(z < +2.4111458632511484051E+13){ return rational_function(std::sqrt(z - z0), P12, 7, Q12, 7); }
+            if(z < +4.0897036442600808776E+14){ return rational_function(std::sqrt(z - z0), P13, 7, Q13, 7); }
+            if(z < +7.0555901476789968723E+15){ return rational_function(std::sqrt(z - z0), P14, 7, Q14, 7); }
+            if(z < +1.2366607557976727250E+17){ return rational_function(std::sqrt(z - z0), P15, 7, Q15, 7); }
+            if(z < +2.1999373487930999771E+18){ return rational_function(std::sqrt(z - z0), P16, 7, Q16, 7); }
+            if(z < +3.9685392198344016155E+19){ return rational_function(std::sqrt(z - z0), P17, 7, Q17, 7); }
+            if(z < +1.4127075145274652069E+104){ return rational_function(std::log(z), P18, 7, Q18, 7); }
+            if(z < +2.8134195736211426913E+618){ return rational_function(std::log(z), P19, 7, Q19, 7); }
         } else if(k == -1){
-            if(z < -0.3542913309442164){ return rational_function(std::sqrt(z - z0), Pm05, 8, Qm05, 8); }
-            if(z < -1.8872688282289434049E-1){ return rational_function(-z / (std::sqrt(z - z0) + x0), Pm1, 8, Qm1, 8); }
-            if(z < -6.0497597226958343647E-2){ return rational_function(-z / (std::sqrt(z - z0) + x0), Pm2, 8, Qm2, 8); }
-            if(z < -1.7105334740676008194E-2){ return rational_function(-z / (std::sqrt(z - z0) + x0), Pm3, 8, Qm3, 8); }
-            if(z < -4.5954962127943706433E-3){ return rational_function(-z / (std::sqrt(z - z0) + x0), Pm4, 8, Qm4, 8); }
-            if(z < -1.2001610672197724173E-3){ return rational_function(-z / (std::sqrt(z - z0) + x0), Pm5, 8, Qm5, 8); }
-            if(z < -3.0728805932191499844E-4){ return rational_function(-z / (std::sqrt(z - z0) + x0), Pm6, 8, Qm6, 8); }
-            if(z < -7.7447159838062184354E-5){ return rational_function(-z / (std::sqrt(z - z0) + x0), Pm7, 8, Qm7, 8); }
-            if(z < -4.5808119698158173174E-17){ return rational_function(std::log(-z), Pm8, 8, Qm8, 8); }
-            if(z < -6.1073672236594792982E-79){ return rational_function(std::log(-z), Pm9, 8, Qm9, 8); }
-            if(z < -2.3703540064502081009E-453){ return rational_function(std::log(-z), Pm10, 8, Qm10, 8); }
+            if(z < -0.3542913309442164){ return rational_function(std::sqrt(z - z0), Pm05, 7, Qm05, 7); }
+            if(z < -1.8872688282289434049E-1){ return rational_function(-z / (std::sqrt(z - z0) + x0), Pm1, 7, Qm1, 7); }
+            if(z < -6.0497597226958343647E-2){ return rational_function(-z / (std::sqrt(z - z0) + x0), Pm2, 7, Qm2, 7); }
+            if(z < -1.7105334740676008194E-2){ return rational_function(-z / (std::sqrt(z - z0) + x0), Pm3, 7, Qm3, 7); }
+            if(z < -4.5954962127943706433E-3){ return rational_function(-z / (std::sqrt(z - z0) + x0), Pm4, 7, Qm4, 7); }
+            if(z < -1.2001610672197724173E-3){ return rational_function(-z / (std::sqrt(z - z0) + x0), Pm5, 7, Qm5, 7); }
+            if(z < -3.0728805932191499844E-4){ return rational_function(-z / (std::sqrt(z - z0) + x0), Pm6, 7, Qm6, 7); }
+            if(z < -7.7447159838062184354E-5){ return rational_function(-z / (std::sqrt(z - z0) + x0), Pm7, 7, Qm7, 7); }
+            if(z < -4.5808119698158173174E-17){ return rational_function(std::log(-z), Pm8, 7, Qm8, 7); }
+            if(z < -6.1073672236594792982E-79){ return rational_function(std::log(-z), Pm9, 7, Qm9, 7); }
+            if(z < -2.3703540064502081009E-453){ return rational_function(std::log(-z), Pm10, 7, Qm10, 7); }
         }
 
         set_error("lambertw", SF_ERROR_SLOW, "invalid value for k: %d", k);
