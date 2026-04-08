@@ -106,9 +106,9 @@ XSF_HOST_DEVICE inline std::complex<double> lambertw(std::complex<double> z, lon
         if (std::abs(z + EXPN1) < 0.3) {
             w = detail::lambertw_branchpt(z);
         } else if (-1.0 < z.real() && z.real() < 1.5 && std::abs(z.imag()) < 1.0 &&
-                -2.5 * std::abs(z.imag()) - 0.2 < z.real()) {
+                   -2.5 * std::abs(z.imag()) - 0.2 < z.real()) {
             /* Empirically determined decision boundary where the Pade
-            * approximation is more accurate. */
+             * approximation is more accurate. */
             w = detail::lambertw_pade0(z);
         } else {
             w = detail::lambertw_asy(z, k);
