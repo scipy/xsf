@@ -65,6 +65,7 @@ TEST_CASE("lambertw nan inf", "[lambertw][xsf_tests]") {
     double nan = std::numeric_limits<double>::quiet_NaN();
     double inf = std::numeric_limits<double>::infinity();
 
+    // k = 0
     double w = xsf::lambertw(nan, 0, 1e-14);
     REQUIRE(std::isnan(w));
 
@@ -72,5 +73,15 @@ TEST_CASE("lambertw nan inf", "[lambertw][xsf_tests]") {
     REQUIRE(w == std::numeric_limits<double>::infinity());
 
     w = xsf::lambertw(-inf, 0, 1e-14);
-    REQUIRE(w == std::numeric_limits<double>::infinity());
+    REQUIRE(std::isnan(w));
+
+    // k = -1
+    w = xsf::lambertw(nan, -1, 1e-14);
+    REQUIRE(std::isnan(w));
+
+    w = xsf::lambertw(inf, -1, 1e-14);
+    REQUIRE(std::isnan(w));
+
+    w = xsf::lambertw(-inf, 0, 1e-14);
+    REQUIRE(std::isnan(w));
 }
