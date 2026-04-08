@@ -11,16 +11,10 @@ TEST_CASE("lambertw k=0 branch", "[lambertw][xsf_tests]") {
     // expected_k0 = [float(mpmath.lambertw(x, k=0)) for x in x0]
 
     auto [x, ref_w] = GENERATE(
-        test_case{-0.366879441171442, -0.9280201500545675},
-        test_case{-0.3, -0.4894022271802149},
-        test_case{-0.1, -0.11183255915896297},
-        test_case{-1e-06, -1.0000010000014999e-06},
-        test_case{0.0, 0.0},
-        test_case{1e-06, 9.999990000015e-07},
-        test_case{1, 0.5671432904097838},
-        test_case{10, 1.7455280027406994},
-        test_case{1000, 5.249602852401596},
-        test_case{1000000, 11.383358086140053}
+        test_case{-0.366879441171442, -0.9280201500545675}, test_case{-0.3, -0.4894022271802149},
+        test_case{-0.1, -0.11183255915896297}, test_case{-1e-06, -1.0000010000014999e-06}, test_case{0.0, 0.0},
+        test_case{1e-06, 9.999990000015e-07}, test_case{1, 0.5671432904097838}, test_case{10, 1.7455280027406994},
+        test_case{1000, 5.249602852401596}, test_case{1000000, 11.383358086140053}
     );
 
     double w_d = xsf::lambertw(x, 0, 1e-14);
@@ -43,10 +37,8 @@ TEST_CASE("lambertw k=-1 branch", "[lambertw][xsf_tests]") {
     // expected_kn1 = [float(mpmath.lambertw(x, k=-1)) for x in xn1]
 
     auto [x, ref_w] = GENERATE(
-        test_case{-0.366879441171442, -1.0756089411866245},
-        test_case{-0.3, -1.7813370234216277},
-        test_case{-0.1, -3.577152063957297},
-        test_case{-0.001, -9.11800647040274}
+        test_case{-0.366879441171442, -1.0756089411866245}, test_case{-0.3, -1.7813370234216277},
+        test_case{-0.1, -3.577152063957297}, test_case{-0.001, -9.11800647040274}
     );
 
     double w_d = xsf::lambertw(x, -1, 1e-14);
