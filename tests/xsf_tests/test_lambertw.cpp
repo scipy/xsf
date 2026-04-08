@@ -28,7 +28,7 @@ TEST_CASE("lambertw k=0 branch", "[lambertw][xsf_tests]") {
     CAPTURE(x, w_d, ref_w, abs_error_d);
     REQUIRE(abs_error_d <= 1e-11);
 
-    float w_f = xsf::lambertw(static_cast<float>(x), 0, 1e-14);
+    float w_f = xsf::lambertw(static_cast<float>(x), 0, 1e-14f);
     const auto abs_error_f = xsf::extended_absolute_error(static_cast<double>(w_f), ref_w);
     CAPTURE(x, w_f, ref_w, abs_error_f);
     REQUIRE(abs_error_f <= 1e-6);
@@ -54,7 +54,7 @@ TEST_CASE("lambertw k=-1 branch", "[lambertw][xsf_tests]") {
     CAPTURE(x, w_d, ref_w, abs_error_d);
     REQUIRE(abs_error_d <= 1e-11);
 
-    float w_f = xsf::lambertw(static_cast<float>(x), -1, 1e-14);
+    float w_f = xsf::lambertw(static_cast<float>(x), -1, 1e-14f);
     const auto abs_error_f = xsf::extended_absolute_error(static_cast<double>(w_f), ref_w);
     CAPTURE(x, w_f, ref_w, abs_error_f);
     REQUIRE(abs_error_f <= 1e-6);
