@@ -307,6 +307,11 @@ namespace detail {
         using T = typename OutputMat::value_type;
         auto n = p.extent(0);
 
+        // Initialize output array with zeros.
+        for (decltype(n) i = 0; i < n + 1; ++i) {
+            res(i) = T(0.0);
+        }
+
         if (n == 0) {
             res(0) = T(1.0);
             return;
@@ -334,7 +339,7 @@ XSF_HOST_DEVICE inline void poisson_binom_pmf_all(InputMat p, OutputMat res) {
      *
      * p should be an std::mdspan view of a 1d array of length n containing
      * the success probabilities for the n Bernoulli trials. res should be
-     * a std::mdspan view of a 1d array of zeros of length n + 1. It is up to
+     * a std::mdspan view of a 1d array of of length n + 1. It is up to
      * the caller to pass valid values for p and res.
      *
      * Upon completion, res(k) will contain the probability of observing k
