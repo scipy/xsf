@@ -371,10 +371,10 @@ constexpr double Qm05[] = {-5.3875778140352599789E-2, +1.1978786762794003545,
                            -2.4446872319343475890E+1, +1.7740962374121397994E+1,
                            -6.6279455994747624059,    +1};
 
-constexpr double z0 = -0.36787944117144232160;
-constexpr double x0 = 0.60653065971263342360;
-
 XSF_HOST_DEVICE inline double lambertw(double z, long k, double tol) {
+    constexpr double z0 = -0.36787944117144232160;
+    constexpr double x0 = 0.60653065971263342360;
+
     // tol not used in this method
     if (std::isnan(z)) {
         return std::numeric_limits<double>::quiet_NaN();
@@ -442,7 +442,6 @@ XSF_HOST_DEVICE inline double lambertw(double z, long k, double tol) {
             return cephes::ratevl(std::log(z), P19, 7, Q19, 7);
         }
         return std::numeric_limits<double>::infinity();
-        }
     } else if (k == -1) {
         if (z < -0.3542913309442164) {
             return cephes::ratevl(std::sqrt(z - z0), Pm05, 7, Qm05, 7);
