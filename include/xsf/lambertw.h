@@ -290,88 +290,6 @@ namespace detail {
 
 } // namespace detail
 
-XSF_HOST_DEVICE inline std::complex<double> lambertw(std::complex<double> z, long k, double tol) {
-    double absz;
-    std::complex<double> w;
-    std::complex<double> ew, wew, wewz, wn;
-
-    if (std::isnan(z.real()) || std::isnan(z.imag())) {
-        return z;
-    }
-    if (z.real() == std::numeric_limits<double>::infinity()) {
-        return z + 2.0 * M_PI * k * std::complex<double>(0, 1);
-    }
-    if (z.real() == -std::numeric_limits<double>::infinity()) {
-        return -z + (2.0 * M_PI * k + M_PI) * std::complex<double>(0, 1);
-    }
-    if (z == 0.0) {
-        if (k == 0) {
-            return z;
-        }
-        set_error("lambertw", SF_ERROR_SINGULAR, NULL);
-        return -std::numeric_limits<double>::infinity();
-    }
-    if (z == 1.0 && k == 0) {
-        // Split out this case because the asymptotic series blows up
-        return OMEGA;
-    }
-
-    absz = std::abs(z);
-    // Get an initial guess for Halley's method
-    if (k == 0) {
-        if (std::abs(z + EXPN1) < 0.3) {
-            w = detail::lambertw_branchpt(z);
-        } else if (-1.0 < z.real() && z.real() < 1.5 && std::abs(z.imag()) < 1.0 &&
-                   -2.5 * std::abs(z.imag()) - 0.2 < z.real()) {
-            /* Empirically determined decision boundary where the Pade
-             * approximation is more accurate. */
-            w = detail::lambertw_pade0(z);
-        } else {
-            w = detail::lambertw_asy(z, k);
-        }
-    } else if (k == -1) {
-        if (absz <= EXPN1 && z.imag() == 0.0 && z.real() < 0.0) {
-            w = std::log(-z.real());
-        } else {
-            w = detail::lambertw_asy(z, k);
-        }
-    } else {
-        w = detail::lambertw_asy(z, k);
-    }
-
-    // Halley's method; see 5.9 in [1]
-    if (w.real() >= 0) {
-        // Rearrange the formula to avoid overflow in exp
-        for (int i = 0; i < 100; i++) {
-            ew = std::exp(-w);
-            wewz = w - z * ew;
-            wn = w - wewz / (w + 1.0 - (w + 2.0) * wewz / (2.0 * w + 2.0));
-            if (std::abs(wn - w) <= tol * std::abs(wn)) {
-                return wn;
-            }
-            w = wn;
-        }
-    } else {
-        for (int i = 0; i < 100; i++) {
-            ew = std::exp(w);
-            wew = w * ew;
-            wewz = wew - z;
-            wn = w - wewz / (wew + ew - (w + 2.0) * wewz / (2.0 * w + 2.0));
-            if (std::abs(wn - w) <= tol * std::abs(wn)) {
-                return wn;
-            }
-            w = wn;
-        }
-    }
-
-    set_error("lambertw", SF_ERROR_SLOW, "iteration failed to converge: %g + %gj", z.real(), z.imag());
-    return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
-}
-
-XSF_HOST_DEVICE inline std::complex<float> lambertw(std::complex<float> z, long k, float tol) {
-    return static_cast<std::complex<float>>(lambertw(static_cast<std::complex<double>>(z), k, static_cast<double>(tol))
-    );
-}
 
 XSF_HOST_DEVICE inline double lambertw(double z, long k, double tol) {
     using namespace detail::lambertw_real;
@@ -489,6 +407,94 @@ XSF_HOST_DEVICE inline double lambertw(double z, long k, double tol) {
 XSF_HOST_DEVICE inline float lambertw(float z, long k, float tol) {
     // tol not used in this method
     return static_cast<float>(lambertw(static_cast<double>(z), k, static_cast<double>(tol)));
+}
+
+XSF_HOST_DEVICE inline std::complex<double> lambertw(std::complex<double> z, long k, double tol) {
+    double absz;
+    std::complex<double> w;
+    std::complex<double> ew, wew, wewz, wn;
+
+    if ((k == 0 || k == -1) && (z.imag() == 0) && (z.real() > -0.36787944117144232160)) {
+        // shortcut and use the real-valued calculation
+        return std::complex<double>(lambertw(z.real(), k, tol), 0.0);
+    }
+
+    if (std::isnan(z.real()) || std::isnan(z.imag())) {
+        return z;
+    }
+    if (z.real() == std::numeric_limits<double>::infinity()) {
+        return z + 2.0 * M_PI * k * std::complex<double>(0, 1);
+    }
+    if (z.real() == -std::numeric_limits<double>::infinity()) {
+        return -z + (2.0 * M_PI * k + M_PI) * std::complex<double>(0, 1);
+    }
+    if (z == 0.0) {
+        if (k == 0) {
+            return z;
+        }
+        set_error("lambertw", SF_ERROR_SINGULAR, NULL);
+        return -std::numeric_limits<double>::infinity();
+    }
+    if (z == 1.0 && k == 0) {
+        // Split out this case because the asymptotic series blows up
+        return OMEGA;
+    }
+
+    absz = std::abs(z);
+    // Get an initial guess for Halley's method
+    if (k == 0) {
+        if (std::abs(z + EXPN1) < 0.3) {
+            w = detail::lambertw_branchpt(z);
+        } else if (-1.0 < z.real() && z.real() < 1.5 && std::abs(z.imag()) < 1.0 &&
+                   -2.5 * std::abs(z.imag()) - 0.2 < z.real()) {
+            /* Empirically determined decision boundary where the Pade
+             * approximation is more accurate. */
+            w = detail::lambertw_pade0(z);
+        } else {
+            w = detail::lambertw_asy(z, k);
+        }
+    } else if (k == -1) {
+        if (absz <= EXPN1 && z.imag() == 0.0 && z.real() < 0.0) {
+            w = std::log(-z.real());
+        } else {
+            w = detail::lambertw_asy(z, k);
+        }
+    } else {
+        w = detail::lambertw_asy(z, k);
+    }
+
+    // Halley's method; see 5.9 in [1]
+    if (w.real() >= 0) {
+        // Rearrange the formula to avoid overflow in exp
+        for (int i = 0; i < 100; i++) {
+            ew = std::exp(-w);
+            wewz = w - z * ew;
+            wn = w - wewz / (w + 1.0 - (w + 2.0) * wewz / (2.0 * w + 2.0));
+            if (std::abs(wn - w) <= tol * std::abs(wn)) {
+                return wn;
+            }
+            w = wn;
+        }
+    } else {
+        for (int i = 0; i < 100; i++) {
+            ew = std::exp(w);
+            wew = w * ew;
+            wewz = wew - z;
+            wn = w - wewz / (wew + ew - (w + 2.0) * wewz / (2.0 * w + 2.0));
+            if (std::abs(wn - w) <= tol * std::abs(wn)) {
+                return wn;
+            }
+            w = wn;
+        }
+    }
+
+    set_error("lambertw", SF_ERROR_SLOW, "iteration failed to converge: %g + %gj", z.real(), z.imag());
+    return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+}
+
+XSF_HOST_DEVICE inline std::complex<float> lambertw(std::complex<float> z, long k, float tol) {
+    return static_cast<std::complex<float>>(lambertw(static_cast<std::complex<double>>(z), k, static_cast<double>(tol))
+    );
 }
 
 } // namespace xsf
