@@ -438,11 +438,10 @@ XSF_HOST_DEVICE inline double lambertw(double z, long k, double tol) {
         if (z < +1.4127075145274652069E+104) {
             return cephes::ratevl(std::log(z), P18, 7, Q18, 7);
         }
-        if (z < +2.8134195736211426913E+618) {
+        if (std::isfinite(z)) {
             return cephes::ratevl(std::log(z), P19, 7, Q19, 7);
         }
-        if (z == std::numeric_limits<double>::infinity()) {
-            return std::numeric_limits<double>::infinity();
+        return std::numeric_limits<double>::infinity();
         }
     } else if (k == -1) {
         if (z < -0.3542913309442164) {
@@ -475,14 +474,13 @@ XSF_HOST_DEVICE inline double lambertw(double z, long k, double tol) {
         if (z < -6.1073672236594792982E-79) {
             return cephes::ratevl(std::log(-z), Pm9, 7, Qm9, 7);
         }
-        if (z < -2.3703540064502081009E-453) {
+        if (z < 0) {
             return cephes::ratevl(std::log(-z), Pm10, 7, Qm10, 7);
         }
 
         return std::numeric_limits<double>::quiet_NaN(); // z > 0
     }
 
-    set_error("lambertw", SF_ERROR_SLOW, "invalid value for k: %d", k);
     return std::numeric_limits<double>::quiet_NaN();
 }
 
