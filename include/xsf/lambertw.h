@@ -73,6 +73,9 @@ namespace detail {
     }
 
     namespace lambertw_real {
+
+        constexpr double z0 = -0.36787944117144232160;
+
         // coefficients for the high-precision method for lambertw(z, k=0)
         constexpr double P1[] = {+7.7365760093772431000E-5, +2.3753035787333611915E-2, +4.8819596813789865043E-1,
                                  +2.9800826783006852573,    +7.1013286517854026680,    +6.3709168078949009170,
@@ -292,7 +295,6 @@ namespace detail {
 
 XSF_HOST_DEVICE inline double lambertw(double z, long k, double tol) {
     using namespace detail::lambertw_real;
-    constexpr double z0 = -0.36787944117144232160;
     constexpr double x0 = 0.60653065971263342360;
 
     // tol not used in this method
@@ -413,9 +415,10 @@ XSF_HOST_DEVICE inline std::complex<double> lambertw(std::complex<double> z, lon
     std::complex<double> w;
     std::complex<double> ew, wew, wewz, wn;
 
-    if ((k == 0 || k == -1) && (z.imag() == 0) && (z.real() > -0.36787944117144232160)) {
+    if (z.imag() == 0 && ((k == 0 && z.real() > detail::lambertw_real::z0) ||
+                          (k == -1 && z.real() > detail::lambertw_real::z0 && z.real() < 0))) {
         // shortcut and use the real-valued calculation
-        return std::complex<double>(lambertw(z.real(), k, tol), 0.0);
+        return {lambertw(z.real(), k, tol), 0.0};
     }
 
     if (std::isnan(z.real()) || std::isnan(z.imag())) {
