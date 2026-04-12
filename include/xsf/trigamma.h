@@ -23,7 +23,7 @@ namespace detail {
     constexpr double firstroot_im = +0.59781194232059657221;
 
     constexpr double secondroot_re = -1.4455692007504016647;
-    constexpr double secondroot_im = 0.69926087106525701723;
+    constexpr double secondroot_im = +0.69926087106525701723;
 
     /* NOTE: 
      * For better accuracy, one may be able to use the fact that 
@@ -208,7 +208,7 @@ namespace detail {
 
         std::complex<double> zk, res = psiz;
 
-        for (int k = 0; k < n; k++) {
+        for (int k=1;k<n+1;k++) {
             zk = (z - static_cast<double>(k));
             res += 1./(zk * zk);
         }
@@ -217,19 +217,20 @@ namespace detail {
 
     XSF_HOST_DEVICE inline std::complex<double> trigamma_asymptotic_series(std::complex<double> z) {
         /* Evaluate digamma using an asymptotic series. See
-         * http://dlmf.nist.gov/5.15.E9 
+         * http://dlmf.nist.gov/5.15.E8
          * Higher order converge slower, so we need slightly more Bernoulli 
-         * numbers than the digamma.
+         * numbers than the digamma (Bernoulli numbers calculated via mpmath).
          */
-        double bernoulli2k[] = {
-            0.166666666666666667,   -0.0333333333333333333, 0.0238095238095238095,
-            -0.0333333333333333333, 0.0757575757575757576,  -0.253113553113553114,
-            1.16666666666666667,    -7.09215686274509804,   54.9711779448621554,
-            -529.124242424242424,   6192.12318840579710,    -86580.2531135531136,
-            1425517.16666666667,    -27298231.0678160920,   601580873.900642368,
-            -15116315767.0921569, 429614643061.166687, -13711655205088.33203, 
-            488332318973593.1875, -19296579341940068.0, 841693047573682560.0,
-            };
+        static constexpr std::array<double, 24> bernoulli2k = {
+            0.16666666666666665741e+0, -0.033333333333333332871e+0, 0.023809523809523808202e+0, 
+            -0.033333333333333332871e+0, 0.075757575757575759678e+0, -0.25311355311355310249e+0,
+            1.1666666666666667407e+0, -7.0921568627450977118e+0, 54.971177944862155584e+0, 
+            -529.12424242424242493e+0, 6192.1231884057970092e+0, -86580.253113553117146e+0, 
+            1425517.1666666667443e+0, -27298231.067816093564e+0, 601580873.90064239502e+0, 
+            -15116315767.092157364e+0, 429614643061.16668701e+0, -13711655205088.332031e+0, 
+            488332318973593.1875e+0, -19296579341940068.0e+0, 841693047573682560.0e+0, 
+            -40338071854059454464.0e+0, 2.1150748638081992622e+21, -1.2086626522296526202e+23,
+        };
         
         std::complex<double> const rz = 1.0 / z;
         std::complex<double> const rzz = rz*rz;
@@ -248,7 +249,7 @@ namespace detail {
 
         res = rz + 0.5*rzz;
 
-        for (int k = 1; k < 21; k++) {
+        for (int k = 1; k < bernoulli2k.size()+1; k++) {
             zfac *= rzz;
             term = bernoulli2k[k-1]*zfac;
             res += term;
@@ -271,7 +272,7 @@ XSF_HOST_DEVICE inline double trigamma(double z) {
 
 XSF_HOST_DEVICE inline float trigamma(float z) { return static_cast<float>(trigamma(static_cast<double>(z))); }
 
-XSF_HOST_DEVICE inline std::complex<double> digamma(std::complex<double> z) {
+XSF_HOST_DEVICE inline std::complex<double> trigamma(std::complex<double> z) {
     /*
      * Compute the digamma function for complex arguments. The strategy is:
      *
@@ -307,13 +308,13 @@ XSF_HOST_DEVICE inline std::complex<double> digamma(std::complex<double> z) {
         return static_cast<std::complex<double>>(cephes::zeta(2., z.real()));
     } 
     // Near the first two roots, use the asymptotic series
-    if (std::abs(z - std::complex<double>(detail::firstroot_re, +detail::firstroot_im)) < 0.2){
+    if (std::abs(z - std::complex<double>(detail::firstroot_re, +detail::firstroot_im)) < 0.1){
         return detail::trigamma_root_series(z, 0, +1.);
-    } else if (std::abs(z - std::complex<double>(detail::firstroot_re, -detail::firstroot_im)) < 0.2){
+    } else if (std::abs(z - std::complex<double>(detail::firstroot_re, -detail::firstroot_im)) < 0.1){
         return detail::trigamma_root_series(z, 0, -1.);
-    }else if (std::abs(z - std::complex<double>(detail::secondroot_re, +detail::secondroot_im)) < 0.4){
+    } else if (std::abs(z - std::complex<double>(detail::secondroot_re, +detail::secondroot_im)) < 0.2){
         return detail::trigamma_root_series(z, 1, +1.);
-    } else if (std::abs(z - std::complex<double>(detail::secondroot_re, -detail::secondroot_im)) < 0.4){
+    } else if (std::abs(z - std::complex<double>(detail::secondroot_re, -detail::secondroot_im)) < 0.2){
         return detail::trigamma_root_series(z, 1, -1.);
     }
 
@@ -336,8 +337,7 @@ XSF_HOST_DEVICE inline std::complex<double> digamma(std::complex<double> z) {
         absz = std::abs(z);
     }
 
-    // All the roots have Re[z]<0. At this point we are guaranteed that Re[z]>0,
-    // so we are sure to be far away form any further root
+    // At this point we are sure to be far away from any root
     if (absz > smallabsz) {
         res += sign * detail::trigamma_asymptotic_series(z);
     } else if (z.real() >= 0.0) {
@@ -351,6 +351,10 @@ XSF_HOST_DEVICE inline std::complex<double> digamma(std::complex<double> z) {
     }
 
     return res;
+}
+
+XSF_HOST_DEVICE inline std::complex<float> trigamma(std::complex<float> z) {
+    return static_cast<std::complex<float>>(trigamma(static_cast<std::complex<double>>(z)));
 }
 
 } // namespace xsf

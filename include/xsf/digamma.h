@@ -45,7 +45,7 @@ namespace detail {
             coeff *= -z;
             term = coeff * cephes::zeta(n + 1, root);
             res += term;
-            if (std::abs(term) < std::numeric_limits<T>::epsilon() * std::abs(res)) {
+            if (std::abs(term) < std::numeric_limits<double>::epsilon() * std::abs(res)) {
                 break;
             }
         }
