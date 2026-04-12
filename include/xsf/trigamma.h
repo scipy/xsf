@@ -29,11 +29,10 @@ namespace detail {
      * For better accuracy, one may be able to use the fact that 
      *    trigamma(z) + trigamma(1-z) = pi**2 / sin(pi * z)**2
      * So for large negative Re[z], the roots must asymptotically approach
-     * the real axis at -n + 1/2 [1].
-     * 
-     * Sources :
-     * [1] Abramowitz, M., & Stegun, I. A. (1964). "Handbook of Mathematical Functions 
-     *     with Formulas, Graphs, and Mathematical Tables".
+     * real part -n + 1/2, with slowly-growing imaginary part. Hence, for values around
+     * z = -n + 1/2 +- 0.75j we could use the Taylor expansion via the polygamma, 
+     * if more precision is needed for root-finding. 
+     * However, testing suggests this is not the case, so this has not been implemented.
      */
 
     XSF_HOST_DEVICE inline std::complex<double> 
@@ -274,7 +273,7 @@ XSF_HOST_DEVICE inline float trigamma(float z) { return static_cast<float>(triga
 
 XSF_HOST_DEVICE inline std::complex<double> trigamma(std::complex<double> z) {
     /*
-     * Compute the digamma function for complex arguments. The strategy is:
+     * Compute the trigamma function for complex arguments. The strategy is:
      *
      * - Around the two zeros closest to the origin
      * use a Taylor series with precomputed coefficient.
@@ -295,7 +294,7 @@ XSF_HOST_DEVICE inline std::complex<double> trigamma(std::complex<double> z) {
     std::complex<double> sign = 1.;
     /* Use the asymptotic series for z away from the negative real axis
      * with abs(z) > smallabsz. */
-    int smallabsz = 16;
+    int const smallabsz = 16;
 
     if (z.real() <= 0.0 && std::ceil(z.real()) == z) {
         // Poles
