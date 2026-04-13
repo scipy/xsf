@@ -2041,6 +2041,6 @@ TEST_CASE("trigamma D->D scipy_special_tests", "[trigamma][D->D][scipy_special_t
     SET_FP_FORMAT()
     for(auto const& argres: trigamma_c){
         std::complex<double> const res = xsf::trigamma(argres.first);
-        CHECK_zCLOSE(res, argres.second, 1e-8, 1e-6)
+        CHECK_zCLOSE(res, argres.second, 1e-10, 1e-8)
     }
 }

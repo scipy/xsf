@@ -1,4 +1,5 @@
 /* 
+ * Calculation of the polygamma function for positive integer orders and real and complex inputs
  * Author: Lorenzo Peri
  */
 
@@ -14,20 +15,22 @@
 #include "trigamma.h"
 
 namespace xsf {
+
+    constexpr int MAX_ORDER_BERNOULLI_SERIES = 6;
+
 namespace detail {
 
     XSF_HOST_DEVICE inline std::complex<double>
     polygamma_forward_recurrence(int n, std::complex<double>const  z, std::complex<double> const psiz, int m){
         /* Compute polygamma(n, z + m) using polygamma(n, z) using the recurrence relation
-        *    polygamma(n, z + 1) = polygamma(n, z) + (-1)^n * n! / z^(n+1).
-        * See https://dlmf.nist.gov/5.15#E5 */
+         *    polygamma(n, z + 1) = polygamma(n, z) + (-1)^n * n! / z^(n+1).
+         * See https://dlmf.nist.gov/5.15#E5 */
 
-        std::complex<double> const np1_neg = ( -1. * static_cast<std::complex<double>>(n + 1));
         std::complex<double> zk, res = psiz;
 
         for (int k=0;k<m;k++){
             zk = (z + static_cast<double>(k));
-            res += std::pow(zk, np1_neg);
+            res += std::pow(zk, -(n+1));
         }
 
         return res;
@@ -36,15 +39,14 @@ namespace detail {
     XSF_HOST_DEVICE inline std::complex<double>
     polygamma_backward_recurrence(int n, std::complex<double>const  z, std::complex<double> const psiz, int m){
         /* Compute polygamma(n, z + m) using polygamma(n, z) using the recurrence relation
-        *    polygamma(n, z + 1) = polygamma(n, z) + (-1)^n * n! / z^(n+1).
-        * See https://dlmf.nist.gov/5.15#E5 */
+         *    polygamma(n, z + 1) = polygamma(n, z) + (-1)^n * n! / z^(n+1).
+         * See https://dlmf.nist.gov/5.15#E5 */
 
-        std::complex<double> const np1_neg = ( -1. * static_cast<std::complex<double>>(n + 1));
         std::complex<double> zk, res = psiz;
 
         for (int k=1;k<m+1;k++) {
             zk = (z - static_cast<double>(k));
-            res -= std::pow(zk, np1_neg);
+            res -= std::pow(zk, -(n+1));
         }
 
         return res;
@@ -53,29 +55,37 @@ namespace detail {
     XSF_HOST_DEVICE inline std::complex<double> 
     polygamma_asymptotic_series(int n, std::complex<double> z) {
         /* Evaluate digamma using an asymptotic series. See
-        * http://dlmf.nist.gov/5.15.E8
-        * Higher order converge slower, so we need slightly more Bernoulli 
-        * numbers than the digamma (Bernoulli numbers calculated via mpmath).
-        */
+         * http://dlmf.nist.gov/5.15.E8
+         * Higher order converge slower, so we need slightly more Bernoulli 
+         * numbers than the digamma (Bernoulli numbers calculated via sympy).
+         */
         static constexpr std::array<double, 36> bernoulli2k = {
-            0.16666666666666665741e+0, -0.033333333333333332871e+0, 0.023809523809523808202e+0, 
-            -0.033333333333333332871e+0, 0.075757575757575759678e+0, -0.25311355311355310249e+0, 
-            1.1666666666666667407e+0, -7.0921568627450977118e+0, 54.971177944862155584e+0, 
-            -529.12424242424242493e+0, 6192.1231884057970092e+0, -86580.253113553117146e+0, 
-            1425517.1666666667443e+0, -27298231.067816093564e+0, 601580873.90064239502e+0, 
-            -15116315767.092157364e+0, 429614643061.16668701e+0, -13711655205088.332031e+0, 
-            488332318973593.1875e+0, -19296579341940068.0e+0, 841693047573682560.0e+0, 
-            -40338071854059454464.0e+0, 2.1150748638081992622e+21, -1.2086626522296526202e+23, 
-            7.500866746076964166e+24, -5.0387781014810688499e+26, 3.6528776484818122276e+28, 
-            -2.8498769302450882361e+30, 2.3865427499683627448e+32, -2.1399949257225334859e+34, 
-            2.050097572347809739e+36, -2.0938005911346379301e+38, 2.2752696488463514863e+40, 
-            -2.6257710286239577207e+42, 3.2125082102718031743e+44, -4.1598278166794711978e+46, 
+            1.66666666666666666670e-1, -3.33333333333333333330e-2, 2.38095238095238095240e-2, 
+            -3.33333333333333333330e-2, 7.57575757575757575760e-2, -2.53113553113553113550e-1, 
+            1.16666666666666666670e+0, -7.09215686274509803920e+0, 5.49711779448621553880e+1, 
+            -5.29124242424242424240e+2, 6.19212318840579710140e+3, -8.65802531135531135530e+4, 
+            1.42551716666666666670e+6, -2.72982310678160919540e+7, 6.01580873900642368380e+8, 
+            -1.51163157670921568630e+10, 4.29614643061166666670e+11, -1.37116552050883327720e+13, 
+            4.88332318973593166670e+14, -1.92965793419400681490e+16, 8.41693047573682615000e+17, 
+            -4.03380718540594554130e+19, 2.11507486380819916060e+21, -1.20866265222965259350e+23, 
+            7.50086674607696436690e+24, -5.03877810148106891410e+26, 3.65287764848181233350e+28, 
+            -2.84987693024508822260e+30, 2.38654274996836276450e+32, -2.13999492572253336660e+34, 
+            2.05009757234780975700e+36, -2.09380059113463784090e+38, 2.27526964884635155600e+40, 
+            -2.62577102862395760470e+42, 3.21250821027180325180e+44, -4.15982781667947109140e+46,
         };
 
         std::complex<double> res, term, fac_coeff;
-        std::complex<double> const zn_inv = std::pow(z, static_cast<double>(-n));
+        std::complex<double> const zn_inv = std::pow(z, -n);
         std::complex<double> const rzz = 1. / z / z;
         std::complex<double> zfac = zn_inv;
+
+        if (!(std::isfinite(z.real()) && std::isfinite(z.imag()))) {
+            /* Check for infinity (or nan) and return early.
+             * Result of division by complex infinity is implementation dependent.
+             * and has been observed to vary between C++ stdlib and CUDA stdlib.
+             */
+            return 0.; // Asymptotically psi(n, z) ~ 1/z, so just return zero?
+        }
 
         res = zn_inv * (1. / n + 0.5 / z);
 
@@ -100,7 +110,7 @@ namespace detail {
     }
 
     XSF_HOST_DEVICE inline std::complex<double> 
-    polygamma_reflection_rhs_nleq25(int n, std::complex<double> z) {
+    polygamma_reflection_rhs(int n, std::complex<double> z) {
         /* The reflection formula for the polygamma of arbitrary positive order 
          * reads (http://dlmf.nist.gov/5.15.E6)
          *   psi(n, 1-z) + (-1)**(n-1) * psi(n, z) = (-1)**(n-1) * pi * d^n/dz^n cot(pi z)
@@ -111,21 +121,19 @@ namespace detail {
          * that satisfy the recurrence relation
          *   c_{n+1, m} = -(m+1) c_{n, m+1} - (m-1) c_{n, m-1}
          * This allows fast calculation of the coefficients of P_n(y).
-         * However, this requires us to loop through the calculation n times.
+         * However, this requires us to loop through the calculation n times, 
+         * and the coefficients blow up, leading to loss of precision.
          * For larger n, there is little point using this strategy. 
-         * Recurrence should be used instead.
-         * Moreover, allowing a maximum n allows us to statically allocate
-         * the coefficient buffers and avoid any dynamical allocation.
          */
-        
-        if(n>25){
-            // We are not going to use it for n>25.
+
+        if(n>MAX_ORDER_BERNOULLI_SERIES){
+            // We are not going to use it for n>MAX_ORDER_BERNOULLI_SERIES.
             // Statically allocate the memory and check against misuse
             return std::numeric_limits<double>::quiet_NaN();
         }
 
-        std::array<double, 27> coefficient_array{}; // all zeros at the start
-        std::array<double, 27> next_coeffs; 
+        std::array<double, MAX_ORDER_BERNOULLI_SERIES+2> coefficient_array{}; // all zeros at the start
+        std::array<double, MAX_ORDER_BERNOULLI_SERIES+2> next_coeffs; 
 
         coefficient_array[1] = 1.; // P_0(y) = y
 
@@ -156,6 +164,26 @@ namespace detail {
 
         double const sign = (n & 1) ? -1.0 : 1.0;
         return sign * std::pow(M_PI, n + 1) * result;
+    }
+
+    XSF_HOST_DEVICE inline std::complex<double> 
+    polygamma_Hurwitz_series(int n, std::complex<double> z) {
+        /* Evaluate the sum for the Hurwitz zeta function:
+         * zeta(n+1, z) = sum_{k=0}^\infty 1 / (z+k)^{n+1}
+         * For n > 8, the terms decay exponentially fast, making direct 
+         * summation far more stable than the asymptotic Bernoulli series.
+         */
+        std::complex<double> res = 0.0;
+        for (int k = 0; k < 10000; k++) {
+            std::complex<double> const zk = z + static_cast<double>(k);
+            std::complex<double> const term = std::pow(zk, -(n+1));
+            res += term;
+            
+            if (std::abs(term) < std::numeric_limits<double>::epsilon() * std::abs(res)) {
+                break;
+            }
+        }
+        return -res; 
     }
 
 } // namespace detail
@@ -196,14 +224,18 @@ XSF_HOST_DEVICE inline float polygamma(int n, float z) { return static_cast<floa
 XSF_HOST_DEVICE inline std::complex<double> polygamma(int n, std::complex<double> z) {
     /*
      * Compute the polygamma function for complex arguments. The strategy is:
-     *
-     * - If close to the origin, use a recurrence relation to step away
-     * from the origin.
-     * - If close to the negative real axis, use either the reflection 
-     * or the recurrence formula to move to the right halfplane.
-     * - If |z| is large (> 16), use the asymptotic series.
-     * - If |z| is small, use a recurrence relation to make |z| large
-     * enough to use the asymptotic series.
+     * - For small orders (n <= (MAX_ORDER_BERNOULLI_SERIES = 6)):
+     *      - If close to the origin, use a reflection relation to step away
+     *      from the origin.
+     *      - If close to the negative real axis, use the recurrence 
+     *      formula to move to the right halfplane.
+     *      - If |z| is large (> 16), use the asymptotic series.
+     *      - If |z| is small, use a recurrence relation to make |z| large
+     *      enough to use the asymptotic series.
+     * - For large orders (n > (MAX_ORDER_BERNOULLI_SERIES = 6)):
+     *      - Use the recurrence relation to move in the positive half plane
+     *      - Evaluate the Hurwitz zeta, which converges faster and to higher accuracy
+     *      than the Bernoulli asymptotic series for large n.
      */
     if (n < 0) {
         /* Although it is formally possible to extend the polygamma function to negative orders
@@ -222,7 +254,7 @@ XSF_HOST_DEVICE inline std::complex<double> polygamma(int n, std::complex<double
     }
 
     if(std::abs(z.imag()) < std::numeric_limits<double>::epsilon()){
-        // use the zeta, because it evaluates to better precision
+        // use the real zeta, because it evaluates to better precision
         return static_cast<std::complex<double>>(polygamma(n, z.real()));
     } 
 
@@ -235,13 +267,7 @@ XSF_HOST_DEVICE inline std::complex<double> polygamma(int n, std::complex<double
     std::complex<double> const prefactor = prefactor_sign * gamma(static_cast<double>(n + 1));
     /* Use the asymptotic series for z away from the negative real axis
      * with abs(z) > smallabsz. */
-    double const smallabsz = 22.5;
-    /* When recursively stepping away via recurrence, it is best to leave numbers away from the
-     * real axis alone. So we want smallimag < smallabsz. 
-     * Some testing yielded  this value of smallimag as a sensible value.
-     * To increase the precision, having this value depend on n with some ansatz would probably be ideal.
-     */
-    double const smallimag = 7.5;
+    double const smallabsz = 16.;
 
     if (z.real() <= 0.0 && std::ceil(z.real()) == z) {
         // Poles
@@ -249,43 +275,48 @@ XSF_HOST_DEVICE inline std::complex<double> polygamma(int n, std::complex<double
         return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
     }
 
-    if (n <= 25){ 
-        // For small orders, we can use the reflection formula
+    if (n <= MAX_ORDER_BERNOULLI_SERIES){ 
+        /* For small orders, the Hurwitz series converges slowly, best take the approaches
+         * of the di- and trigamma with the Bernoulli series
+         */
         if(z.real() < 0 && std::abs(z.imag()) < smallabsz) {
-            std::complex<double> const reflection_rhs = detail::polygamma_reflection_rhs_nleq25(n, z);
+            std::complex<double> const reflection_rhs = detail::polygamma_reflection_rhs(n, z);
             res -= reflection_rhs;
             sign *= (n & 1) ? -1. : 1.;
             z = 1. - z;
             absz = std::abs(z);
         } 
         if(absz < 0.5){
-            std::complex<double> const np1_neg =  -1. * static_cast<std::complex<double>>(n + 1);
-            res -= sign * std::pow(z, np1_neg);
+            res -= sign * std::pow(z, -(n + 1));
             z += 1;
             absz = std::abs(z);
         }
-    } else {
-        /* For large n, the reflection formula blows up an leads to loss of precision.
-         * We can however use the recurrence formula to step away from poles
-         * in the negative real plane */
-        while((absz < 0.5) || (z.real() < 0 && std::abs(z.imag()) < smallimag)){
-            std::complex<double> const np1_neg =  -1. * static_cast<std::complex<double>>(n + 1);
-            res -= std::pow(z, np1_neg);
-            z += 1;
-            absz = std::abs(z);
-        }
-    }
 
-    if (absz > smallabsz) {
-        res += sign * detail::polygamma_asymptotic_series(n, z);
-    } else if (z.real() >= 0.0) {
-        double m = std::trunc(smallabsz - absz) + 1;
-        std::complex<double> init = detail::polygamma_asymptotic_series(n, z + m);
-        res += sign * detail::polygamma_backward_recurrence(n, z + m, init, m);
+        if (absz > smallabsz) {
+            res += sign * detail::polygamma_asymptotic_series(n, z);
+        } else if (z.real() >= 0.0) {
+            double m = std::trunc(smallabsz - z.real()) + 1;
+            std::complex<double> init = detail::polygamma_asymptotic_series(n, z + m);
+            res += sign * detail::polygamma_backward_recurrence(n, z + m, init, m);
+        } else {
+            double m = std::trunc(smallabsz + z.real()) + 1;
+            std::complex<double> init = detail::polygamma_asymptotic_series(n, z - m);
+            res += sign * detail::polygamma_forward_recurrence(n, z - m, init, m);
+        }
     } else {
-        double m = std::trunc(smallabsz - absz) - 1;
-        std::complex<double> init = detail::polygamma_asymptotic_series(n, z - m);
-        res += sign * detail::polygamma_forward_recurrence(n, z - m, init, m);
+        /* For large n, Hurwitz series converges converges very fast, so we can use it directly.
+         * However, we need to make sure that Re[z] is negative-enough that
+         * sum_{k=0}^\infty 1 / (z+k)^{n+1} converges quickly.
+         * The reflection is very expensive to calculate and its coefficients blow up like n!.
+         * We can however use the recurrence formula to step away towards
+         * the positive real semi-plane */
+        while((absz < 0.5) || (z.real() < 0)){
+            res -= std::pow(z, -(n + 1));
+            z += 1;
+            absz = std::abs(z);
+        }
+
+        res += detail::polygamma_Hurwitz_series(n, z);
     }
 
     return prefactor * res;

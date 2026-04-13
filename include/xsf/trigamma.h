@@ -1,4 +1,5 @@
 /* 
+ * Calculation of the trigamma function for real and complex inputs
  * Author: Lorenzo Peri
  */
 
@@ -14,7 +15,7 @@ namespace xsf {
 namespace detail {
 
     /* There exist no real roots of the trigamma function.
-     * All the roots of the trigamma function lay in the negative real semiplane (Re[z] < 0)
+     * All the roots of the trigamma function lay in the negative real semi-plane (Re[z] < 0)
      * and come in an infinite number of complex pairs (z_n, \bar{z}_n).
      * This is the location of the two roots closer to the origin.
      */
@@ -218,7 +219,7 @@ namespace detail {
         /* Evaluate digamma using an asymptotic series. See
          * http://dlmf.nist.gov/5.15.E8
          * Higher order converge slower, so we need slightly more Bernoulli 
-         * numbers than the digamma (Bernoulli numbers calculated via mpmath).
+         * numbers than the digamma (Bernoulli numbers calculated via sympy).
          */
         static constexpr std::array<double, 24> bernoulli2k = {
             0.16666666666666665741e+0, -0.033333333333333332871e+0, 0.023809523809523808202e+0, 
