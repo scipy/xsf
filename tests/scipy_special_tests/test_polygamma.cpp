@@ -20,6 +20,8 @@
 
 using namespace std::literals::complex_literals;
 
+// Raw input-output pairs calculated via mpmath
+
 typedef std::pair<double,double> ArgResPair;
 typedef std::pair<std::complex<double>,std::complex<double>> CArgResPair;
 
