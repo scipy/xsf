@@ -381,7 +381,7 @@ pval_cvm_2samp_exact(double s, int64_t m, int64_t n, FreqTable2D gs, FreqTable2D
     int64_t K = static_cast<int64_t>(gs.extent(1));
 
     // Clamp to prevent negative indexing when zeta < 0.
-    int64_t k0 = (zeta < 0) ? 0 : zeta;
+    int64_t k0 = std::max<int64_t>(0, zeta);
 
     int64_t sum_freq = 0;
     for (int64_t k = k0; k < K; ++k) {
