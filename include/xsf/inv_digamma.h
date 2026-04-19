@@ -3,8 +3,8 @@
 #include <cmath>
 #include <limits>
 
-#include "cephes/psi.h"
-#include "cephes/zeta.h"
+#include "xsf/cephes/psi.h"
+#include "xsf/cephes/zeta.h"
 
 namespace xsf {
 namespace detail {
