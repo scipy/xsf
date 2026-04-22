@@ -45,7 +45,8 @@ TEST_CASE("pval_cvm_2samp_exact test", "[pval_cvm_2samp_exact][xsf_tests]") {
     mdspan_2d gs(buf1.data(), static_cast<size_t>(m + 1), static_cast<size_t>(K));
     mdspan_2d next_gs(buf2.data(), static_cast<size_t>(m + 1), static_cast<size_t>(K));
 
-    auto pval = xsf::pval_cvm_2samp_exact(s, m, n, gs, next_gs);
+    xsf::cvm_2samp_freq_table(m, n, gs, next_gs);
+    auto pval = xsf::pval_cvm_2samp_exact(s, m, n, gs);
     const double rel_error = xsf::extended_relative_error(pval, pval_expected);
     CAPTURE(s, m, n, K, pval, pval_expected, rel_error);
     REQUIRE(rel_error <= rtol);
