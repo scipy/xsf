@@ -345,8 +345,26 @@ namespace detail {
 } // namespace detail
 
 template <typename FreqTable2D>
-XSF_HOST_DEVICE inline double
-pval_cvm_2samp_exact(double s, int64_t m, int64_t n, FreqTable2D gs, FreqTable2D next_gs) {
+XSF_HOST_DEVICE inline void cvm_2samp_freq_table(int64_t m, int64_t n, FreqTable2D freq_table, FreqTable2D workspace) {
+    /*
+     * Generate the exact Cramér-von Mises two-sample frequency table for
+     * sample sizes m and n. The table is independent of the scalar statistic.
+     */
+    if (m <= 0 || n <= 0) {
+        set_error("cvm_2samp_freq_table", SF_ERROR_DOMAIN, "m and n must be positive");
+        return;
+    }
+    // [1, p. 3]
+    int64_t lcm = std::lcm(m, n);
+    // [1, p. 4], below eq. 3
+    int64_t a = lcm / m;
+    int64_t b = lcm / n;
+
+    detail::cvm_freq_table_all(m, n, a, b, freq_table, workspace);
+}
+
+template <typename FreqTable2D>
+XSF_HOST_DEVICE inline double pval_cvm_2samp_exact(double s, int64_t m, int64_t n, FreqTable2D freq_table) {
     /*
      * Compute the exact p-value of the Cramér-von Mises two-sample test
      * for a given value s of the test statistic and where m and n are the sizes
@@ -365,9 +383,6 @@ pval_cvm_2samp_exact(double s, int64_t m, int64_t n, FreqTable2D gs, FreqTable2D
     }
     // [1, p. 3]
     int64_t lcm = std::lcm(m, n);
-    // [1, p. 4], below eq. 3
-    int64_t a = lcm / m;
-    int64_t b = lcm / n;
     // Combine Eq. 9 in [2] with Eq. 2 in [1] and solve for $\zeta$
     // Hint: `s` is $U$ in [2], and $T_2$ in [1] is $T$ in [2]
     int64_t mn = m * n;
@@ -376,16 +391,14 @@ pval_cvm_2samp_exact(double s, int64_t m, int64_t n, FreqTable2D gs, FreqTable2D
     int64_t zeta =
         static_cast<int64_t>(std::floor((lcm * lcm * (m + n) * (6.0 * s - mn * (4.0 * mn - 1))) / (6.0 * mn * mn)));
 
-    detail::cvm_freq_table_all(m, n, a, b, gs, next_gs);
-
-    int64_t K = static_cast<int64_t>(gs.extent(1));
+    int64_t K = static_cast<int64_t>(freq_table.extent(1));
 
     // Clamp to prevent negative indexing when zeta < 0.
     int64_t k0 = std::max<int64_t>(0, zeta);
 
     int64_t sum_freq = 0;
     for (int64_t k = k0; k < K; ++k) {
-        sum_freq += gs(m, k);
+        sum_freq += freq_table(m, k);
     }
 
     double combinations = xsf::binom(static_cast<double>(m + n), static_cast<double>(m));
