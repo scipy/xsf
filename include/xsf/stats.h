@@ -268,7 +268,7 @@ inline std::complex<float> log_ndtr(std::complex<float> z) {
 
 inline double nbdtr(int k, int n, double p) { return cephes::nbdtr(k, n, p); }
 
-inline double bvnu(double dh, double dk, double r) {
+inline double bivariate_normal_cdf(double dh, double dk, double r) {
     // CDF of the bivariate normal distribution with zero means, unit variances,
     // and correlation r, evaluated at (dh, dk).
     //

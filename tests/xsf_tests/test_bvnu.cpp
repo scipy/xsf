@@ -1,9 +1,9 @@
 #include "../testing_utils.h"
 #include <xsf/stats.h>
 
-TEST_CASE("bvnu test", "[bvnu][xsf_tests]") {
+TEST_CASE("bivariate normal CDF test", "[bivariate_normal_cdf][xsf_tests]") {
 
-    SECTION("bvnu infinite inputs") {
+    SECTION("bivariate normal CDF infinite inputs") {
         // test cases with infinite inputs
         using test_case = std::tuple<double, double, double, double, double>;
         auto [dh, dk, r, expected, rtol] = GENERATE(
@@ -14,31 +14,31 @@ TEST_CASE("bvnu test", "[bvnu][xsf_tests]") {
             test_case{-std::numeric_limits<double>::infinity(), 1.0, 0.5, xsf::ndtr(-1.0), 1e-13},
             test_case{1.0, -std::numeric_limits<double>::infinity(), 0.5, xsf::ndtr(-1.0), 1e-13}
         );
-        const double output = xsf::bvnu(dh, dk, r);
+        const double output = xsf::bivariate_normal_cdf(dh, dk, r);
         const auto rel_error = xsf::extended_relative_error(output, expected);
         CAPTURE(dh, dk, r, output, expected, rtol, rel_error);
         REQUIRE(rel_error <= rtol);
     }
 
-    SECTION("bvnu analytical dh=0, dk=0") {
-        // bvnu(0, 0, r) = 0.25 + asin(r)/(2*pi)
+    SECTION("bivariate normal CDF analytical dh=0, dk=0") {
+        // bivariate_normal_cdf(0, 0, r) = 0.25 + asin(r)/(2*pi)
         double dh = 0.0;
         double dk = 0.0;
         double r = GENERATE(-1.0, -0.75, -0.5, -0.25, 0.0, 0.25, 0.5, 0.75, 1.0);
         double expected = 0.25 + std::asin(r) / (2 * M_PI);
-        const double output = xsf::bvnu(dh, dk, r);
+        const double output = xsf::bivariate_normal_cdf(dh, dk, r);
         const auto rel_error = xsf::extended_relative_error(output, expected);
         double rtol = 1e-13;
         CAPTURE(dh, dk, r, output, expected, rtol, rel_error);
         REQUIRE(rel_error <= rtol);
     }
 
-    SECTION("bvnu r=0 independence") {
-        // bvnu(h, k, 0) = ndtr(-h) * ndtr(-dk)
+    SECTION("bivariate normal CDF r=0 independence") {
+        // bivariate_normal_cdf(h, k, 0) = ndtr(-h) * ndtr(-dk)
         double dh = GENERATE(-1.0, 0.0, 1.0, 2.0);
         double dk = GENERATE(-1.0, 0.0, 1.0, 2.0);
         double r = 0.0;
-        const double output = xsf::bvnu(dh, dk, r);
+        const double output = xsf::bivariate_normal_cdf(dh, dk, r);
         const double expected = xsf::ndtr(-dh) * xsf::ndtr(-dk);
         const auto rel_error = xsf::extended_relative_error(output, expected);
         double rtol = 1e-13;
@@ -46,17 +46,17 @@ TEST_CASE("bvnu test", "[bvnu][xsf_tests]") {
         REQUIRE(rel_error <= rtol);
     }
 
-    SECTION("bvnu symmetry h,k") {
-        // bvnu(h, k, r) == bvnu(k, h, r)
-        REQUIRE(xsf::bvnu(1.0, 2.0, 0.5) == xsf::bvnu(2.0, 1.0, 0.5));
+    SECTION("bivariate normal CDF symmetry h,k") {
+        // bivariate_normal_cdf(h, k, r) == bivariate_normal_cdf(k, h, r)
+        REQUIRE(xsf::bivariate_normal_cdf(1.0, 2.0, 0.5) == xsf::bivariate_normal_cdf(2.0, 1.0, 0.5));
     }
 
-    SECTION("bvnu complementarity") {
-        // bvnu(h, k, r) + bvnu(h, -k, -r) == ndtr(-h)
+    SECTION("bivariate normal CDF complementarity") {
+        // bivariate_normal_cdf(h, k, r) + bivariate_normal_cdf(h, -k, -r) == ndtr(-h)
         double dh = GENERATE(-1.0, 0.0, 1.0, 2.0);
         double dk = GENERATE(-1.0, 0.0, 1.0, 2.0);
         double r = GENERATE(-1.0, -0.75, -0.5, -0.25, 0.0, 0.25, 0.5, 0.75, 1.0);
-        double output = xsf::bvnu(dh, dk, r) + xsf::bvnu(dh, -dk, -r);
+        double output = xsf::bivariate_normal_cdf(dh, dk, r) + xsf::bivariate_normal_cdf(dh, -dk, -r);
         double expected = xsf::ndtr(-dh);
         const auto rel_error = xsf::extended_relative_error(output, expected);
         double rtol = 1e-13;
