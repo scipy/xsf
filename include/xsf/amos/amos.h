@@ -3155,7 +3155,10 @@ namespace amos {
         crsc = tol;
         std::complex<double> css[3] = {cscl, 1., crsc};
         std::complex<double> csr[3] = {crsc, 1., cscl};
-        double bry[3] = {1e3 * std::numeric_limits<double>::min() / tol, tol / (1e3 * std::numeric_limits<double>::min()), std::numeric_limits<double>::max()};
+        double bry[3] = {
+            1e3 * std::numeric_limits<double>::min() / tol, tol / (1e3 * std::numeric_limits<double>::min()),
+            std::numeric_limits<double>::max()
+        };
         int nz = 0;
         iflag = 0;
         koded = kode;
@@ -5459,7 +5462,10 @@ namespace amos {
         std::complex<double> zeta1[2] = {0.0};
         std::complex<double> zeta2[2] = {0.0};
         std::complex<double> cy[2] = {0.0};
-        double bry[3] = {1e3 * std::numeric_limits<double>::min() / tol, tol / 1e3 * std::numeric_limits<double>::min(), std::numeric_limits<double>::max()};
+        double bry[3] = {
+            1e3 * std::numeric_limits<double>::min() / tol, tol / 1e3 * std::numeric_limits<double>::min(),
+            std::numeric_limits<double>::max()
+        };
         int init[2] = {0};
         double pi = 3.14159265358979324;
 
@@ -5853,7 +5859,10 @@ namespace amos {
         std::complex<double> asum[2] = {0.0};
         std::complex<double> bsum[2] = {0.0};
         std::complex<double> cy[2] = {0.0};
-        double bry[3] = {(1.0 + 1e3 * std::numeric_limits<double>::min() / tol), 1.0 / (1.0 + 1e3 * std::numeric_limits<double>::min() / tol), std::numeric_limits<double>::max()};
+        double bry[3] = {
+            (1.0 + 1e3 * std::numeric_limits<double>::min() / tol),
+            1.0 / (1.0 + 1e3 * std::numeric_limits<double>::min() / tol), std::numeric_limits<double>::max()
+        };
 
         kdflg = 1;
         kflag = 1;
