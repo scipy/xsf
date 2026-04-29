@@ -52,6 +52,12 @@ namespace detail {
             // digamma(x) -> +inf as x -> +inf, and digamma(x) -> -inf as x -> 0+.
             return y > 0 ? std::numeric_limits<double>::infinity() : 0.0;
         }
+        // digamma(x) -> ln(x) as x -> +inf, so digamma_inv must be infinite for
+        // y > ln(DBL_MAX)
+        const double log_max_double = std::log(std::numeric_limits<double>::max());
+        if (y > log_max_double) {
+            return std::numeric_limits<double>::infinity();
+        }
 
         double x = digamma_inv_initial_guess(y);
         return digamma_inv_newton_raphson(x, y);

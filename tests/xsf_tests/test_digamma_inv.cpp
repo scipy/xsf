@@ -21,8 +21,10 @@ TEST_CASE("digamma_inv round-trip", "[digamma_inv][xsf_tests]") {
 TEST_CASE("digamma_inv special values", "[digamma_inv][xsf_tests]") {
     const double inf = std::numeric_limits<double>::infinity();
     const double nan = std::numeric_limits<double>::quiet_NaN();
+    const double log_max_double = std::log(std::numeric_limits<double>::max());
 
     REQUIRE(std::isnan(xsf::digamma_inv(nan)));
     REQUIRE(xsf::digamma_inv(inf) == inf);
     REQUIRE(xsf::digamma_inv(-inf) == 0.0);
+    REQUIRE(xsf::digamma_inv(std::nextafter(log_max_double, inf)) == inf);
 }
