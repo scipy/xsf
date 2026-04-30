@@ -8,22 +8,18 @@
 TEST_CASE("hyp2f1(-1, b, c, z) / gh-4446", "[hyp2f1][xsf_tests]") {
     constexpr double rtol = 1e-14;
     constexpr double atol = 1e-14; // absolute tolerance
-
     constexpr int size = 201;
-    std::vector<double> b_values(size), c_values(size), z_values(size);
+    constexpr double start = -10.0;
+    constexpr double end = 10.0;
 
-    for (int i = 0; i < size; ++i) {
-        b_values[i] = -10.0 + i * 0.1;
-        c_values[i] = -10.0 + i * 0.1;
-        z_values[i] = -10.0 + i * 0.1;
-    }
+    const std::vector<double> test_values = linspace(start, end, size);
 
-    for (double b : b_values) {
-        for (double c : c_values) {
+    for (double b : test_values) {
+        for (double c : test_values) {
             if (c == 0.0)
                 continue;
 
-            for (double z : z_values) {
+            for (double z : test_values) {
                 double expected = 1 - (b / c) * z;
                 double result = xsf::hyp2f1(-1.0, b, c, z);
 
