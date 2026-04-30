@@ -48,17 +48,15 @@ namespace detail {
         if (std::isnan(y)) {
             return std::numeric_limits<double>::quiet_NaN();
         }
-        if (std::isinf(y)) {
-            // digamma(x) -> +inf as x -> +inf, and digamma(x) -> -inf as x -> 0+.
-            return y > 0 ? std::numeric_limits<double>::infinity() : 0.0;
-        }
-        // digamma(x) -> ln(x) as x -> +inf, so digamma_inv must be infinite for
-        // y > ln(DBL_MAX)
+        // digamma(x) app. log(x) for large x, so digamma_inv(y) must be inf for y > log(DBL_MAX)
         const double log_max_double = std::log(std::numeric_limits<double>::max());
         if (y > log_max_double) {
             return std::numeric_limits<double>::infinity();
         }
-
+        // digamma(x) -> - inf for x -> 0+, so digamma_inv must be zero for y = - inf
+        if (std::isinf(y) && y < 0) {
+            return 0.0;
+        }
         double x = digamma_inv_initial_guess(y);
         return digamma_inv_newton_raphson(x, y);
     }
