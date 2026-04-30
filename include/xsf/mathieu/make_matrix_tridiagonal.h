@@ -1,9 +1,7 @@
-#ifndef MAKE_MATRIX_TRIDIAGONAL_H
-#define MAKE_MATRIX_TRIDIAGONAL_H
+#pragma once
 
 #include "../config.h"
 #include "../error.h"
-#include "matrix_utils.h"
 
 /*
  *
@@ -27,33 +25,29 @@ namespace mathieu {
       the even-even Mathieu fcns (ce_2n).
 
       Inputs:
-      N = matrix size (related to max order desired).
       q = shape parameter.
 
       Outputs
-      D = Diagonal elements in recurrence matrix (must be calloc'ed in caller).
-      E = Off-diagonal elements in recurrence matrix (must be calloc'ed in caller).
+      D = Diagonal elements in recurrence matrix (mdspan view of 1d array)
+      E = Off-diagonal elements in recurrence matrix (mdspan view of 1d array)
 
-      Return:
-      return code = SF_ERROR_OK if OK.
       -------------------------------------------------*/
-    int make_matrix_ee(int N, double q, double *D, double *E) {
-        // Coeffs for ce_2n
-        int j;
+
+    template <typename OutputMat>
+    XSF_HOST_DEVICE inline void make_matrix_ee(double q, OutputMat D, OutputMat E) {
+        auto n = D.extent(0);
 
         // Make diagonal entries
-        D[0] = 0.0;
-        for (j = 1; j < N; j++) {
-            D[j] = (2.0 * j) * (2.0 * j);
+        D(0) = 0.0;
+        for (decltype(n) j = 1; j < n; j++) {
+            D(j) = (2.0 * j) * (2.0 * j);
         }
 
         // Make off-diagonal entries
-        E[0] = M_SQRT2 * q;
-        for (j = 1; j < (N - 1); j++) {
-            E[j] = q;
+        E(0) = M_SQRT2 * q;
+        for (decltype(n) j = 1; j < (n - 1); j++) {
+            E(j) = q;
         }
-
-        return SF_ERROR_OK;
     }
 
     /*-----------------------------------------------
@@ -61,31 +55,26 @@ namespace mathieu {
       even-odd Mathieu fcns (ce_2n+1).
 
       Inputs:
-      N = matrix size (related to max order desired).
       q = shape parameter.
 
       Outputs:
-      D = Diagonal elements in recurrence matrix (must be calloc'ed in caller).
-      E = Off-diagonal elements in recurrence matrix (must be calloc'ed in caller).
-
-      Return:
-      return code = SF_ERROR_OK if OK.
+      D = Diagonal elements in recurrence matrix (mdspan view of 1d array).
+      E = Off-diagonal elements in recurrence matrix (mdspan view of 1d array).
       -------------------------------------------------*/
-    int make_matrix_eo(int N, double q, double *D, double *E) {
-        int j;
+    template <typename OutputMat>
+    XSF_HOST_DEVICE inline void make_matrix_eo(double q, OutputMat D, OutputMat E) {
+        auto n = D.extent(0);
 
         // Make diagonal entries
-        D[0] = 1.0 + q;
-        for (j = 1; j < N; j++) {
-            D[j] = (2.0 * j + 1.0) * (2.0 * j + 1.0);
+        D(0) = 1.0 + q;
+        for (decltype(n) j = 1; j < n; j++) {
+            D(j) = (2.0 * j + 1.0) * (2.0 * j + 1.0);
         }
 
         // Make off-diagonal entries
-        for (j = 0; j < (N - 1); j++) {
-            E[j] = q;
+        for (decltype(n) j = 0; j < (n - 1); j++) {
+            E(j) = q;
         }
-
-        return SF_ERROR_OK;
     }
 
     /*-----------------------------------------------
@@ -94,31 +83,26 @@ namespace mathieu {
       se_2n+2.
 
       Inputs:
-      N = matrix size (related to max order desired).
       q = shape parameter.
 
       Outputs:
-      D = Diagonal elements in recurrence matrix (must be calloc'ed in caller).
-      E = Off-diagonal elements in recurrence matrix (must be calloc'ed in caller).
-
-      Return:
-      return code = SF_ERROR_OK if OK.
+      D = Diagonal elements in recurrence matrix (mdspan view of 1d array).
+      E = Off-diagonal elements in recurrence matrix (mdspan view of 1d array).
       -------------------------------------------------*/
-    int make_matrix_oe(int N, double q, double *D, double *E) {
+    template <typename OutputMat>
+    XSF_HOST_DEVICE inline void make_matrix_oe(double q, OutputMat D, OutputMat E) {
         // Coeffs for se_2n+2
-        int j;
+        auto n = D.extent(0);
 
         // Make diagonal entries
-        for (j = 0; j < N; j++) {
-            D[j] = (2.0 * (j + 1.0)) * (2.0 * (j + 1.0));
+        for (decltype(n) j = 0; j < n; j++) {
+            D(j) = (2.0 * (j + 1.0)) * (2.0 * (j + 1.0));
         }
 
         // Make off-diagonal entries
-        for (j = 0; j < (N - 1); j++) {
-            E[j] = q;
+        for (decltype(n) j = 0; j < (n - 1); j++) {
+            E(j) = q;
         }
-
-        return SF_ERROR_OK;
     }
 
     /*-----------------------------------------------
@@ -126,35 +110,28 @@ namespace mathieu {
       the odd-odd Mathieu fcns (se_2n+1).
 
       Inputs:
-      N = matrix size (related to max order desired).
       q = shape parameter.
 
       Outputs:
-      D = Diagonal elements in recurrence matrix (must be calloc'ed in caller).
-      E = Off-diagonal elements in recurrence matrix (must be calloc'ed in caller).
-
-      Return:
-      return code = SF_ERROR_OK if OK.
+      D = Diagonal elements in recurrence matrix (mdspan view of 1d array).
+      E = Off-diagonal elements in recurrence matrix (mdspan view of 1d array).
       -------------------------------------------------*/
-    int make_matrix_oo(int N, double q, double *D, double *E) {
+    template <typename OutputMat>
+    XSF_HOST_DEVICE inline void make_matrix_oo(double q, OutputMat D, OutputMat E) {
         // Coeffs for se_2n+1
-        int j;
+        auto n = D.extent(0);
 
         // Make diagonal entries
-        D[0] = 1 - q;
-        for (j = 1; j < N; j++) {
-            D[j] = (2.0 * j + 1.0) * (2.0 * j + 1.0);
+        D(0) = 1 - q;
+        for (decltype(n) j = 1; j < n; j++) {
+            D(j) = (2.0 * j + 1.0) * (2.0 * j + 1.0);
         }
 
         // Make off-diagonal entries
-        for (j = 0; j < (N - 1); j++) {
-            E[j] = q;
+        for (decltype(n) j = 0; j < (n - 1); j++) {
+            E(j) = q;
         }
-
-        return SF_ERROR_OK;
     }
 
 } // namespace mathieu
 } // namespace xsf
-
-#endif // #ifndef MAKE_MATRIX_TRIDIAGONAL_H
