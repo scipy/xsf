@@ -27,10 +27,11 @@ namespace mathieu {
       Inputs:
       q = shape parameter.
 
-      Outputs
-      D = Diagonal elements in recurrence matrix (mdspan view of 1d array)
-      E = Off-diagonal elements in recurrence matrix (mdspan view of 1d array)
-
+      Outputs:
+      D = Diagonal elements in recurrence matrix. mdspan view of a 1d array. It is
+      up to the caller to ensure it is initialized with all zeros.
+      E = Off-diagonal elements in recurrence matrix. mdspan view of 1d array. It
+      is up to the caller to ensure it is initialized with all zeros.
       -------------------------------------------------*/
 
     template <typename OutputMat>
@@ -58,8 +59,10 @@ namespace mathieu {
       q = shape parameter.
 
       Outputs:
-      D = Diagonal elements in recurrence matrix (mdspan view of 1d array).
-      E = Off-diagonal elements in recurrence matrix (mdspan view of 1d array).
+      D = Diagonal elements in recurrence matrix. mdspan view of a 1d array. It is
+      up to the caller to ensure it is initialized with all zeros.
+      E = Off-diagonal elements in recurrence matrix. mdspan view of 1d array. It
+      is up to the caller to ensure it is initialized with all zeros.
       -------------------------------------------------*/
     template <typename OutputMat>
     XSF_HOST_DEVICE inline void make_matrix_eo(double q, OutputMat D, OutputMat E) {
@@ -86,8 +89,10 @@ namespace mathieu {
       q = shape parameter.
 
       Outputs:
-      D = Diagonal elements in recurrence matrix (mdspan view of 1d array).
-      E = Off-diagonal elements in recurrence matrix (mdspan view of 1d array).
+      D = Diagonal elements in recurrence matrix. mdspan view of a 1d array. It is
+      up to the caller to ensure it is initialized with all zeros.
+      E = Off-diagonal elements in recurrence matrix. mdspan view of 1d array. It
+      is up to the caller to ensure it is initialized with all zeros.
       -------------------------------------------------*/
     template <typename OutputMat>
     XSF_HOST_DEVICE inline void make_matrix_oe(double q, OutputMat D, OutputMat E) {
@@ -112,9 +117,10 @@ namespace mathieu {
       Inputs:
       q = shape parameter.
 
-      Outputs:
-      D = Diagonal elements in recurrence matrix (mdspan view of 1d array).
-      E = Off-diagonal elements in recurrence matrix (mdspan view of 1d array).
+      D = Diagonal elements in recurrence matrix. mdspan view of a 1d array. It is
+      up to the caller to ensure it is initialized with all zeros.
+      E = Off-diagonal elements in recurrence matrix. mdspan view of 1d array. It
+      is up to the caller to ensure it is initialized with all zeros.
       -------------------------------------------------*/
     template <typename OutputMat>
     XSF_HOST_DEVICE inline void make_matrix_oo(double q, OutputMat D, OutputMat E) {
