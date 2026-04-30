@@ -2,7 +2,6 @@
 
 #include "error.h"
 #include "mathieu/besseljyd.h"
-#include "mathieu/make_matrix.h"
 #include "mathieu/mathieu_coeffs.h"
 #include "mathieu/mathieu_eigs.h"
 #include "mathieu/mathieu_fcns.h"
