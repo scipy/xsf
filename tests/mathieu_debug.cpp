@@ -1,6 +1,6 @@
 #include "../testing_utils.h"
 
-#include <xsf/mathieu.h>
+#include <xsf/mathieu_new.h>
 
 #include <cstdio>
 #include <stdlib.h>
