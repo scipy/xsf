@@ -300,6 +300,85 @@ inline float tukeylambdacdf(float x, double lmbda) {
     return tukeylambdacdf(static_cast<double>(x), static_cast<double>(lmbda));
 }
 
+inline std::vector<double> wilcoxon_pmf(int n) {
+    // PMF of the Wilcoxon signed-rank statistic.
+    // The returned vector has length n*(n+1)/2 + 1, and the k-th element contains
+    // the probability of observing a test statistic equal to k for n pairs of
+    // observations.
+    std::vector<double> pmf = {1.0};
+    for (int k = 1; k < n + 1; k++) {
+        std::vector<double> tmp(k * (k + 1) / 2 + 1, 0.0);
+        int m = static_cast<int>(pmf.size());
+        for (int i = 0; i < m; i++) {
+            tmp[i] += 0.5 * pmf[i];
+            tmp[i + k] += 0.5 * pmf[i];
+        }
+        pmf = std::move(tmp);
+    }
+    return pmf;
+}
+
+inline std::vector<double> wilcoxon_cdf_table(const std::vector<double> &pmf) {
+    // Cumulative probabilities for CDF/SF queries.
+    std::vector<double> cdf_table(pmf.size());
+    double sum = 0.0;
+    for (int i = 0; i < static_cast<int>(pmf.size()); ++i) {
+        sum += pmf[i];
+        cdf_table[i] = sum;
+    }
+    return cdf_table;
+}
+
+inline double wilcoxon_cdf1(int k, const std::vector<double> &cdf_table, int n) {
+    const int max_k = n * (n + 1) / 2;
+    if (k < 0) {
+        return 0.0;
+    }
+    if (k >= max_k) {
+        return 1.0;
+    }
+    return cdf_table[k];
+}
+
+inline double wilcoxon_sf1(int k, const std::vector<double> &cdf_table, int n) {
+    const int max_k = n * (n + 1) / 2;
+    if (k < 0) {
+        return 1.0;
+    }
+    if (k > max_k) {
+        return 0.0;
+    }
+    return 1.0 - (k > 0 ? cdf_table[k - 1] : 0.0);
+}
+
+inline double wilcoxon_cdf(int k, const std::vector<double> &cdf_table, int n) {
+    // CDF of the Wilcoxon signed-rank statistic for integer k and n pairs of observations.
+    const double mn = n * (n + 1) / 4.0;
+    return (k <= mn) ? wilcoxon_cdf1(k, cdf_table, n) : 1.0 - wilcoxon_sf1(k + 1, cdf_table, n);
+}
+
+inline double wilcoxon_cdf(double k, const std::vector<double> &cdf_table, int n) {
+    // CDF of the Wilcoxon signed-rank statistic for real k and n pairs of observations.
+    if (std::isnan(k) || n < 0) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    return wilcoxon_cdf(static_cast<int>(k), cdf_table, n);
+}
+
+inline double wilcoxon_sf(int k, const std::vector<double> &cdf_table, int n) {
+    // SF of the Wilcoxon signed-rank statistic for integer k and n pairs of observations.
+    const double mn = n * (n + 1) / 4.0;
+    return (k <= mn) ? wilcoxon_sf1(k, cdf_table, n) : 1.0 - wilcoxon_cdf1(k - 1, cdf_table, n);
+}
+
+inline double wilcoxon_sf(double k, const std::vector<double> &cdf_table, int n) {
+    // SF of the Wilcoxon signed-rank statistic for real k and n pairs of observations.
+    if (std::isnan(k) || n < 0) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    return wilcoxon_sf(static_cast<int>(k), cdf_table, n);
+}
+
 namespace detail {
 
     template <typename InputMat, typename OutputMat>
