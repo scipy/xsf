@@ -82,13 +82,29 @@ namespace cephes {
         int i;
 
         /* Check for special cases */
-        if (m < 0.0 || m > 1.0 || std::isnan(m)) {
+        if (m > 1.0 || std::isnan(m)) {
             set_error("ellpj", SF_ERROR_DOMAIN, NULL);
             *sn = std::numeric_limits<double>::quiet_NaN();
             *cn = std::numeric_limits<double>::quiet_NaN();
             *ph = std::numeric_limits<double>::quiet_NaN();
             *dn = std::numeric_limits<double>::quiet_NaN();
             return (-1);
+        }
+        /* Handle negative m by transformation (DLMF 22.17) */
+        if (m < 0.0) {
+            double m1 = -m / (1.0 - m);
+            double u1 = std::sqrt(1.0 - m) * u;
+            double sn_p, cn_p, dn_p, ph_p;
+
+            int result = ellpj(u1, m1, &sn_p, &cn_p, &dn_p, &ph_p);
+            if (result != 0)
+                return result;
+
+            *sn = sn_p / (std::sqrt(1.0 - m) * dn_p);
+            *cn = cn_p / dn_p;
+            *dn = 1.0 / dn_p;
+            *ph = std::atan2(*sn, *cn);
+            return (0);
         }
         if (m < 1.0e-9) {
             t = std::sin(u);
