@@ -92,9 +92,11 @@
  */
 #pragma once
 
+#include "../config.h"
 #include <cmath>
 #include <complex>
 #include <cstdlib>
+#include <limits>
 #include <memory> // unique_ptr
 
 namespace xsf {
@@ -136,32 +138,12 @@ namespace amos {
         std::complex<double>, double, int, int, std::complex<double> *, std::complex<double> *, double, double, double
     );
 
-    constexpr double d1mach[5] = {
-        2.2250738585072014e-308, /* np.finfo(np.float64).tiny      */
-        1.7976931348623157e+308, /* np.finfo(np.float64).max       */
-        1.1102230246251565e-16,  /* 0.5 * np.finfo(np.float64).eps */
-        2.220446049250313e-16,   /* np.finfo(np.float64).eps       */
-        0.3010299956639812       /* np.log10(2)                    */
-    };
-
-    constexpr double i1mach[16] = {
-        5,          /* standard input         */
-        6,          /* standard output        */
-        7,          /* standard punch         */
-        0,          /* standard error         */
-        32,         /* bits per integer       */
-        4,          /* sizeof(int);           */
-        2,          /* base for integers      */
-        31,         /* digits of integer base */
-        2147483647, /* LONG MAX 2**31 - 1     */
-        2,          /* FLT_RADIX;             */
-        24,         /* FLT_MANT_DIG;          */
-        -126,       /* FLT_MIN_EXP;           */
-        128,        /* FLT_MAX_EXP;           */
-        53,         /* DBL_MANT_DIG;          */
-        -1021,      /* DBL_MIN_EXP;           */
-        1024        /* DBL_MAX_EXP;           */
-    };
+    // Constants that appear repeatedly and cannot be expressed directly in terms of std::numeric_limits.
+    constexpr double LOG10_2 = 0.3010299956639812; // log10(2)
+    constexpr double THRESHOLD_MIN = 1e3 * std::numeric_limits<double>::min();
+    // Are there even platforms where epsilon is smaller than 1e-18?
+    constexpr double RTOL_MIN =
+        (std::numeric_limits<double>::epsilon() > 1e-18 ? std::numeric_limits<double>::epsilon() : 1e-18);
 
     constexpr double zunhj_ar[14] = {
         1.00000000000000000e+00, 1.04166666666666667e-01, 8.35503472222222222e-02, 1.28226574556327160e-01, //  0
@@ -417,7 +399,6 @@ namespace amos {
         std::complex<double> csgn, cspn, c1, c2, zn, cy[2];
         double arg, ascle, az, cpn, dfnu, fmr, sgn, spn, yy;
         int inu, iuf, nn, nw;
-        double pi = 3.14159265358979324;
         int nz = 0;
         zn = -z;
         az = std::abs(z);
@@ -462,7 +443,7 @@ namespace amos {
             return nz;
         }
         fmr = mr;
-        sgn = (fmr < 0.0 ? pi : -pi);
+        sgn = (fmr < 0.0 ? M_PI : -M_PI);
         csgn = std::complex<double>(0.0, sgn);
         if (kode != 1) {
             yy = -std::imag(zn);
@@ -486,7 +467,7 @@ namespace amos {
         c2 = y[0];
         if (kode != 1) {
             iuf = 0;
-            ascle = 1e3 * d1mach[0] / tol;
+            ascle = THRESHOLD_MIN / tol;
             nw = s1s2(zn, &c1, &c2, ascle, alim, &iuf);
             nz += nw;
         }
@@ -516,7 +497,6 @@ namespace amos {
         std::complex<double> ck, cs, cscl, cscr, csgn, cspn, c1, c2, rz, sc1, sc2 = 0.0, st, s1, s2, zn;
         double arg, ascle, as2, bscle, c1i, c1m, c1r, fmr, sgn, yy;
         int i, inu, iuf, kflag, nn, nw, nz;
-        double pi = 3.14159265358979324;
         std::complex<double> cy[2] = {0.0};
         std::complex<double> css[3] = {0.0};
         std::complex<double> csr[3] = {0.0};
@@ -535,7 +515,7 @@ namespace amos {
             if (nw == 0) {
                 s1 = cy[0];
                 fmr = mr;
-                sgn = (fmr < 0 ? pi : -pi);
+                sgn = (fmr < 0 ? M_PI : -M_PI);
                 csgn = std::complex<double>(0.0, sgn);
                 if (kode != 1) {
                     yy = -std::imag(zn);
@@ -550,7 +530,7 @@ namespace amos {
                 iuf = 0;
                 c1 = s1;
                 c2 = y[0];
-                ascle = 1e3 * d1mach[0] / tol;
+                ascle = THRESHOLD_MIN / tol;
                 if (kode != 1) {
                     nw = s1s2(zn, &c1, &c2, ascle, alim, &iuf);
                     nz += nw;
@@ -589,7 +569,7 @@ namespace amos {
                 csr[2] = cscl;
                 bry[0] = ascle;
                 bry[1] = 1.0 / ascle;
-                bry[2] = d1mach[1];
+                bry[2] = std::numeric_limits<double>::max();
                 as2 = std::abs(s2);
                 kflag = 2;
                 if (as2 <= bry[0]) {
@@ -803,7 +783,7 @@ namespace amos {
         if (*ierr != 0)
             return 0.;
         az = std::abs(z);
-        tol = d1mach[3];
+        tol = std::numeric_limits<double>::epsilon();
         fid = id;
 
         if (az <= 1.0) {
@@ -813,7 +793,7 @@ namespace amos {
             s1 = 1.0;
             s2 = 1.0;
             if (az < tol) {
-                aa = 1e3 * d1mach[0];
+                aa = THRESHOLD_MIN;
                 s1 = 0.;
                 if (id != 1) {
                     if (az > aa) {
@@ -895,12 +875,12 @@ namespace amos {
         // RL IS THE LOWER BOUNDARY OF THE ASYMPTOTIC EXPANSION FOR LARGE Z.
         // DIG = NUMBER OF BASE 10 DIGITS IN TOL = 10**(-DIG).
         //
-        k1 = i1mach[14];
-        k2 = i1mach[15];
-        r1m5 = d1mach[4];
+        k1 = std::numeric_limits<double>::min_exponent;
+        k2 = std::numeric_limits<double>::max_exponent;
+        r1m5 = LOG10_2;
         k = (std::abs(k1) > std::abs(k2) ? std::abs(k2) : std::abs(k1));
         elim = 2.303 * (k * r1m5 - 3.0);
-        k1 = i1mach[13] - 1;
+        k1 = std::numeric_limits<double>::digits - 1;
         aa = r1m5 * k1;
         dig = (aa > 18.0 ? 18.0 : aa);
         aa *= 2.303;
@@ -911,7 +891,7 @@ namespace amos {
         // TEST FOR RANGE
         //
         aa = 0.5 / tol;
-        bb = i1mach[8] * 0.5;
+        bb = std::numeric_limits<int>::max() * 0.5;
         aa = (aa > bb ? bb : aa);
         aa = std::pow(aa, tth);
         if (az > aa) {
@@ -1032,17 +1012,16 @@ namespace amos {
         double aa, acz, aez, ak, arg, arm, atol, az, bb, bk, dfnu;
         double dnu2, fdn, rtr1, s, sgn, sqk, x, yy;
         int ib, il, inu, j, jl, k, koded, m, nn;
-        double pi = 3.14159265358979324;
-        double rpi = 0.159154943091895336; /* (1 / pi) */
         int nz = 0;
+        double rtpi = M_1_PI / 2.0;
         az = std::abs(z);
         x = std::real(z);
-        arm = 1e3 * d1mach[0];
+        arm = THRESHOLD_MIN;
         rtr1 = std::sqrt(arm);
         il = (n > 2 ? 2 : n);
         dfnu = fnu + (n - il);
         // OVERFLOW TEST
-        ak1 = std::sqrt(rpi / z);
+        ak1 = std::sqrt(rtpi / z);
         cz = z;
         if (kode == 2) {
             cz = std::complex<double>(0.0, std::imag(z));
@@ -1071,7 +1050,7 @@ namespace amos {
             p1 = 0.;
             if (yy != 0.) {
                 inu = (int)fnu;
-                arg = (fnu - inu) * pi;
+                arg = (fnu - inu) * M_PI;
                 inu += n - il;
                 ak = -std::sin(arg);
                 bk = std::cos(arg);
@@ -1313,8 +1292,6 @@ namespace amos {
             yy, bb, ascle, rtol, atol;
         int i, inu, inuh, ir, k, k1, k2, mm, mr, nn, nuf, nw, nz;
 
-        double hpi = 1.57079632679489662; /* 0.5 PI */
-
         nz = 0;
         xx = std::real(z);
         yy = std::imag(z);
@@ -1350,13 +1327,13 @@ namespace amos {
         //  DIG = NUMBER OF BASE 10 DIGITS IN TOL = 10**(-DIG).
         //  FNUL IS THE LOWER BOUNDARY OF THE ASYMPTOTIC SERIES FOR LARGE FNU
         //
-        tol = std::fmax(d1mach[3], 1e-18);
-        k1 = i1mach[14];
-        k2 = i1mach[15];
-        r1m5 = d1mach[4];
+        tol = RTOL_MIN;
+        k1 = std::numeric_limits<double>::min_exponent;
+        k2 = std::numeric_limits<double>::max_exponent;
+        r1m5 = LOG10_2;
         k = (std::abs(k1) > std::abs(k2) ? std::abs(k2) : std::abs(k1));
         elim = 2.303 * (k * r1m5 - 3.0);
-        k1 = i1mach[13] - 1;
+        k1 = std::numeric_limits<double>::digits - 1;
         aa = r1m5 * k1;
         dig = std::fmin(aa, 18.0);
         aa *= 2.303;
@@ -1373,7 +1350,7 @@ namespace amos {
         // TEST FOR PROPER RANGE
         //
         az = std::abs(z);
-        bb = d1mach[1] * 0.5;
+        bb = std::numeric_limits<double>::max() * 0.5;
         aa = std::fmin(0.5 / tol, bb);
         if ((az > aa) || (fn > aa)) {
             *ierr = 4;
@@ -1389,8 +1366,7 @@ namespace amos {
         //
         // OVERFLOW TEST ON THE LAST MEMBER OF THE SEQUENCE
         //
-        ufl = d1mach[0] * 1.0e3;
-        if (az < ufl) {
+        if (az < THRESHOLD_MIN) {
             *ierr = 2;
             return 0;
         } /* GO TO 230 */
@@ -1492,7 +1468,7 @@ namespace amos {
         // H(M,FNU,Z) = -FMM*(I/HPI)*(ZT**FNU)*K(FNU,-Z*ZT)
         // ZT=EXP(-FMM*HPI*I) = std::complex<double>(0.0,-FMM), FMM=3-2*M, M=1,2
         //
-        sgn = (-fmm < 0 ? -hpi : hpi);
+        sgn = (-fmm < 0 ? -M_PI_2 : M_PI_2);
         //
         // CALCULATE EXP(FNU*HPI*I) TO MINIMIZE LOSSES OF SIGNIFICANCE
         // WHEN FNU IS LARGE
@@ -1681,8 +1657,6 @@ namespace amos {
         std::complex<double> csgn, zn;
         double aa, alim, arg, atol, ascle, az, bb, dig, elim, fn, fnul, rl, rtol, r1m5, tol, xx, yy;
         int i, inu, k, k1, k2, nn, nz;
-        double pi = 3.14159265358979324;
-
         *ierr = 0;
         nz = 0;
         if (fnu < 0.0) {
@@ -1710,13 +1684,13 @@ namespace amos {
         //  DIG = NUMBER OF BASE 10 DIGITS IN TOL = 10**(-DIG).
         //  FNUL IS THE LOWER BOUNDARY OF THE ASYMPTOTIC SERIES FOR LARGE FNU
         //
-        tol = std::fmax(d1mach[3], 1e-18);
-        k1 = i1mach[14];
-        k2 = i1mach[15];
-        r1m5 = d1mach[4];
+        tol = RTOL_MIN;
+        k1 = std::numeric_limits<double>::min_exponent;
+        k2 = std::numeric_limits<double>::max_exponent;
+        r1m5 = LOG10_2;
         k = (std::abs(k1) > std::abs(k2) ? std::abs(k2) : std::abs(k1));
         elim = 2.303 * (k * r1m5 - 3.0);
-        k1 = i1mach[13] - 1;
+        k1 = std::numeric_limits<double>::digits - 1;
         aa = r1m5 * k1;
         dig = std::fmin(aa, 18.0);
         aa *= 2.303;
@@ -1729,7 +1703,7 @@ namespace amos {
         az = std::abs(z);
         fn = fnu + (n - 1);
         aa = 0.5 / tol;
-        bb = i1mach[8] * 0.5;
+        bb = std::numeric_limits<int>::max() * 0.5;
         aa = std::fmin(aa, bb);
         if ((az > aa) || (fn > aa)) {
             *ierr = 4;
@@ -1751,7 +1725,7 @@ namespace amos {
             // WHEN FNU IS LARGE
             //
             inu = (int)fnu;
-            arg = (fnu - inu) * pi;
+            arg = (fnu - inu) * M_PI;
             if (yy < 0.0) {
                 arg = -arg;
             }
@@ -1781,7 +1755,7 @@ namespace amos {
             return nz;
         }
         rtol = 1.0 / tol;
-        ascle = d1mach[0] * rtol * 1e3;
+        ascle = THRESHOLD_MIN * rtol;
         for (i = 1; i < (nn + 1); i++) {
             zn = cy[i - 1];
             atol = 1.0;
@@ -1946,7 +1920,6 @@ namespace amos {
         std::complex<double> ci, csgn, zn;
         double aa, alim, arg, dig, elim, fnul, rl, r1, r1m5, r2, tol, yy, az, fn, bb, ascle, rtol, atol;
         int i, inu, inuh, ir, k1, k2, nl, nz, k;
-        double hpi = 1.570796326794896619;
 
         *ierr = 0;
         nz = 0;
@@ -1969,13 +1942,13 @@ namespace amos {
         // DIG = NUMBER OF BASE 10 DIGITS IN TOL = 10**(-DIG).
         // FNUL IS THE LOWER BOUNDARY OF THE ASYMPTOTIC SERIES FOR LARGE FNU.
         //
-        tol = std::fmax(d1mach[3], 1e-18);
-        k1 = i1mach[14];
-        k2 = i1mach[15];
-        r1m5 = d1mach[4];
+        tol = RTOL_MIN;
+        k1 = std::numeric_limits<double>::min_exponent;
+        k2 = std::numeric_limits<double>::max_exponent;
+        r1m5 = LOG10_2;
         k = (std::abs(k1) > std::abs(k2) ? std::abs(k2) : std::abs(k1));
         elim = 2.303 * (k * r1m5 - 3.0);
-        k1 = i1mach[13] - 1;
+        k1 = std::numeric_limits<double>::digits - 1;
         aa = r1m5 * k1;
         dig = std::fmin(aa, 18.0);
         aa *= 2.303;
@@ -1990,7 +1963,7 @@ namespace amos {
         fn = fnu + (n - 1);
 
         aa = 0.5 / tol;
-        bb = d1mach[1] * 0.5;
+        bb = std::numeric_limits<double>::max() * 0.5;
         aa = std::fmin(aa, bb);
         if ((az > aa) || (fn > aa)) {
             *ierr = 4;
@@ -2011,7 +1984,7 @@ namespace amos {
         inu = (int)fnu;
         inuh = inu / 2;
         ir = inu - 2 * inuh;
-        arg = (fnu - (inu - ir)) * hpi;
+        arg = (fnu - (inu - ir)) * M_PI_2;
         r1 = std::cos(arg);
         r2 = std::sin(arg);
         csgn = std::complex<double>(r1, r2);
@@ -2041,7 +2014,7 @@ namespace amos {
             return nz;
         }
         rtol = 1.0 / tol;
-        ascle = d1mach[0] * rtol * 1e3;
+        ascle = THRESHOLD_MIN * rtol;
         for (i = 1; i < (nl + 1); i++) {
             zn = cy[i - 1];
             aa = std::real(zn);
@@ -2246,13 +2219,13 @@ namespace amos {
         //  DIG = NUMBER OF BASE 10 DIGITS IN TOL = 10**(-DIG).
         //  FNUL IS THE LOWER BOUNDARY OF THE ASYMPTOTIC SERIES FOR LARGE FNU
         //
-        tol = std::fmax(d1mach[3], 1e-18);
-        k1 = i1mach[14];
-        k2 = i1mach[15];
-        r1m5 = d1mach[4];
+        tol = RTOL_MIN;
+        k1 = std::numeric_limits<double>::min_exponent;
+        k2 = std::numeric_limits<double>::max_exponent;
+        r1m5 = LOG10_2;
         k = (std::abs(k1) > std::abs(k2) ? std::abs(k2) : std::abs(k1));
         elim = 2.303 * (k * r1m5 - 3.0);
-        k1 = i1mach[13] - 1;
+        k1 = std::numeric_limits<double>::digits - 1;
         aa = r1m5 * k1;
         dig = std::fmin(aa, 18.0);
         aa *= 2.303;
@@ -2265,7 +2238,7 @@ namespace amos {
         az = std::abs(z);
         fn = fnu + (nn - 1);
         aa = 0.5 / tol;
-        bb = i1mach[8] * 0.5;
+        bb = std::numeric_limits<int>::max() * 0.5;
         aa = std::fmin(aa, bb);
         if ((az > aa) || (fn > aa)) {
             *ierr = 4;
@@ -2281,8 +2254,7 @@ namespace amos {
         //
         // OVERFLOW TEST ON THE LAST MEMBER OF THE SEQUENCE
         //
-        ufl = d1mach[0] * 1.0E+3;
-        if (az < ufl) {
+        if (az < THRESHOLD_MIN) {
             *ierr = 2;
             return 0;
         }
@@ -2585,10 +2557,10 @@ namespace amos {
             return nz;
         }
 
-        tol = std::fmax(d1mach[3], 1e-18);
-        k1 = i1mach[14];
-        k2 = i1mach[15];
-        r1m5 = d1mach[4];
+        tol = RTOL_MIN;
+        k1 = std::numeric_limits<double>::min_exponent;
+        k2 = std::numeric_limits<double>::max_exponent;
+        r1m5 = LOG10_2;
         k = (std::abs(k1) > std::abs(k2) ? std::abs(k2) : std::abs(k1));
         //
         // ELIM IS THE APPROXIMATE EXPONENTIAL UNDER- AND OVERFLOW LIMIT
@@ -2612,7 +2584,7 @@ namespace amos {
 
         nz = 0;
         rtol = 1.0 / tol;
-        ascle = 1e3 * d1mach[0] * rtol;
+        ascle = THRESHOLD_MIN * rtol;
         for (i = 1; i < (n + 1); i++) {
             aa = std::real(cwrk[i - 1]);
             bb = std::imag(cwrk[i - 1]);
@@ -2934,7 +2906,6 @@ namespace amos {
         double c1 = 0.614926627446000735150922369;   /* 1/( 3**(1/6) Gamma(2/3)) */
         double c2 = 0.448288357353826357914823710;   /* 3**(1/6) / Gamma(1/3)    */
         double coef = 0.577350269189625764509148780; /* sqrt( 1 / 3)             */
-        double pi = 3.141592653589793238462643383;
 
         *ierr = 0;
         nz = 0;
@@ -2948,7 +2919,7 @@ namespace amos {
             return 0.0;
         }
         az = std::abs(z);
-        tol = std::fmax(d1mach[3], 1e-18);
+        tol = RTOL_MIN;
         fid = id;
         if (az <= 1.0) {
             //
@@ -3033,12 +3004,12 @@ namespace amos {
         // DIG = NUMBER OF BASE 10 DIGITS IN TOL = 10**(-DIG).
         // FNUL IS THE LOWER BOUNDARY OF THE ASYMPTOTIC SERIES FOR LARGE FNU.
         //
-        k1 = i1mach[14];
-        k2 = i1mach[15];
-        r1m5 = d1mach[4];
+        k1 = std::numeric_limits<double>::min_exponent;
+        k2 = std::numeric_limits<double>::max_exponent;
+        r1m5 = LOG10_2;
         k = (std::abs(k1) > std::abs(k2) ? std::abs(k2) : std::abs(k1));
         elim = 2.303 * (k * r1m5 - 3.0);
-        k1 = i1mach[13] - 1;
+        k1 = std::numeric_limits<double>::digits - 1;
         aa = r1m5 * k1;
         dig = std::fmin(aa, 18.0);
         aa *= 2.303;
@@ -3049,7 +3020,7 @@ namespace amos {
         // TEST FOR RANGE
         //
         aa = 0.5 / tol;
-        bb = i1mach[8] * 0.5;
+        bb = std::numeric_limits<int>::max() * 0.5;
         aa = std::fmin(aa, bb);
         aa = std::pow(aa, tth);
         if (az > aa) {
@@ -3097,9 +3068,9 @@ namespace amos {
         /* 100 */
         fmr = 0.0;
         if ((aa < 0.0) || (zr <= 0.0)) {
-            fmr = pi;
+            fmr = M_PI;
             if (zi < 0.0) {
-                fmr = -pi;
+                fmr = -M_PI;
             }
             zta = -zta;
         }
@@ -3163,7 +3134,6 @@ namespace amos {
 
         int kmax = 30;
         double r1 = 2.;
-        double pi = 3.14159265358979324;
         double rthpi = 1.25331413731550025;
         double spi = 1.90985931710274403;
         double fpi = 1.89769999331517738;
@@ -3178,7 +3148,7 @@ namespace amos {
         crsc = tol;
         std::complex<double> css[3] = {cscl, 1., crsc};
         std::complex<double> csr[3] = {crsc, 1., cscl};
-        double bry[3] = {1e3 * d1mach[0] / tol, tol / (1e3 * d1mach[0]), d1mach[1]};
+        double bry[3] = {THRESHOLD_MIN / tol, tol / (THRESHOLD_MIN), std::numeric_limits<double>::max()};
         int nz = 0;
         iflag = 0;
         koded = kode;
@@ -3204,7 +3174,7 @@ namespace amos {
                 csh = std::sinh(fmu);
                 cch = std::cosh(fmu);
                 if (dnu != 0.0) {
-                    fc = dnu * pi;
+                    fc = dnu * M_PI;
                     fc *= 1. / std::sin(fc);
                     smu = csh / dnu;
                 }
@@ -3334,7 +3304,7 @@ namespace amos {
         //
         //    MILLER ALGORITHM FOR ABS(Z) > R1
         //
-        ak = std::fabs(std::cos(pi * dnu));
+        ak = std::fabs(std::cos(M_PI * dnu));
         if (ak == 0.) {
             s1 = coef;
             s2 = coef;
@@ -3352,7 +3322,7 @@ namespace amos {
         // 12 <= E <= 60. E IS COMPUTED FROM 2**(-E)=B**(1-DIGITS(0.0_dp))=
         // TOL WHERE B IS THE BASE OF THE ARITHMETIC.
         //
-        t1 = (i1mach[13] - 1) * d1mach[4] * (std::log(10) / std::log(2));
+        t1 = (std::numeric_limits<double>::digits - 1) * LOG10_2 * (std::log(10) / std::log(2));
         t1 = std::fmin(std::fmax(t1, 12.0), 60.0);
         t2 = tth * t1 - 6.0;
         t1 = std::fabs(std::atan2(yy, xx));
@@ -3360,7 +3330,7 @@ namespace amos {
             //
             // FORWARD RECURRENCE LOOP WHEN ABS(Z) >= R2
             //
-            etest = ak / (pi * caz * tol);
+            etest = ak / (M_PI * caz * tol);
             fk = 1.0;
             if (etest < 1.0) {
                 goto L80;
@@ -3696,8 +3666,8 @@ namespace amos {
             //
             // SCALE BACKWARD RECURRENCE, BRY(3) IS DEFINED BUT NEVER USED
             //
-            bry[0] = 1e3 * d1mach[0] / tol;
-            bry[1] = tol / 1e3 * d1mach[0];
+            bry[0] = THRESHOLD_MIN / tol;
+            bry[1] = tol / THRESHOLD_MIN;
             bry[2] = bry[1];
             iflag = 2;
             ascle = bry[1];
@@ -3879,9 +3849,9 @@ namespace amos {
                     }
                 }
             }
-            wdtol = std::fmax(d1mach[3], 1e-18);
-            i1m = i1mach[13];
-            rln = d1mach[4] * i1m;
+            wdtol = RTOL_MIN;
+            i1m = std::numeric_limits<double>::digits;
+            rln = LOG10_2 * i1m;
             fln = std::fmax(std::fmin(rln, 20.), 3.0) - 3.0;
             zm = 1.8 + 0.3875 * fln;
             mz = ((int)zm) + 1;
@@ -3938,7 +3908,7 @@ namespace amos {
         std::complex<double> ck, cnorm, pt, p1, p2, rz, sum;
         double ack, ak, ap, at, az, bk, fkap, fkk, flam, fnf, rho, rho2, scle, tfnf, tst, x;
         int i, iaz, ifnu, inu, itime, k, kk, km, m, nz;
-        scle = d1mach[0] / tol;
+        scle = std::numeric_limits<double>::min() / tol;
         nz = 0;
         az = std::abs(z);
         x = std::real(z);
@@ -4354,7 +4324,7 @@ namespace amos {
             return nz;
         }
         x = std::real(z);
-        arm = 1e3 * d1mach[0];
+        arm = THRESHOLD_MIN;
         rtr1 = std::sqrt(arm);
         crsc = 1.0;
         iflag = 0;
@@ -4641,8 +4611,6 @@ namespace amos {
         double zthr, asumr, asumi, bsumr, bsumi, test, ac;
         double ex1 = 1. / 3.;
         double ex2 = 2. / 3.;
-        double hpi = 1.57079632679489662;
-        double pi = 3.14159265358979324;
         double thpi = 4.71238898038468986;
         int ias, ibs, j, ju, k, kmax, kp1, ks, l, lrp1, l1, l2, m;
         /* array vars */
@@ -4656,10 +4624,9 @@ namespace amos {
         //
         // OVERFLOW TEST (Z/FNU TOO SMALL)
         //
-        test = d1mach[0] * 1e3;
-        ac = fnu * test;
+        ac = fnu * THRESHOLD_MIN;
         if ((std::fabs(std::real(z)) <= ac) && (std::fabs(std::imag(z)) <= ac)) {
-            *zeta1 = 2.0 * std::fabs(std::log(test)) + fnu;
+            *zeta1 = 2.0 * std::fabs(std::log(THRESHOLD_MIN)) + fnu;
             *zeta2 = fnu;
             *phi = 1.;
             *arg = 1.;
@@ -4796,8 +4763,8 @@ namespace amos {
             if (zci < 0) {
                 zci = 0.;
             }
-            if (zci > hpi) {
-                zci = hpi;
+            if (zci > M_PI_2) {
+                zci = M_PI_2;
             }
             if (zcr < 0) {
                 zcr = 0.;
@@ -4812,11 +4779,11 @@ namespace amos {
             zthi = std::imag(zth);
             ang = thpi;
             if ((zthr < 0.) || (zthi >= 0.)) {
-                ang = hpi;
+                ang = M_PI_2;
                 if (zthr != 0.) {
                     ang = std::atan(zthi / zthr);
                     if (zthr < 0.) {
-                        ang += pi;
+                        ang += M_PI;
                     }
                 }
             }
@@ -4961,9 +4928,9 @@ namespace amos {
         crsc = tol;
         double css[3] = {cscl, 1., crsc};
         double csr[3] = {crsc, 1., cscl};
-        double bry[3] = {1e3 * d1mach[0] / tol, 0., 0.};
+        double bry[3] = {THRESHOLD_MIN / tol, 0., 0.};
         bry[1] = 1.0 / bry[0];
-        bry[2] = d1mach[1];
+        bry[2] = std::numeric_limits<double>::max();
         //
         // CHECK FOR UNDERFLOW AND OVERFLOW ON FIRST MEMBER
         //
@@ -5133,7 +5100,6 @@ namespace amos {
             zn, zar;
         double aarg, ang, aphi, ascle, ay, c2i, c2m, c2r, fn, rs1, yy;
         int i, iflag, in, inu, j, k, nai, nd, ndai, nn, nuf, idum;
-        double hpi = 1.57079632679489662;  /* 0.5 pi */
         double aic = 1.265512123484645396; /* log(2 sqrt(pi)) */
         std::complex<double> cip[4] = {1.0, std::complex<double>(0, 1), -1.0, -std::complex<double>(0, 1)};
         std::complex<double> ci = std::complex<double>(0, 1);
@@ -5146,7 +5112,7 @@ namespace amos {
         crsc = tol;
         std::complex<double> csr[3] = {crsc, 1.0, cscl};
         std::complex<double> css[3] = {cscl, 1.0, crsc};
-        double bry[3] = {1e3 * d1mach[0] / tol, 0.0, 0.0};
+        double bry[3] = {THRESHOLD_MIN / tol, 0.0, 0.0};
         std::complex<double> cy[2] = {0.0};
         yy = std::imag(z);
         *nz = 0;
@@ -5159,7 +5125,7 @@ namespace amos {
         zb = z;
         cid = -ci;
         inu = (int)fnu;
-        ang = hpi * (fnu - inu);
+        ang = M_PI_2 * (fnu - inu);
         c2 = std::complex<double>(std::cos(ang), std::sin(ang));
         zar = c2;
         in = inu + n - 1;
@@ -5263,7 +5229,7 @@ namespace amos {
         if (nd > 2) {
             rz = 2.0 / z;
             bry[1] = 1.0 / bry[0];
-            bry[2] = d1mach[1];
+            bry[2] = std::numeric_limits<double>::max();
             s1 = cy[0];
             s2 = cy[1];
             c1 = csr[iflag - 1];
@@ -5379,10 +5345,9 @@ namespace amos {
 
             tstr = std::real(zr);
             tsti = std::imag(zr);
-            test = d1mach[0] * 1e3;
-            ac = fnu * test;
+            ac = fnu * THRESHOLD_MIN;
             if ((std::fabs(tstr) <= ac) && (std::fabs(tsti) <= ac)) {
-                ac = 2.0 * std::fabs(std::log(test)) + fnu;
+                ac = 2.0 * std::fabs(std::log(THRESHOLD_MIN)) + fnu;
                 *zeta1 = ac;
                 *zeta2 = fnu;
                 *phi = 1.0;
@@ -5482,9 +5447,8 @@ namespace amos {
         std::complex<double> zeta1[2] = {0.0};
         std::complex<double> zeta2[2] = {0.0};
         std::complex<double> cy[2] = {0.0};
-        double bry[3] = {1e3 * d1mach[0] / tol, tol / 1e3 * d1mach[0], d1mach[1]};
+        double bry[3] = {THRESHOLD_MIN / tol, tol / THRESHOLD_MIN, std::numeric_limits<double>::max()};
         int init[2] = {0};
-        double pi = 3.14159265358979324;
 
         kdflg = 1;
         kflag = 1;
@@ -5663,7 +5627,7 @@ namespace amos {
         //
         nz = 0;
         fmr = mr;
-        sgn = (fmr < 0.0 ? pi : -pi);
+        sgn = (fmr < 0.0 ? M_PI : -M_PI);
         //
         // CSPN AND CSGN ARE COEFF OF K AND I FUNCIONS RESP.
         //
@@ -5861,9 +5825,7 @@ namespace amos {
 
         std::complex<double> cr1 = std::complex<double>(1.0, 1.73205080756887729);      /*   1 + sqrt(3)i  */
         std::complex<double> cr2 = std::complex<double>(-0.5, -8.66025403784438647e-1); /*      0.5 cr1    */
-        double hpi = 1.57079632679489662;                                               /*      0.5 pi     */
-        double pi = 3.14159265358979324;
-        double aic = 1.26551212348464539; /* log(2 sqrt(pi)) */
+        double aic = 1.26551212348464539;                                               /* log(2 sqrt(pi)) */
         std::complex<double> cip[4] = {1.0, -std::complex<double>(0, 1), -1.0, std::complex<double>(0, 1)};
         cscl = 1.0 / tol;
         crsc = tol;
@@ -5876,7 +5838,9 @@ namespace amos {
         std::complex<double> asum[2] = {0.0};
         std::complex<double> bsum[2] = {0.0};
         std::complex<double> cy[2] = {0.0};
-        double bry[3] = {(1.0 + 1e3 * d1mach[0] / tol), 1.0 / (1.0 + 1e3 * d1mach[0] / tol), d1mach[1]};
+        double bry[3] = {
+            (1.0 + THRESHOLD_MIN / tol), 1.0 / (1.0 + THRESHOLD_MIN / tol), std::numeric_limits<double>::max()
+        };
 
         kdflg = 1;
         kflag = 1;
@@ -5896,11 +5860,11 @@ namespace amos {
         zb = zr;
         inu = (int)fnu;
         fnf = fnu - inu;
-        ang = -hpi * fnf;
+        ang = -M_PI_2 * fnf;
         car = std::cos(ang);
         sar = std::sin(ang);
-        cpn = hpi * car;
-        spn = hpi * sar;
+        cpn = M_PI_2 * car;
+        spn = M_PI_2 * sar;
         c2 = std::complex<double>(spn, -cpn);
         kk = (inu % 4) + 1;
         cs = cr1 * c2 * cip[kk - 1];
@@ -6124,7 +6088,7 @@ namespace amos {
         //
         nz = 0;
         fmr = mr;
-        sgn = (fmr < 0.0 ? pi : -pi);
+        sgn = (fmr < 0.0 ? M_PI : -M_PI);
         //
         // CSPN AND CSGN ARE COEFF OF K AND I FUNCTIONS RESP.
         //
@@ -6418,7 +6382,7 @@ namespace amos {
                     }
                     if (rcz > -elim) {
                         /* goto 30 */
-                        ascle = 1e3 * d1mach[0] / tol;
+                        ascle = THRESHOLD_MIN / tol;
                         cz += std::log(phi);
                         if (iform != 1) {
                             cz -= 0.25 * std::log(arg) + aic;
@@ -6478,7 +6442,7 @@ namespace amos {
                     rcz -= 0.25 * std::log(aarg) + aic;
                 }
                 if (rcz > -elim) {
-                    ascle = 1e3 * d1mach[0] / tol;
+                    ascle = THRESHOLD_MIN / tol;
                     cz = std::log(phi);
                     if (iform != 1) {
                         cz -= 0.25 * std::log(arg) + aic;
@@ -6552,7 +6516,7 @@ namespace amos {
         // IS ON SCALE.
         //
         acw = std::abs(cw[1]);
-        ascle = 1e3 * d1mach[0] / tol;
+        ascle = THRESHOLD_MIN / tol;
         cscl = 1.0;
 
         if (acw <= ascle) {
