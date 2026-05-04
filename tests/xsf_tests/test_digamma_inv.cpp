@@ -6,9 +6,8 @@
 #include <limits>
 
 TEST_CASE("digamma_inv round-trip", "[digamma_inv][xsf_tests]") {
-    const double rtol = 100 * std::numeric_limits<double>::epsilon();
-
-    const std::vector<double> xs = {1e-30, 1e-10, 1e-5, 0.1, 1.0, 2.0, 5.0, 10.0, 100.0};
+    const double rtol = 50 * std::numeric_limits<double>::epsilon();
+    const std::vector<double> xs = logspace<double>(-20, 20, 500);
     for (double x : xs) {
         const double y = xsf::cephes::psi(x);
         const auto result = xsf::digamma_inv(y);
