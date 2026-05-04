@@ -181,6 +181,16 @@ std::vector<T> linspace(T start, T end, std::size_t n) {
     return xs;
 }
 
+template <typename T = double>
+std::vector<T> logspace(T start, T end, std::size_t n, T base = 10) {
+    std::vector<T> exponents = linspace(start, end, n);
+    std::vector<T> xs(n);
+    for (std::size_t i = 0; i < n; ++i) {
+        xs[i] = std::pow(base, exponents[i]);
+    }
+    return xs;
+}
+
 } // namespace
 
 #define SET_FP_FORMAT()                                                                                                \
