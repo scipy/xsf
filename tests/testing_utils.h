@@ -181,6 +181,32 @@ std::vector<T> linspace(T start, T end, std::size_t n) {
     return xs;
 }
 
+template <typename T = double>
+std::vector<T> logspace(T start, T end, std::size_t n, T base = 10.0) {
+    // Generate n logarithmically spaced points in [base^start, base^end].
+    // Same as np.logspace(start, end, n, base) in Python.
+    std::vector<T> xs(n);
+
+    if (n == 0) {
+        return xs;
+    }
+
+    if (n == 1) {
+        xs[0] = std::pow(base, start);
+        return xs;
+    }
+
+    T step = (end - start) / static_cast<T>(n - 1);
+
+    for (std::size_t i = 0; i < n - 1; ++i) {
+        xs[i] = std::pow(base, start + step * i);
+    }
+
+    xs[n - 1] = std::pow(base, end);
+
+    return xs;
+}
+
 } // namespace
 
 #define SET_FP_FORMAT()                                                                                                \
