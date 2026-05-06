@@ -168,9 +168,9 @@ inline double kolmogci(double x) { return cephes::kolmogci(x); }
 
 inline double kolmogp(double x) { return cephes::kolmogp(x); }
 
-inline double ndtr(double x) { return cephes::ndtr(x); }
+XSF_HOST_DEVICE inline double ndtr(double x) { return cephes::ndtr(x); }
 
-inline float ndtr(float x) { return ndtr(static_cast<double>(x)); }
+XSF_HOST_DEVICE inline float ndtr(float x) { return ndtr(static_cast<double>(x)); }
 
 inline std::complex<double> ndtr(std::complex<double> z) { return 0.5 * erfc(-z * M_SQRT1_2); }
 
@@ -268,7 +268,7 @@ inline std::complex<float> log_ndtr(std::complex<float> z) {
 
 inline double nbdtr(int k, int n, double p) { return cephes::nbdtr(k, n, p); }
 
-inline bool bivariate_normal_cdf_boundary(double dh, double dk, double r, double &p) {
+XSF_HOST_DEVICE inline bool bivariate_normal_cdf_boundary(double dh, double dk, double r, double &p) {
     // Handles degenerate cases for bivariate_normal_cdf (infinite arguments or zero correlation).
     // Returns true and sets p if a boundary case applies, false otherwise.
 
@@ -296,30 +296,22 @@ inline bool bivariate_normal_cdf_boundary(double dh, double dk, double r, double
     return false;
 }
 
-inline void gauss_legendre_points(double r, std::vector<double> &w, std::vector<double> &x) {
-    // Fills Gauss-Legendre quadrature points x and weights w for use in
-    // bivariate_normal_cdf, selected based on the magnitude of the correlation r.
+constexpr double bvn_w6[3] = {0.1713244923791705, 0.3607615730481384, 0.4679139345726904};
+constexpr double bvn_x6[3] = {0.9324695142031522, 0.6612093864662647, 0.2386191860831970};
 
-    if (std::abs(r) < 0.3) {
-        // Gauss Legendre points and weights, n = 6
-        w = {0.1713244923791705, 0.3607615730481384, 0.4679139345726904};
-        x = {0.9324695142031522, 0.6612093864662647, 0.2386191860831970};
-    } else if (std::abs(r) < 0.75) {
-        // Gauss Legendre points and weights, n = 12
-        w = {0.04717533638651177, 0.1069393259953183, 0.1600783285433464,
-             0.2031674267230659,  0.2334925365383547, 0.2491470458134029};
-        x = {0.9815606342467191, 0.9041172563704750, 0.7699026741943050,
-             0.5873179542866171, 0.3678314989981802, 0.1252334085114692};
-    } else {
-        // Gauss Legendre points and weights, n = 20
-        w = {0.01761400713915212, 0.04060142980038694, 0.06267204833410906, 0.08327674157670475, 0.1019301198172404,
-             0.1181945319615184,  0.1316886384491766,  0.1420961093183821,  0.1491729864726037,  0.1527533871307259};
-        x = {0.9931285991850949, 0.9639719272779138, 0.9122344282513259, 0.8391169718222188, 0.7463319064601508,
-             0.6360536807265150, 0.5108670019508271, 0.3737060887154196, 0.2277858511416451, 0.07652652113349733};
-    }
-}
+constexpr double bvn_w12[6] = {0.04717533638651177, 0.1069393259953183, 0.1600783285433464,
+                               0.2031674267230659,  0.2334925365383547, 0.2491470458134029};
+constexpr double bvn_x12[6] = {0.9815606342467191, 0.9041172563704750, 0.7699026741943050,
+                               0.5873179542866171, 0.3678314989981802, 0.1252334085114692};
 
-inline double bivariate_normal_cdf(double dh, double dk, double r) {
+constexpr double bvn_w20[10] = {0.01761400713915212, 0.04060142980038694, 0.06267204833410906, 0.08327674157670475,
+                                0.1019301198172404,  0.1181945319615184,  0.1316886384491766,  0.1420961093183821,
+                                0.1491729864726037,  0.1527533871307259};
+constexpr double bvn_x20[10] = {0.9931285991850949, 0.9639719272779138, 0.9122344282513259, 0.8391169718222188,
+                                0.7463319064601508, 0.6360536807265150, 0.5108670019508271, 0.3737060887154196,
+                                0.2277858511416451, 0.07652652113349733};
+
+XSF_HOST_DEVICE inline double bivariate_normal_cdf(double dh, double dk, double r) {
     // CDF of the bivariate normal distribution with zero means, unit variances,
     // and correlation r, evaluated at (dh, dk).
     //
@@ -340,33 +332,37 @@ inline double bivariate_normal_cdf(double dh, double dk, double r) {
     double k = dk;
     double hk = h * k;
     double bvn = 0.0;
-    std::vector<double> w, x;
-    gauss_legendre_points(r, w, x); // end, w = [w  w]; x = [1-x 1+x];
-
-    std::vector<double> w_new = w;
-    for (size_t i = 0; i < w.size(); ++i) {
-        w_new.push_back(w[i]);
+    const double *w;
+    const double *x;
+    int n;
+    if (std::abs(r) < 0.3) {
+        // Gauss Legendre points and weights, n = 6
+        w = bvn_w6;
+        x = bvn_x6;
+        n = 3;
+    } else if (std::abs(r) < 0.75) {
+        // Gauss Legendre points and weights, n = 12
+        w = bvn_w12;
+        x = bvn_x12;
+        n = 6;
+    } else {
+        // Gauss Legendre points and weights, n = 20
+        w = bvn_w20;
+        x = bvn_x20;
+        n = 10;
     }
-    w = w_new;
-
-    std::vector<double> x_new;
-    for (size_t i = 0; i < x.size(); ++i) {
-        x_new.push_back(1.0 - x[i]);
-    }
-    for (size_t i = 0; i < x.size(); ++i) {
-        x_new.push_back(1.0 + x[i]);
-    }
-    x = x_new;
 
     // if abs(r) < 0.925, hs = ( h*h + k*k )/2; asr = asin(r)/2;
     if (std::abs(r) < 0.925) {
         double hs = (h * h + k * k) / 2.0;
         double asr = std::asin(r) / 2.0;
         // sn = sin(asr*x); bvn = exp((sn*hk-hs)./(1-sn.^2))*w';
-        std::vector<double> sn(x.size());
-        for (size_t i = 0; i < x.size(); ++i) {
-            sn[i] = std::sin(asr * x[i]);
-            bvn += std::exp((sn[i] * hk - hs) / (1.0 - sn[i] * sn[i])) * w[i];
+        for (int i = 0; i < n; ++i) {
+            const double x_i[2] = {1.0 - x[i], 1.0 + x[i]};
+            for (int j = 0; j < 2; ++j) {
+                double sn = std::sin(asr * x_i[j]);
+                bvn += std::exp((sn * hk - hs) / (1.0 - sn * sn)) * w[i];
+            }
         }
         // bvn = bvn*asr/tp + phid(-h)*phid(-k);
         bvn = bvn * asr / tp + ndtr(-h) * ndtr(-k);
@@ -399,24 +395,21 @@ inline double bivariate_normal_cdf(double dh, double dk, double r) {
             a = a / 2.0;
 
             // ix = find( asr > -100 ); xs = xs(ix); sp = ( 1 + c*xs.*(1+5*d*xs) );
-            std::vector<double> xs_sel, w_sel, asr_sel;
-            for (size_t i = 0; i < x.size(); ++i) {
-                double xs_i = (a * x[i]) * (a * x[i]);
-                double asr_i = -(bs / xs_i + hk) / 2.0;
-                if (asr_i > -100.0) {
-                    xs_sel.push_back(xs_i);
-                    w_sel.push_back(w[i]);
-                    asr_sel.push_back(asr_i);
+            double tmp = 0.0;
+            for (int i = 0; i < n; ++i) {
+                const double x_i[2] = {1.0 - x[i], 1.0 + x[i]};
+                for (int j = 0; j < 2; ++j) {
+                    double xs_i = (a * x_i[j]) * (a * x_i[j]);
+                    double asr_i = -(bs / xs_i + hk) / 2.0;
+                    if (asr_i <= -100.0) {
+                        continue;
+                    }
+                    double sp = 1.0 + c * xs_i * (1.0 + 5.0 * d * xs_i);
+                    // rs = sqrt(1-xs); ep = exp( -(hk/2)*xs./(1+rs).^2 )./rs;
+                    double rs = std::sqrt(1.0 - xs_i);
+                    double ep = std::exp(-(hk / 2.0) * xs_i / ((1.0 + rs) * (1.0 + rs))) / rs;
+                    tmp += w[i] * std::exp(asr_i) * (sp - ep);
                 }
-            }
-
-            double sp, rs, ep, tmp = 0.0;
-            for (size_t i = 0; i < xs_sel.size(); ++i) {
-                sp = 1.0 + c * xs_sel[i] * (1.0 + 5.0 * d * xs_sel[i]);
-                // rs = sqrt(1-xs); ep = exp( -(hk/2)*xs./(1+rs).^2 )./rs;
-                rs = std::sqrt(1.0 - xs_sel[i]);
-                ep = std::exp(-(hk / 2.0) * xs_sel[i] / ((1.0 + rs) * (1.0 + rs))) / rs;
-                tmp += w_sel[i] * std::exp(asr_sel[i]) * (sp - ep);
             }
 
             // bvn = ( a*( (exp(asr(ix)).*(sp-ep))*w(ix)' ) - bvn )/tp;
@@ -425,7 +418,7 @@ inline double bivariate_normal_cdf(double dh, double dk, double r) {
         // end
         // if r > 0, bvn =  bvn + phid( -max( h, k ) );
         if (r > 0.0) {
-            bvn = bvn + ndtr(-std::max(h, k));
+            bvn = bvn + ndtr(-(h > k ? h : k));
         } else if (h >= k) {
             // elseif h >= k, bvn = -bvn;
             bvn = -bvn;
@@ -442,7 +435,7 @@ inline double bivariate_normal_cdf(double dh, double dk, double r) {
         }
     }
     // end, p = max( 0, min( 1, bvn ) );
-    return std::max(0.0, std::min(1.0, bvn));
+    return bvn < 0.0 ? 0.0 : (bvn > 1.0 ? 1.0 : bvn);
 }
 
 inline double nbdtrc(int k, int n, double p) { return cephes::nbdtrc(k, n, p); }
