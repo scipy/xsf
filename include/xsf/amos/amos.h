@@ -92,10 +92,10 @@
  */
 #pragma once
 
+#include "xsf/config.h"
 #include <cmath>
 #include <complex>
 #include <cstdlib>
-#include "xsf/config.h"
 #include <memory> // unique_ptr
 
 namespace xsf {
