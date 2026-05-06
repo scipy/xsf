@@ -3166,7 +3166,6 @@ namespace amos {
         double pi = 3.14159265358979324;
         double rthpi = 1.25331413731550025;
         double spi = 1.90985931710274403;
-        double hpi = 1.57079632679489662;
         double fpi = 1.89769999331517738;
         double tth = 2. / 3.;
         double cc[8] = {5.77215664901532861e-01, -4.20026350340952355e-02, -4.21977345555443367e-02,
@@ -3356,11 +3355,7 @@ namespace amos {
         t1 = (i1mach[13] - 1) * d1mach[4] * (std::log(10) / std::log(2));
         t1 = std::fmin(std::fmax(t1, 12.0), 60.0);
         t2 = tth * t1 - 6.0;
-        if (xx == 0.) {
-            t1 = hpi;
-        } else {
-            t1 = std::fabs(std::atan(yy / xx));
-        }
+        t1 = std::fabs(std::atan2(yy, xx));
         if (t2 <= caz) {
             //
             // FORWARD RECURRENCE LOOP WHEN ABS(Z) >= R2

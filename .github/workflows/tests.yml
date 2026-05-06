@@ -58,3 +58,41 @@ jobs:
       - name: Ccache performance
         shell: bash -l {0}
         run: pixi run --environment=tests-ci ccache -s
+  tests-debug:
+    name: ${{ matrix.environment }} ${{ matrix.runs-on }} Debug
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [tests-ci]
+        runs-on: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: prefix-dev/setup-pixi@92815284c57faa15cd896c4d5cfb2d59f32dc43d # v0.8.3
+        with:
+          pixi-version: v0.45.0
+          cache: true
+          environments: ${{ matrix.environment }}
+      - name:  Prepare compiler cache
+        id:    prep-ccache
+        shell: bash
+        run: |
+          mkdir -p "${CCACHE_DIR}"
+          echo "dir=$CCACHE_DIR" >> $GITHUB_OUTPUT
+          NOW=$(date -u +"%F-%T")
+          echo "timestamp=${NOW}" >> $GITHUB_OUTPUT
+      - name: Setup compiler cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        id:   cache-ccache
+        with:
+          path: ${{ steps.prep-ccache.outputs.dir }}
+          key:  ${{ github.workflow }}-ccache-${{ matrix.environment }}-${{ matrix.runs-on }}-${{ steps.prep-ccache.outputs.timestamp }}
+          restore-keys: ${{ github.workflow }}-ccache-${{ matrix.environment }}-${{ matrix.runs-on }}-
+      - name: Build xsf
+        run: pixi run --environment=tests-ci build-tests-debug-ci
+      - name: Run tests
+        run: pixi run --skip-deps --environment=tests-ci tests-debug-ci
+      - name: Ccache performance
+        shell: bash -l {0}
+        run: pixi run --environment=tests-ci ccache -s
