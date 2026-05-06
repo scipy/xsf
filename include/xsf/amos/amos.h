@@ -2666,7 +2666,7 @@ namespace amos {
         dfnu = fnu + n - 1;
         if ((az <= 2.) || (az * az * 0.25 <= (dfnu + 1.0))) {
             /* GOTO 10 */
-            nw = seri(z, fnu, kode, n, cy, tol, elim, alim);
+            nw = seri(z, fnu, kode, nn, cy, tol, elim, alim);
             inw = std::abs(nw);
             nz += inw;
             nn -= inw;
@@ -2689,7 +2689,7 @@ namespace amos {
                 //
                 // MILLER ALGORITHM NORMALIZED BY THE SERIES
                 //
-                nw = mlri(z, fnu, kode, n, cy, tol);
+                nw = mlri(z, fnu, kode, nn, cy, tol);
                 if (nw < 0) {
                     nz = -1;
                     if (nw == -2) {
@@ -2706,7 +2706,7 @@ namespace amos {
                 //
                 // ASYMPTOTIC EXPANSION FOR LARGE Z
                 //
-                nw = asyi(z, fnu, kode, n, cy, rl, tol, elim, alim);
+                nw = asyi(z, fnu, kode, nn, cy, rl, tol, elim, alim);
                 if (nw < 0) {
                     nz = -1;
                     if (nw == -2) {
@@ -2760,7 +2760,7 @@ namespace amos {
         /* 60 */
         if (az <= rl) {
             /* 70 */
-            nw = mlri(z, fnu, kode, n, cy, tol);
+            nw = mlri(z, fnu, kode, nn, cy, tol);
             if (nw < 0) {
                 nz = -1;
                 if (nw == -2) {
@@ -2788,7 +2788,11 @@ namespace amos {
         }
         /* 100 */
         if (nw > 0) {
-            return -1;
+            nz = -1;
+            if (nw == -2) {
+                nz = -2;
+            }
+            return nz;
         }
         nw = wrsk(z, fnu, kode, nn, cy, cw, tol, elim, alim);
         if (nw < 0) {
@@ -4296,7 +4300,7 @@ namespace amos {
         }
 
         if (p1 == 0.) {
-            p1 = std::complex<double>(0, 0);
+            p1 = std::complex<double>(tol, tol);
         }
 
         cy[n - 1] = p2 / p1;
@@ -4309,7 +4313,7 @@ namespace amos {
         cdfnu = fnu * rz;
 
         for (i = 2; i < (n + 1); i++) {
-            pt = cdfnu + t1 * rz * cy[k];
+            pt = cdfnu + t1 * rz + cy[k];
             if (pt == 0.0) {
                 pt = std::complex<double>(tol, tol);
             }
