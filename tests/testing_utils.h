@@ -155,6 +155,32 @@ std::string get_platform_str() {
 #endif
 }
 
+template <typename T = double>
+std::vector<T> linspace(T start, T end, std::size_t n) {
+    // Generate n evenly spaced points in [start, end].
+    // Same as np.linspace(start, end, n) in Python.
+    std::vector<T> xs(n);
+
+    if (n == 0) {
+        return xs;
+    }
+
+    if (n == 1) {
+        xs[0] = start;
+        return xs;
+    }
+
+    T step = (end - start) / static_cast<T>(n - 1);
+
+    for (std::size_t i = 0; i < n - 1; ++i) {
+        xs[i] = start + step * i;
+    }
+
+    xs[n - 1] = end;
+
+    return xs;
+}
+
 } // namespace
 
 #define SET_FP_FORMAT()                                                                                                \

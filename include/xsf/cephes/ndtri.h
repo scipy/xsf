@@ -136,7 +136,7 @@ namespace cephes {
             y = y - 0.5;
             y2 = y * y;
             x = y + y * (y2 * polevl(y2, detail::ndtri_P0, 4) / p1evl(y2, detail::ndtri_Q0, 8));
-            x = x * detail::SQRTPI;
+            x = x * detail::SQRT2PI;
             return (x);
         }
 

@@ -53,6 +53,9 @@ inline std::complex<double> chyp2f1(double a, double b, double c, std::complex<d
 }
 
 inline std::complex<double> hyp1f1(double a, double b, std::complex<double> z) {
+    if (std::isnan(a) || std::isnan(b) || std::isnan(z.real()) || std::isnan(z.imag())) {
+        return std::complex<double>{std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+    }
     std::complex<double> outz = specfun::cchg(a, b, z);
     if (outz.real() == 1e300) {
         set_error("chyp1f1", SF_ERROR_OVERFLOW, NULL);

@@ -698,19 +698,8 @@ namespace specfun {
                     }
                     x = z.real();
                     y = z.imag();
-                    if ((x == 0.0) && (y >= 0.0)) {
-                        phi = 0.5 * pi;
-                    } else if ((x == 0.0) && (y <= 0.0)) {
-                        phi = -0.5 * pi;
-                    } else {
-                        phi = atan(y / x);
-                    }
-                    if ((phi > -0.5 * pi) && (phi < 1.5 * pi)) {
-                        ns = 1;
-                    }
-                    if ((phi > -1.5 * pi) && (phi <= -0.5 * pi)) {
-                        ns = -1;
-                    }
+                    phi = std::atan2(y, x);
+                    ns = (phi > -0.5 * pi) ? 1 : -1;
                     cfac = std::exp(static_cast<double>(ns) * ci * pi * a);
                     if (y == 0.0) {
                         cfac = cos(pi * a);
@@ -782,7 +771,7 @@ namespace specfun {
             x0 = xx + na;
         }
         az0 = std::abs(std::complex<double>(x0, yy));
-        th = atan(yy / x0);
+        th = atan2(yy, x0);
         gr = (x0 - 0.5) * log(az0) - th * yy - x0 + 0.5 * log(2.0 * pi);
         gi = th * (x0 - 0.5) + yy * log(az0) - yy;
         for (k = 1; k < 11; k++) {
@@ -795,21 +784,18 @@ namespace specfun {
             gi1 = 0.0;
             for (j = 0; j < na; j++) {
                 gr1 += 0.5 * log(pow(xx + j, 2) + yy * yy);
-                gi1 += atan(yy / (xx + j));
+                gi1 += atan2(yy, (xx + j));
             }
             gr -= gr1;
             gi -= gi1;
         }
         if (z1.real() < 0.0) {
             az0 = std::abs(z);
-            th1 = atan(yy / xx);
+            th1 = atan2(yy, xx);
             sr = -sin(pi * xx) * cosh(pi * yy);
             si = -cos(pi * xx) * sinh(pi * yy);
             az1 = std::abs(std::complex<double>(sr, si));
-            th2 = atan(si / sr);
-            if (sr < 0.0) {
-                th2 += pi;
-            }
+            th2 = atan2(si, sr);
             gr = log(pi / (az0 * az1)) - gr;
             gi = -th1 - th2 - gi;
             z = z1;
@@ -3634,7 +3620,7 @@ namespace specfun {
         }
         if (L <= (n + 10)) {
             jyndd(n, x, &bjn, &djn, &fjn, &byn, &dyn, &fyn);
-            h = atan(fabs(djn) / sqrt(fabs(fjn * bjn)));
+            h = atan2(fabs(djn), sqrt(fabs(fjn * bjn)));
             b = -djn / (bjn * atan(h));
             x -= (h - pi / 2) / b;
         }
@@ -3699,7 +3685,7 @@ namespace specfun {
         }
         if (L <= n + 10) {
             jyndd(n, x, &bjn, &djn, &fjn, &byn, &dyn, &fyn);
-            h = atan(fabs(dyn) / sqrt(fabs(fyn * byn)));
+            h = atan2(fabs(dyn), sqrt(fabs(fyn * byn)));
             b = -dyn / (byn * tan(h));
             x -= (h - pi / 2) / b;
         }
