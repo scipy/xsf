@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../config.h"
-#include "../error.h"
+#include "xsf/config.h"
+#include "xsf/error.h"
 
 /*
  *
@@ -139,6 +139,19 @@ namespace mathieu {
         for (decltype(n) j = 0; j < (n - 1); j++) {
             E(j) = q;
         }
+    }
+
+    int get_partial_sum_N(int m, double q) {
+        int N;
+
+        // This is sort of ad-hoc ...
+        if (q > 1.0) {
+            double qq = std::log10(q); // I need to use size of q to compute N.
+            N = m + 25 + 10 * qq;
+        } else {
+            N = m + 25;
+        }
+        return N;
     }
 
 } // namespace mathieu

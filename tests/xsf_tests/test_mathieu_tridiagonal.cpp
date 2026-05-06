@@ -1,6 +1,6 @@
 #include "../testing_utils.h"
 
-#include <xsf/mathieu/make_matrix_tridiagonal.h>
+#include <xsf/mathieu_very_new.h>
 #include <xsf/third_party/kokkos/mdspan.hpp>
 
 #include <cstdio>
