@@ -2,7 +2,7 @@
 #include <xsf/cephes/j0.h>
 
 TEST_CASE("j0 right tail gh-large-input", "[j0][xsf_tests]") {
-    using test_case = std::tuple<double, double>;
+    using test_case = std::tuple<double, double, double>;
     // Reference values computed with mpmath with 1000 digits of precision:
     //
     // import math
