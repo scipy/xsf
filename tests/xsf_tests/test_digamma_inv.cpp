@@ -1,9 +1,7 @@
 #include "../testing_utils.h"
+#include "xsf/config.h"
 #include <xsf/cephes/psi.h>
 #include <xsf/digamma_inv.h>
-
-#include <cmath>
-#include <limits>
 
 TEST_CASE("digamma_inv round-trip", "[digamma_inv][xsf_tests]") {
     const double rtol = 50 * std::numeric_limits<double>::epsilon();
@@ -33,13 +31,13 @@ TEST_CASE("digamma_inv precision", "[digamma_inv][xsf_tests]") {
     using test_case = std::tuple<double, double>;
     // Reference values for digamma were computed with the Python library mpmath.
     auto [x, ref_digamma] = GENERATE(
-        test_case{1.0, -0.5772156649015329}, test_case{1. / 2., -1.9635100260214235},
-        test_case{1. / 3., -3.1320337800208065}, test_case{1. / 4., -4.2274535333762655},
-        test_case{1.461632144968362341, 0.0}, // positive root of digamma
+        test_case{1e-100, -1e+100}, test_case{1e-50, -1e+50}, test_case{1e-20, -1e+20},
+        test_case{1e-10, -10000000000.577215}, test_case{1e-3, -1000.5755719318103},
+        test_case{1e-1, -10.423754940411076}, test_case{1. / 4., -4.2274535333762655},
+        test_case{1. / 3., -3.1320337800208065}, test_case{1. / 2., -1.9635100260214235},
+        test_case{1.0, -0.5772156649015329}, test_case{1.461632144968362341, 0.0}, // positive root of digamma
         test_case{10, 2.251752589066721}, test_case{1e5, 11.512920464961896}, test_case{1e50, 115.12925464970229},
-        test_case{1e200, 460.51701859880916}, test_case{1e-3, -1000.5755719318103},
-        test_case{1e-1, -10.423754940411076}, test_case{1e-10, -10000000000.577215}, test_case{1e-20, -1e+20},
-        test_case{1e-50, -1e+50}, test_case{1e-100, -1e+100}
+        test_case{1e200, 460.51701859880916}
     );
     double x_result = xsf::digamma_inv(ref_digamma);
     const auto rel_error = xsf::extended_relative_error(x_result, x);
