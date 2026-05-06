@@ -92,11 +92,10 @@
  */
 #pragma once
 
-#include "../config.h"
 #include <cmath>
 #include <complex>
 #include <cstdlib>
-#include <limits>
+#include "xsf/config.h"
 #include <memory> // unique_ptr
 
 namespace xsf {
@@ -1013,7 +1012,6 @@ namespace amos {
         double dnu2, fdn, rtr1, s, sgn, sqk, x, yy;
         int ib, il, inu, j, jl, k, koded, m, nn;
         int nz = 0;
-        double rtpi = M_1_PI / 2.0;
         az = std::abs(z);
         x = std::real(z);
         arm = THRESHOLD_MIN;
@@ -1021,7 +1019,7 @@ namespace amos {
         il = (n > 2 ? 2 : n);
         dfnu = fnu + (n - il);
         // OVERFLOW TEST
-        ak1 = std::sqrt(rtpi / z);
+        ak1 = std::sqrt((0.5 * M_1_PI) / z);
         cz = z;
         if (kode == 2) {
             cz = std::complex<double>(0.0, std::imag(z));
