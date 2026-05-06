@@ -1,11 +1,9 @@
 #pragma once
 
-#include <cmath>
-#include <limits>
 
+#include "xsf/config.h"
 #include "xsf/cephes/psi.h"
 #include "xsf/cephes/zeta.h"
-
 namespace xsf {
 namespace detail {
 
