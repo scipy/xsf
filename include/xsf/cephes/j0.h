@@ -181,6 +181,11 @@ namespace cephes {
         q = 25.0 / (x * x);
         p = polevl(q, detail::j0_PP, 6) / polevl(q, detail::j0_PQ, 6);
         q = polevl(q, detail::j0_QP, 7) / p1evl(q, detail::j0_QQ, 7);
+        if (x < 10.0) {
+            double xn = x - M_PI_4;
+            p = p * std::cos(xn) - w * q * std::sin(xn);
+            return (p * detail::SQRT2OPI / std::sqrt(x));
+        }
         p = (p + w * q) * std::cos(x) + (p - w * q) * std::sin(x);
         return (p * detail::SQRT1OPI / std::sqrt(x));
     }
