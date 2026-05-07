@@ -69,9 +69,9 @@ TEST_CASE("nrdtrisd basic", "[nrdtrisd][xsf_tests]") {
 TEST_CASE("nrdtrisd NaN inputs", "[nrdtrisd][xsf_tests]") {
     const double nan = std::numeric_limits<double>::quiet_NaN();
 
-    REQUIRE(std::isnan(xsf::nrdtrisd(nan, 0.5, 0.0)));  // NaN mean
-    REQUIRE(std::isnan(xsf::nrdtrisd(0.0, nan, 0.0)));  // NaN p
-    REQUIRE(std::isnan(xsf::nrdtrisd(0.0, 0.5, nan)));  // NaN x
-    REQUIRE(std::isnan(xsf::nrdtrisd(0.0, 0.0, 1.0)));  // p == 0
-    REQUIRE(std::isnan(xsf::nrdtrisd(0.0, 1.0, 1.0)));  // p == 1
+    REQUIRE(std::isnan(xsf::nrdtrisd(nan, 0.5, 0.0))); // NaN mean
+    REQUIRE(std::isnan(xsf::nrdtrisd(0.0, nan, 0.0))); // NaN p
+    REQUIRE(std::isnan(xsf::nrdtrisd(0.0, 0.5, nan))); // NaN x
+    REQUIRE(std::isnan(xsf::nrdtrisd(0.0, 0.0, 1.0))); // p == 0
+    REQUIRE(std::isnan(xsf::nrdtrisd(0.0, 1.0, 1.0))); // p == 1
 }

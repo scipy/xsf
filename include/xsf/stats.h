@@ -448,16 +448,16 @@ inline double ndtri(double x) { return cephes::ndtri(x); }
 inline float ndtri(float x) { return static_cast<float>(cephes::ndtri(x)); }
 
 inline double nrdtrimn(double p, double std, double x) {
-        if (std::isnan(std) || std <= 0) {
-            return std::numeric_limits<double>::quiet_NaN();
-        }
-        if (std::isnan(p) || p <= 0 || p >= 1) {
-            return std::numeric_limits<double>::quiet_NaN();
-        }
-        if (std::isnan(x)) {
-            return std::numeric_limits<double>::quiet_NaN();
-        }
-        return x - std * cephes::ndtri(p);
+    if (std::isnan(std) || std <= 0) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    if (std::isnan(p) || p <= 0 || p >= 1) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    if (std::isnan(x)) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    return x - std * cephes::ndtri(p);
 }
 
 inline float nrdtrimn(float p, float std, float x) {
@@ -465,18 +465,18 @@ inline float nrdtrimn(float p, float std, float x) {
 }
 
 inline double nrdtrisd(double mean, double p, double x) {
-        if (std::isnan(mean) || std::isnan(p) || std::isnan(x)) {
-            return std::numeric_limits<double>::quiet_NaN();
-        }
-        if (p <= 0 || p >= 1) {
-            return std::numeric_limits<double>::quiet_NaN();
-        }
-        return (x - mean) / cephes::ndtri(p);
+    if (std::isnan(mean) || std::isnan(p) || std::isnan(x)) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    if (p <= 0 || p >= 1) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    return (x - mean) / cephes::ndtri(p);
 }
 
 inline float nrdtrisd(float mean, float p, float x) {
     return static_cast<float>(nrdtrisd(static_cast<double>(mean), static_cast<double>(p), static_cast<double>(x)));
-} 
+}
 
 inline double owens_t(double h, double a) { return cephes::owens_t(h, a); }
 
