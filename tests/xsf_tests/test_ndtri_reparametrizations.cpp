@@ -1,5 +1,5 @@
 #include "../testing_utils.h"
-#include <xsf/ndtri_reparametrizations.h>
+#include <xsf/stats.h>
 
 #include <cmath>
 #include <limits>
