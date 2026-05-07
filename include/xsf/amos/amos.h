@@ -2788,11 +2788,7 @@ namespace amos {
         }
         /* 100 */
         if (nw > 0) {
-            nz = -1;
-            if (nw == -2) {
-                nz = -2;
-            }
-            return nz;
+            return -1;
         }
         nw = wrsk(z, fnu, kode, nn, cy, cw, tol, elim, alim);
         if (nw < 0) {
