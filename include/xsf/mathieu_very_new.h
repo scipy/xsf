@@ -127,6 +127,7 @@ namespace mathieu {
         }
     }
 
+    // Determine size of recursion matrix to use.
     XSF_HOST_DEVICE inline int get_partial_sum_N(int m, double q) {
         int N;
 
