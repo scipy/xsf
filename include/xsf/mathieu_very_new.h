@@ -27,53 +27,53 @@ namespace mathieu {
     XSF_HOST_DEVICE T cv_index(T m) {
         static_assert(std::is_integral_v<T>, "m must be of integer type");
 
-        if constexpr(P == Parity::Even) {
+        if constexpr (P == Parity::Even) {
             return m / 2;
         }
         return (m - 1) / 2;
     }
 
-    template <Parity FuncParity, Parity OrderParity, typename T>
-    XSF_HOST_DEVICE T d0(T q) {
+    template <Parity FuncParity, Parity OrderParity>
+    XSF_HOST_DEVICE double d0(double q) {
         constexpr auto Even = Parity::Even;
         constexpr auto Odd = Parity::Odd;
 
-        if constexpr(FuncParity == Even && OrderParity == Even) {
-            return T(0);
+        if constexpr (FuncParity == Even && OrderParity == Even) {
+            return 0.0
         }
-        if constexpr(FuncParity == Even && OrderParity == Odd) {
-            return T(1) + q;
+        if constexpr (FuncParity == Even && OrderParity == Odd) {
+            return 1.0 + q;
         }
-        if constexpr(FuncParity == Odd && OrderParity == Even) {
-            return T(4);
+        if constexpr (FuncParity == Odd && OrderParity == Even) {
+            return 4.0
         }
         // FuncParity == Odd && OrderParity == Odd
-        return T(1) - q;
+        return 1.0 - q;
     }
 
-    template <Parity FuncParity, Parity OrderParity, typename T>
-    XSF_HOST_DEVICE T e0(T q) {
+    template <Parity FuncParity, Parity OrderParity>
+    XSF_HOST_DEVICE double e0(double q) {
         constexpr auto Even = Parity::Even;
 
-        if constexpr(FuncParity == Even && OrderParity == Even) {
-            return T(M_SQRT2) * q;
+        if constexpr (FuncParity == Even && OrderParity == Even) {
+            return M_SQRT2 * q;
         }
         return q;
     }
 
-    template <Parity FuncParity, Parity OrderParity, typename T, typename U>
-    XSF_HOST_DEVICE T sqrt_di(U j) {
+    template <Parity FuncParity, Parity OrderParity, typename U>
+    XSF_HOST_DEVICE double sqrt_di(U j) {
         static_assert(std::is_integral_v<U>, "j must be of integer type");
         constexpr auto Even = Parity::Even;
         constexpr auto Odd = Parity::Odd;
-        if constexpr(OrderParity == Odd) {
-            return T(2) * static_cast<T>(j) + T(1);
+        if constexpr (OrderParity == Odd) {
+            return 2.0 * static_cast<double>(j) + 1.0;
         }
-        if constexpr(FuncParity == Even) {
-            return T(2) * static_cast<T>(j);
+        if constexpr (FuncParity == Even) {
+            return 2.0 * static_cast<double>(j);
         }
         // FuncParity == Odd && OrderParity == Even
-        return T(2) * (static_cast<T>(j) + T(1));
+        return 2.0 * (static_cast<double>(j) + 1.0);
     }
 
     /*-----------------------------------------------
@@ -101,8 +101,9 @@ namespace mathieu {
       size n - 1.
       -------------------------------------------------*/
 
-    template <Parity FuncParity, Parity OrderParity, typename T, typename OutputMat>
-    XSF_HOST_DEVICE void make_matrix(T q, OutputMat D, OutputMat E) {
+    template <Parity FuncParity, Parity OrderParity, typename OutputMat>
+    XSF_HOST_DEVICE void make_matrix(typename OutputMat::value_type q, OutputMat D, OutputMat E) {
+        using T = typename OutputMat::value_type;
         auto n = D.extent(0);
         if (n == 0) {
             return;
@@ -110,9 +111,8 @@ namespace mathieu {
 
         D(0) = d0<FuncParity, OrderParity>(q);
 
-
         for (decltype(n) j = 1; j < n; j++) {
-            auto tj = sqrt_di<FuncParity, OrderParity, T>(j);
+            auto tj = sqrt_di<FuncParity, OrderParity>(j);
             D(j) = tj * tj;
         }
 
@@ -139,6 +139,51 @@ namespace mathieu {
             N = m + 25;
         }
         return N;
+    }
+
+    template <Parity FuncParity, Parity OrderParity, typename InputMat>
+    XSF_HOST_DEVICE void sum_fourier_series(
+        InputMat X, double v, typename InputMat::value_type &out, typename InputMat::value_type &out_diff
+    ) {
+        auto constexpr Even = Parity::Even;
+        auto constexpr Odd = Parity::Odd;
+        auto N = X.extent(0);
+        // Local scope variables used in summing the Fourier series.
+        double tt, td, xep{0.0}, xem{0.0}, xedp{0.0}, xedm{0.0};
+
+        // Sum from smallest to largest coeff.
+        for (decltype(N) kp1 = N; kp1 > 0 = 0; kp1--) {
+            auto k = kp1 - 1;
+            auto r = sqrt_di<FuncParity, OrderParity>(k);
+            auto phi = r * v;
+            if constexpr (FuncParity == Even) {
+                tt = X(k) * std::cos(phi);
+                td = -r * X(k) * std::sin(phi);
+            } else {
+                tt = X(k) * std::sin(phi);
+                td = r * X(k) * std::cos(phi);
+            }
+            if (tt < 0) {
+                xem = xem + tt; // Neg running sum
+            } else {
+                xep = xep + tt; // Pos running sum
+            }
+
+            if (td < 0) {
+                xedm = xedm + td;
+            } else {
+                xedp = xedp + td;
+            }
+        } // for (k=(N-1) ...
+
+        // This makes sure the fcn has the right overall sign for q<0.
+        // Someday combine this with the above sums into the same for loop.
+        double x = 0.0;
+        for (int l = 0; l < N; l++) {
+            x += X(l);
+        }
+        out = std::copysign(xep + xem, x);
+        out_diff = std::copysign(xedp + xedm, x);
     }
 
 } // namespace mathieu
