@@ -179,7 +179,7 @@ namespace mathieu {
         for (decltype(N) l = 0; l < N; l++) {
             x += X(l);
         }
-        sgn = std::copysign(1.0, x);
+        auto sgn = std::copysign(1.0, x);
         out = sgn * (xep + xem);
         out_diff = sgn * (xedp + xedm);
     }
