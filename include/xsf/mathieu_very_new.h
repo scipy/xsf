@@ -27,7 +27,7 @@ namespace mathieu {
     XSF_HOST_DEVICE T cv_index(T m) {
         static_assert(std::is_integral_v<T>, "m must be of integer type");
 
-        if constexpr (P == Parity::Even) {
+        if constexpr(P == Parity::Even) {
             return m / 2;
         }
         return (m - 1) / 2;
@@ -38,13 +38,13 @@ namespace mathieu {
         constexpr auto Even = Parity::Even;
         constexpr auto Odd = Parity::Odd;
 
-        if constexpr (FuncParity == Even && OrderParity == Even) {
+        if constexpr(FuncParity == Even && OrderParity == Even) {
             return T(0);
         }
-        if constexpr (FuncParity == Even && OrderParity == Odd) {
+        if constexpr(FuncParity == Even && OrderParity == Odd) {
             return T(1) + q;
         }
-        if constexpr (FuncParity == Odd && OrderParity == Even) {
+        if constexpr(FuncParity == Odd && OrderParity == Even) {
             return T(4);
         }
         // FuncParity == Odd && OrderParity == Odd
@@ -55,7 +55,7 @@ namespace mathieu {
     XSF_HOST_DEVICE T e0(T q) {
         constexpr auto Even = Parity::Even;
 
-        if constexpr (FuncParity == Even && OrderParity == Even) {
+        if constexpr(FuncParity == Even && OrderParity == Even) {
             return T(M_SQRT2) * q;
         }
         return q;
@@ -66,10 +66,10 @@ namespace mathieu {
         static_assert(std::is_integral_v<U>, "j must be of integer type");
         constexpr auto Even = Parity::Even;
         constexpr auto Odd = Parity::Odd;
-        if constexpr (OrderParity == Odd) {
+        if constexpr(OrderParity == Odd) {
             return T(2) * static_cast<T>(j) + T(1);
         }
-        if constexpr (FuncParity == Even) {
+        if constexpr(FuncParity == Even) {
             return T(2) * static_cast<T>(j);
         }
         // FuncParity == Odd && OrderParity == Even
@@ -109,20 +109,25 @@ namespace mathieu {
         }
 
         D(0) = d0<FuncParity, OrderParity>(q);
-        E(0) = e0<FuncParity, OrderParity>(q);
+
 
         for (decltype(n) j = 1; j < n; j++) {
-            auto tj = sqrt_di<FuncParity, OrderParity>(j);
+            auto tj = sqrt_di<FuncParity, OrderParity, T>(j);
             D(j) = tj * tj;
         }
 
+        if (n == 1) {
+            return;
+        }
+
         // Make off-diagonal entries
-        for (decltype(n) j = 0; j < (n - 1); j++) {
+        E(0) = e0<FuncParity, OrderParity>(q);
+        for (decltype(n) j = 1; j < (n - 1); j++) {
             E(j) = q;
         }
     }
 
-    int get_partial_sum_N(int m, double q) {
+    XSF_HOST_DEVICE inline int get_partial_sum_N(int m, double q) {
         int N;
 
         // This is sort of ad-hoc ...
