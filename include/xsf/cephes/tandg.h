@@ -118,7 +118,7 @@ namespace cephes {
                 }
             }
             if (x == 0.0) {
-                return 0.0;
+                return sign * 0.0;
             } else if (x == 45.0) {
                 return sign * 1.0;
             } else if (x == 90.0) {
