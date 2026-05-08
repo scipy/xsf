@@ -1,40 +1,63 @@
 #include "../testing_utils.h"
 #include <xsf/stats.h>
 
-TEST_CASE("von_mises_cdf test", "[von_mises_cdf][xsf_tests]") {
-    // Reference values computed with scipy.stats.von_mises_cdf
+TEST_CASE("von Mises CDF test", "[von_mises_cdf][xsf_tests]") {
+    // Reference values from scipy.stats._stats
+    //
     // import numpy as np
     // from scipy.stats._stats import von_mises_cdf
-
-    // np.set_printoptions(precision=20)
-    // k_obj = np.linspace(1e-3, 3.0, 10)
-    // x_obj = np.linspace(-10.0, 10.0, 10)
-    // von_mises_cdf(k_obj, x_obj)
-
-    SECTION("vector inputs (SciPy reference values)") {
-        const size_t n = 10;
-        const std::vector<double> k_obj = linspace(1e-3, 3.0, n);
-        const std::vector<double> x_obj = linspace(-10.0, 10.0, n);
-        const std::vector<double> expected = {-1.0914628654411138,   -0.7904352686647403, -0.3085050816322099,
-                                              -0.008913110513925071, 0.1450905974469251,  0.8857870521643215,
-                                              1.0018330872501384,    1.1579435355869516,  1.9789394168440955,
-                                              2.0011107464769506};
-
-        const double rtol = 1e-8;
-        const std::vector<double> result = xsf::von_mises_cdf(k_obj, x_obj);
-        for (size_t i = 0; i < n; ++i) {
-            const double ref = expected[i];
-            const auto rel_error = xsf::extended_relative_error(result[i], ref);
-            CAPTURE(i, k_obj[i], x_obj[i], result[i], ref, rtol, rel_error);
-            REQUIRE(rel_error <= rtol);
+    //
+    // rng = np.random.default_rng(123456789)
+    //
+    // ks = rng.uniform(1e-5, 10.0, size=30)
+    // xs = rng.uniform(-10.0, 10.0, size=30)
+    //
+    // print("von_mises_cdf(k, x) = y")
+    // for k, x in zip(ks, xs):
+    //     y = von_mises_cdf(k, x)
+    //     print({k, x, y})
+    SECTION("von Mises CDF scipy reference values") {
+        using test_case = std::tuple<double, double, double>;
+        auto [k, x, expected] = GENERATE(
+            test_case{0.2771371156977766, 3.035602639562689, 0.9874497629738768},
+            test_case{9.067001487839672, 2.293446349343553, 0.9999999393275384},
+            test_case{8.813936733061796, -2.468954013494673, 3.9732613671406014e-08},
+            test_case{6.248976505236333, -3.681298253520844, -2.7514739191492055e-06},
+            test_case{7.907150203831293, -8.504555095600582, -0.9999993532948712},
+            test_case{8.259081884550797, 7.475230407392111, 1.9992193466734673},
+            test_case{8.417059942806192, -8.427660362483639, -0.9999995695844073},
+            test_case{4.717284759906522, -7.298676164429338, -0.9792075469218139},
+            test_case{9.572288226206144, -4.843563745488528, -3.1165376583208726e-05},
+            test_case{9.465915863890762, 9.826110526459306, 2.0000000038488723},
+            test_case{5.298601875289579, 5.285135683873441, 1.016335988067413},
+            test_case{0.8364104784952716, 7.977659725009496, 1.887365644074917},
+            test_case{2.698449870818218, -2.984375644364212, 0.00044386571997810306},
+            test_case{0.538007833384063, -2.1288745245032525, 0.09594127575632855},
+            test_case{5.666189233687825, -0.03067047118158639, 0.4716055845217765},
+            test_case{0.18918718418845637, -9.162003142812924, -0.9656199374000937},
+            test_case{2.053744155372233, 8.589497604841984, 1.9907331451074195},
+            test_case{2.493555803255458, -6.241188917880091, -0.47530456180309333},
+            test_case{8.987781181744714, -2.2883249936323824, 7.157533962742768e-08},
+            test_case{1.07798185413953, 4.826092542543064, 1.116249298944756},
+            test_case{7.48678364013253, 2.4434840647672407, 0.9999995061273869},
+            test_case{7.147039010543808, 0.19632196274422142, 0.6964141791564189},
+            test_case{7.407793411870953, 5.7564413695173, 1.0821817937685219},
+            test_case{9.451175336640008, 8.489953936625268, 1.9999999465887326},
+            test_case{4.594614119920358, 7.60320354814775, 1.9941363051237249},
+            test_case{2.316357376320011, -0.1389481133079018, 0.4222984369384101},
+            test_case{4.649743068191826, -7.629461259574195, -0.9950345719475753},
+            test_case{6.307108832706373, 7.753408442909997, 1.9994564255096674},
+            test_case{9.655499110598976, 5.051930923931616, 1.000209067931856},
+            test_case{9.9708218121433, -8.449848608452879, -0.9999999700717273}
+        );
+        constexpr double rtol = 1e-10;
+        constexpr double atol = 1e-10;
+        const double output = xsf::von_mises_cdf(k, x);
+        CAPTURE(k, x, output, expected, rtol, atol);
+        if (std::abs(expected) < 1e-10) {
+            REQUIRE(std::abs(output - expected) <= atol);
+        } else {
+            REQUIRE(xsf::extended_relative_error(output, expected) <= rtol);
         }
-    }
-
-    SECTION("broadcast scalar k") {
-        std::vector<double> k = {1.0};
-        std::vector<double> x = linspace(-5.0, 5.0, 10);
-
-        auto res = xsf::von_mises_cdf(k, x);
-        REQUIRE(res.size() == x.size());
     }
 }
