@@ -60,6 +60,7 @@
 #include <cuda/std/cstddef>
 #include <cuda/std/cstdint>
 #include <cuda/std/limits>
+#include <cuda/std/numeric>
 #include <cuda/std/tuple>
 #include <cuda/std/type_traits>
 #include <cuda/std/utility>
@@ -156,6 +157,9 @@ XSF_HOST_DEVICE constexpr T clamp(T &v, T &lo, T &hi) {
 template <typename T>
 using numeric_limits = cuda::std::numeric_limits<T>;
 
+using cuda::std::gcd;
+using cuda::std::lcm;
+
 // Must use thrust for complex types in order to support CuPy
 template <typename T>
 using complex = thrust::complex<T>;
@@ -244,6 +248,7 @@ using cuda::std::uint64_t;
 #include <iterator>
 #include <limits>
 #include <math.h>
+#include <numeric>
 #include <tuple>
 #include <type_traits>
 #include <utility>
