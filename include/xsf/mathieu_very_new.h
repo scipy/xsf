@@ -1,6 +1,7 @@
 #pragma once
 
 #include "xsf/config.h"
+#include "xsf/trig.h"
 #include "xsf/error.h"
 
 /*
@@ -155,8 +156,8 @@ namespace mathieu {
             auto phi = r * v;
             /* scipy takes v in radians, at least for now, so that's what's
              * what's used below. */
-            auto x_cos = std::cospi(phi / 180.0);
-            auto x_sin = std::sinpi(phi / 180.0);
+            auto x_cos = xsf::cospi(phi / 180.0);
+            auto x_sin = xsf::sinpi(phi / 180.0);
             if constexpr (FuncParity == Parity::Even) {
                 tt = X(k) * x_cos;
                 td = -r * X(k) * x_sin;
