@@ -103,7 +103,6 @@ namespace mathieu {
 
     template <Parity FuncParity, Parity OrderParity, typename OutputMat>
     XSF_HOST_DEVICE void make_matrix(typename OutputMat::value_type q, OutputMat D, OutputMat E) {
-        using T = typename OutputMat::value_type;
         auto n = D.extent(0);
         if (n == 0) {
             return;
