@@ -18,9 +18,78 @@
 namespace xsf {
 namespace mathieu {
 
+    enum class Parity { Even, Odd };
+
+    /* Get index of characteristic value in sorted array of eigenvalues
+     * based on the order and parity. */
+
+    template <Parity P, typename T>
+    XSF_HOST_DEVICE T cv_index(T m) {
+        static_assert(std::is_integral_v<T>, "m must be of integer type");
+
+        if constexpr (P == Parity::Even) {
+            return m / 2;
+        }
+        return (m - 1) / 2;
+    }
+
+    template <Parity FuncParity, Parity OrderParity, typename T>
+    XSF_HOST_DEVICE T d0(T q) {
+        constexpr auto Even = Parity::Even;
+        constexpr auto Odd = Parity::Odd;
+
+        if constexpr (FuncParity == Even && OrderParity == Even) {
+            return T(0);
+        }
+        if constexpr (FuncParity == Even && OrderParity == Odd) {
+            return T(1) + q;
+        }
+        if constexpr (FuncParity == Odd && OrderParity == Even) {
+            return T(4);
+        }
+        // FuncParity == Odd && OrderParity == Odd
+        return T(1) - q;
+    }
+
+    template <Parity FuncParity, Parity OrderParity, typename T>
+    XSF_HOST_DEVICE T e0(T q) {
+        constexpr auto Even = Parity::Even;
+
+        if constexpr (FuncParity == Even && OrderParity == Even) {
+            return T(M_SQRT2) * q;
+        }
+        return q;
+    }
+
+    template <Parity FuncParity, Parity OrderParity, typename T, typename U>
+    XSF_HOST_DEVICE T sqrt_di(U j) {
+        static_assert(std::is_integral_v<U>, "j must be of integer type");
+        constexpr auto Even = Parity::Even;
+        constexpr auto Odd = Parity::Odd;
+        if constexpr (OrderParity == Odd) {
+            return T(2) * static_cast<T>(j) + T(1);
+        }
+        if constexpr (FuncParity == Even) {
+            return T(2) * static_cast<T>(j);
+        }
+        // FuncParity == Odd && OrderParity == Even
+        return T(2) * (static_cast<T>(j) + T(1));
+    }
+
     /*-----------------------------------------------
       This creates the recurrence relation matrix for
-      the even-even Mathieu fcns (ce_2n).
+      the even-even (ce_2n), even-odd (ce_2n+1),
+      (se_2n) -- sometimes called se_2n+2, and odd-odd (se_2n+1)
+      Mathieu functions, depending on the values of the template
+      arguments FuncParity and OrderParity.
+
+      Template arguments:
+
+      FuncParity = parity of mathieu function, Parity::Even for the
+      even Mathieu function and Parity::Odd for the odd
+      Mathieu function.
+
+      OrderParity = parity of the order m of a Mathieu function.
 
       Inputs:
       q = shape parameter.
@@ -32,106 +101,18 @@ namespace mathieu {
       size n - 1.
       -------------------------------------------------*/
 
-    template <typename T, typename OutputMat>
-    XSF_HOST_DEVICE inline void make_matrix_ee(T q, OutputMat D, OutputMat E) {
+    template <Parity FuncParity, Parity OrderParity, typename T, typename OutputMat>
+    XSF_HOST_DEVICE void make_matrix(T q, OutputMat D, OutputMat E) {
         auto n = D.extent(0);
+        if (n == 0) {
+            return;
+        }
 
-        // Make diagonal entries
-        D(0) = T(0);
+        D(0) = d0<FuncParity, OrderParity>(q);
+        E(0) = e0<FuncParity, OrderParity>(q);
+
         for (decltype(n) j = 1; j < n; j++) {
-            auto tj = T(2) * static_cast<T>(j);
-            D(j) = tj * tj;
-        }
-
-        // Make off-diagonal entries
-        E(0) = T(M_SQRT2) * q;
-        for (decltype(n) j = 1; j < (n - 1); j++) {
-            E(j) = q;
-        }
-    }
-
-    /*-----------------------------------------------
-      This creates the recurrence relation matrix for the
-      even-odd Mathieu fcns (ce_2n+1).
-
-      Inputs:
-      q = shape parameter.
-
-      Outputs:
-      D = Diagonal elements in recurrence matrix. mdspan view of a 1d array of
-      size n.
-      E = Off-diagonal elements in recurrence matrix. mdspan view of 1d array of
-      size n - 1.
-      -------------------------------------------------*/
-    template <typename T, typename OutputMat>
-    XSF_HOST_DEVICE inline void make_matrix_eo(T q, OutputMat D, OutputMat E) {
-        auto n = D.extent(0);
-
-        // Make diagonal entries
-        D(0) = T(1) + q;
-        for (decltype(n) j = 1; j < n; j++) {
-            auto tj = T(2) * static_cast<T>(j) + 1.0;
-            D(j) = tj * tj;
-        }
-
-        // Make off-diagonal entries
-        for (decltype(n) j = 0; j < (n - 1); j++) {
-            E(j) = q;
-        }
-    }
-
-    /*-----------------------------------------------
-      This creates the recurrence relation matrix for
-      the odd-even Mathieu fcns (se_2n) -- sometimes called
-      se_2n+2.
-
-      Inputs:
-      q = shape parameter.
-
-      Outputs:
-      D = Diagonal elements in recurrence matrix. mdspan view of a 1d array of size
-      n.
-      E = Off-diagonal elements in recurrence matrix. mdspan view of 1d array of size
-      n - 1.
-      -------------------------------------------------*/
-    template <typename T, typename OutputMat>
-    XSF_HOST_DEVICE inline void make_matrix_oe(T q, OutputMat D, OutputMat E) {
-        // Coeffs for se_2n+2
-        auto n = D.extent(0);
-
-        // Make diagonal entries
-        for (decltype(n) j = 0; j < n; j++) {
-            auto tj = T(2) * (static_cast<T>(j) + T(1));
-            D(j) = tj * tj;
-        }
-
-        // Make off-diagonal entries
-        for (decltype(n) j = 0; j < (n - 1); j++) {
-            E(j) = q;
-        }
-    }
-
-    /*-----------------------------------------------
-      This creates the recurrence relation matrix for
-      the odd-odd Mathieu fcns (se_2n+1).
-
-      Inputs:
-      q = shape parameter.
-
-      D = Diagonal elements in recurrence matrix. mdspan view of a 1d array of size
-      n.
-      E = Off-diagonal elements in recurrence matrix. mdspan view of 1d array of size
-      n - 1.
-      -------------------------------------------------*/
-    template <typename T, typename OutputMat>
-    XSF_HOST_DEVICE inline void make_matrix_oo(T q, OutputMat D, OutputMat E) {
-        // Coeffs for se_2n+1
-        auto n = D.extent(0);
-
-        // Make diagonal entries
-        D(0) = T(1) - q;
-        for (decltype(n) j = 1; j < n; j++) {
-            auto tj = T(2) * static_cast<T>(j) + T(1);
+            auto tj = sqrt_di<FuncParity, OrderParity>(j);
             D(j) = tj * tj;
         }
 
