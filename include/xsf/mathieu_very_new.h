@@ -39,13 +39,13 @@ namespace mathieu {
         constexpr auto Odd = Parity::Odd;
 
         if constexpr (FuncParity == Even && OrderParity == Even) {
-            return 0.0
+            return 0.0;
         }
         if constexpr (FuncParity == Even && OrderParity == Odd) {
             return 1.0 + q;
         }
         if constexpr (FuncParity == Odd && OrderParity == Even) {
-            return 4.0
+            return 4.0;
         }
         // FuncParity == Odd && OrderParity == Odd
         return 1.0 - q;
