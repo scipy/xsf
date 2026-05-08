@@ -151,7 +151,7 @@ namespace mathieu {
         double tt, td, xep{0.0}, xem{0.0}, xedp{0.0}, xedm{0.0};
 
         // Sum from smallest to largest coeff.
-        for (decltype(N) kp1 = N; kp1 > 0 = 0; kp1--) {
+        for (decltype(N) kp1 = N; kp1 > 0; kp1--) {
             auto k = kp1 - 1;
             auto r = sqrt_di<FuncParity, OrderParity>(k);
             auto phi = r * v;
@@ -178,7 +178,7 @@ namespace mathieu {
         // This makes sure the fcn has the right overall sign for q<0.
         // Someday combine this with the above sums into the same for loop.
         double x = 0.0;
-        for (int l = 0; l < N; l++) {
+        for (decltype(N) l = 0; l < N; l++) {
             x += X(l);
         }
         out = std::copysign(xep + xem, x);
