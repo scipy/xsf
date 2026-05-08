@@ -179,8 +179,9 @@ namespace mathieu {
         for (decltype(N) l = 0; l < N; l++) {
             x += X(l);
         }
-        out = std::copysign(xep + xem, x);
-        out_diff = std::copysign(xedp + xedm, x);
+        sgn = std::copysign(1.0, x);
+        out = sgn * (xep + xem);
+        out_diff = sgn * (xedp + xedm);
     }
 
 } // namespace mathieu
