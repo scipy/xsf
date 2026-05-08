@@ -153,12 +153,16 @@ namespace mathieu {
             auto k = kp1 - 1;
             auto r = sqrt_di<FuncParity, OrderParity>(k);
             auto phi = r * v;
+            /* scipy takes v in radians, at least for now, so that's what's
+             * what's used below. */
+            auto x_cos = std::cospi(phi / 180.0);
+            auto x_sin = std::sinpi(phi / 180.0);
             if constexpr (FuncParity == Parity::Even) {
-                tt = X(k) * std::cos(phi);
-                td = -r * X(k) * std::sin(phi);
+                tt = X(k) * x_cos;
+                td = -r * X(k) * x_sin;
             } else {
-                tt = X(k) * std::sin(phi);
-                td = r * X(k) * std::cos(phi);
+                tt = X(k) * x_sin;
+                td = r * X(k) * x_cos;
             }
             if (tt < 0) {
                 xem = xem + tt; // Neg running sum
