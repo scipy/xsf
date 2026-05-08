@@ -144,8 +144,6 @@ namespace mathieu {
     XSF_HOST_DEVICE void sum_fourier_series(
         InputMat X, double v, typename InputMat::value_type &out, typename InputMat::value_type &out_diff
     ) {
-        auto constexpr Even = Parity::Even;
-        auto constexpr Odd = Parity::Odd;
         auto N = X.extent(0);
         // Local scope variables used in summing the Fourier series.
         double tt, td, xep{0.0}, xem{0.0}, xedp{0.0}, xedm{0.0};
@@ -155,7 +153,7 @@ namespace mathieu {
             auto k = kp1 - 1;
             auto r = sqrt_di<FuncParity, OrderParity>(k);
             auto phi = r * v;
-            if constexpr (FuncParity == Even) {
+            if constexpr (FuncParity == Parity::Even) {
                 tt = X(k) * std::cos(phi);
                 td = -r * X(k) * std::sin(phi);
             } else {
