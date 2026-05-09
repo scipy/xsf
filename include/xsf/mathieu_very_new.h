@@ -36,6 +36,13 @@ namespace mathieu {
      * or the parity of the order ``m``. */
     enum class Parity { Even, Odd };
 
+    /* Policy to determine whether to use radians or degrees for angular
+     * Mathieu functions. */
+    enum class AngleUnitPolicy {
+        Radians,
+        Degrees
+    }
+
     // Get index of characteristic value in sorted array of eigenvalues.
     template <FuncParity P, typename T>
     XSF_HOST_DEVICE T cv_index(T m) {
@@ -168,7 +175,7 @@ namespace mathieu {
         return N;
     }
 
-    template <Parity FuncParity, Parity OrderParity, typename InputMat>
+    template <Parity FuncParity, Parity OrderParity, AngleUnitPolicy AngleUnits, typename InputMat>
     XSF_HOST_DEVICE void sum_fourier_series(
         InputMat X, double v, typename InputMat::value_type &out, typename InputMat::value_type &out_diff
     ) {
@@ -179,12 +186,16 @@ namespace mathieu {
         // Sum from smallest to largest coeff.
         for (decltype(N) kp1 = N; kp1 > 0; kp1--) {
             auto k = kp1 - 1;
-            auto r = sqrt_di<FuncParity, OrderParity>(k);
-            auto phi = r * v;
-            /* scipy takes v in radians, at least for now, so that's what's
-             * what's used below. */
-            auto x_cos = xsf::cospi(phi / 180.0);
-            auto x_sin = xsf::sinpi(phi / 180.0);
+            double r = sqrt_di<FuncParity, OrderParity>(k);
+            double phi = r * v;
+            double x_cos, x_sin;
+            if constexpr (AngleUnits == AngleUnitPolicy::Degrees) {
+                x_cos = xsf::cospi(phi / 180.0);
+                x_sin = xsf::sinpi(phi / 180.0);
+            } else {
+                x_cos = std::cos(phi);
+                x_sin = std::sin(phi);
+            }
             if constexpr (FuncParity == Parity::Even) {
                 tt = X(k) * x_cos;
                 td = -r * X(k) * x_sin;
