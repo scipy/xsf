@@ -84,3 +84,18 @@ TEST_CASE("tandg IEEE infinity sign scipy/20731", "[tandg][xsf_tests]") {
         REQUIRE(std::signbit(result) == (n % 2 != 0));
     }
 }
+
+TEST_CASE("cotdg IEEE infinity sign scipy/20731", "[cotdg][xsf_tests]") {
+    double x, result;
+    for (double n : {-2.0, -1.0, -0.0, 0.0, 1.0, 2.0}) {
+        x = n * 180.0;
+        result = xsf::cotdg(x);
+        CAPTURE(n, x, result);
+        REQUIRE(std::isinf(result));
+        if (std::signbit(n)) {
+            REQUIRE(std::signbit(result) == (static_cast<int>(n) % 2 == 0));
+        } else {
+            REQUIRE(std::signbit(result) == (static_cast<int>(n) % 2 != 0));
+        }
+    }
+}
