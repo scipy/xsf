@@ -1,4 +1,5 @@
 #include "../testing_utils.h"
+#include <cmath>
 #include <xsf/stats.h>
 
 TEST_CASE("von Mises CDF test", "[von_mises_cdf][xsf_tests]") {
@@ -94,5 +95,94 @@ TEST_CASE("von Mises CDF test", "[von_mises_cdf][xsf_tests]") {
         } else {
             REQUIRE(xsf::extended_relative_error(output, expected) <= rtol);
         }
+    }
+
+    SECTION("von Mises CDF periodic extension") {
+        // The CDF is extended periodically over x, adding one CDF period per
+        // 2*pi shift.
+        using test_case = std::tuple<double, double, int>;
+        auto [k, x, periods] = GENERATE(
+            test_case{0.25, 0.75, 1}, test_case{3.0, -1.25, -1}, test_case{49.999, 2.0, 2}, test_case{50.0, -0.5, -2}
+        );
+        const double expected = xsf::von_mises_cdf(k, x) + periods;
+        const double output = xsf::von_mises_cdf(k, x + periods * 2.0 * M_PI);
+        CAPTURE(k, x, periods, output, expected);
+        REQUIRE(std::abs(output - expected) <= 1e-12);
+    }
+
+    SECTION("von Mises CDF scipy.stats periodic distribution behavior") {
+        // Port of scipy.stats.tests.test_distributions.TestVonMises.
+        //
+        // @pytest.mark.parametrize('k', [0.1, 1, 101])
+        // @pytest.mark.parametrize('x', [0, 1, np.pi, 10, 100])
+        // def test_vonmises_periodic(self, k, x):
+        //     def check_vonmises_cdf_periodic(k, L, s, x):
+        //         vm = stats.vonmises(k, loc=L, scale=s)
+        //         assert_almost_equal(vm.cdf(x) % 1,
+        //                             vm.cdf(x % (2 * np.pi * s)) % 1)
+        //
+        //     check_vonmises_cdf_periodic(k, 0, 1, x)
+        //     check_vonmises_cdf_periodic(k, 1, 1, x)
+        //     check_vonmises_cdf_periodic(k, 0, 10, x)
+        auto k = GENERATE(0.1, 1.0, 101.0);
+        auto x = GENERATE(0.0, 1.0, M_PI, 10.0, 100.0);
+        auto [loc, scale] = GENERATE(
+            std::tuple<double, double>{0.0, 1.0}, std::tuple<double, double>{1.0, 1.0},
+            std::tuple<double, double>{0.0, 10.0}
+        );
+
+        auto modulo_one = [](double value) {
+            const double result = std::fmod(value, 1.0);
+            return result < 0.0 ? result + 1.0 : result;
+        };
+        const double period = 2.0 * M_PI * scale;
+        const double shifted_x = (x - loc) / scale;
+        const double shifted_wrapped_x = (std::fmod(x, period) - loc) / scale;
+        const double output = modulo_one(xsf::von_mises_cdf(k, shifted_x));
+        const double expected = modulo_one(xsf::von_mises_cdf(k, shifted_wrapped_x));
+        CAPTURE(k, x, loc, scale, output, expected);
+        REQUIRE(std::abs(output - expected) <= 1e-7);
+    }
+
+    SECTION("von Mises CDF uniform distribution at k = 0") {
+        // At zero concentration the von Mises distribution is uniform on the
+        // circle.
+        auto x = GENERATE(-M_PI_2, 0.0, M_PI_2);
+        const double expected = 0.5 + x / (2.0 * M_PI);
+        const double output = xsf::von_mises_cdf(0.0, x);
+        CAPTURE(x, output, expected);
+        REQUIRE(std::abs(output - expected) <= 1e-14);
+    }
+
+    SECTION("von Mises CDF branch boundary at x = 0") {
+        // k = 50 switches from the series implementation to the normal
+        // approximation.
+        auto k = GENERATE(49.999, 50.0);
+        const double output = xsf::von_mises_cdf(k, 0.0);
+        CAPTURE(k, output);
+        REQUIRE(std::abs(output - 0.5) <= 1e-14);
+    }
+
+    SECTION("von Mises CDF scipy.stats large-k numerical behavior") {
+        // Port of scipy.stats.tests.test_distributions.TestVonMises.
+        //
+        // def test_vonmises_numerical(self):
+        //     vm = stats.vonmises(800)
+        //     assert_almost_equal(vm.cdf(0), 0.5)
+        const double output = xsf::von_mises_cdf(800.0, 0.0);
+        CAPTURE(output);
+        REQUIRE(std::abs(output - 0.5) <= 1e-7);
+    }
+
+    SECTION("von Mises CDF float overload") {
+        // The float overload delegates through the double implementation.
+        auto [k, x] = GENERATE(
+            std::tuple<float, float>{0.5F, -1.25F}, std::tuple<float, float>{10.0F, 2.5F},
+            std::tuple<float, float>{50.0F, 0.5F}
+        );
+        const float output = xsf::von_mises_cdf(k, x);
+        const float expected = static_cast<float>(xsf::von_mises_cdf(static_cast<double>(k), static_cast<double>(x)));
+        CAPTURE(k, x, output, expected);
+        REQUIRE(output == expected);
     }
 }
