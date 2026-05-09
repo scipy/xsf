@@ -73,3 +73,14 @@ TEST_CASE("cotdg IEEE zero sign at multiples of 90 scipy/20731", "[cotdg][xsf_te
         REQUIRE(result == 0);
     }
 }
+
+TEST_CASE("tandg IEEE infinity sign scipy/20731", "[tandg][xsf_tests]") {
+    double x, result;
+    for (int n : {-2, -1, 0, 1, 2}) {
+        x = (2 * n + 1) * 90.0;
+        result = xsf::tandg(x);
+        CAPTURE(n, x, result);
+        REQUIRE(std::isinf(result));
+        REQUIRE(std::signbit(result) == (n % 2 != 0));
+    }
+}
