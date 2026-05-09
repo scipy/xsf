@@ -175,7 +175,33 @@ namespace mathieu {
         return N;
     }
 
-    template <Parity FuncParity, Parity OrderParity, AngleUnitPolicy AngleUnits, typename InputMat>
+    /* Sum the fourier series for computing angular Mathieu functions.
+     *
+     * The fourier coefficients ``X`` are the values of the eigenvector
+     * associated to the characteristic eigenvalue. xsf does not currently
+     * supply a kernel for computing this eigenvector.
+     *
+     * Template arguments:
+     *
+     * FuncParity = parity of mathieu function, Parity::Even for the
+     * even Mathieu function and Parity::Odd for the odd
+     * Mathieu function.
+     *
+     * OrderParity = parity of the order m of a Mathieu function.
+     *
+     * AngleUnits = AngleUnitPolicy::Radians or AngleUnitPolicy::Degrees.
+     *
+     * Inputs:
+     * X = A 1d mdspan view of the fourier coefficients.
+     * v = Angular argument, in either radians or degrees depending on the
+     * value of the AngleUnits template argument.
+     *
+     * Ouputs:
+     * out = Value of angular mathieu function for given fourier coefficients at angle v
+     * out_diff = Derivative of angular mathieu function for given fourier coefficients at angle v.
+     */
+    template <
+        Parity FuncParity, Parity OrderParity, AngleUnitPolicy AngleUnits = AngleUnitPolicy::Radians, typename InputMat>
     XSF_HOST_DEVICE void sum_fourier_series(
         InputMat X, double v, typename InputMat::value_type &out, typename InputMat::value_type &out_diff
     ) {
