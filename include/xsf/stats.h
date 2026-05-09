@@ -158,6 +158,34 @@ inline double gdtr(double a, double b, double x) { return cephes::gdtr(a, b, x);
 
 inline double gdtrc(double a, double b, double x) { return cephes::gdtrc(a, b, x); }
 
+inline int64_t kendall_dis(const std::vector<intptr_t> &x, const std::vector<intptr_t> &y) {
+    intptr_t sup = 1 + *std::max_element(y.begin(), y.end());
+    // Use of `>> 14` improves cache performance of the Fenwick tree (see gh-10108)
+    std::vector<intptr_t> arr(sup + ((sup - 1) >> 14), 0);
+    intptr_t i = 0, k = 0, size = static_cast<intptr_t>(x.size()), idx;
+    int64_t dis = 0;
+    while (i < size) {
+        while (k < size and x[i] == x[k]) {
+            dis += i;
+            idx = y[k];
+            while (idx != 0) {
+                dis -= arr[idx + (idx >> 14)];
+                idx = idx & (idx - 1);
+            }
+            ++k;
+        }
+        while (i < k) {
+            idx = y[i];
+            while (idx < sup) {
+                arr[idx + (idx >> 14)] += 1;
+                idx += idx & -idx;
+            }
+            ++i;
+        }
+    }
+    return dis;
+}
+
 inline double kolmogorov(double x) { return cephes::kolmogorov(x); }
 
 inline double kolmogc(double x) { return cephes::kolmogc(x); }
