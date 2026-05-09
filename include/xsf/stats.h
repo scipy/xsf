@@ -570,23 +570,23 @@ XSF_HOST_DEVICE inline typename InputMat::value_type take_from_discrete_cdf(Inpu
 }
 
 XSF_HOST_DEVICE inline double von_mises_cdf_series(double k, double x, unsigned int p) {
-    double s, c, sn, cn, R, V;
+    double s, c, sn, cn, r, v;
     unsigned int n;
     s = std::sin(x);
     c = std::cos(x);
     sn = std::sin(p * x);
     cn = std::cos(p * x);
-    R = 0;
-    V = 0;
+    r = 0;
+    v = 0;
     for (n = p - 1; n > 0; --n) {
         double sn_new = sn * c - cn * s;
         double cn_new = cn * c + sn * s;
         sn = sn_new;
         cn = cn_new;
-        R = k / (2 * n + k * R);
-        V = R * (sn / n + V);
+        r = k / (2 * n + k * r);
+        v = r * (sn / n + v);
     }
-    return 0.5 + x / (2.0 * M_PI) + V / M_PI;
+    return 0.5 + x / (2.0 * M_PI) + v / M_PI;
 }
 
 XSF_HOST_DEVICE inline double von_mises_cdf_normalapprox(double k, double x) {
@@ -603,10 +603,10 @@ XSF_HOST_DEVICE inline double von_mises_cdf(double k, double x) {
     x -= ix * 2.0 * M_PI;
 
     // These values should give 12 decimal digits
-    const double CK = 50.0;
+    const double ck = 50.0;
     const double a1 = 28.0, a2 = 0.5, a3 = 100.0, a4 = 5.0;
     double result;
-    if (k < CK) {
+    if (k < ck) {
         unsigned int p = static_cast<unsigned int>(1 + a1 + a2 * k - a3 / (k + a4));
         result = von_mises_cdf_series(k, x, p);
         result = std::min(std::max(result, 0.0), 1.0);
