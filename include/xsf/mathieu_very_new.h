@@ -1,39 +1,58 @@
+/* Kernels for computing Mathieu functions. This file does not contain complete
+ * implementations of the Mathieu functions, but only kernels which can be
+ * used within SciPy and CuPy to implement the Mathieu functions. One currently
+ * must supply an eigenvalue and eigenvector solver for symmetric tridiagonal
+ * matrices, such as dstevd from LAPACK, to construct a complete implementation.
+ *
+ * This code is based on code written by Stuart Brorson (github @brorson) which is
+ * available at https://github.com/scipy/xsf/pull/99. It isolates out the parts
+ * which are fit for xsf as a library of simple numerical kernels which can be used
+ * on both CPU and GPU. Parts for which the approach used on CPU and GPU must
+ * necessarily be different will be left to SciPy and CuPy respectively. Hence
+ * the lack of the eigenvalue/eigenvector finding step here. The code has
+ * has been refactored to reduce code duplication, but is otherwise faithful
+ * to the original (with the exception that a policy template arg has been
+ * added to allow either degrees or radians to be used for angular arguments).
+ *
+ * Stuart Brorson's implementations follow prototypes written in MatLab and
+ * maintained on GitHub at https://github.com/brorson/MathieuFcnsFourier.
+ * A full write up for the algorithms is available at
+ * https://github.com/brorson/ScipyMathieuPaper.
+ *
+ * SciPy Developers 2026
+ */
+
 #pragma once
 
 #include "xsf/config.h"
-#include "xsf/trig.h"
 #include "xsf/error.h"
-
-/*
- *
- * This is part of the Mathieu function suite -- a reimplementation
- * of the Mathieu functions for Scipy.  This file holds the functions
- * which make the recursion matrices.  This particular impl
- * returns three vectors, corresponding to the on and off diagonal
- * elements of the recursion matrix.
- *
- * Stuart Brorson, Summer 2025.
- *
- */
+#include "xsf/trig.h"
 
 namespace xsf {
 namespace mathieu {
 
+    /* Used in template arguments for parity. Can stand for either
+     * function parity (even Mathieu functions ce or odd Mathieu functions se)
+     * or the parity of the order ``m``. */
     enum class Parity { Even, Odd };
 
-    /* Get index of characteristic value in sorted array of eigenvalues
-     * based on the order and parity. */
-
-    template <Parity P, typename T>
+    // Get index of characteristic value in sorted array of eigenvalues.
+    template <FuncParity P, typename T>
     XSF_HOST_DEVICE T cv_index(T m) {
         static_assert(std::is_integral_v<T>, "m must be of integer type");
 
-        if constexpr (P == Parity::Even) {
+        if constexpr (FuncParity == Parity::Even) {
             return m / 2;
         }
         return (m - 1) / 2;
     }
 
+    /* Calculates the first element along the diagonal of the recurrence
+     * relation matrix as a function of the shape parameter ``q``.
+     *
+     * Templated on function parity (even vs odd mathieu functions) and
+     * order parity (whether the order parameter ``m`` is even or odd).
+     */
     template <Parity FuncParity, Parity OrderParity>
     XSF_HOST_DEVICE double d0(double q) {
         constexpr auto Even = Parity::Even;
@@ -52,6 +71,12 @@ namespace mathieu {
         return 1.0 - q;
     }
 
+    /* Calculates the first element along the off-diagonal of the recurrence
+     * relation matrix as a function of the shape parameter ``q``.
+     *
+     * Templated on function parity (even vs odd mathieu functions) and
+     * order parity (whether the order parameter ``m`` is even or odd).
+     */
     template <Parity FuncParity, Parity OrderParity>
     XSF_HOST_DEVICE double e0(double q) {
         constexpr auto Even = Parity::Even;
@@ -62,6 +87,8 @@ namespace mathieu {
         return q;
     }
 
+    /* Calculates the square root of the diagonal entries of the recurrence
+     * relation matrix as a function of the index into the diagonal. */
     template <Parity FuncParity, Parity OrderParity, typename U>
     XSF_HOST_DEVICE double sqrt_di(U j) {
         static_assert(std::is_integral_v<U>, "j must be of integer type");
