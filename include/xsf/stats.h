@@ -603,7 +603,7 @@ XSF_HOST_DEVICE inline double von_mises_cdf(double k, double x) {
     // CDF of the von Mises distribution with concentration k, extended
     // periodically over x.
     //
-    // For k < 50, this uses the backward-recursion series method of Hill (1977),
+    // For k < 50, this uses the backward-recursion series method of Hill [1],
     // Algorithm 518, with constants chosen for about 12 decimal digits. For k >= 50,
     // this switches to a large-concentration normal approximation.
     //
