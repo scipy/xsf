@@ -1,3 +1,5 @@
+/* Less accurate (but faster) legacy versions of Mathieu functions. */
+
 #pragma once
 
 #include "error.h"
