@@ -598,6 +598,16 @@ XSF_HOST_DEVICE inline double von_mises_cdf_normalapprox(double k, double x) {
 XSF_HOST_DEVICE inline double von_mises_cdf(double k, double x) {
     // CDF of the von Mises distribution with concentration k, extended
     // periodically over x.
+    //
+    // For k < 50, this uses the backward-recursion series method of Hill (1977),
+    // Algorithm 518, with constants chosen for about 12 decimal digits. For k >= 50,
+    // this switches to a large-concentration normal approximation.
+    //
+    // References:
+    // [1] G. W. Hill, "Algorithm 518: Incomplete Bessel Function I0.
+    //     The Von Mises Distribution [S14]", ACM Transactions on Mathematical
+    //     Software, 3(3), 279-284, 1977.
+    //     DOI: https://doi.org/10.1145/355744.355753
 
     double ix = std::round(x / (2 * M_PI));
     x -= ix * 2.0 * M_PI;
