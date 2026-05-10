@@ -38,13 +38,10 @@ namespace mathieu {
 
     /* Policy to determine whether to use radians or degrees for angular
      * Mathieu functions. */
-    enum class AngleUnitPolicy {
-        Radians,
-        Degrees
-    }
+    enum class AngleUnitPolicy { Radians, Degrees };
 
     // Get index of characteristic value in sorted array of eigenvalues.
-    template <FuncParity P, typename T>
+    template <Parity FuncParity, typename T>
     XSF_HOST_DEVICE T cv_index(T m) {
         static_assert(std::is_integral_v<T>, "m must be of integer type");
 
