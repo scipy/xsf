@@ -27,7 +27,7 @@
 /* PyUFunc_getfperr gets bits for current floating point error (fpe) status codes so we
  * can check for floating point errors and make proper calls to set_error in ufunc loops.
  * Define a wrapper so it can be given C linkage within this C++ header. */
-extern "C" inline int wrap_PyUFunc_getfperr() { return PyUFunc_getfperr(); }
+extern "C" int wrap_PyUFunc_getfperr() { return PyUFunc_getfperr(); }
 
 namespace xsf {
 namespace numpy {
