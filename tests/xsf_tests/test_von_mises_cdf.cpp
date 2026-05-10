@@ -3,21 +3,19 @@
 #include <xsf/stats.h>
 
 TEST_CASE("von Mises CDF test", "[von_mises_cdf][xsf_tests]") {
-    // Reference values from scipy.stats._stats
-    //
-    // import numpy as np
-    // from scipy.stats._stats import von_mises_cdf
+    // Reference values from scipy.stats._stats.von_mises_cdf:
+    // https://github.com/scipy/scipy/blob/v1.17.0/scipy/stats/_stats.pyx#L19-L80
 
-    // rng = np.random.default_rng(123456789)
-
-    // ks = rng.uniform(1e-5, 100.0, size=30)
-    // xs = rng.uniform(-10.0, 10.0, size=30)
-
-    // print("von_mises_cdf(k, x) = y")
-    // for k, x in zip(ks, xs):
-    //     y = von_mises_cdf(k, x)
-    //     print(f"von_mises_cdf({k}, {x}) = {y}")
     SECTION("von Mises CDF scipy reference values") {
+        // import numpy as np
+        // from scipy.stats._stats import von_mises_cdf
+        // rng = np.random.default_rng(123456789)
+        // ks = rng.uniform(1e-5, 100.0, size=30)
+        // xs = rng.uniform(-10.0, 10.0, size=30)
+        // print("von_mises_cdf(k, x) = y")
+        // for k, x in zip(ks, xs):
+        //     y = von_mises_cdf(k, x)
+        //     print(f"von_mises_cdf({k}, {x}) = {y}")
         using test_case = std::tuple<double, double, double>;
         auto [k, x, expected] = GENERATE(
             test_case{2.771283651124301, 3.035602639562689, 0.9997388651495406},
@@ -74,6 +72,7 @@ TEST_CASE("von Mises CDF test", "[von_mises_cdf][xsf_tests]") {
 
     SECTION("von Mises CDF scipy.stats periodic distribution behavior") {
         // Port of scipy.stats.tests.test_distributions.TestVonMises.
+        // https://github.com/scipy/scipy/blob/v1.17.0/scipy/stats/tests/test_distributions.py#L79
         //
         // @pytest.mark.parametrize('k', [0.1, 1, 101])
         // @pytest.mark.parametrize('x', [0, 1, np.pi, 10, 100])
