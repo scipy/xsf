@@ -569,31 +569,35 @@ XSF_HOST_DEVICE inline typename InputMat::value_type take_from_discrete_cdf(Inpu
     return cdf(k);
 }
 
-XSF_HOST_DEVICE inline double von_mises_cdf_series(double k, double x, unsigned int p) {
-    double s, c, sn, cn, r, v;
-    unsigned int n;
-    s = std::sin(x);
-    c = std::cos(x);
-    sn = std::sin(p * x);
-    cn = std::cos(p * x);
-    r = 0;
-    v = 0;
-    for (n = p - 1; n > 0; --n) {
-        double sn_new = sn * c - cn * s;
-        double cn_new = cn * c + sn * s;
-        sn = sn_new;
-        cn = cn_new;
-        r = k / (2 * n + k * r);
-        v = r * (sn / n + v);
-    }
-    return 0.5 + x / (2.0 * M_PI) + v / M_PI;
-}
+namespace detail {
 
-XSF_HOST_DEVICE inline double von_mises_cdf_normalapprox(double k, double x) {
-    double b = xsf::cephes::detail::SQRT2OPI / cephes::i0e(k); // Check for negative k
-    double z = b * std::sin(x / 2.0);
-    return ndtr(z);
-}
+    XSF_HOST_DEVICE inline double von_mises_cdf_series(double k, double x, unsigned int p) {
+        double s, c, sn, cn, r, v;
+        unsigned int n;
+        s = std::sin(x);
+        c = std::cos(x);
+        sn = std::sin(p * x);
+        cn = std::cos(p * x);
+        r = 0;
+        v = 0;
+        for (n = p - 1; n > 0; --n) {
+            double sn_new = sn * c - cn * s;
+            double cn_new = cn * c + sn * s;
+            sn = sn_new;
+            cn = cn_new;
+            r = k / (2 * n + k * r);
+            v = r * (sn / n + v);
+        }
+        return 0.5 + x / (2.0 * M_PI) + v / M_PI;
+    }
+
+    XSF_HOST_DEVICE inline double von_mises_cdf_normalapprox(double k, double x) {
+        double b = xsf::cephes::detail::SQRT2OPI / cephes::i0e(k); // Check for negative k
+        double z = b * std::sin(x / 2.0);
+        return ndtr(z);
+    }
+
+} // namespace detail
 
 XSF_HOST_DEVICE inline double von_mises_cdf(double k, double x) {
     // CDF of the von Mises distribution with concentration k, extended
@@ -618,10 +622,10 @@ XSF_HOST_DEVICE inline double von_mises_cdf(double k, double x) {
     double result;
     if (k < ck) {
         unsigned int p = static_cast<unsigned int>(1 + a1 + a2 * k - a3 / (k + a4));
-        result = von_mises_cdf_series(k, x, p);
+        result = detail::von_mises_cdf_series(k, x, p);
         result = std::min(std::max(result, 0.0), 1.0);
     } else {
-        result = von_mises_cdf_normalapprox(k, x);
+        result = detail::von_mises_cdf_normalapprox(k, x);
     }
     return result + ix;
 }
