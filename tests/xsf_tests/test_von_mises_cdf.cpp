@@ -115,6 +115,11 @@ TEST_CASE("von Mises CDF test", "[von_mises_cdf][xsf_tests]") {
         REQUIRE(std::abs(output - expected) <= 1e-14);
     }
 
+    SECTION("von Mises CDF negative concentration") {
+        const double output = xsf::von_mises_cdf(-1.0, 0.25);
+        REQUIRE(std::isnan(output));
+    }
+
     SECTION("von Mises CDF branch boundary at x = 0") {
         // k = 50 switches from the series implementation to the normal
         // approximation.
