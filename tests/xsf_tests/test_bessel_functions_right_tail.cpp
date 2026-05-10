@@ -62,8 +62,7 @@ TEST_CASE("j1 right tail gh-large-input", "[j1][xsf_tests]") {
     // x = np.logspace(2, 20, num=20)
     // x, mpmath.besselj(1, x)
     auto [x, ref, rtol] = GENERATE(
-        test_case{100.0, -0.07714535201411216, 1e-15},
-        test_case{885.8667904100823, -0.020092316011146107, 1e-15},
+        test_case{100.0, -0.07714535201411216, 1e-15}, test_case{885.8667904100823, -0.020092316011146107, 1e-15},
         test_case{7847.5997035146065, -0.0069653536476014105, 1e-15},
         test_case{69519.27961775605, 0.0029402478891245158, 1e-15},
         test_case{615848.2110660254, 0.0008651783371245079, 1e-15},
@@ -80,8 +79,7 @@ TEST_CASE("j1 right tail gh-large-input", "[j1][xsf_tests]") {
         test_case{1.6237767391887176e+16, 4.295602361218747e-09, 1e-15},
         test_case{1.438449888287654e+17, -1.968878305887983e-09, 1e-15},
         test_case{1.2742749857031322e+18, 4.3550674582051375e-10, 1e-15},
-        test_case{1.1288378916846838e+19, 1.904229128619541e-10, 1e-15},
-        test_case{1e+20, -7.95068198242545e-11, 1e-15}
+        test_case{1.1288378916846838e+19, 1.904229128619541e-10, 1e-15}, test_case{1e+20, -7.95068198242545e-11, 1e-15}
     );
     const double w = xsf::cephes::j1(x);
     const double rel_error = xsf::extended_relative_error(w, ref);
