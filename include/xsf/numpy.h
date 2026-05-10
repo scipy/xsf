@@ -803,11 +803,9 @@ namespace numpy {
 
             Func func = static_cast<ufunc_data<Func> *>(data)->func;
             for (npy_intp i = 0; i < dims[0]; ++i) {
-                Res res = func(
-                    npy_traits<Args>::get(
-                        args[I], new_dims.data() + ranks_scan[I], steps + ranks_scan[I] + sizeof...(Args) + 1
-                    )...
-                );
+                Res res = func(npy_traits<Args>::get(
+                    args[I], new_dims.data() + ranks_scan[I], steps + ranks_scan[I] + sizeof...(Args) + 1
+                )...);
                 npy_traits<Res>::set(args[sizeof...(Args)], res); // assign to the output pointer
 
                 for (npy_uintp j = 0; j <= sizeof...(Args); ++j) {
@@ -839,11 +837,9 @@ namespace numpy {
 
             Func func = static_cast<ufunc_data<Func> *>(data)->func;
             for (npy_intp i = 0; i < dims[0]; ++i) {
-                func(
-                    npy_traits<Args>::get(
-                        args[I], new_dims.data() + ranks_scan[I], steps + ranks_scan[I] + sizeof...(Args)
-                    )...
-                );
+                func(npy_traits<Args>::get(
+                    args[I], new_dims.data() + ranks_scan[I], steps + ranks_scan[I] + sizeof...(Args)
+                )...);
 
                 for (npy_uintp j = 0; j < sizeof...(Args); ++j) {
                     args[j] += steps[j];
