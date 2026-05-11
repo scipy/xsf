@@ -123,7 +123,7 @@ TEST_CASE("make_matrix_oo", "[mathieu][xsf_tests]") {
     }
 }
 
-TEST_CASE("sum_fourier_series_even_even", "[mathieu][xsf_texts]") {
+TEST_CASE("sum_fourier_series_even_even_q1_m0", "[mathieu][xsf_texts]") {
     double q = 1.0;
     int m = 0;
     // Fourier coefficients
@@ -168,7 +168,89 @@ TEST_CASE("sum_fourier_series_even_even", "[mathieu][xsf_texts]") {
     }
 }
 
-TEST_CASE("sum_fourier_series_even_odd", "[mathieu][xsf_texts]") {
+TEST_CASE("sum_fourier_series_even_even_q1_m2", "[mathieu][xsf_texts]") {
+    double q = 1.0;
+    int m = 2;
+    // Fourier coefficients
+    std::vector<double> AA = {0.21692794675226462,     0.94825734682087837,     -0.081767008744172018,
+                              0.0025865874071663215,   -4.3385838939211658e-05, 4.5372455146196267e-07,
+                              -3.2496292879186506e-09, 1.6958298519778925e-11,  -6.7394972996424881e-14,
+                              2.1085561518676298e-16,  -5.3296620523337814e-19, 1.1112098872910467e-21,
+                              -1.9473431483638467e-24};
+
+    std::mdspan AA_span(AA.data(), AA.size());
+
+    const std::vector<double> v = linspace(0.0, M_PI, 9);
+
+    /* Reference values computed with wolfram engine. */
+    std::vector<double> expected = {1.0859619368890114,   0.8856612185226889,  0.29865157290705935,
+                                    -0.45171855334041594, -0.8157268390500982, -0.4517185533404161,
+                                    0.2986515729070591,   0.8856612185226888,  1.0859619368890114};
+    std::vector<double> expected_diff = {
+        0.0,
+        -1.0249411570023645,
+        -1.8809997062068615,
+        -1.6790771489646379,
+        -3.182392406897388e-16,
+        1.6790771489646377,
+        1.8809997062068615,
+        1.0249411570023648,
+        3.1536401524284287e-16
+    };
+
+    for (decltype(v.size()) i = 0; i < v.size(); i++) {
+        double out, out_diff;
+        xsf::mathieu::sum_fourier_series<Even, Even>(AA_span, v[i], out, out_diff);
+        double rel_error = xsf::extended_relative_error(out, expected[i]);
+        double rel_error_diff = xsf::extended_relative_error(out_diff, expected_diff[i]);
+        CAPTURE(m, q, out, out_diff, expected[i], expected_diff[i], rel_error, rel_error_diff);
+        REQUIRE(rel_error <= 1e-15);
+        REQUIRE(rel_error_diff <= 1e-15);
+    }
+}
+
+TEST_CASE("sum_fourier_series_even_even_q1_m4", "[mathieu][xsf_texts]") {
+    double q = 1.0;
+    int m = 4;
+    // Fourier coefficients
+    std::vector<double> AA = {0.0052120044021059962,   0.083568404740583246,    0.99522416279527204,
+                              -0.04989764213088127,    0.0010405258106442553,   -1.2393356664384822e-05,
+                              9.6852903203680751e-08,  -5.3818530031774657e-10, 2.242785256765688e-12,
+                              -7.2826318578220097e-15, 1.8966963764012226e-17,  -4.0530785034823585e-20,
+                              7.2380970879747685e-23,  -1.0984019276257108e-25};
+
+    std::mdspan AA_span(AA.data(), AA.size());
+
+    const std::vector<double> v = linspace(0.0, M_PI, 9);
+
+    /* Reference values computed with wolfram engine. */
+    std::vector<double> expected = {1.0351351585780133,   0.09855498844065817, -0.9889717294331822,
+                                    -0.09021203125324925, 0.9678184211483233,  -0.09021203125324875,
+                                    -0.9889717294331822,  0.0985549884406577,  1.0351351585780133};
+    std::vector<double> expected_diff = {
+        0.0,
+        -3.8874689332135333,
+        -0.4663987362342739,
+        4.074322044678967,
+        1.0687171233875382e-15,
+        -4.074322044678967,
+        0.46639873623427197,
+        3.8874689332135333,
+        1.779033783159018e-15
+    };
+
+    for (decltype(v.size()) i = 0; i < v.size(); i++) {
+        double out, out_diff;
+        xsf::mathieu::sum_fourier_series<Even, Even>(AA_span, v[i], out, out_diff);
+        double rel_error = xsf::extended_relative_error(out, expected[i]);
+        double rel_error_diff = xsf::extended_relative_error(out_diff, expected_diff[i]);
+        CAPTURE(m, q, out, out_diff, expected[i], expected_diff[i], rel_error, rel_error_diff);
+        REQUIRE(rel_error <= 1e-15);
+        REQUIRE(rel_error_diff <= 1e-15);
+    }
+}
+
+TEST_CASE("sum_fourier_series_even_odd_q1_m1", "[mathieu][xsf_texts]") {
     double q = 1.0;
     int m = 1;
     // Fourier coefficients
@@ -201,9 +283,11 @@ TEST_CASE("sum_fourier_series_even_odd", "[mathieu][xsf_texts]") {
     };
 
     for (decltype(v.size()) i = 0; i < v.size(); i++) {
-        // i = 4 corresponds to v near pi / 2, a tricky case because pi/2 is a root.
+        /* i = 4 corresponds to v = M_PI / 2, a tricky case because it's near a root.
+         * Even Wolfram warns of precision error here and the reference probably isn't
+         * too accurate either. */
         double rtol = (i != 4) ? 1e-14 : 1e-6;
-        // similarly, i = 8 corresponds to v near pi: a root of the derivative.
+        // similarly, i = 8 corresponds to v = M_PI: near a root of the derivative.
         double rtol_diff = (i != 8) ? 1e-14 : 5e-4;
         double out, out_diff;
         xsf::mathieu::sum_fourier_series<Even, Odd>(AA_span, v[i], out, out_diff);
@@ -215,7 +299,55 @@ TEST_CASE("sum_fourier_series_even_odd", "[mathieu][xsf_texts]") {
     }
 }
 
-TEST_CASE("sum_fourier_series_odd_even", "[mathieu][xsf_texts]") {
+TEST_CASE("sum_fourier_series_even_odd_q1_m3", "[mathieu][xsf_texts]") {
+    double q = 1.0;
+    int m = 3;
+    // Fourier coefficients
+    std::vector<double> AA = {0.1396156546048497,     0.98825110013683626,     -0.06216755513992854,
+                              0.0015577824722684032,  -2.1662134262712558e-05, 1.935581567739718e-07,
+                              -1.210366359154677e-09, 5.6056745161052482e-12,  -2.0026074434904442e-14,
+                              5.6905300532462578e-17, -1.3174971993046381e-19, 2.5340382753735713e-22,
+                              -4.114231210571251e-25, 5.7227812216111021e-28};
+
+    std::mdspan AA_span(AA.data(), AA.size());
+
+    const std::vector<double> v = linspace(0.0, M_PI, 9);
+
+    /* Reference values computed with wolfram engine. */
+    std::vector<double> expected = {1.067235512293139,   0.5295465974599358,     -0.5550307133804574,
+                                    -0.9176193661208333, -1.927028889183907e-16, 0.9176193661208332,
+                                    0.5550307133804577,  -0.5295465974599356,    -1.067235512293139};
+
+    std::vector<double> expected_diff = {
+        0.0,
+        -2.509572450109097,
+        -2.407068868211543,
+        0.8763661055907831,
+        3.1470770029784583,
+        0.8763661055907842,
+        -2.4070688682115424,
+        -2.509572450109098,
+        -9.25133290801537e-16
+    };
+
+    for (decltype(v.size()) i = 0; i < v.size(); i++) {
+        /* i = 4 corresponds to v = M_PI / 2, a tricky case because it's near a root.
+         * Even Wolfram warns of precision error here and the reference probably isn't
+         * too accurate either. */
+        double rtol = (i != 4) ? 1e-14 : 1e-5;
+        // similarly, i = 8 corresponds to v = M_PI: near a root of the derivative.
+        double rtol_diff = (i != 8) ? 1e-14 : 1e-5;
+        double out, out_diff;
+        xsf::mathieu::sum_fourier_series<Even, Odd>(AA_span, v[i], out, out_diff);
+        double rel_error = xsf::extended_relative_error(out, expected[i]);
+        double rel_error_diff = xsf::extended_relative_error(out_diff, expected_diff[i]);
+        CAPTURE(m, q, i, out, out_diff, expected[i], expected_diff[i], rel_error, rel_error_diff);
+        REQUIRE(rel_error <= rtol);
+        REQUIRE(rel_error_diff <= rtol_diff);
+    }
+}
+
+TEST_CASE("sum_fourier_series_odd_even_q1_m2", "[mathieu][xsf_texts]") {
     double q = 1.0;
     int m = 2;
     // Fourier coefficients
@@ -257,7 +389,49 @@ TEST_CASE("sum_fourier_series_odd_even", "[mathieu][xsf_texts]") {
     }
 }
 
-TEST_CASE("sum_fourier_series_odd_odd", "[mathieu][xsf_texts]") {
+TEST_CASE("sum_fourier_series_odd_even_q1_m4", "[mathieu][xsf_texts]") {
+    double q = 1.0;
+    int m = 4;
+    // Fourier coefficients
+    std::vector<double> BB = {
+        0.082716278298929441,    0.9953225020162535,     -0.049900414382434623,   0.0010405649080668831,
+        -1.2393695048768228e-05, 9.6854894971322646e-08, -5.3819378931634619e-10, 2.2428125738735586e-12,
+        -7.2827001694483099e-15, 1.8967099081376478e-17, -4.0530999514897637e-20, 7.2381242151049455e-23,
+        -1.0967424411688601e-25, 1.4299733865812567e-28,
+    };
+
+    std::mdspan BB_span(BB.data(), BB.size());
+
+    const std::vector<double> v = linspace(0.0, M_PI, 9);
+
+    /* Reference values computed with wolfram engine. */
+    std::vector<double> expected = {
+        0.0,
+        1.018535489113575,
+        0.1326042995245019,
+        -0.9721093212091415,
+        -2.525043858964328e-16,
+        0.9721093212091416,
+        -0.1326042995245014,
+        -1.018535489113575,
+        -4.721652450323951e-16
+    };
+    std::vector<double> expected_diff = {3.8555218154420925,   0.3204511230639429, -3.972966651023333,
+                                         -0.33710016152124356, 4.123709563806253,  -0.3371001615212415,
+                                         -3.972966651023333,   0.3204511230639411, 3.8555218154420925};
+
+    for (decltype(v.size()) i = 0; i < v.size(); i++) {
+        double out, out_diff;
+        xsf::mathieu::sum_fourier_series<Odd, Even>(BB_span, v[i], out, out_diff);
+        double rel_error = xsf::extended_relative_error(out, expected[i]);
+        double rel_error_diff = xsf::extended_relative_error(out_diff, expected_diff[i]);
+        CAPTURE(m, q, out, out_diff, expected[i], expected_diff[i], rel_error, rel_error_diff);
+        REQUIRE(rel_error <= 1e-15);
+        REQUIRE(rel_error_diff <= 1e-15);
+    }
+}
+
+TEST_CASE("sum_fourier_series_odd_odd_q1_m1", "[mathieu][xsf_texts]") {
     double q = 1.0;
     int m = 1;
     // Fourier coefficients
@@ -289,9 +463,55 @@ TEST_CASE("sum_fourier_series_odd_odd", "[mathieu][xsf_texts]") {
                                          -0.9194285732565753, -0.784708039274585,    -0.686441897503372};
 
     for (decltype(v.size()) i = 0; i < v.size(); i++) {
-        // i = 8 corresponds to v near pi, a tricky case because pi is a root.
+        // i = 8 corresponds to v = M_PI, a tricky case because it's near a root.
         double rtol = (i != 8) ? 1e-14 : 1e-6;
-        // similarly, i = 4 corresponds to v near pi/2: a root of the derivative.
+        // similarly, i = 4 corresponds to v = M_PI / 2: near a root of the derivative.
+        double rtol_diff = (i != 4) ? 1e-14 : 1e-5;
+        double out, out_diff;
+        xsf::mathieu::sum_fourier_series<Odd, Odd>(BB_span, v[i], out, out_diff);
+        double rel_error = xsf::extended_relative_error(out, expected[i]);
+        double rel_error_diff = xsf::extended_relative_error(out_diff, expected_diff[i]);
+        CAPTURE(m, q, i, out, out_diff, expected[i], expected_diff[i], rel_error, rel_error_diff);
+        REQUIRE(rel_error <= rtol);
+        REQUIRE(rel_error_diff <= rtol_diff);
+    }
+}
+
+TEST_CASE("sum_fourier_series_odd_odd_q1_m3", "[mathieu][xsf_texts]") {
+    double q = 1.0;
+    int m = 3;
+    // Fourier coefficients
+    std::vector<double> BB = {0.10964247330123811,     0.9920165102302132,     -0.062284339384168448,
+                              0.0015595116565660678,   -2.167694632566829e-05, 1.9363750953333752e-07,
+                              -1.210630689061176e-09,  5.6061034523423122e-12, -2.0025415533333008e-14,
+                              5.6898475991588914e-17,  -1.31724578162025e-19,  2.5334054567707489e-22,
+                              -4.1129992356066497e-25, 5.7208238435360791e-28};
+
+    std::mdspan BB_span(BB.data(), BB.size());
+
+    const std::vector<double> v = linspace(0.0, M_PI, 9);
+
+    /* Reference values computed with wolfram engine. */
+    std::vector<double> expected = {
+        0.0,
+        0.9015237982782264,
+        0.8219142851414616,
+        -0.2530357599220488,
+        -0.9462397597698017,
+        -0.2530357599220492,
+        0.8219142851414614,
+        0.9015237982782265,
+        3.410633878148768e-16
+    };
+
+    std::vector<double> expected_diff = {2.784993910508225,   1.3494510247766995,     -1.7990677315460222,
+                                         -2.9993699766876163, -6.401112565382882e-16, 2.999369976687616,
+                                         1.799067731546023,   -1.3494510247766986,    -2.784993910508225};
+
+    for (decltype(v.size()) i = 0; i < v.size(); i++) {
+        // i = 8 corresponds to v = M_PI, close to a root.
+        double rtol = (i != 8) ? 1e-14 : 1e-5;
+        // i = 4 corresponds to v = M_PI / 2, close to a root of the derivative.
         double rtol_diff = (i != 4) ? 1e-14 : 1e-5;
         double out, out_diff;
         xsf::mathieu::sum_fourier_series<Odd, Odd>(BB_span, v[i], out, out_diff);
