@@ -1,3 +1,17 @@
+/* These tests are adapted from the test code written by Stuart Brorson for
+ * https://github.com/scipy/xsf/pull/99. It includes only tests for the
+ * kernels featured in xsf for generating the recurrence matrices and
+ * calculating Fourier sums. xsf does not contain full implementions of Mathieu
+ * functions, only kernels which can potentially be used in SciPy or CuPy as
+ * part of a full CPU or GPU implementation. Generating the Fourier coefficients
+ * requires finding eigenvectors of a symmetric tridiagonal matrix, something which
+ * is not currently available in xsf, and would likely require a different approach
+ * on CPU vs GPU.
+ *
+ * Note that the SciPy implementations rely on
+ * in-ufunc caching to allow for reuse of the same computed Fourier coefficients
+ * across different values of the angle `x`. */
+
 #include "../testing_utils.h"
 
 #include <cmath>
