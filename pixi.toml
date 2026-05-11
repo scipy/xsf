@@ -212,4 +212,4 @@ test-cupy.depends-on = ["install-xsref-test-cupy"]
 default = { features = ["build", "tests", "tests-debug"], solve-group = "default" }
 tests-ci = { features = ["build", "tests", "tests-ci", "tests-debug", "tests-debug-ci", "coverage"], solve-group = "default"}
 lint = { features = ["clang-format"], solve-group = "default" }
-cupy-tests = { features = ["cupy-tests"], solve-group = "default" }
+cupy-tests = { features = ["cupy-tests"] }
