@@ -95,6 +95,8 @@ XSF_HOST_DEVICE inline double tan(double x) { return cuda::std::tan(x); }
 
 XSF_HOST_DEVICE inline double atan(double x) { return cuda::std::atan(x); }
 
+XSF_HOST_DEVICE inline double asin(double x) { return cuda::std::asin(x); }
+
 XSF_HOST_DEVICE inline double acos(double x) { return cuda::std::acos(x); }
 
 XSF_HOST_DEVICE inline double sinh(double x) { return cuda::std::sinh(x); }
