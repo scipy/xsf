@@ -117,42 +117,45 @@
 
 #pragma once
 
+#include "config.h"
+
 #include <cfloat>
-#include <complex>
 
 namespace Faddeeva {
 
 // compute w(z) = exp(-z^2) erfc(-iz) [ Faddeeva / scaled complex error func ]
-std::complex<double> w(std::complex<double> z, double relerr = 0);
-double w_im(double x); // special-case code for Im[w(x)] of real x
+XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr = 0);
+XSF_HOST_DEVICE double w_im(double x); // special-case code for Im[w(x)] of real x
 
 // Various functions that we can compute with the help of w(z)
 
 // compute erfcx(z) = exp(z^2) erfz(z)
-std::complex<double> erfcx(std::complex<double> z, double relerr = 0);
-double erfcx(double x); // special case for real x
+XSF_HOST_DEVICE std::complex<double> erfcx(std::complex<double> z, double relerr = 0);
+XSF_HOST_DEVICE double erfcx(double x); // special case for real x
 
 // compute erf(z), the error function of complex arguments
-std::complex<double> erf(std::complex<double> z, double relerr = 0);
-double erf(double x); // special case for real x
+XSF_HOST_DEVICE std::complex<double> erf(std::complex<double> z, double relerr = 0);
+XSF_HOST_DEVICE double erf(double x); // special case for real x
 
 // compute erfi(z) = -i erf(iz), the imaginary error function
-std::complex<double> erfi(std::complex<double> z, double relerr = 0);
-double erfi(double x); // special case for real x
+XSF_HOST_DEVICE std::complex<double> erfi(std::complex<double> z, double relerr = 0);
+XSF_HOST_DEVICE double erfi(double x); // special case for real x
 
 // compute erfc(z) = 1 - erf(z), the complementary error function
-std::complex<double> erfc(std::complex<double> z, double relerr = 0);
-double erfc(double x); // special case for real x
+XSF_HOST_DEVICE std::complex<double> erfc(std::complex<double> z, double relerr = 0);
+XSF_HOST_DEVICE double erfc(double x); // special case for real x
 
 // compute Dawson(z) = sqrt(pi)/2  *  exp(-z^2) * erfi(z)
-std::complex<double> Dawson(std::complex<double> z, double relerr = 0);
-double Dawson(double x); // special case for real x
+XSF_HOST_DEVICE std::complex<double> Dawson(std::complex<double> z, double relerr = 0);
+XSF_HOST_DEVICE double Dawson(double x); // special case for real x
 
 // compute erfcx(z) = exp(z^2) erfz(z)
-std::complex<double> erfcx(std::complex<double> z, double relerr) { return w(std::complex<double>(-imag(z), real(z))); }
+XSF_HOST_DEVICE std::complex<double> erfcx(std::complex<double> z, double relerr) {
+    return w(std::complex<double>(-imag(z), real(z)));
+}
 
 // compute the error function erf(x)
-double erf(double x) {
+XSF_HOST_DEVICE double erf(double x) {
     double mx2 = -x * x;
     if (mx2 < -750) // underflow
         return (x >= 0 ? 1.0 : -1.0);
@@ -174,7 +177,7 @@ taylor:
 }
 
 // compute the error function erf(z)
-std::complex<double> erf(std::complex<double> z, double relerr) {
+XSF_HOST_DEVICE std::complex<double> erf(std::complex<double> z, double relerr) {
     double x = real(z), y = imag(z);
 
     if (x == 0) // handle separately for speed & handling of y = Inf or NaN
@@ -250,26 +253,26 @@ taylor_erfi: {
 }
 
 // erfi(z) = -i erf(iz)
-std::complex<double> erfi(std::complex<double> z, double relerr) {
+XSF_HOST_DEVICE std::complex<double> erfi(std::complex<double> z, double relerr) {
     std::complex<double> e = erf(std::complex<double>(-imag(z), real(z)), relerr);
     return std::complex<double>(imag(e), -real(e));
 }
 
 // erfi(x) = -i erf(ix)
-double erfi(double x) {
+XSF_HOST_DEVICE double erfi(double x) {
     return x * x > 720 ? (x > 0 ? std::numeric_limits<double>::infinity() : -std::numeric_limits<double>::infinity())
                        : exp(x * x) * w_im(x);
 }
 
 // erfc(x) = 1 - erf(x)
-double erfc(double x) {
+XSF_HOST_DEVICE double erfc(double x) {
     if (x * x > 750) // underflow
         return (x >= 0 ? 0.0 : 2.0);
     return x >= 0 ? exp(-x * x) * erfcx(x) : 2. - exp(-x * x) * erfcx(-x);
 }
 
 // erfc(z) = 1 - erf(z)
-std::complex<double> erfc(std::complex<double> z, double relerr) {
+XSF_HOST_DEVICE std::complex<double> erfc(std::complex<double> z, double relerr) {
     double x = real(z), y = imag(z);
 
     if (x == 0.)
@@ -299,13 +302,13 @@ std::complex<double> erfc(std::complex<double> z, double relerr) {
 }
 
 // compute Dawson(x) = sqrt(pi)/2  *  exp(-x^2) * erfi(x)
-double Dawson(double x) {
+XSF_HOST_DEVICE double Dawson(double x) {
     const double spi2 = 0.8862269254527580136490837416705725913990; // sqrt(pi)/2
     return spi2 * w_im(x);
 }
 
 // compute Dawson(z) = sqrt(pi)/2  *  exp(-z^2) * erfi(z)
-std::complex<double> Dawson(std::complex<double> z, double relerr) {
+XSF_HOST_DEVICE std::complex<double> Dawson(std::complex<double> z, double relerr) {
     const double spi2 = 0.8862269254527580136490837416705725913990; // sqrt(pi)/2
     double x = real(z), y = imag(z);
 
@@ -433,14 +436,16 @@ taylor_realaxis: {
 
 // return sinc(x) = sin(x)/x, given both x and sin(x)
 // [since we only use this in cases where sin(x) has already been computed]
-inline double sinc(double x, double sinx) { return fabs(x) < 1e-4 ? 1 - (0.1666666666666666666667) * x * x : sinx / x; }
+XSF_HOST_DEVICE inline double sinc(double x, double sinx) {
+    return fabs(x) < 1e-4 ? 1 - (0.1666666666666666666667) * x * x : sinx / x;
+}
 
 // sinh(x) via Taylor series, accurate to machine precision for |x| < 1e-2
-inline double sinh_taylor(double x) {
+XSF_HOST_DEVICE inline double sinh_taylor(double x) {
     return x * (1 + (x * x) * (0.1666666666666666666667 + 0.00833333333333333333333 * (x * x)));
 }
 
-inline double sqr(double x) { return x * x; }
+XSF_HOST_DEVICE inline double sqr(double x) { return x * x; }
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -503,7 +508,7 @@ static const double expa2n2[] = {
 
 /////////////////////////////////////////////////////////////////////////
 
-std::complex<double> w(std::complex<double> z, double relerr) {
+XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
     if (real(z) == 0.0)
         return std::complex<double>(erfcx(imag(z)),
                                     real(z)); // give correct sign of 0 in imag(w)
@@ -831,7 +836,7 @@ finish:
    with the help of Maple and a little shell script.   This allows
    the Chebyshev polynomials to be of significantly lower degree (about 1/4)
    compared to fitting the whole [0,1] interval with a single polynomial. */
-double erfcx_y100(double y100) {
+XSF_HOST_DEVICE double erfcx_y100(double y100) {
     switch ((int)y100) {
     case 0: {
         double t = 2 * y100 - 1;
@@ -1939,7 +1944,7 @@ double erfcx_y100(double y100) {
     return 1.0;
 }
 
-double erfcx(double x) {
+XSF_HOST_DEVICE double erfcx(double x) {
     if (x >= 0) {
         if (x > 50) {                                            // continued-fraction expansion is faster
             const double ispi = 0.56418958354775628694807945156; // 1 / sqrt(pi)
@@ -1972,7 +1977,7 @@ double erfcx(double x) {
    with the help of Maple and a little shell script.   This allows
    the Chebyshev polynomials to be of significantly lower degree (about 1/30)
    compared to fitting the whole [0,1] interval with a single polynomial. */
-double w_im_y100(double y100, double x) {
+XSF_HOST_DEVICE double w_im_y100(double y100, double x) {
     switch ((int)y100) {
     case 0: {
         double t = 2 * y100 - 1;
@@ -3277,7 +3282,7 @@ double w_im_y100(double y100, double x) {
     return std::numeric_limits<double>::quiet_NaN();
 }
 
-double w_im(double x) {
+XSF_HOST_DEVICE double w_im(double x) {
     if (x >= 0) {
         if (x > 45) {                                            // continued-fraction expansion is faster
             const double ispi = 0.56418958354775628694807945156; // 1 / sqrt(pi)
