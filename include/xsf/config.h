@@ -64,12 +64,6 @@
 #include <cuda/std/type_traits>
 #include <cuda/std/utility>
 
-// CuPy vendors a modified version of thrust::complex which will already be
-// included when NVRTC sees this header. Avoid pulling in mainline thrust on top.
-#ifndef THRUST_NAMESPACE_BEGIN
-#include <thrust/complex.h>
-#endif
-
 // Fallback to global namespace for functions unsupported on NVRTC Jit
 #ifdef _LIBCUDACXX_COMPILER_NVRTC
 #include <cuda_runtime.h>
