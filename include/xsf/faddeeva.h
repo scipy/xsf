@@ -151,7 +151,7 @@ XSF_HOST_DEVICE double Dawson(double x); // special case for real x
 
 // compute erfcx(z) = exp(z^2) erfz(z)
 XSF_HOST_DEVICE std::complex<double> erfcx(std::complex<double> z, double relerr) {
-    return w(std::complex<double>(-imag(z), real(z)));
+    return w(std::complex<double>(-std::imag(z), std::real(z)));
 }
 
 // compute the error function erf(x)
@@ -163,11 +163,11 @@ XSF_HOST_DEVICE double erf(double x) {
     if (x >= 0) {
         if (x < 5e-3)
             goto taylor;
-        return 1.0 - exp(mx2) * erfcx(x);
+        return 1.0 - std::exp(mx2) * erfcx(x);
     } else { // x < 0
         if (x > -5e-3)
             goto taylor;
-        return exp(mx2) * erfcx(-x) - 1.0;
+        return std::exp(mx2) * erfcx(-x) - 1.0;
     }
 
     // Use Taylor series for small |x|, to avoid cancellation inaccuracy
@@ -178,7 +178,7 @@ taylor:
 
 // compute the error function erf(z)
 XSF_HOST_DEVICE std::complex<double> erf(std::complex<double> z, double relerr) {
-    double x = real(z), y = imag(z);
+    double x = std::real(z), y = std::imag(z);
 
     if (x == 0) // handle separately for speed & handling of y = Inf or NaN
         return std::complex<double>(
@@ -187,7 +187,7 @@ XSF_HOST_DEVICE std::complex<double> erf(std::complex<double> z, double relerr) 
                exp(y^2) -> Inf but Im[w(y)] -> 0, so
                IEEE will give us a NaN when it should be Inf */
             y * y > 720 ? (y > 0 ? std::numeric_limits<double>::infinity() : -std::numeric_limits<double>::infinity())
-                        : exp(y * y) * w_im(y)
+                        : std::exp(y * y) * w_im(y)
         );
 
     double mRe_z2 = (y - x) * (x + y); // Re(-z^2), being careful of overflow
@@ -200,19 +200,20 @@ XSF_HOST_DEVICE std::complex<double> erf(std::complex<double> z, double relerr) 
        problems from multiplying exponentially large and small quantities. */
     if (x >= 0) {
         if (x < 5e-3) {
-            if (fabs(y) < 5e-3)
+            if (std::abs(y) < 5e-3)
                 goto taylor;
-            else if (fabs(mIm_z2) < 5e-3)
+            else if (std::abs(mIm_z2) < 5e-3)
                 goto taylor_erfi;
         }
         /* don't use complex exp function, since that will produce spurious NaN
            values when multiplying w in an overflow situation. */
-        return 1.0 - exp(mRe_z2) * (std::complex<double>(cos(mIm_z2), sin(mIm_z2)) * w(std::complex<double>(-y, x)));
+        return 1.0 - std::exp(mRe_z2) *
+                         (std::complex<double>(std::cos(mIm_z2), std::sin(mIm_z2)) * w(std::complex<double>(-y, x)));
     } else {             // x < 0
         if (x > -5e-3) { // duplicate from above to avoid fabs(x) call
-            if (fabs(y) < 5e-3)
+            if (std::abs(y) < 5e-3)
                 goto taylor;
-            else if (fabs(mIm_z2) < 5e-3)
+            else if (std::abs(mIm_z2) < 5e-3)
                 goto taylor_erfi;
         } else if (std::isnan(x))
             return std::complex<double>(
@@ -220,7 +221,9 @@ XSF_HOST_DEVICE std::complex<double> erf(std::complex<double> z, double relerr) 
             );
         /* don't use complex exp function, since that will produce spurious NaN
            values when multiplying w in an overflow situation. */
-        return exp(mRe_z2) * (std::complex<double>(cos(mIm_z2), sin(mIm_z2)) * w(std::complex<double>(y, -x))) - 1.0;
+        return std::exp(mRe_z2) *
+                   (std::complex<double>(std::cos(mIm_z2), std::sin(mIm_z2)) * w(std::complex<double>(y, -x))) -
+               1.0;
     }
 
     // Use Taylor series for small |z|, to avoid cancellation inaccuracy
@@ -241,7 +244,7 @@ taylor: {
     */
 taylor_erfi: {
     double x2 = x * x, y2 = y * y;
-    double expy2 = exp(y2);
+    double expy2 = std::exp(y2);
     return std::complex<double>(
         expy2 * x *
             (1.1283791670955125739 - x2 * (0.37612638903183752464 + 0.75225277806367504925 * y2) +
@@ -254,26 +257,26 @@ taylor_erfi: {
 
 // erfi(z) = -i erf(iz)
 XSF_HOST_DEVICE std::complex<double> erfi(std::complex<double> z, double relerr) {
-    std::complex<double> e = erf(std::complex<double>(-imag(z), real(z)), relerr);
-    return std::complex<double>(imag(e), -real(e));
+    std::complex<double> e = erf(std::complex<double>(-std::imag(z), std::real(z)), relerr);
+    return std::complex<double>(std::imag(e), -std::real(e));
 }
 
 // erfi(x) = -i erf(ix)
 XSF_HOST_DEVICE double erfi(double x) {
     return x * x > 720 ? (x > 0 ? std::numeric_limits<double>::infinity() : -std::numeric_limits<double>::infinity())
-                       : exp(x * x) * w_im(x);
+                       : std::exp(x * x) * w_im(x);
 }
 
 // erfc(x) = 1 - erf(x)
 XSF_HOST_DEVICE double erfc(double x) {
     if (x * x > 750) // underflow
         return (x >= 0 ? 0.0 : 2.0);
-    return x >= 0 ? exp(-x * x) * erfcx(x) : 2. - exp(-x * x) * erfcx(-x);
+    return x >= 0 ? std::exp(-x * x) * erfcx(x) : 2. - std::exp(-x * x) * erfcx(-x);
 }
 
 // erfc(z) = 1 - erf(z)
 XSF_HOST_DEVICE std::complex<double> erfc(std::complex<double> z, double relerr) {
-    double x = real(z), y = imag(z);
+    double x = std::real(z), y = std::imag(z);
 
     if (x == 0.)
         return std::complex<double>(
@@ -282,12 +285,12 @@ XSF_HOST_DEVICE std::complex<double> erfc(std::complex<double> z, double relerr)
                exp(y^2) -> Inf but Im[w(y)] -> 0, so
                IEEE will give us a NaN when it should be Inf */
             y * y > 720 ? (y > 0 ? -std::numeric_limits<double>::infinity() : std::numeric_limits<double>::infinity())
-                        : -exp(y * y) * w_im(y)
+                        : -std::exp(y * y) * w_im(y)
         );
     if (y == 0.) {
         if (x * x > 750) // underflow
             return (x >= 0 ? 0.0 : 2.0);
-        return x >= 0 ? exp(-x * x) * erfcx(x) : 2. - exp(-x * x) * erfcx(-x);
+        return x >= 0 ? std::exp(-x * x) * erfcx(x) : 2. - std::exp(-x * x) * erfcx(-x);
     }
 
     double mRe_z2 = (y - x) * (x + y); // Re(-z^2), being careful of overflow
@@ -296,9 +299,9 @@ XSF_HOST_DEVICE std::complex<double> erfc(std::complex<double> z, double relerr)
         return (x >= 0 ? 0.0 : 2.0);
 
     if (x >= 0)
-        return exp(std::complex<double>(mRe_z2, mIm_z2)) * w(std::complex<double>(-y, x), relerr);
+        return std::exp(std::complex<double>(mRe_z2, mIm_z2)) * w(std::complex<double>(-y, x), relerr);
     else
-        return 2.0 - exp(std::complex<double>(mRe_z2, mIm_z2)) * w(std::complex<double>(y, -x), relerr);
+        return 2.0 - std::exp(std::complex<double>(mRe_z2, mIm_z2)) * w(std::complex<double>(y, -x), relerr);
 }
 
 // compute Dawson(x) = sqrt(pi)/2  *  exp(-x^2) * erfi(x)
@@ -310,7 +313,7 @@ XSF_HOST_DEVICE double Dawson(double x) {
 // compute Dawson(z) = sqrt(pi)/2  *  exp(-z^2) * erfi(z)
 XSF_HOST_DEVICE std::complex<double> Dawson(std::complex<double> z, double relerr) {
     const double spi2 = 0.8862269254527580136490837416705725913990; // sqrt(pi)/2
-    double x = real(z), y = imag(z);
+    double x = std::real(z), y = std::imag(z);
 
     // handle axes separately for speed & proper handling of x or y = Inf or NaN
     if (y == 0)
@@ -327,7 +330,7 @@ XSF_HOST_DEVICE std::complex<double> Dawson(std::complex<double> z, double reler
         }
         return std::complex<double>(
             x, // preserve sign of 0
-            spi2 * (y >= 0 ? exp(y2) - erfcx(y) : erfcx(-y) - exp(y2))
+            spi2 * (y >= 0 ? std::exp(y2) - erfcx(y) : erfcx(-y) - std::exp(y2))
         );
     }
 
@@ -340,25 +343,25 @@ XSF_HOST_DEVICE std::complex<double> Dawson(std::complex<double> z, double reler
        problems from multiplying exponentially large and small quantities. */
     if (y >= 0) {
         if (y < 5e-3) {
-            if (fabs(x) < 5e-3)
+            if (std::abs(x) < 5e-3)
                 goto taylor;
-            else if (fabs(mIm_z2) < 5e-3)
+            else if (std::abs(mIm_z2) < 5e-3)
                 goto taylor_realaxis;
         }
-        std::complex<double> res = exp(mz2) - w(z);
-        return spi2 * std::complex<double>(-imag(res), real(res));
+        std::complex<double> res = std::exp(mz2) - w(z);
+        return spi2 * std::complex<double>(-std::imag(res), std::real(res));
     } else {             // y < 0
         if (y > -5e-3) { // duplicate from above to avoid fabs(x) call
-            if (fabs(x) < 5e-3)
+            if (std::abs(x) < 5e-3)
                 goto taylor;
-            else if (fabs(mIm_z2) < 5e-3)
+            else if (std::abs(mIm_z2) < 5e-3)
                 goto taylor_realaxis;
         } else if (std::isnan(y))
             return std::complex<double>(
                 x == 0 ? 0 : std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()
             );
-        std::complex<double> res = w(-z) - exp(mz2);
-        return spi2 * std::complex<double>(-imag(res), real(res));
+        std::complex<double> res = w(-z) - std::exp(mz2);
+        return spi2 * std::complex<double>(-std::imag(res), std::real(res));
     }
 
     // Use Taylor series for small |z|, to avoid cancellation inaccuracy
@@ -437,7 +440,7 @@ taylor_realaxis: {
 // return sinc(x) = sin(x)/x, given both x and sin(x)
 // [since we only use this in cases where sin(x) has already been computed]
 XSF_HOST_DEVICE inline double sinc(double x, double sinx) {
-    return fabs(x) < 1e-4 ? 1 - (0.1666666666666666666667) * x * x : sinx / x;
+    return std::abs(x) < 1e-4 ? 1 - (0.1666666666666666666667) * x * x : sinx / x;
 }
 
 // sinh(x) via Taylor series, accurate to machine precision for |x| < 1e-2
@@ -509,15 +512,15 @@ static const double expa2n2[] = {
 /////////////////////////////////////////////////////////////////////////
 
 XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
-    if (real(z) == 0.0)
-        return std::complex<double>(erfcx(imag(z)),
-                                    real(z)); // give correct sign of 0 in imag(w)
-    else if (imag(z) == 0)
-        return std::complex<double>(exp(-sqr(real(z))), w_im(real(z)));
+    if (std::real(z) == 0.0)
+        return std::complex<double>(erfcx(std::imag(z)),
+                                    std::real(z)); // give correct sign of 0 in imag(w)
+    else if (std::imag(z) == 0)
+        return std::complex<double>(std::exp(-sqr(std::real(z))), w_im(std::real(z)));
 
     double a, a2, c;
-    if (relerr <= DBL_EPSILON) {
-        relerr = DBL_EPSILON;
+    if (relerr <= std::numeric_limits<double>::epsilon()) {
+        relerr = std::numeric_limits<double>::epsilon();
         a = 0.518321480430085929872;  // pi / sqrt(-log(eps*0.5))
         c = 0.329973702884629072537;  // (2/pi) * a;
         a2 = 0.268657157075235951582; // a^2
@@ -525,12 +528,12 @@ XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
         const double pi = 3.14159265358979323846264338327950288419716939937510582;
         if (relerr > 0.1)
             relerr = 0.1; // not sensible to compute < 1 digit
-        a = pi / sqrt(-log(relerr * 0.5));
+        a = pi / std::sqrt(-std::log(relerr * 0.5));
         c = (2 / pi) * a;
         a2 = a * a;
     }
-    const double x = fabs(real(z));
-    const double y = imag(z), ya = fabs(y);
+    const double x = std::abs(std::real(z));
+    const double y = std::imag(z), ya = std::abs(y);
 
     std::complex<double> ret(0., 0.); // return value
 
@@ -557,9 +560,9 @@ XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
            that the estimated nu be >= minimum nu to attain machine precision.
            I also separate the regions where nu == 2 and nu == 1. */
         const double ispi = 0.56418958354775628694807945156; // 1 / sqrt(pi)
-        double xs = y < 0 ? -real(z) : real(z);              // compute for -z if y < 0
-        if (x + ya > 4000) {                                 // nu <= 2
-            if (x + ya > 1e7) {                              // nu == 1, w(z) = i/sqrt(pi) / z
+        double xs = y < 0 ? -std::real(z) : std::real(z); // compute for -z if y < 0
+        if (x + ya > 4000) {                                // nu <= 2
+            if (x + ya > 1e7) {                             // nu == 1, w(z) = i/sqrt(pi) / z
                 // scale to avoid overflow
                 if (x > ya) {
                     double yax = ya / xs;
@@ -585,7 +588,7 @@ XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
             }
         } else { // compute nu(z) estimate and do general continued fraction
             const double c0 = 3.9, c1 = 11.398, c2 = 0.08254, c3 = 0.1421, c4 = 0.2023; // fit
-            double nu = floor(c0 + c1 / (c2 * x + c3 * ya + c4));
+            double nu = std::floor(c0 + c1 / (c2 * x + c3 * ya + c4));
             double wr = xs, wi = ya;
             for (nu = 0.5 * (nu - 1); nu > 0.4; nu -= 0.5) {
                 // w <- z - nu/w:
@@ -602,14 +605,14 @@ XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
             // use w(z) = 2.0*exp(-z*z) - w(-z),
             // but be careful of overflow in exp(-z*z)
             //                                = exp(-(xs*xs-ya*ya) -2*i*xs*ya)
-            return 2.0 * exp(std::complex<double>((ya - xs) * (xs + ya), 2 * xs * y)) - ret;
+            return 2.0 * std::exp(std::complex<double>((ya - xs) * (xs + ya), 2 * xs * y)) - ret;
         } else
             return ret;
     }
 #else  // !USE_CONTINUED_FRACTION
     if (x + ya > 1e7) {                                      // w(z) = i/sqrt(pi) / z, to machine precision
         const double ispi = 0.56418958354775628694807945156; // 1 / sqrt(pi)
-        double xs = y < 0 ? -real(z) : real(z);              // compute for -z if y < 0
+        double xs = y < 0 ? -std::real(z) : std::real(z);    // compute for -z if y < 0
         // scale to avoid overflow
         if (x > ya) {
             double yax = ya / xs;
@@ -624,7 +627,7 @@ XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
             // use w(z) = 2.0*exp(-z*z) - w(-z),
             // but be careful of overflow in exp(-z*z)
             //                                = exp(-(xs*xs-ya*ya) -2*i*xs*ya)
-            return 2.0 * exp(std::complex<double>((ya - xs) * (xs + ya), 2 * xs * y)) - ret;
+            return 2.0 * std::exp(std::complex<double>((ya - xs) * (xs + ya), 2 * xs * y)) - ret;
         } else
             return ret;
     }
@@ -653,7 +656,7 @@ XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
            speedups from using the special-case code with the precomputed
            exponential, and the x < 5e-4 special case is needed for accuracy. */
 
-        if (relerr == DBL_EPSILON) { // use precomputed exp(-a2*(n*n)) table
+        if (relerr == std::numeric_limits<double>::epsilon()) { // use precomputed exp(-a2*(n*n)) table
             if (x < 5e-4) {          // compute sum4 and sum5 together as sum5-sum4
                 const double x2 = x * x;
                 expx2 = 1 - x2 * (1 - 0.5 * x2); // exp(-x*x) via Taylor
@@ -677,8 +680,8 @@ XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
                         break;
                 }
             } else { // x > 5e-4, compute sum4 and sum5 separately
-                expx2 = exp(-x * x);
-                const double exp2ax = exp((2 * a) * x), expm2ax = 1 / exp2ax;
+                expx2 = std::exp(-x * x);
+                const double exp2ax = std::exp((2 * a) * x), expm2ax = 1 / exp2ax;
                 for (int n = 1; 1; ++n) {
                     const double coef = expa2n2[n - 1] * expx2 / (a2 * (n * n) + y * y);
                     prod2ax *= exp2ax;
@@ -693,13 +696,13 @@ XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
                         break;
                 }
             }
-        } else { // relerr != DBL_EPSILON, compute exp(-a2*(n*n)) on the fly
-            const double exp2ax = exp((2 * a) * x), expm2ax = 1 / exp2ax;
+        } else { // relerr != machine epsilon, compute exp(-a2*(n*n)) on the fly
+            const double exp2ax = std::exp((2 * a) * x), expm2ax = 1 / exp2ax;
             if (x < 5e-4) { // compute sum4 and sum5 together as sum5-sum4
                 const double x2 = x * x;
                 expx2 = 1 - x2 * (1 - 0.5 * x2); // exp(-x*x) via Taylor
                 for (int n = 1; 1; ++n) {
-                    const double coef = exp(-a2 * (n * n)) * expx2 / (a2 * (n * n) + y * y);
+                    const double coef = std::exp(-a2 * (n * n)) * expx2 / (a2 * (n * n) + y * y);
                     prod2ax *= exp2ax;
                     prodm2ax *= expm2ax;
                     sum1 += coef;
@@ -714,9 +717,9 @@ XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
                         break;
                 }
             } else { // x > 5e-4, compute sum4 and sum5 separately
-                expx2 = exp(-x * x);
+                expx2 = std::exp(-x * x);
                 for (int n = 1; 1; ++n) {
-                    const double coef = exp(-a2 * (n * n)) * expx2 / (a2 * (n * n) + y * y);
+                    const double coef = std::exp(-a2 * (n * n)) * expx2 / (a2 * (n * n) + y * y);
                     prod2ax *= exp2ax;
                     prodm2ax *= expm2ax;
                     sum1 += coef;
@@ -733,14 +736,14 @@ XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
         const double expx2erfcxy = // avoid spurious overflow for large negative y
             y > -6                 // for y < -6, erfcx(y) = 2*exp(y*y) to double precision
                 ? expx2 * erfcx(y)
-                : 2 * exp(y * y - x * x);
+                : 2 * std::exp(y * y - x * x);
         if (y > 5) { // imaginary terms cancel
-            const double sinxy = sin(x * y);
-            ret = (expx2erfcxy - c * y * sum1) * cos(2 * x * y) + (c * x * expx2) * sinxy * sinc(x * y, sinxy);
+            const double sinxy = std::sin(x * y);
+            ret = (expx2erfcxy - c * y * sum1) * std::cos(2 * x * y) + (c * x * expx2) * sinxy * sinc(x * y, sinxy);
         } else {
-            double xs = real(z);
-            const double sinxy = sin(xs * y);
-            const double sin2xy = sin(2 * xs * y), cos2xy = cos(2 * xs * y);
+            double xs = std::real(z);
+            const double sinxy = std::sin(xs * y);
+            const double sin2xy = std::sin(2 * xs * y), cos2xy = std::cos(2 * xs * y);
             const double coef1 = expx2erfcxy - c * y * sum1;
             const double coef2 = c * xs * expx2;
             ret = std::complex<double>(
@@ -754,7 +757,7 @@ XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
             return std::complex<double>(y, y);
 
 #if USE_CONTINUED_FRACTION
-        ret = exp(-x * x); // |y| < 1e-10, so we only need exp(-x*x) term
+        ret = std::exp(-x * x); // |y| < 1e-10, so we only need exp(-x*x) term
 #else
         if (y < 0) {
             /* erfcx(y) ~ 2*exp(y*y) + (< 1) if y < 0, so
@@ -762,20 +765,20 @@ XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
                if y*y - x*x > -36 or so.  So, compute this term just in case.
                We also need the -exp(-x*x) term to compute Re[w] accurately
                in the case where y is very small. */
-            ret = polar(2 * exp(y * y - x * x) - exp(-x * x), -2 * real(z) * y);
+            ret = std::polar(2 * std::exp(y * y - x * x) - std::exp(-x * x), -2 * std::real(z) * y);
         } else
-            ret = exp(-x * x); // not negligible in real part if y very small
+            ret = std::exp(-x * x); // not negligible in real part if y very small
 #endif
         // (round instead of ceil as in original paper; note that x/a > 1 here)
-        double n0 = floor(x / a + 0.5); // sum in both directions, starting at n0
+        double n0 = std::floor(x / a + 0.5); // sum in both directions, starting at n0
         double dx = a * n0 - x;
-        sum3 = exp(-dx * dx) / (a2 * (n0 * n0) + y * y);
+        sum3 = std::exp(-dx * dx) / (a2 * (n0 * n0) + y * y);
         sum5 = a * n0 * sum3;
-        double exp1 = exp(4 * a * dx), exp1dn = 1;
+        double exp1 = std::exp(4 * a * dx), exp1dn = 1;
         int dn;
         for (dn = 1; n0 - dn > 0; ++dn) { // loop over n0-dn and n0+dn terms
             double np = n0 + dn, nm = n0 - dn;
-            double tp = exp(-sqr(a * dn + dx));
+            double tp = std::exp(-sqr(a * dn + dx));
             double tm = tp * (exp1dn *= exp1); // trick to get tm from tp
             tp /= (a2 * (np * np) + y * y);
             tm /= (a2 * (nm * nm) + y * y);
@@ -786,7 +789,7 @@ XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
         }
         while (1) { // loop over n0+dn terms only (since n0-dn <= 0)
             double np = n0 + dn++;
-            double tp = exp(-sqr(a * dn + dx)) / (a2 * (np * np) + y * y);
+            double tp = std::exp(-sqr(a * dn + dx)) / (a2 * (np * np) + y * y);
             sum3 += tp;
             sum5 += a * np * tp;
             if (a * np * tp < relerr * sum5)
@@ -794,7 +797,7 @@ XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
         }
     }
 finish:
-    return ret + std::complex<double>((0.5 * c) * y * (sum2 + sum3), (0.5 * c) * std::copysign(sum5 - sum4, real(z)));
+    return ret + std::complex<double>((0.5 * c) * y * (sum2 + sum3), (0.5 * c) * std::copysign(sum5 - sum4, std::real(z)));
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -1956,7 +1959,8 @@ XSF_HOST_DEVICE double erfcx(double x) {
         }
         return erfcx_y100(400 / (4 + x));
     } else
-        return x < -26.7 ? HUGE_VAL : (x < -6.1 ? 2 * exp(x * x) : 2 * exp(x * x) - erfcx_y100(400 / (4 - x)));
+        return x < -26.7 ? std::numeric_limits<double>::infinity()
+                         : (x < -6.1 ? 2 * std::exp(x * x) : 2 * std::exp(x * x) - erfcx_y100(400 / (4 - x)));
 }
 
 /////////////////////////////////////////////////////////////////////////
