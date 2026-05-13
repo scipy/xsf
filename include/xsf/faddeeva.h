@@ -560,9 +560,9 @@ XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
            that the estimated nu be >= minimum nu to attain machine precision.
            I also separate the regions where nu == 2 and nu == 1. */
         const double ispi = 0.56418958354775628694807945156; // 1 / sqrt(pi)
-        double xs = y < 0 ? -std::real(z) : std::real(z); // compute for -z if y < 0
-        if (x + ya > 4000) {                                // nu <= 2
-            if (x + ya > 1e7) {                             // nu == 1, w(z) = i/sqrt(pi) / z
+        double xs = y < 0 ? -std::real(z) : std::real(z);    // compute for -z if y < 0
+        if (x + ya > 4000) {                                 // nu <= 2
+            if (x + ya > 1e7) {                              // nu == 1, w(z) = i/sqrt(pi) / z
                 // scale to avoid overflow
                 if (x > ya) {
                     double yax = ya / xs;
@@ -657,7 +657,7 @@ XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
            exponential, and the x < 5e-4 special case is needed for accuracy. */
 
         if (relerr == std::numeric_limits<double>::epsilon()) { // use precomputed exp(-a2*(n*n)) table
-            if (x < 5e-4) {          // compute sum4 and sum5 together as sum5-sum4
+            if (x < 5e-4) {                                     // compute sum4 and sum5 together as sum5-sum4
                 const double x2 = x * x;
                 expx2 = 1 - x2 * (1 - 0.5 * x2); // exp(-x*x) via Taylor
                                                  // compute exp(2*a*x) and exp(-2*a*x) via Taylor, to double precision
@@ -797,7 +797,8 @@ XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
         }
     }
 finish:
-    return ret + std::complex<double>((0.5 * c) * y * (sum2 + sum3), (0.5 * c) * std::copysign(sum5 - sum4, std::real(z)));
+    return ret +
+           std::complex<double>((0.5 * c) * y * (sum2 + sum3), (0.5 * c) * std::copysign(sum5 - sum4, std::real(z)));
 }
 
 /////////////////////////////////////////////////////////////////////////
