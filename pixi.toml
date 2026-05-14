@@ -15,6 +15,9 @@ version = "0.2.2"
 cmake = ">=3.30.5,<4"
 cxx-compiler = ">=1.8.0,<2"
 make = ">=4.4.1,<5"
+openblas = "*"
+pkg-config = "*"
+
 
 [feature.build.tasks.configure]
 description = "Configure CMake in the build directory for a release build."
@@ -24,6 +27,7 @@ cmd = [
   "-S .",
   # We want to build in the build directory
   "-B build",
+  "-DCMAKE_PREFIX_PATH=$CONDA_PREFIX",
 ]
 cwd = "."
 
@@ -234,4 +238,8 @@ test-cupy.description = "Run CuPy integration tests."
 default = { features = ["build", "tests", "tests-debug"], solve-group = "default" }
 tests-ci = { features = ["build", "tests", "tests-ci", "tests-debug", "tests-debug-ci", "coverage"], solve-group = "default"}
 lint = { features = ["clang-format"], solve-group = "default" }
-cupy-tests = { features = ["cupy-tests"], solve-group = "default" }
+cupy-tests = { features = ["cupy-tests"], solve-group = "cupy" }
+
+[dependencies]
+pkg-config = ">=0.29.2,<0.30"
+openblas = ">=0.3.30,<0.4"
