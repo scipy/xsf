@@ -454,7 +454,7 @@ XSF_HOST_DEVICE inline double sqr(double x) { return x * x; }
 
 // precomputed table of expa2n2[n-1] = exp(-a2*n*n)
 // for double-precision a2 = 0.26865... in Faddeeva::w, below.
-static const double expa2n2[] = {
+constexpr double expa2n2[] = {
     7.64405281671221563e-01,
     3.41424527166548425e-01,
     8.91072646929412548e-02,
@@ -556,7 +556,7 @@ XSF_HOST_DEVICE inline std::complex<double> w(std::complex<double> z, double rel
            the sum of the squares of the errors in nu with the constraint
            that the estimated nu be >= minimum nu to attain machine precision.
            I also separate the regions where nu == 2 and nu == 1. */
-        const double ispi = 0.56418958354775628694807945156; // 1 / sqrt(pi)
+        constexpr double ispi = 0.56418958354775628694807945156; // 1 / sqrt(pi)
         double xs = y < 0 ? -std::real(z) : std::real(z);    // compute for -z if y < 0
         if (x + ya > 4000) {                                 // nu <= 2
             if (x + ya > 1e7) {                              // nu == 1, w(z) = i/sqrt(pi) / z
