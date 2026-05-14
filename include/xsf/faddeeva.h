@@ -755,8 +755,7 @@ XSF_HOST_DEVICE inline std::complex<double> w(std::complex<double> z, double rel
         }
     }
 finish:
-    return ret +
-           std::complex<double>((0.5 * c) * y * (sum2 + sum3), (0.5 * c) * std::copysign(sum5 - sum4, z.real()));
+    return ret + std::complex<double>((0.5 * c) * y * (sum2 + sum3), (0.5 * c) * std::copysign(sum5 - sum4, z.real()));
 }
 
 /////////////////////////////////////////////////////////////////////////
