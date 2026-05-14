@@ -539,9 +539,6 @@ XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
 
     double sum1 = 0, sum2 = 0, sum3 = 0, sum4 = 0, sum5 = 0;
 
-#define USE_CONTINUED_FRACTION 1 // 1 to use continued fraction for large |z|
-
-#if USE_CONTINUED_FRACTION
     if (ya > 7 || (x > 6 // continued fraction is faster
                    /* As pointed out by M. Zaghloul, the continued
                       fraction seems to give a large relative error in
@@ -609,30 +606,6 @@ XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
         } else
             return ret;
     }
-#else  // !USE_CONTINUED_FRACTION
-    if (x + ya > 1e7) {                                      // w(z) = i/sqrt(pi) / z, to machine precision
-        const double ispi = 0.56418958354775628694807945156; // 1 / sqrt(pi)
-        double xs = y < 0 ? -std::real(z) : std::real(z);    // compute for -z if y < 0
-        // scale to avoid overflow
-        if (x > ya) {
-            double yax = ya / xs;
-            double denom = ispi / (xs + yax * ya);
-            ret = std::complex<double>(denom * yax, denom);
-        } else {
-            double xya = xs / ya;
-            double denom = ispi / (xya * xs + ya);
-            ret = std::complex<double>(denom, denom * xya);
-        }
-        if (y < 0) {
-            // use w(z) = 2.0*exp(-z*z) - w(-z),
-            // but be careful of overflow in exp(-z*z)
-            //                                = exp(-(xs*xs-ya*ya) -2*i*xs*ya)
-            return 2.0 * std::exp(std::complex<double>((ya - xs) * (xs + ya), 2 * xs * y)) - ret;
-        } else
-            return ret;
-    }
-#endif // !USE_CONTINUED_FRACTION
-
     /* Note: The test that seems to be suggested in the paper is x <
        sqrt(-log(DBL_MIN)), about 26.6, since otherwise exp(-x^2)
        underflows to zero and sum1,sum2,sum4 are zero.  However, long
@@ -755,20 +728,7 @@ XSF_HOST_DEVICE std::complex<double> w(std::complex<double> z, double relerr) {
             return std::complex<double>(x, x);
         if (std::isnan(y))
             return std::complex<double>(y, y);
-
-#if USE_CONTINUED_FRACTION
         ret = std::exp(-x * x); // |y| < 1e-10, so we only need exp(-x*x) term
-#else
-        if (y < 0) {
-            /* erfcx(y) ~ 2*exp(y*y) + (< 1) if y < 0, so
-               erfcx(y)*exp(-x*x) ~ 2*exp(y*y-x*x) term may not be negligible
-               if y*y - x*x > -36 or so.  So, compute this term just in case.
-               We also need the -exp(-x*x) term to compute Re[w] accurately
-               in the case where y is very small. */
-            ret = std::polar(2 * std::exp(y * y - x * x) - std::exp(-x * x), -2 * std::real(z) * y);
-        } else
-            ret = std::exp(-x * x); // not negligible in real part if y very small
-#endif
         // (round instead of ceil as in original paper; note that x/a > 1 here)
         double n0 = std::floor(x / a + 0.5); // sum in both directions, starting at n0
         double dx = a * n0 - x;
