@@ -514,7 +514,7 @@ XSF_HOST_DEVICE inline std::complex<double> w(std::complex<double> z, double rel
         return std::complex<double>(erfcx(z.imag()),
                                     z.real()); // give correct sign of 0 in imag(w)
     else if (z.imag() == 0)
-        return std::complex<double>(std::exp(-sqr(z.real())), w_im(z.imag()));
+        return std::complex<double>(std::exp(-sqr(z.real())), w_im(z.real()));
 
     double a, a2, c;
     if (relerr <= std::numeric_limits<double>::epsilon()) {
