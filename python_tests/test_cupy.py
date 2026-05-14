@@ -541,7 +541,6 @@ class TestCuPy:
             extended_relative_error(out, desired) <= self._adjust_tol(rtol)
         )
 
-    @pytest.mark.xfail(reason="inaccurate")
     @pytest.mark.parametrize(
         "tables_paths", get_tables_for_func("voigt_profile")
     )
@@ -554,8 +553,8 @@ class TestCuPy:
             preamble=get_preamble("xsf/erf.h"),
         )
 
-        x = get_cols_as_cupy(input_path)
-        out = cupy.asnumpy(voigt_profile(x))
+        x, sigma, gamma = get_cols_as_cupy(input_path)
+        out = cupy.asnumpy(voigt_profile(x, sigma, gamma))
 
         desired = get_cols_as_numpy(output_path)
         rtol = get_cols_as_numpy(tol_path)
@@ -563,7 +562,6 @@ class TestCuPy:
             extended_relative_error(out, desired) <= self._adjust_tol(rtol)
         )
 
-    @pytest.mark.xfail(reason="inaccurate")
     @pytest.mark.parametrize(
         "tables_paths", get_tables_for_func("wofz")
     )
