@@ -149,7 +149,7 @@ XSF_HOST_DEVICE inline double Dawson(double x); // special case for real x
 
 // compute erfcx(z) = exp(z^2) erfz(z)
 XSF_HOST_DEVICE inline std::complex<double> erfcx(std::complex<double> z, double relerr) {
-    return w(std::complex<double>(-std::imag(z), std::real(z)));
+    return w(std::complex<double>(-z.imag(), z.real()));
 }
 
 // compute the error function erf(x)
@@ -176,7 +176,7 @@ taylor:
 
 // compute the error function erf(z)
 XSF_HOST_DEVICE inline std::complex<double> erf(std::complex<double> z, double relerr) {
-    double x = std::real(z), y = std::imag(z);
+    double x = z.real(), y = z.imag();
 
     if (x == 0) // handle separately for speed & handling of y = Inf or NaN
         return std::complex<double>(
@@ -255,8 +255,8 @@ taylor_erfi: {
 
 // erfi(z) = -i erf(iz)
 XSF_HOST_DEVICE inline std::complex<double> erfi(std::complex<double> z, double relerr) {
-    std::complex<double> e = erf(std::complex<double>(-std::imag(z), std::real(z)), relerr);
-    return std::complex<double>(std::imag(e), -std::real(e));
+    std::complex<double> e = erf(std::complex<double>(-z.imag(), z.real()), relerr);
+    return std::complex<double>(e.imag(), -e.real());
 }
 
 // erfi(x) = -i erf(ix)
@@ -274,7 +274,7 @@ XSF_HOST_DEVICE inline double erfc(double x) {
 
 // erfc(z) = 1 - erf(z)
 XSF_HOST_DEVICE inline std::complex<double> erfc(std::complex<double> z, double relerr) {
-    double x = std::real(z), y = std::imag(z);
+    double x = z.real(), y = z.imag();
 
     if (x == 0.)
         return std::complex<double>(
@@ -311,7 +311,7 @@ XSF_HOST_DEVICE inline double Dawson(double x) {
 // compute Dawson(z) = sqrt(pi)/2  *  exp(-z^2) * erfi(z)
 XSF_HOST_DEVICE inline std::complex<double> Dawson(std::complex<double> z, double relerr) {
     const double spi2 = 0.8862269254527580136490837416705725913990; // sqrt(pi)/2
-    double x = std::real(z), y = std::imag(z);
+    double x = z.real(), y = z.imag();
 
     // handle axes separately for speed & proper handling of x or y = Inf or NaN
     if (y == 0)
@@ -347,7 +347,7 @@ XSF_HOST_DEVICE inline std::complex<double> Dawson(std::complex<double> z, doubl
                 goto taylor_realaxis;
         }
         std::complex<double> res = std::exp(mz2) - w(z);
-        return spi2 * std::complex<double>(-std::imag(res), std::real(res));
+        return spi2 * std::complex<double>(-res.imag(), res.real());
     } else {             // y < 0
         if (y > -5e-3) { // duplicate from above to avoid fabs(x) call
             if (std::abs(x) < 5e-3)
@@ -359,7 +359,7 @@ XSF_HOST_DEVICE inline std::complex<double> Dawson(std::complex<double> z, doubl
                 x == 0 ? 0 : std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()
             );
         std::complex<double> res = w(-z) - std::exp(mz2);
-        return spi2 * std::complex<double>(-std::imag(res), std::real(res));
+        return spi2 * std::complex<double>(-res.imag(), res.real());
     }
 
     // Use Taylor series for small |z|, to avoid cancellation inaccuracy
@@ -510,11 +510,11 @@ constexpr double expa2n2[] = {
 /////////////////////////////////////////////////////////////////////////
 
 XSF_HOST_DEVICE inline std::complex<double> w(std::complex<double> z, double relerr) {
-    if (std::real(z) == 0.0)
-        return std::complex<double>(erfcx(std::imag(z)),
-                                    std::real(z)); // give correct sign of 0 in imag(w)
-    else if (std::imag(z) == 0)
-        return std::complex<double>(std::exp(-sqr(std::real(z))), w_im(std::real(z)));
+    if (z.real() == 0.0)
+        return std::complex<double>(erfcx(z.imag()),
+                                    z.real()); // give correct sign of 0 in imag(w)
+    else if (z.imag() == 0)
+        return std::complex<double>(std::exp(-sqr(z.real())), w_im(z.imag()));
 
     double a, a2, c;
     if (relerr <= std::numeric_limits<double>::epsilon()) {
@@ -530,8 +530,8 @@ XSF_HOST_DEVICE inline std::complex<double> w(std::complex<double> z, double rel
         c = (2 / pi) * a;
         a2 = a * a;
     }
-    const double x = std::abs(std::real(z));
-    const double y = std::imag(z), ya = std::abs(y);
+    const double x = std::abs(z.real());
+    const double y = z.imag(), ya = std::abs(y);
 
     std::complex<double> ret(0., 0.); // return value
 
@@ -555,9 +555,9 @@ XSF_HOST_DEVICE inline std::complex<double> w(std::complex<double> z, double rel
            that the estimated nu be >= minimum nu to attain machine precision.
            I also separate the regions where nu == 2 and nu == 1. */
         constexpr double ispi = 0.56418958354775628694807945156; // 1 / sqrt(pi)
-        double xs = y < 0 ? -std::real(z) : std::real(z);    // compute for -z if y < 0
-        if (x + ya > 4000) {                                 // nu <= 2
-            if (x + ya > 1e7) {                              // nu == 1, w(z) = i/sqrt(pi) / z
+        double xs = y < 0 ? -z.real() : z.real();                // compute for -z if y < 0
+        if (x + ya > 4000) {                                     // nu <= 2
+            if (x + ya > 1e7) {                                  // nu == 1, w(z) = i/sqrt(pi) / z
                 // scale to avoid overflow
                 if (x > ya) {
                     double yax = ya / xs;
@@ -712,7 +712,7 @@ XSF_HOST_DEVICE inline std::complex<double> w(std::complex<double> z, double rel
             const double sinxy = std::sin(x * y);
             ret = (expx2erfcxy - c * y * sum1) * std::cos(2 * x * y) + (c * x * expx2) * sinxy * sinc(x * y, sinxy);
         } else {
-            double xs = std::real(z);
+            double xs = z.real();
             const double sinxy = std::sin(xs * y);
             const double sin2xy = std::sin(2 * xs * y), cos2xy = std::cos(2 * xs * y);
             const double coef1 = expx2erfcxy - c * y * sum1;
@@ -756,7 +756,7 @@ XSF_HOST_DEVICE inline std::complex<double> w(std::complex<double> z, double rel
     }
 finish:
     return ret +
-           std::complex<double>((0.5 * c) * y * (sum2 + sum3), (0.5 * c) * std::copysign(sum5 - sum4, std::real(z)));
+           std::complex<double>((0.5 * c) * y * (sum2 + sum3), (0.5 * c) * std::copysign(sum5 - sum4, z.real()));
 }
 
 /////////////////////////////////////////////////////////////////////////
