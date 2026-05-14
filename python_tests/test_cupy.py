@@ -455,3 +455,153 @@ class TestCuPy:
         assert np.all(
             extended_relative_error(out1, desired1) <= self._adjust_tol(rtol1)
         )
+
+    @pytest.mark.parametrize(
+        "tables_paths", get_tables_for_func("erf")
+    )
+    def test_erf(self, tables_paths):
+        input_path, output_path, tol_path = tables_paths
+        erf = cupy._core.create_ufunc(
+            'cupyx_scipy_special_erf',
+            ('f->f', 'd->d', 'F->F', 'D->D'),
+            'out0 = xsf::erf(in0)',
+            preamble=get_preamble("xsf/erf.h"),
+        )
+
+        x = get_cols_as_cupy(input_path)
+        out = cupy.asnumpy(erf(x))
+
+        desired = get_cols_as_numpy(output_path)
+        rtol = get_cols_as_numpy(tol_path)
+        assert np.all(
+            extended_relative_error(out, desired) <= self._adjust_tol(rtol)
+        )
+
+    @pytest.mark.xfail(reason="inaccurate")
+    @pytest.mark.parametrize(
+        "tables_paths", get_tables_for_func("erfc")
+    )
+    def test_erfc(self, tables_paths):
+        input_path, output_path, tol_path = tables_paths
+        erfc = cupy._core.create_ufunc(
+            'cupyx_scipy_special_erfc',
+            ('f->f', 'd->d', 'F->F', 'D->D'),
+            'out0 = xsf::erfc(in0)',
+            preamble=get_preamble("xsf/erf.h"),
+        )
+
+        x = get_cols_as_cupy(input_path)
+        out = cupy.asnumpy(erfc(x))
+
+        desired = get_cols_as_numpy(output_path)
+        rtol = get_cols_as_numpy(tol_path)
+        assert np.all(
+            extended_relative_error(out, desired) <= self._adjust_tol(rtol)
+        )
+
+    @pytest.mark.parametrize(
+        "tables_paths", get_tables_for_func("erfcx")
+    )
+    def test_erfcx(self, tables_paths):
+        input_path, output_path, tol_path = tables_paths
+        erfcx = cupy._core.create_ufunc(
+            'cupyx_scipy_special_erfcx',
+            ('f->f', 'd->d', 'F->F', 'D->D'),
+            'out0 = xsf::erfcx(in0)',
+            preamble=get_preamble("xsf/erf.h"),
+        )
+
+        x = get_cols_as_cupy(input_path)
+        out = cupy.asnumpy(erfcx(x))
+
+        desired = get_cols_as_numpy(output_path)
+        rtol = get_cols_as_numpy(tol_path)
+        assert np.all(
+            extended_relative_error(out, desired) <= self._adjust_tol(rtol)
+        )
+
+    @pytest.mark.parametrize(
+        "tables_paths", get_tables_for_func("erfi")
+    )
+    def test_erfi(self, tables_paths):
+        input_path, output_path, tol_path = tables_paths
+        erfi = cupy._core.create_ufunc(
+            'cupyx_scipy_special_erfi',
+            ('f->f', 'd->d', 'F->F', 'D->D'),
+            'out0 = xsf::erfi(in0)',
+            preamble=get_preamble("xsf/erf.h"),
+        )
+
+        x = get_cols_as_cupy(input_path)
+        out = cupy.asnumpy(erfi(x))
+
+        desired = get_cols_as_numpy(output_path)
+        rtol = get_cols_as_numpy(tol_path)
+        assert np.all(
+            extended_relative_error(out, desired) <= self._adjust_tol(rtol)
+        )
+
+    @pytest.mark.xfail(reason="inaccurate")
+    @pytest.mark.parametrize(
+        "tables_paths", get_tables_for_func("voigt_profile")
+    )
+    def test_voigt_profile(self, tables_paths):
+        input_path, output_path, tol_path = tables_paths
+        voigt_profile = cupy._core.create_ufunc(
+            'cupyx_scipy_special_voigt_profile',
+            ('fff->f', 'ddd->d'),
+            'out0 = xsf::voigt_profile(in0, in1, in2)',
+            preamble=get_preamble("xsf/erf.h"),
+        )
+
+        x = get_cols_as_cupy(input_path)
+        out = cupy.asnumpy(voigt_profile(x))
+
+        desired = get_cols_as_numpy(output_path)
+        rtol = get_cols_as_numpy(tol_path)
+        assert np.all(
+            extended_relative_error(out, desired) <= self._adjust_tol(rtol)
+        )
+
+    @pytest.mark.xfail(reason="inaccurate")
+    @pytest.mark.parametrize(
+        "tables_paths", get_tables_for_func("wofz")
+    )
+    def test_wofz(self, tables_paths):
+        input_path, output_path, tol_path = tables_paths
+        wofz = cupy._core.create_ufunc(
+            'cupyx_scipy_special_wofz',
+            ('f->f', 'd->d', 'F->F', 'D->D'),
+            'out0 = xsf::wofz(in0)',
+            preamble=get_preamble("xsf/erf.h"),
+        )
+
+        x = get_cols_as_cupy(input_path)
+        out = cupy.asnumpy(wofz(x))
+
+        desired = get_cols_as_numpy(output_path)
+        rtol = get_cols_as_numpy(tol_path)
+        assert np.all(
+            extended_relative_error(out, desired) <= self._adjust_tol(rtol)
+        )
+
+    @pytest.mark.parametrize(
+        "tables_paths", get_tables_for_func("dawsn")
+    )
+    def test_dawsn(self, tables_paths):
+        input_path, output_path, tol_path = tables_paths
+        dawsn = cupy._core.create_ufunc(
+            'cupyx_scipy_special_dawsn',
+            ('f->f', 'd->d', 'F->F', 'D->D'),
+            'out0 = xsf::dawsn(in0)',
+            preamble=get_preamble("xsf/erf.h"),
+        )
+
+        x = get_cols_as_cupy(input_path)
+        out = cupy.asnumpy(dawsn(x))
+
+        desired = get_cols_as_numpy(output_path)
+        rtol = get_cols_as_numpy(tol_path)
+        assert np.all(
+            extended_relative_error(out, desired) <= self._adjust_tol(rtol)
+        )
