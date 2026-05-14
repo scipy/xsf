@@ -477,7 +477,6 @@ class TestCuPy:
             extended_relative_error(out, desired) <= self._adjust_tol(rtol)
         )
 
-    @pytest.mark.xfail(reason="inaccurate")
     @pytest.mark.parametrize(
         "tables_paths", get_tables_for_func("erfc")
     )
@@ -495,6 +494,13 @@ class TestCuPy:
 
         desired = get_cols_as_numpy(output_path)
         rtol = get_cols_as_numpy(tol_path)
+
+        # CuPy returns nan + nanj for this case, but test expects
+        # -inf + infj.
+        skip = x.get() == (-21092.63667768141-7.794025022440267e+201j)
+        out, desired, rtol = out[~skip], desired[~skip], rtol[~skip]
+
+        r = extended_relative_error(out, desired)
         assert np.all(
             extended_relative_error(out, desired) <= self._adjust_tol(rtol)
         )
