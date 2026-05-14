@@ -455,5 +455,3 @@ class TestCuPy:
         assert np.all(
             extended_relative_error(out1, desired1) <= self._adjust_tol(rtol1)
         )
-
-    

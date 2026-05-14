@@ -119,8 +119,6 @@
 
 #include "config.h"
 
-#include <cfloat>
-
 namespace Faddeeva {
 
 // compute w(z) = exp(-z^2) erfc(-iz) [ Faddeeva / scaled complex error func ]
