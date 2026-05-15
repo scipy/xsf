@@ -149,6 +149,12 @@ XSF_HOST_DEVICE inline double rgamma(double z) { return cephes::rgamma(z); }
 XSF_HOST_DEVICE inline float rgamma(float z) { return rgamma(static_cast<double>(z)); }
 
 XSF_HOST_DEVICE inline std::complex<double> rgamma(std::complex<double> z) {
+    // Guard against NaN/Inf inputs: std::exp(complex) is implemented in
+    // libstdc++ as std::polar(std::exp(re), im), and std::polar asserts
+    // __rho >= 0 under _GLIBCXX_ASSERTIONS -- which is false for NaN.
+    if (!std::isfinite(z.real()) || !std::isfinite(z.imag())) {
+        return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+    }
     // Compute 1/Gamma(z) using loggamma.
     if (z.real() <= 0 && z == std::floor(z.real())) {
         // Zeros at 0, -1, -2, ...
