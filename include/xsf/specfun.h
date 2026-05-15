@@ -86,6 +86,9 @@ inline double hypu(double a, double b, double x) {
 }
 
 inline double hyp1f1(double a, double b, double x) {
+    if (std::isnan(a) || std::isnan(b) || std::isnan(x)) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
     double outy;
 
     outy = specfun::chgm(x, a, b);
