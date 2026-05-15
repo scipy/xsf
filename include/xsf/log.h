@@ -55,8 +55,7 @@ inline std::complex<double> log1p(std::complex<double> z) {
             constexpr double nan = std::numeric_limits<double>::quiet_NaN();
             return std::complex<double>{nan, nan};
         }
-        return std::complex<double>{std::log(std::hypot(zr, zi)),
-                                    std::atan2(zi, zr)};
+        return std::complex<double>{std::log(std::hypot(zr, zi)), std::atan2(zi, zr)};
     }
 
     double zr = z.real();
