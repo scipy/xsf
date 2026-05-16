@@ -58,19 +58,26 @@ TEST_CASE("y0 right tail gh-large-input", "[y0][xsf_tests]") {
 
 TEST_CASE("j1 right tail gh-large-input", "[j1][xsf_tests]") {
     using test_case = std::tuple<double, double, double>;
-    // Reference values computed with mpmath with 1000 digits of precision:
-    // import mpmath as mp
-    // import numpy as np
+    /*
+    Reference values computed with mpmath with 1000 digits of precision:
+    import mpmath as mp
+    import numpy as np
 
-    // mp.mp.dps = 1000
+    mp.mp.dps = 1000
 
-    // xs = np.logspace(2, 20, num=20)
-    // ys = [mp.besselj(1, mp.mpf(str(x))) for x in xs]
+    # Two special cases around 10
+    x_cases = [np.nextafter(10, 100), np.nextafter(10, 0.0)]
+    # Logspaced values from 1e2 to 1e20
+    x_cases += list(np.logspace(2, 20, num=20))
 
-    // for x, y in zip(xs, ys):
-    //     print(f"x = {x}, J1(x) = {mp.nstr(y, 30)}")
+    for x in x_cases:
+        y = mp.besselj(1, mp.mpf(str(x)))
+        print(f"x = {x}, J1(x) = {float(y)}")
+    */
     auto [x, ref, rtol] = GENERATE(
-        test_case{100.0, -0.07714535201411216, 1e-15}, test_case{885.8667904100823, -0.020092316011146107, 1e-15},
+        test_case(std::nextafter(10, 100), 0.043472746168860994, 5e-15),
+        test_case(std::nextafter(10, 0.0), 0.04347274616886188, 5e-15), test_case{100.0, -0.07714535201411216, 1e-15},
+        test_case{885.8667904100823, -0.020092316011146107, 1e-15},
         test_case{7847.5997035146065, -0.0069653536476014105, 1e-15},
         test_case{69519.27961775605, 0.0029402478891245158, 1e-15},
         test_case{615848.2110660254, 0.0008651783371245079, 1e-15},
