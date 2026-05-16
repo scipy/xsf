@@ -17,6 +17,7 @@ cxx-compiler = ">=1.8.0,<2"
 make = ">=4.4.1,<5"
 
 [feature.build.tasks.configure]
+description = "Configure CMake in the build directory for a release build."
 cmd = [
   "cmake",
   # The source is in the root directory
@@ -27,11 +28,13 @@ cmd = [
 cwd = "."
 
 [feature.build.tasks.build-only]
+description = "Build the existing CMake configuration in the build directory."
 # Just build without configure
 cmd = ["cmake", "--build", "build", "--config", "Release"]
 cwd = "."
 
 [feature.build.tasks.build]
+description = "Run configure, then build the project with default settings."
 # Build with default configuration
 depends-on = ["configure", "build-only"]
 
@@ -43,11 +46,12 @@ libarrow-all = ">=19.0.1,<20"
 
 [feature.tests.tasks]
 # clean xsref dir
-clean-xsref = { cwd = ".", cmd = "rm -rf xsref" }
+clean-xsref = { cwd = ".", cmd = "rm -rf xsref", description = "Remove the local xsref." }
 # clone xsref
 clone-xsref.cmd = "git clone --depth 1 --branch v0.0.0 https://github.com/scipy/xsref.git"
 clone-xsref.cwd = "."
 clone-xsref.depends-on = ["clean-xsref"]
+clone-xsref.description = "Clone xsref after cleaning old checkout."
 # configure cmake for tests
 configure-tests.cmd = [
   "cmake",
@@ -59,16 +63,20 @@ configure-tests.cmd = [
   "-B build",
 ]
 configure-tests.cwd = "."
+configure-tests.description = "Configure CMake with BUILD_TESTS enabled in build/."
 # build for tests
 build-tests.depends-on = ["configure-tests", "build-only"]
+build-tests.description = "Configure and build the project for test execution."
 # run tests
 tests.cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests"]
 tests.depends-on = ["clone-xsref", "build-tests"]
 tests.cwd = "."
+tests.description = "Run CTest test suite from build/tests with verbose failures."
 
 ## Tests of debug build (catches asserts that can cause program to abort)
 
 [feature.tests-debug.tasks]
+configure-tests-debug.description = "Configure CMake with BUILD_TESTS enabled in Debug mode."
 configure-tests-debug.cmd = [
   "cmake",
   # Enable building tests
@@ -85,10 +93,12 @@ configure-tests-debug.cwd = "."
 build-tests-debug.cmd = ["cmake", "--build", "build-debug", "--config", "Debug"]
 build-tests-debug.depends-on = ["configure-tests-debug"]
 build-tests-debug.cwd = "."
+build-tests-debug.description = "Build the debug test configuration in build-debug/."
 
 tests-debug.cmd = ["ctest", "--output-on-failure", "--test-dir", "build-debug/tests"]
 tests-debug.depends-on = ["clone-xsref", "build-tests-debug"]
 tests-debug.cwd = "."
+tests-debug.description = "Run debug-mode CTest suite from build-debug/tests."
 
 ## clang-format
 
@@ -97,8 +107,10 @@ git = "*"
 clang-format = "*"
 
 [feature.clang-format.tasks]
-format = "git ls-files '*.cpp' '*.h' | xargs clang-format -i --style=file"
-format-dry-error = "git ls-files '*.cpp' '*.h' | xargs clang-format --style=file --Werror --dry-run"
+format.cmd = "git ls-files '*.cpp' '*.h' | xargs clang-format -i --style=file"
+format.description = "Format tracked C++ source and header files in place."
+format-dry-error.cmd = "git ls-files '*.cpp' '*.h' | xargs clang-format --style=file --Werror --dry-run"
+format-dry-error.description = "Check C++ formatting and fail if any file needs changes."
 
 ## Coverage
 
@@ -107,6 +119,7 @@ lcov = ">=1.16,<2"
 
 [feature.coverage.tasks]
 # Configure with tests and coverage
+configure-coverage.description = "Configure CMake for coverage instrumentation and tests."
 configure-coverage.cmd = [
   "cmake",
   # Enable building tests
@@ -125,6 +138,7 @@ configure-coverage.env.CXX = "ccache $CXX"
 # Open coverage report
 open-coverage.cmd = ["open", "index.html"]
 open-coverage.cwd = "build/coverage_report"
+open-coverage.description = "Open the generated HTML coverage report index page."
 
 ## Tests CI
 
@@ -137,10 +151,12 @@ ccache = ">=4.11.2,<5"
 build-tests-ci.cmd = ["cmake", "--build", "build", "-j3", "--config", "Release"]
 build-tests-ci.depends-on = ["clone-xsref", "configure-coverage"]
 build-tests-ci.cwd = "."
+build-tests-ci.description = "Build release test binaries for CI."
 # Run tests
 tests-ci.cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests", "-j3"]
 tests-ci.depends-on = ["build-tests-ci"]
 tests-ci.cwd = "."
+tests-ci.description = "Run release CTest suite for CI."
 # Coverage
 coverage.cmd = [
   "cmake",
@@ -154,11 +170,13 @@ coverage.cmd = [
 ]
 coverage.depends-on = ["tests-ci"]
 coverage.cwd = "."
+coverage.description = "Build and generate the HTML coverage report target."
 
 [feature.tests-debug-ci.tasks]
 build-tests-debug-ci.cmd = ["cmake", "--build", "build-debug", "-j3", "--config", "Debug"]
 build-tests-debug-ci.depends-on = ["clone-xsref", "configure-tests-debug"]
 build-tests-debug-ci.cwd = "."
+build-tests-debug-ci.description = "Build debug test binaries for CI."
 
 tests-debug-ci.cmd = [
   "ctest",
@@ -171,6 +189,7 @@ tests-debug-ci.cmd = [
 ]
 tests-debug-ci.depends-on = ["clone-xsref", "build-tests-debug-ci"]
 tests-debug-ci.cwd = "."
+tests-debug-ci.description = "Run debug CTest suite for CI."
 
 
 # CuPy tests
@@ -181,7 +200,7 @@ platforms = ["linux-64"]
 python = ">=3.12.0,<3.13"
 pip = "*"
 setuptools = "*"
-cupy = "*"
+cupy = ">=14.0.0"
 pytest = "*"
 pytest-forked = "*"
 
@@ -201,12 +220,15 @@ fi
 '
 """
 clone-xsref-test-cupy.cwd = "."
+clone-xsref-test-cupy.description = "Ensure xsref is present locally for CuPy tests."
 install-xsref-test-cupy.cmd = "pip install ."
 install-xsref-test-cupy.cwd = "xsref"
 install-xsref-test-cupy.depends-on = ["clone-xsref-test-cupy"]
+install-xsref-test-cupy.description = "Install the local xsref package needed by CuPy tests."
 test-cupy.cmd = "pytest --forked python_tests/test_cupy.py"
 test-cupy.cwd = "."
 test-cupy.depends-on = ["install-xsref-test-cupy"]
+test-cupy.description = "Run CuPy integration tests."
 
 [environments]
 default = { features = ["build", "tests", "tests-debug"], solve-group = "default" }
