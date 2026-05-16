@@ -67,8 +67,8 @@ TEST_CASE("j1 right tail gh-large-input", "[j1][xsf_tests]") {
     // xs = np.logspace(2, 20, num=20)
     // ys = [mp.besselj(1, mp.mpf(str(x))) for x in xs]
 
-   // for x, y in zip(xs, ys):
-   //     print(f"x = {x}, J1(x) = {mp.nstr(y, 30)}")
+    // for x, y in zip(xs, ys):
+    //     print(f"x = {x}, J1(x) = {mp.nstr(y, 30)}")
     auto [x, ref, rtol] = GENERATE(
         test_case{100.0, -0.07714535201411216, 1e-15}, test_case{885.8667904100823, -0.020092316011146107, 1e-15},
         test_case{7847.5997035146065, -0.0069653536476014105, 1e-15},
