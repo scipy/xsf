@@ -164,9 +164,14 @@ namespace cephes {
         z = w * w;
         p = polevl(z, detail::j1_PP, 6) / polevl(z, detail::j1_PQ, 6);
         q = polevl(z, detail::j1_QP, 7) / p1evl(z, detail::j1_QQ, 7);
-        xn = x - detail::THPIO4;
-        p = p * std::cos(xn) - w * q * std::sin(xn);
-        return (p * detail::SQRT2OPI / std::sqrt(x));
+        if (x < 10.0) {
+            xn = x - detail::THPIO4;
+            p = p * std::cos(xn) - w * q * std::sin(xn);
+            return (p * detail::SQRT2OPI / std::sqrt(x));
+        }
+        double a = M_SQRT1_2 * (w * q - p);
+        double b = M_SQRT1_2 * (p + w * q);
+        return (a * std::cos(x) + b * std::sin(x)) * detail::SQRT2OPI / std::sqrt(x);
     }
 
     XSF_HOST_DEVICE inline double y1(double x) {
