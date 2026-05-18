@@ -411,7 +411,7 @@ namespace amos {
         //     RECURRENCE REMOVED. A RECURSIVE CALL TO ZACON CAN RESULT IF ZACON
         //     IS CALLED FROM ZAIRY.
         //
-        //***ROUTINES CALLED  ZASYI,ZBKNU,ZMLRI,ZSERI,ZS1S2,D1MACH,AZABS
+        //***ROUTINES CALLED  ZASYI,ZBKNU,ZMLRI,ZSERI,ZS1S2,D1MACH,ZABS
         //***END PROLOGUE  ZACAI
 
         std::complex<double> csgn, cspn, c1, c2, zn, cy[2];
@@ -510,7 +510,7 @@ namespace amos {
         //     TO CONTINUE THE K FUNCTION FROM THE RIGHT HALF TO THE LEFT
         //     HALF Z PLANE
         //
-        //***ROUTINES CALLED  ZBINU,ZBKNU,ZS1S2,D1MACH,AZABS,ZMLT
+        //***ROUTINES CALLED  ZBINU,ZBKNU,ZS1S2,D1MACH,ZABS,ZMLT
         //***END PROLOGUE  ZACON
 
         std::complex<double> ck, cs, cscl, cscr, csgn, cspn, c1, c2, rz, sc1, sc2 = 0.0, st, s1, s2, zn;
@@ -656,7 +656,7 @@ namespace amos {
 
         //***BEGIN PROLOGUE  ZAIRY
         //***DATE WRITTEN   830501   (YYMMDD)
-        //***REVISION DATE  890801   (YYMMDD)
+        //***REVISION DATE  890801, 930101   (YYMMDD)
         //***CATEGORY NO.  B5K
         //***KEYWORDS  AIRY FUNCTION,BESSEL FUNCTIONS OF ORDER ONE THIRD
         //***AUTHOR  AMOS, DONALD E., SANDIA NATIONAL LABORATORIES
@@ -776,10 +776,11 @@ namespace amos {
         //                 1018, MAY, 1985
         //
         //               A PORTABLE PACKAGE FOR BESSEL FUNCTIONS OF A COMPLEX
-        //                 ARGUMENT AND NONNEGATIVE ORDER BY D. E. AMOS, TRANS.
-        //                 MATH. SOFTWARE, 1986
+        //                 ARGUMENT AND NONNEGATIVE ORDER BY D. E. AMOS, ACM
+        //                 TRANS. MATH. SOFTWARE, VOL. 12, NO. 3, SEPTEMBER 1986,
+        //                 PP 265-273.
         //
-        //***ROUTINES CALLED  ZACAI,ZBKNU,AZEXP,AZSQRT,I1MACH,D1MACH
+        //***ROUTINES CALLED  ZACAI,ZBKNU,ZEXP,ZSQRT,I1MACH,D1MACH
         //***END PROLOGUE  ZAIRY
 
         std::complex<double> ai, csq, cy[1], s1, s2, trm1, trm2, zta, z3;
@@ -1025,7 +1026,7 @@ namespace amos {
         //     REGION CABS(Z).GT.MAX(RL,FNU*FNU/2). NZ=0 IS A NORMAL RETURN.
         //     NZ.LT.0 INDICATES AN OVERFLOW ON KODE=1.
         //
-        //***ROUTINES CALLED  D1MACH,AZABS,ZDIV,AZEXP,ZMLT,AZSQRT
+        //***ROUTINES CALLED  D1MACH,ZABS,ZDIV,ZEXP,ZMLT,ZSQRT
         //***END PROLOGUE  ZASYI
 
         std::complex<double> ak1, ck, cs1, cs2, cz, dk, ez, p1, rz, s2;
@@ -1154,7 +1155,7 @@ namespace amos {
 
         //***BEGIN PROLOGUE  ZBESH
         //***DATE WRITTEN   830501   (YYMMDD)
-        //***REVISION DATE  890801   (YYMMDD)
+        //***REVISION DATE  890801, 930101   (YYMMDD)
         //***CATEGORY NO.  B5K
         //***KEYWORDS  H-BESSEL FUNCTIONS,BESSEL FUNCTIONS OF COMPLEX ARGUMENT,
         //             BESSEL FUNCTIONS OF THIRD KIND,HANKEL FUNCTIONS
@@ -1302,10 +1303,11 @@ namespace amos {
         //                 1018, MAY, 1985
         //
         //               A PORTABLE PACKAGE FOR BESSEL FUNCTIONS OF A COMPLEX
-        //                 ARGUMENT AND NONNEGATIVE ORDER BY D. E. AMOS, TRANS.
-        //                 MATH. SOFTWARE, 1986
+        //                 ARGUMENT AND NONNEGATIVE ORDER BY D. E. AMOS, ACM
+        //                 TRANS. MATH. SOFTWARE, VOL. 12, NO. 3, SEPTEMBER 1986,
+        //                 PP 265-273.
         //
-        //***ROUTINES CALLED  ZACON,ZBKNU,ZBUNK,ZUOIK,AZABS,I1MACH,D1MACH
+        //***ROUTINES CALLED  ZACON,ZBKNU,ZBUNK,ZUOIK,ZABS,I1MACH,D1MACH
         //***END PROLOGUE  ZBESH
 
         std::complex<double> zn, zt, csgn;
@@ -1529,7 +1531,7 @@ namespace amos {
 
         //***BEGIN PROLOGUE  ZBESI
         //***DATE WRITTEN   830501   (YYMMDD)
-        //***REVISION DATE  890801   (YYMMDD)
+        //***REVISION DATE  890801, 930101   (YYMMDD)
         //***CATEGORY NO.  B5K
         //***KEYWORDS  I-BESSEL FUNCTION,COMPLEX BESSEL FUNCTION,
         //             MODIFIED BESSEL FUNCTION OF THE FIRST KIND
@@ -1672,8 +1674,9 @@ namespace amos {
         //                 1018, MAY, 1985
         //
         //               A PORTABLE PACKAGE FOR BESSEL FUNCTIONS OF A COMPLEX
-        //                 ARGUMENT AND NONNEGATIVE ORDER BY D. E. AMOS, TRANS.
-        //                 MATH. SOFTWARE, 1986
+        //                 ARGUMENT AND NONNEGATIVE ORDER BY D. E. AMOS, ACM
+        //                 TRANS. MATH. SOFTWARE, VOL. 12, NO. 3, SEPTEMBER 1986,
+        //                 PP 265-273.
         //
         //***ROUTINES CALLED  ZBINU,I1MACH,D1MACH
         //***END PROLOGUE  ZBESI
@@ -1800,7 +1803,7 @@ namespace amos {
 
         //***BEGIN PROLOGUE  ZBESJ
         //***DATE WRITTEN   830501   (YYMMDD)
-        //***REVISION DATE  890801   (YYMMDD)
+        //***REVISION DATE  890801, 930101   (YYMMDD)
         //***CATEGORY NO.  B5K
         //***KEYWORDS  J-BESSEL FUNCTION,BESSEL FUNCTION OF COMPLEX ARGUMENT,
         //             BESSEL FUNCTION OF FIRST KIND
@@ -1937,8 +1940,9 @@ namespace amos {
         //                 1018, MAY, 1985
         //
         //               A PORTABLE PACKAGE FOR BESSEL FUNCTIONS OF A COMPLEX
-        //                 ARGUMENT AND NONNEGATIVE ORDER BY D. E. AMOS, TRANS.
-        //                 MATH. SOFTWARE, 1986
+        //                 ARGUMENT AND NONNEGATIVE ORDER BY D. E. AMOS, ACM
+        //                 TRANS. MATH. SOFTWARE, VOL. 12, NO. 3, SEPTEMBER 1986,
+        //                 PP 265-273.
         //
         //***ROUTINES CALLED  ZBINU,I1MACH,D1MACH
         //***END PROLOGUE  ZBESJ
@@ -2061,7 +2065,7 @@ namespace amos {
 
         //***BEGIN PROLOGUE  ZBESK
         //***DATE WRITTEN   830501   (YYMMDD)
-        //***REVISION DATE  890801   (YYMMDD)
+        //***REVISION DATE  890801, 930101   (YYMMDD)
         //***CATEGORY NO.  B5K
         //***KEYWORDS  K-BESSEL FUNCTION,COMPLEX BESSEL FUNCTION,
         //             MODIFIED BESSEL FUNCTION OF THE SECOND KIND,
@@ -2072,10 +2076,10 @@ namespace amos {
         //
         //                      ***A DOUBLE PRECISION ROUTINE***
         //
-        //         ON KODE=1, CBESK COMPUTES AN N MEMBER SEQUENCE OF COMPLEX
+        //         ON KODE=1, ZBESK COMPUTES AN N MEMBER SEQUENCE OF COMPLEX
         //         BESSEL FUNCTIONS CY(J)=K(FNU+J-1,Z) FOR REAL, NONNEGATIVE
         //         ORDERS FNU+J-1, J=1,...,N AND COMPLEX Z.NE.std::complex<double>(0.0,0.0)
-        //         IN THE CUT PLANE -PI.LT.ARG(Z).LE.PI. ON KODE=2, CBESK
+        //         IN THE CUT PLANE -PI.LT.ARG(Z).LE.PI. ON KODE=2, ZBESK
         //         RETURNS THE SCALED K FUNCTIONS,
         //
         //         CY(J)=EXP(Z)*K(FNU+J-1,Z) , J=1,...,N,
@@ -2146,7 +2150,7 @@ namespace amos {
         //
         //         CAN BE USED.
         //
-        //         CBESK ASSUMES THAT A SIGNIFICANT DIGIT SINH(X) FUNCTION IS
+        //         ZBESK ASSUMES THAT A SIGNIFICANT DIGIT SINH(X) FUNCTION IS
         //         AVAILABLE.
         //
         //         IN MOST COMPLEX VARIABLE COMPUTATION, ONE MUST EVALUATE ELE-
@@ -2204,10 +2208,11 @@ namespace amos {
         //                 1018, MAY, 1985
         //
         //               A PORTABLE PACKAGE FOR BESSEL FUNCTIONS OF A COMPLEX
-        //                 ARGUMENT AND NONNEGATIVE ORDER BY D. E. AMOS, TRANS.
-        //                 MATH. SOFTWARE, 1986
+        //                 ARGUMENT AND NONNEGATIVE ORDER BY D. E. AMOS, ACM
+        //                 TRANS. MATH. SOFTWARE, VOL. 12, NO. 3, SEPTEMBER 1986,
+        //                 PP 265-273.
         //
-        //***ROUTINES CALLED  ZACON,ZBKNU,ZBUNK,ZUOIK,AZABS,I1MACH,D1MACH
+        //***ROUTINES CALLED  ZACON,ZBKNU,ZBUNK,ZUOIK,ZABS,I1MACH,D1MACH
         //***END PROLOGUE  ZBESK
 
         double xx = std::real(z);
@@ -2386,7 +2391,6 @@ namespace amos {
     }
 
     inline int besy(std::complex<double> z, double fnu, int kode, int n, std::complex<double> *cy, int *ierr) {
-
         //***BEGIN PROLOGUE  ZBESY
         //***DATE WRITTEN   830501   (YYMMDD)
         //***REVISION DATE  890801   (YYMMDD)
@@ -2413,7 +2417,7 @@ namespace amos {
         //         (REF. 1).
         //
         //         INPUT      ZR,ZI,FNU ARE DOUBLE PRECISION
-        //           ZR,ZI  - Z=std::complex<double>(ZR,ZI), Z.NE.std::complex<double>(0.0D0,0.0D0),
+        //           ZR,ZI  - Z=CMPLX(ZR,ZI), Z.NE.CMPLX(0.0D0,0.0D0),
         //                    -PI.LT.ARG(Z).LE.PI
         //           FNU    - ORDER OF INITIAL Y FUNCTION, FNU.GE.0.0D0
         //           KODE   - A PARAMETER TO INDICATE THE SCALING OPTION
@@ -2449,7 +2453,6 @@ namespace amos {
         //                            CANCE BY ARGUMENT REDUCTION
         //                    IERR=5, ERROR              - NO COMPUTATION,
         //                            ALGORITHM TERMINATION CONDITION NOT MET
-        //                    IERR=6, Memory allocation failed.
         //
         //***LONG DESCRIPTION
         //
@@ -2534,6 +2537,281 @@ namespace amos {
         //
         //***ROUTINES CALLED  ZBESH,I1MACH,D1MACH
         //***END PROLOGUE  ZBESY
+
+        std::complex<double> csgn, cspn, ex, zn, zu, zv, zz;
+        double arg, d1m5, elim, ey, ffnu, tay, xx, yy, ascle, rtol, atol, tol;
+        int i, i4, ifnu, k, k1, k2, nz, nz1, nz2;
+
+        double hpi = 1.57079632679489662;
+        std::complex<double> cip[4] = {1.0, std::complex<double>(0, 1), -1.0, -std::complex<double>(0, 1)};
+
+        xx = std::real(z);
+        yy = std::imag(z);
+        *ierr = 0;
+        nz = 0;
+
+        if ((xx == 0.0) && (yy == 0.0)) {
+            *ierr = 1;
+        }
+        if (fnu < 0.0) {
+            *ierr = 1;
+        }
+        if ((kode < 1) || (kode > 2)) {
+            *ierr = 1;
+        }
+        if (n < 1) {
+            *ierr = 1;
+        }
+        if (*ierr != 0) {
+            return nz;
+        }
+
+        zz = (z.imag() < 0.0) ? std::conj(z) : z;
+        zn = -zz * std::complex<double>(0.0, 1.0);
+
+        nz1 = besi(zn, fnu, kode, n, cy, ierr);
+        if ((*ierr != 0) && (*ierr != 3)) {
+            // 90:
+            return 0;
+        }
+
+        auto cwrk = std::unique_ptr<std::complex<double>[]>{new (std::nothrow) std::complex<double>[n]};
+        if (cwrk == nullptr) {
+            *ierr = 6; // Memory allocation failed.
+            return 0;
+        }
+
+        nz2 = besk(zn, fnu, kode, n, cwrk.get(), ierr);
+        if ((*ierr != 0) && (*ierr != 3)) {
+            return 0;
+        }
+
+        nz = std::min(nz1, nz2);
+        ifnu = static_cast<int>(static_cast<float>(fnu));
+        ffnu = fnu - static_cast<double>(static_cast<float>(ifnu));
+        arg = hpi * ffnu;
+
+        csgn = std::complex<double>(std::cos(arg), std::sin(arg));
+        i4 = ifnu % 4 + 1;
+        csgn *= cip[i4 - 1];
+        cspn = 1 / hpi * std::conj(csgn);
+        csgn *= std::complex<double>(0, 1);
+
+        if (kode != 2) {
+            for (i = 1; i < (n + 1); i++) {
+                cy[i - 1] = csgn * cy[i - 1] - cspn * cwrk[i - 1];
+                csgn *= std::complex<double>(0, 1);
+                cspn *= std::complex<double>(0, -1);
+            }
+            if (std::imag(z) < 0) {
+                for (i = 1; i < (n + 1); i++) {
+                    cy[i - 1] = std::conj(cy[i - 1]);
+                }
+            }
+            return nz;
+        }
+
+        ex = std::complex<double>(std::cos(xx), std::sin(xx));
+        tol = std::fmax(d1mach[3], 1e-18);
+        k1 = i1mach[14];
+        k2 = i1mach[15];
+        k = (std::abs(k1) > std::abs(k2) ? std::abs(k2) : std::abs(k1));
+        d1m5 = d1mach[4];
+        //
+        // ELIM IS THE APPROXIMATE EXPONENTIAL UNDER- AND OVERFLOW LIMIT
+        //
+        elim = 2.303 * (static_cast<double>(static_cast<float>(k)) * d1m5 - 3.0);
+        ey = 0.0;
+        tay = std::fabs(yy + yy);
+        if (tay < elim) {
+            ey = std::exp(-tay);
+        }
+        cspn *= ex * ey;
+        nz = 0;
+        rtol = 1.0 / tol;
+        ascle = 1e3 * d1mach[0] * rtol;
+
+        for (i = 1; i < (n + 1); i++) {
+            // CY(I) = CSGN*CY(I)-CSPN*CWRK(I): PRODUCTS ARE COMPUTED IN
+            // SCALED MODE IF CY(I) OR CWRK(I) ARE CLOSE TO UNDERFLOW TO
+            // PREVENT UNDERFLOW IN AN INTERMEDIATE COMPUTATION.
+            zv = cwrk[i - 1];
+            atol = 1.0;
+            if (std::fmax(std::fabs(std::real(zv)), std::fabs(std::imag(zv))) <= ascle) {
+                zv *= rtol;
+                atol = tol;
+            }
+            zv *= atol * cspn;
+            zu = cy[i - 1];
+            atol = 1.0;
+            if (std::fmax(std::fabs(std::real(zu)), std::fabs(std::imag(zu))) <= ascle) {
+                zu *= rtol;
+                atol = tol;
+            }
+            zu *= atol * csgn;
+            cy[i - 1] = zu - zv;
+            if (std::imag(z) < 0) {
+                cy[i - 1] = std::conj(cy[i - 1]);
+            }
+            if ((cy[i - 1] == 0.0) && (ey == 0.0)) {
+                nz++;
+            }
+            csgn *= std::complex<double>(0.0, 1.0);
+            cspn *= std::complex<double>(0.0, -1.0);
+        }
+        return nz;
+    }
+
+    inline int besyh(std::complex<double> z, double fnu, int kode, int n, std::complex<double> *cy, int *ierr) {
+
+        //***BEGIN PROLOGUE  ZBESYH
+        //***DATE WRITTEN   830501   (YYMMDD)
+        //***REVISION DATE  890801, 930101   (YYMMDD)
+        //***CATEGORY NO.  B5K
+        //***KEYWORDS  Y-BESSEL FUNCTION,BESSEL FUNCTION OF COMPLEX ARGUMENT,
+        //             BESSEL FUNCTION OF SECOND KIND
+        //***AUTHOR  AMOS, DONALD E., SANDIA NATIONAL LABORATORIES
+        //***PURPOSE  TO COMPUTE THE Y-BESSEL FUNCTION OF A COMPLEX ARGUMENT
+        //***DESCRIPTION
+        //
+        //                ***A DOUBLE PRECISION ROUTINE***
+        //
+        //         ON KODE=1, ZBESYH COMPUTES AN N MEMBER SEQUENCE OF COMPLEX
+        //         BESSEL FUNCTIONS CY(I)=Y(FNU+I-1,Z) FOR REAL, NONNEGATIVE
+        //         ORDERS FNU+I-1, I=1,...,N AND COMPLEX Z IN THE CUT PLANE
+        //         -PI.LT.ARG(Z).LE.PI. ON KODE=2, ZBESYH RETURNS THE SCALED
+        //         FUNCTIONS
+        //
+        //         CY(I)=EXP(-ABS(Y))*Y(FNU+I-1,Z)   I = 1,...,N , Y=AIMAG(Z)
+        //
+        //         WHICH REMOVE THE EXPONENTIAL GROWTH IN BOTH THE UPPER AND
+        //         LOWER HALF PLANES FOR Z TO INFINITY. DEFINITIONS AND NOTATION
+        //         ARE FOUND IN THE NBS HANDBOOK OF MATHEMATICAL FUNCTIONS
+        //         (REF. 1).
+        //
+        //         INPUT      ZR,ZI,FNU ARE DOUBLE PRECISION
+        //           ZR,ZI  - Z=std::complex<double>(ZR,ZI), Z.NE.std::complex<double>(0.0D0,0.0D0),
+        //                    -PI.LT.ARG(Z).LE.PI
+        //           FNU    - ORDER OF INITIAL Y FUNCTION, FNU.GE.0.0D0
+        //           KODE   - A PARAMETER TO INDICATE THE SCALING OPTION
+        //                    KODE= 1  RETURNS
+        //                             CY(I)=Y(FNU+I-1,Z), I=1,...,N
+        //                        = 2  RETURNS
+        //                             CY(I)=Y(FNU+I-1,Z)*EXP(-ABS(Y)), I=1,...,N
+        //                             WHERE Y=AIMAG(Z)
+        //           N      - NUMBER OF MEMBERS OF THE SEQUENCE, N.GE.1
+        //           CWRKR, - DOUBLE PRECISION WORK VECTORS OF DIMENSION AT
+        //           CWRKI    AT LEAST N
+        //
+        //         OUTPUT     CYR,CYI ARE DOUBLE PRECISION
+        //           CYR,CYI- DOUBLE PRECISION VECTORS WHOSE FIRST N COMPONENTS
+        //                    CONTAIN REAL AND IMAGINARY PARTS FOR THE SEQUENCE
+        //                    CY(I)=Y(FNU+I-1,Z)  OR
+        //                    CY(I)=Y(FNU+I-1,Z)*EXP(-ABS(Y))  I=1,...,N
+        //                    DEPENDING ON KODE.
+        //           NZ     - NZ=0 , A NORMAL RETURN
+        //                    NZ.GT.0 , NZ COMPONENTS OF CY SET TO ZERO DUE TO
+        //                    UNDERFLOW (GENERALLY ON KODE=2)
+        //           IERR   - ERROR FLAG
+        //                    IERR=0, NORMAL RETURN - COMPUTATION COMPLETED
+        //                    IERR=1, INPUT ERROR   - NO COMPUTATION
+        //                    IERR=2, OVERFLOW      - NO COMPUTATION, FNU IS
+        //                            TOO LARGE OR CABS(Z) IS TOO SMALL OR BOTH
+        //                    IERR=3, CABS(Z) OR FNU+N-1 LARGE - COMPUTATION DONE
+        //                            BUT LOSSES OF SIGNIFCANCE BY ARGUMENT
+        //                            REDUCTION PRODUCE LESS THAN HALF OF MACHINE
+        //                            ACCURACY
+        //                    IERR=4, CABS(Z) OR FNU+N-1 TOO LARGE - NO COMPUTA-
+        //                            TION BECAUSE OF COMPLETE LOSSES OF SIGNIFI-
+        //                            CANCE BY ARGUMENT REDUCTION
+        //                    IERR=5, ERROR              - NO COMPUTATION,
+        //                            ALGORITHM TERMINATION CONDITION NOT MET
+        //                    IERR=6, Memory allocation failed.
+        //
+        //***LONG DESCRIPTION
+        //
+        //         THE COMPUTATION IS CARRIED OUT BY THE FORMULA
+        //
+        //              Y(FNU,Z)=0.5*(H(1,FNU,Z)-H(2,FNU,Z))/I
+        //
+        //         WHERE I**2 = -1 AND THE HANKEL BESSEL FUNCTIONS H(1,FNU,Z)
+        //         AND H(2,FNU,Z) ARE CALCULATED IN ZBESH.
+        //
+        //         FOR NEGATIVE ORDERS,THE FORMULA
+        //
+        //              Y(-FNU,Z) = Y(FNU,Z)*COS(PI*FNU) + J(FNU,Z)*SIN(PI*FNU)
+        //
+        //         CAN BE USED. HOWEVER,FOR LARGE ORDERS CLOSE TO HALF ODD
+        //         INTEGERS THE FUNCTION CHANGES RADICALLY. WHEN FNU IS A LARGE
+        //         POSITIVE HALF ODD INTEGER,THE MAGNITUDE OF Y(-FNU,Z)=J(FNU,Z)*
+        //         SIN(PI*FNU) IS A LARGE NEGATIVE POWER OF TEN. BUT WHEN FNU IS
+        //         NOT A HALF ODD INTEGER, Y(FNU,Z) DOMINATES IN MAGNITUDE WITH A
+        //         LARGE POSITIVE POWER OF TEN AND THE MOST THAT THE SECOND TERM
+        //         CAN BE REDUCED IS BY UNIT ROUNDOFF FROM THE COEFFICIENT. THUS,
+        //         WIDE CHANGES CAN OCCUR WITHIN UNIT ROUNDOFF OF A LARGE HALF
+        //         ODD INTEGER. HERE, LARGE MEANS FNU.GT.CABS(Z).
+        //
+        //         IN MOST COMPLEX VARIABLE COMPUTATION, ONE MUST EVALUATE ELE-
+        //         MENTARY FUNCTIONS. WHEN THE MAGNITUDE OF Z OR FNU+N-1 IS
+        //         LARGE, LOSSES OF SIGNIFICANCE BY ARGUMENT REDUCTION OCCUR.
+        //         CONSEQUENTLY, IF EITHER ONE EXCEEDS U1=SQRT(0.5/UR), THEN
+        //         LOSSES EXCEEDING HALF PRECISION ARE LIKELY AND AN ERROR FLAG
+        //         IERR=3 IS TRIGGERED WHERE UR=DMAX1(D1MACH(4),1.0D-18) IS
+        //         DOUBLE PRECISION UNIT ROUNDOFF LIMITED TO 18 DIGITS PRECISION.
+        //         IF EITHER IS LARGER THAN U2=0.5/UR, THEN ALL SIGNIFICANCE IS
+        //         LOST AND IERR=4. IN ORDER TO USE THE INT FUNCTION, ARGUMENTS
+        //         MUST BE FURTHER RESTRICTED NOT TO EXCEED THE LARGEST MACHINE
+        //         INTEGER, U3=I1MACH(9). THUS, THE MAGNITUDE OF Z AND FNU+N-1 IS
+        //         RESTRICTED BY MIN(U2,U3). ON 32 BIT MACHINES, U1,U2, AND U3
+        //         ARE APPROXIMATELY 2.0E+3, 4.2E+6, 2.1E+9 IN SINGLE PRECISION
+        //         ARITHMETIC AND 1.3E+8, 1.8E+16, 2.1E+9 IN DOUBLE PRECISION
+        //         ARITHMETIC RESPECTIVELY. THIS MAKES U2 AND U3 LIMITING IN
+        //         THEIR RESPECTIVE ARITHMETICS. THIS MEANS THAT ONE CAN EXPECT
+        //         TO RETAIN, IN THE WORST CASES ON 32 BIT MACHINES, NO DIGITS
+        //         IN SINGLE AND ONLY 7 DIGITS IN DOUBLE PRECISION ARITHMETIC.
+        //         SIMILAR CONSIDERATIONS HOLD FOR OTHER MACHINES.
+        //
+        //         THE APPROXIMATE RELATIVE ERROR IN THE MAGNITUDE OF A COMPLEX
+        //         BESSEL FUNCTION CAN BE EXPRESSED BY P*10**S WHERE P=MAX(UNIT
+        //         ROUNDOFF,1.0E-18) IS THE NOMINAL PRECISION AND 10**S REPRE-
+        //         SENTS THE INCREASE IN ERROR DUE TO ARGUMENT REDUCTION IN THE
+        //         ELEMENTARY FUNCTIONS. HERE, S=MAX(1,ABS(LOG10(CABS(Z))),
+        //         ABS(LOG10(FNU))) APPROXIMATELY (I.E. S=MAX(1,ABS(EXPONENT OF
+        //         CABS(Z),ABS(EXPONENT OF FNU)) ). HOWEVER, THE PHASE ANGLE MAY
+        //         HAVE ONLY ABSOLUTE ACCURACY. THIS IS MOST LIKELY TO OCCUR WHEN
+        //         ONE COMPONENT (IN ABSOLUTE VALUE) IS LARGER THAN THE OTHER BY
+        //         SEVERAL ORDERS OF MAGNITUDE. IF ONE COMPONENT IS 10**K LARGER
+        //         THAN THE OTHER, THEN ONE CAN EXPECT ONLY MAX(ABS(LOG10(P))-K,
+        //         0) SIGNIFICANT DIGITS; OR, STATED ANOTHER WAY, WHEN K EXCEEDS
+        //         THE EXPONENT OF P, NO SIGNIFICANT DIGITS REMAIN IN THE SMALLER
+        //         COMPONENT. HOWEVER, THE PHASE ANGLE RETAINS ABSOLUTE ACCURACY
+        //         BECAUSE, IN COMPLEX ARITHMETIC WITH PRECISION P, THE SMALLER
+        //         COMPONENT WILL NOT (AS A RULE) DECREASE BELOW P TIMES THE
+        //         MAGNITUDE OF THE LARGER COMPONENT. IN THESE EXTREME CASES,
+        //         THE PRINCIPAL PHASE ANGLE IS ON THE ORDER OF +P, -P, PI/2-P,
+        //         OR -PI/2+P.
+        //
+        //***REFERENCES  HANDBOOK OF MATHEMATICAL FUNCTIONS BY M. ABRAMOWITZ
+        //                 AND I. A. STEGUN, NBS AMS SERIES 55, U.S. DEPT. OF
+        //                 COMMERCE, 1955.
+        //
+        //               COMPUTATION OF BESSEL FUNCTIONS OF COMPLEX ARGUMENT
+        //                 BY D. E. AMOS, SAND83-0083, MAY, 1983.
+        //
+        //               COMPUTATION OF BESSEL FUNCTIONS OF COMPLEX ARGUMENT
+        //                 AND LARGE ORDER BY D. E. AMOS, SAND83-0643, MAY, 1983
+        //
+        //               A SUBROUTINE PACKAGE FOR BESSEL FUNCTIONS OF A COMPLEX
+        //                 ARGUMENT AND NONNEGATIVE ORDER BY D. E. AMOS, SAND85-
+        //                 1018, MAY, 1985
+        //
+        //               A PORTABLE PACKAGE FOR BESSEL FUNCTIONS OF A COMPLEX
+        //                 ARGUMENT AND NONNEGATIVE ORDER BY D. E. AMOS, ACM
+        //                 TRANS. MATH. SOFTWARE, VOL. 12, NO. 3, SEPTEMBER 1986,
+        //                 PP 265-273.
+        //
+        //***ROUTINES CALLED  ZBESH,I1MACH,D1MACH
+        //***END PROLOGUE  ZBESYH
 
         std::complex<double> c1, c2, hci, st;
         double elim, exr, exi, ey, tay, xx, yy, ascle, rtol, atol, tol, aa, bb, r1m5;
@@ -2653,7 +2931,7 @@ namespace amos {
         //
         //     ZBINU COMPUTES THE I FUNCTION IN THE RIGHT HALF Z PLANE
         //
-        //***ROUTINES CALLED  AZABS,ZASYI,ZBUNI,ZMLRI,ZSERI,ZUOIK,ZWRSK
+        //***ROUTINES CALLED  ZABS,ZASYI,ZBUNI,ZMLRI,ZSERI,ZUOIK,ZWRSK
         //***END PROLOGUE  ZBINU
 
         std::complex<double> cw[2] = {0.};
@@ -2805,7 +3083,7 @@ namespace amos {
 
         //***BEGIN PROLOGUE  ZBIRY
         //***DATE WRITTEN   830501   (YYMMDD)
-        //***REVISION DATE  890801   (YYMMDD)
+        //***REVISION DATE  890801, 930101   (YYMMDD)
         //***CATEGORY NO.  B5K
         //***KEYWORDS  AIRY FUNCTION,BESSEL FUNCTIONS OF ORDER ONE THIRD
         //***AUTHOR  AMOS, DONALD E., SANDIA NATIONAL LABORATORIES
@@ -2919,10 +3197,11 @@ namespace amos {
         //                 1018, MAY, 1985
         //
         //               A PORTABLE PACKAGE FOR BESSEL FUNCTIONS OF A COMPLEX
-        //                 ARGUMENT AND NONNEGATIVE ORDER BY D. E. AMOS, TRANS.
-        //                 MATH. SOFTWARE, 1986
+        //                 ARGUMENT AND NONNEGATIVE ORDER BY D. E. AMOS, ACM
+        //                 TRANS. MATH. SOFTWARE, VOL. 12, NO. 3, SEPTEMBER 1986,
+        //                 PP 265-273.
         //
-        //***ROUTINES CALLED  ZBINU,AZABS,ZDIV,AZSQRT,D1MACH,I1MACH
+        //***ROUTINES CALLED  ZBINU,ZABS,ZDIV,ZSQRT,D1MACH,I1MACH
         //***END PROLOGUE  ZBIRY
 
         std::complex<double> bi, csq, s1, s2, trm1, trm2, zta, z3;
@@ -3106,7 +3385,7 @@ namespace amos {
         /* 110 */
         //
         // AA=FACTOR FOR ANALYTIC CONTINUATION OF I(FNU,ZTA)
-        // KODE=2 RETURNS EXP(-ABS(XZTA))*I(FNU,ZTA) FROM CBINU
+        // KODE=2 RETURNS EXP(-ABS(XZTA))*I(FNU,ZTA) FROM ZBINU
         //
         nz = binu(zta, fnu, kode, 1, cy, rl, fnul, tol, elim, alim);
         if (nz < 0) {
@@ -3151,8 +3430,8 @@ namespace amos {
         //
         //     ZBKNU COMPUTES THE K BESSEL FUNCTION IN THE RIGHT HALF Z PLANE.
         //
-        //***ROUTINES CALLED  DGAMLN,I1MACH,D1MACH,ZKSCL,ZSHCH,ZUCHK,AZABS,ZDIV,
-        //                    AZEXP,AZLOG,ZMLT,AZSQRT
+        //***ROUTINES CALLED  DGAMLN,I1MACH,D1MACH,ZKSCL,ZSHCH,ZUCHK,ZABS,ZDIV,
+        //                    ZEXP,ZLOG,ZMLT,ZSQRT
         //***END PROLOGUE  ZBKNU
 
         std::complex<double> cch, ck, coef, crsc, cs, cscl, csh, cz, f, fmu, p, pt, p1, p2, q, rz, smu, st, s1, s2, zd;
@@ -3641,7 +3920,7 @@ namespace amos {
         //     ACCORDING TO THE UNIFORM ASYMPTOTIC EXPANSION FOR I(FNU,Z)
         //     ON IFORM=1 AND THE EXPANSION FOR J(FNU,Z) ON IFORM=2
         //
-        //***ROUTINES CALLED  ZUNI1,ZUNI2,AZABS,D1MACH
+        //***ROUTINES CALLED  ZUNI1,ZUNI2,ZABS,D1MACH
         //***END PROLOGUE  ZBUNI
 
         std::complex<double> cscl, cscr, rz, st, s1, s2;
@@ -3932,7 +4211,7 @@ namespace amos {
         //     ZMLRI COMPUTES THE I BESSEL FUNCTION FOR RE(Z).GE.0.0 BY THE
         //     MILLER ALGORITHM NORMALIZED BY A NEUMANN SERIES.
         //
-        //***ROUTINES CALLED  DGAMLN,D1MACH,AZABS,AZEXP,AZLOG,ZMLT
+        //***ROUTINES CALLED  DGAMLN,D1MACH,ZABS,ZEXP,ZLOG,ZMLT
         //***END PROLOGUE  ZMLRI
 
         std::complex<double> ck, cnorm, pt, p1, p2, rz, sum;
@@ -4101,7 +4380,7 @@ namespace amos {
         //     ON SCALED FUNCTIONS UNTIL TWO MEMBERS COME ON SCALE, THEN
         //     RETURN WITH MIN(NZ+2,N) VALUES SCALED BY 1/TOL.
         //
-        //***ROUTINES CALLED  ZUCHK,AZABS,AZLOG
+        //***ROUTINES CALLED  ZUCHK,ZABS,ZLOG
         //***END PROLOGUE  ZKSCL
 
         std::complex<double> cy[2] = {0.};
@@ -4215,7 +4494,7 @@ namespace amos {
         //     BESSEL FUNCTIONS I AND J OF COMPLEX ARGUMENT AND INTEGER ORDER,
         //     BY D. J. SOOKNE.
         //
-        //***ROUTINES CALLED  AZABS,ZDIV
+        //***ROUTINES CALLED  ZABS,ZDIV
         //***END PROLOGUE  ZRATI
 
         std::complex<double> cdfnu, pt, p1, p2, rz, t1;
@@ -4331,7 +4610,7 @@ namespace amos {
         //     CONDITION CABS(Z).LE.2*SQRT(FNU+1) WAS VIOLATED AND THE
         //     COMPUTATION MUST BE COMPLETED IN ANOTHER ROUTINE WITH N=N-ABS(NZ).
         //
-        //***ROUTINES CALLED  DGAMLN,D1MACH,ZUCHK,AZABS,ZDIV,AZLOG,ZMLT
+        //***ROUTINES CALLED  DGAMLN,D1MACH,ZUCHK,ZABS,ZDIV,ZLOG,ZMLT
         //***END PROLOGUE  ZSERI
 
         std::complex<double> ak1, ck, coef, crsc, cz, half_z, rz, s1, s2, w[2];
@@ -4529,7 +4808,7 @@ namespace amos {
         //     OF MAGNITUDE AND THE MAXIMUM MUST BE AT LEAST ONE
         //     PRECISION ABOVE THE UNDERFLOW LIMIT.
         //
-        //***ROUTINES CALLED  AZABS,AZEXP,AZLOG
+        //***ROUTINES CALLED  ZABS,ZEXP,ZLOG
         //***END PROLOGUE  ZS1S2
 
         std::complex<double> c1, s1d;
@@ -4631,7 +4910,7 @@ namespace amos {
         //         MUST BE SPECIFIED. IPMTR=0 RETURNS ALL PARAMETERS. IPMTR=
         //         1 COMPUTES ALL EXCEPT ASUM AND BSUM.
         //
-        //***ROUTINES CALLED  AZABS,ZDIV,AZLOG,AZSQRT,D1MACH
+        //***ROUTINES CALLED  ZABS,ZDIV,ZLOG,ZSQRT,D1MACH
         //***END PROLOGUE  ZUNHJ
 
         std::complex<double> cfnu, przth, ptfn, rtzta, rzth, suma, sumb;
@@ -4674,7 +4953,7 @@ namespace amos {
         fn23 = fn13 * fn13;
         rfn13 = 1.0 / fn13;
         w2 = 1.0 - zb * zb;
-        /* AMOS AZSQRT and C CSQRT differs when imaginary 0.0 swaps sign */
+        /* AMOS ZSQRT and C CSQRT differs when imaginary 0.0 swaps sign */
         w2 = 1.0 - zb * zb;
         if (std::imag(w2) == -0.0) {
             w2 = std::real(w2);
@@ -4941,7 +5220,7 @@ namespace amos {
         //     FORMULA FOR ORDERS FNU TO FNU+NLAST-1 BECAUSE FNU+NLAST-1.LT.FNUL.
         //     Y(I)=CZERO FOR I=NLAST+1,N
         //
-        //***ROUTINES CALLED  ZUCHK,ZUNIK,ZUOIK,D1MACH,AZABS
+        //***ROUTINES CALLED  ZUCHK,ZUNIK,ZUOIK,D1MACH,ZABS
         //***END PROLOGUE  ZUNI1
 
         std::complex<double> c2, phi, rz, sum, s1, s2, zeta1 = 0, zeta2 = 0;
@@ -5126,7 +5405,7 @@ namespace amos {
         //     FORMULA FOR ORDERS FNU TO FNU+NLAST-1 BECAUSE FNU+NLAST-1.LT.FNUL.
         //     Y(I)=CZERO FOR I=NLAST+1,N
         //
-        //***ROUTINES CALLED  ZAIRY,ZUCHK,ZUNHJ,ZUOIK,D1MACH,AZABS
+        //***ROUTINES CALLED  ZAIRY,ZUCHK,ZUNHJ,ZUOIK,D1MACH,ZABS
         //***END PROLOGUE  ZUNI2
 
         std::complex<double> ai, arg, asum, bsum, cfn, cid, crsc, cscl, c1, c2, dai, phi, rz, s1, s2, zb, zeta1, zeta2,
@@ -5364,7 +5643,7 @@ namespace amos {
         //        ARRAY. IPMTR=0 COMPUTES ALL PARAMETERS. IPMTR=1 COMPUTES PHI,
         //        ZETA1,ZETA2.
         //
-        //***ROUTINES CALLED  ZDIV,AZLOG,AZSQRT,D1MACH
+        //***ROUTINES CALLED  ZDIV,ZLOG,ZSQRT,D1MACH
         //***END PROLOGUE  ZUNIK
 
         std::complex<double> cfn, crfn, s, sr, t, t2, zn;
@@ -5464,7 +5743,7 @@ namespace amos {
         //     MR INDICATES THE DIRECTION OF ROTATION FOR ANALYTIC CONTINUATION.
         //     NZ=-1 MEANS AN OVERFLOW WILL OCCUR
         //
-        //***ROUTINES CALLED  ZKSCL,ZS1S2,ZUCHK,ZUNIK,D1MACH,AZABS
+        //***ROUTINES CALLED  ZKSCL,ZS1S2,ZUCHK,ZUNIK,D1MACH,ZABS
         //***END PROLOGUE  ZUNK1
 
         std::complex<double> cfn, ck, crsc, cs, cscl, csgn, cspn, c1, c2, rz, s1, s2, zr, phid, zeta1d = 0.0,
@@ -5850,7 +6129,7 @@ namespace amos {
         //     ATES THE DIRECTION OF ROTATION FOR ANALYTIC CONTINUATION.
         //     NZ=-1 MEANS AN OVERFLOW WILL OCCUR
         //
-        //***ROUTINES CALLED  ZAIRY,ZKSCL,ZS1S2,ZUCHK,ZUNHJ,D1MACH,AZABS
+        //***ROUTINES CALLED  ZAIRY,ZKSCL,ZS1S2,ZUCHK,ZUNHJ,D1MACH,ZABS
         //***END PROLOGUE  ZUNK2
 
         std::complex<double> ai, cfn, ck, cs, csgn, cspn, c1, c2, dai, rz, s1, s2, zb, zn, zr, phid, argd, zeta1d,
@@ -6340,7 +6619,7 @@ namespace amos {
         //     IKFLG=2 AND 0.LT.NUF.LT.N NOT CONSIDERED. Y MUST BE SET BY
         //             ANOTHER ROUTINE
         //
-        //***ROUTINES CALLED  ZUCHK,ZUNHJ,ZUNIK,D1MACH,AZABS,AZLOG
+        //***ROUTINES CALLED  ZUCHK,ZUNHJ,ZUNIK,D1MACH,ZABS,ZLOG
         //***END PROLOGUE  ZUOIK
 
         std::complex<double> arg, asum, bsum, cz, phi, sum, zb, zeta1;
@@ -6513,7 +6792,7 @@ namespace amos {
         //     ZWRSK COMPUTES THE I BESSEL FUNCTION FOR RE(Z).GE.0.0 BY
         //     NORMALIZING THE I FUNCTION RATIOS FROM ZRATI BY THE WRONSKIAN
         //
-        //***ROUTINES CALLED  D1MACH,ZBKNU,ZRATI,AZABS
+        //***ROUTINES CALLED  D1MACH,ZBKNU,ZRATI,ZABS
         //***END PROLOGUE  ZWRSK
 
         std::complex<double> cinu, cscl, ct, c1, c2, rct, st;
