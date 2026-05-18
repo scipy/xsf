@@ -103,7 +103,8 @@ namespace cephes {
             }
 
             /* modulo 180 */
-            x = x - 180.0 * std::floor(x / 180.0);
+            double k = std::floor(x / 180.0);
+            x = x - 180.0 * k;
             if (cotflg) {
                 if (x <= 90.0) {
                     x = 90.0 - x;
@@ -118,6 +119,9 @@ namespace cephes {
                 }
             }
             if (x == 0.0) {
+                if (static_cast<long long>(k) & 1) {
+                    sign *= -1;
+                }
                 return sign * 0.0;
             } else if (x == 45.0) {
                 return sign * 1.0;
