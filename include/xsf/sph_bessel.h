@@ -33,8 +33,8 @@ Translated to C++ by SciPy developers in 2024.
 
 namespace xsf {
 
-template <typename T>
-T sph_bessel_j(long n, T x) {
+template <typename T, typename N, enable_if_supported_int_t<N> = 0>
+T sph_bessel_j(N n, T x) {
     if (std::isnan(x)) {
         return x;
     }
@@ -71,7 +71,7 @@ T sph_bessel_j(long n, T x) {
     }
 
     T sn;
-    for (int i = 0; i < n - 1; ++i) {
+    for (N i = 0; i < n - 1; ++i) {
         sn = (2 * i + 3) * s1 / x - s0;
         s0 = s1;
         s1 = sn;
@@ -84,8 +84,8 @@ T sph_bessel_j(long n, T x) {
     return sn;
 }
 
-template <typename T>
-std::complex<T> sph_bessel_j(long n, std::complex<T> z) {
+template <typename T, typename N, enable_if_supported_int_t<N> = 0>
+std::complex<T> sph_bessel_j(N n, std::complex<T> z) {
     if (std::isnan(std::real(z)) || std::isnan(std::imag(z))) {
         return z;
     }
@@ -129,8 +129,13 @@ std::complex<T> sph_bessel_j(long n, std::complex<T> z) {
     return out;
 }
 
-template <typename T>
-T sph_bessel_j_jac(long n, T z) {
+template <typename T, typename N, enable_if_supported_int_t<N> = 0>
+T sph_bessel_j_jac(N n, T z) {
+    if (n < 0) {
+        set_error("spherical_j_jac", SF_ERROR_DOMAIN, nullptr);
+        return std::numeric_limits<T>::quiet_NaN();
+    }
+
     if (n == 0) {
         return -sph_bessel_j(1, z);
     }
@@ -145,13 +150,13 @@ T sph_bessel_j_jac(long n, T z) {
     }
 
     // DLMF 10.51.2
-    return sph_bessel_j(n - 1, z) - static_cast<T>(n + 1) * sph_bessel_j(n, z) / z;
+    return sph_bessel_j(n - 1, z) - (static_cast<T>(n) + 1.0) * sph_bessel_j(n, z) / z;
 }
 
-template <typename T>
-T sph_bessel_y(long n, T x) {
+template <typename T, typename N, enable_if_supported_int_t<N> = 0>
+T sph_bessel_y(N n, T x) {
     T s0, s1, sn;
-    int idx;
+    N idx;
 
     if (std::isnan(x)) {
         return x;
@@ -163,7 +168,7 @@ T sph_bessel_y(long n, T x) {
     }
 
     if (x < 0) {
-        return std::pow(-1, n + 1) * sph_bessel_y(n, -x);
+        return n % 2 == 0 ? -sph_bessel_y(n, -x) : sph_bessel_y(n, -x);
     }
 
     if (x == std::numeric_limits<T>::infinity() || x == -std::numeric_limits<T>::infinity()) {
@@ -197,10 +202,11 @@ T sph_bessel_y(long n, T x) {
     return sn;
 }
 
-inline float sph_bessel_y(long n, float x) { return sph_bessel_y(n, static_cast<double>(x)); }
+template <typename N, enable_if_supported_int_t<N> = 0>
+inline float sph_bessel_y(N n, float x) { return sph_bessel_y(n, static_cast<double>(x)); }
 
-template <typename T>
-std::complex<T> sph_bessel_y(long n, std::complex<T> z) {
+template <typename T, typename N, enable_if_supported_int_t<N> = 0>
+std::complex<T> sph_bessel_y(N n, std::complex<T> z) {
     if (std::isnan(std::real(z)) || std::isnan(std::imag(z))) {
         return z;
     }
@@ -233,17 +239,22 @@ std::complex<T> sph_bessel_y(long n, std::complex<T> z) {
     return std::sqrt(static_cast<T>(M_PI_2) / z) * cyl_bessel_y(n + 1 / static_cast<T>(2), z);
 }
 
-template <typename T>
-T sph_bessel_y_jac(long n, T x) {
+template <typename T, typename N, enable_if_supported_int_t<N> = 0>
+T sph_bessel_y_jac(N n, T x) {
+    if (n < 0) {
+        set_error("spherical_y_jac", SF_ERROR_DOMAIN, nullptr);
+        return std::numeric_limits<T>::quiet_NaN();
+    }
+
     if (n == 0) {
         return -sph_bessel_y(1, x);
     }
 
-    return sph_bessel_y(n - 1, x) - static_cast<T>(n + 1) * sph_bessel_y(n, x) / x;
+    return sph_bessel_y(n - 1, x) - (static_cast<T>(n) + 1.0) * sph_bessel_y(n, x) / x;
 }
 
-template <typename T>
-T sph_bessel_i(long n, T x) {
+template <typename T, typename N, enable_if_supported_int_t<N> = 0>
+T sph_bessel_i(N n, T x) {
     if (std::isnan(x)) {
         return x;
     }
@@ -264,7 +275,7 @@ T sph_bessel_i(long n, T x) {
     if (std::isinf(x)) {
         // https://dlmf.nist.gov/10.49.E8
         if (x == -std::numeric_limits<T>::infinity()) {
-            return std::pow(-1, n) * std::numeric_limits<T>::infinity();
+            return n % 2 == 0 ? std::numeric_limits<T>::infinity() : -std::numeric_limits<T>::infinity();
         }
 
         return std::numeric_limits<T>::infinity();
@@ -273,8 +284,8 @@ T sph_bessel_i(long n, T x) {
     return sqrt(static_cast<T>(M_PI_2) / x) * cyl_bessel_i(n + 1 / static_cast<T>(2), x);
 }
 
-template <typename T>
-std::complex<T> sph_bessel_i(long n, std::complex<T> z) {
+template <typename T, typename N, enable_if_supported_int_t<N> = 0>
+std::complex<T> sph_bessel_i(N n, std::complex<T> z) {
     if (std::isnan(std::real(z)) || std::isnan(std::imag(z))) {
         return z;
     }
@@ -297,7 +308,7 @@ std::complex<T> sph_bessel_i(long n, std::complex<T> z) {
         // https://dlmf.nist.gov/10.52.E5
         if (std::imag(z) == 0) {
             if (std::real(z) == -std::numeric_limits<T>::infinity()) {
-                return std::pow(-1, n) * std::numeric_limits<T>::infinity();
+                return n % 2 == 0 ? std::numeric_limits<T>::infinity() : -std::numeric_limits<T>::infinity();
             }
 
             return std::numeric_limits<T>::infinity();
@@ -315,8 +326,13 @@ std::complex<T> sph_bessel_i(long n, std::complex<T> z) {
     return std::sqrt(static_cast<T>(M_PI_2) / z) * cyl_bessel_i(n + 1 / static_cast<T>(2), z);
 }
 
-template <typename T>
-T sph_bessel_i_jac(long n, T z) {
+template <typename T, typename N, enable_if_supported_int_t<N> = 0>
+T sph_bessel_i_jac(N n, T z) {
+    if (n < 0) {
+        set_error("spherical_i_jac", SF_ERROR_DOMAIN, nullptr);
+        return std::numeric_limits<T>::quiet_NaN();
+    }
+
     if (n == 0) {
         return sph_bessel_i(1, z);
     }
@@ -329,11 +345,11 @@ T sph_bessel_i_jac(long n, T z) {
         }
     }
 
-    return sph_bessel_i(n - 1, z) - static_cast<T>(n + 1) * sph_bessel_i(n, z) / z;
+    return sph_bessel_i(n - 1, z) - (static_cast<T>(n) + 1.0) * sph_bessel_i(n, z) / z;
 }
 
-template <typename T>
-T sph_bessel_k(long n, T z) {
+template <typename T, typename N, enable_if_supported_int_t<N> = 0>
+T sph_bessel_k(N n, T z) {
     if (std::isnan(z)) {
         return z;
     }
@@ -359,8 +375,8 @@ T sph_bessel_k(long n, T z) {
     return std::sqrt(M_PI_2 / z) * cyl_bessel_k(n + 1 / static_cast<T>(2), z);
 }
 
-template <typename T>
-std::complex<T> sph_bessel_k(long n, std::complex<T> z) {
+template <typename T, typename N, enable_if_supported_int_t<N> = 0>
+std::complex<T> sph_bessel_k(N n, std::complex<T> z) {
     if (std::isnan(std::real(z)) || std::isnan(std::imag(z))) {
         return z;
     }
@@ -390,13 +406,18 @@ std::complex<T> sph_bessel_k(long n, std::complex<T> z) {
     return std::sqrt(static_cast<T>(M_PI_2) / z) * cyl_bessel_k(n + 1 / static_cast<T>(2), z);
 }
 
-template <typename T>
-T sph_bessel_k_jac(long n, T x) {
+template <typename T, typename N, enable_if_supported_int_t<N> = 0>
+T sph_bessel_k_jac(N n, T x) {
+    if (n < 0) {
+        set_error("spherical_k_jac", SF_ERROR_DOMAIN, nullptr);
+        return std::numeric_limits<T>::quiet_NaN();
+    }
+
     if (n == 0) {
         return -sph_bessel_k(1, x);
     }
 
-    return -sph_bessel_k(n - 1, x) - static_cast<T>(n + 1) * sph_bessel_k(n, x) / x;
+    return -sph_bessel_k(n - 1, x) - (static_cast<T>(n) + 1.0) * sph_bessel_k(n, x) / x;
 }
 
 } // namespace xsf
