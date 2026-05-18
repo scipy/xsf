@@ -6,7 +6,7 @@ authors = [
 channels = ["https://prefix.dev/conda-forge"]
 description = "Special function implementations."
 name = "xsf"
-platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
+platforms = ["win-64", "linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
 version = "0.2.2"
 
 ## Build

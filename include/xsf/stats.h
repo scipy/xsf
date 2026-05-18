@@ -3,6 +3,7 @@
 #include "xsf/bessel.h"
 #include "xsf/cephes/bdtr.h"
 #include "xsf/cephes/chdtr.h"
+#include "xsf/cephes/const.h"
 #include "xsf/cephes/fdtr.h"
 #include "xsf/cephes/gdtr.h"
 #include "xsf/cephes/incbet.h"
@@ -446,6 +447,37 @@ inline double ndtri(double x) { return cephes::ndtri(x); }
 
 inline float ndtri(float x) { return static_cast<float>(cephes::ndtri(x)); }
 
+XSF_HOST_DEVICE inline double nrdtrimn(double p, double std, double x) {
+    if (std::isnan(std) || std <= 0) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    if (std::isnan(p) || p <= 0 || p >= 1) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    if (std::isnan(x)) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    return x - std * cephes::ndtri(p);
+}
+
+XSF_HOST_DEVICE inline float nrdtrimn(float p, float std, float x) {
+    return static_cast<float>(nrdtrimn(static_cast<double>(p), static_cast<double>(std), static_cast<double>(x)));
+}
+
+XSF_HOST_DEVICE inline double nrdtrisd(double mean, double p, double x) {
+    if (std::isnan(mean) || std::isnan(p) || std::isnan(x)) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    if (p <= 0 || p >= 1) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    return (x - mean) / cephes::ndtri(p);
+}
+
+XSF_HOST_DEVICE inline float nrdtrisd(float mean, float p, float x) {
+    return static_cast<float>(nrdtrisd(static_cast<double>(mean), static_cast<double>(p), static_cast<double>(x)));
+}
+
 inline double owens_t(double h, double a) { return cephes::owens_t(h, a); }
 
 inline double pdtr(double k, double m) { return cephes::pdtr(k, m); }
@@ -566,6 +598,76 @@ XSF_HOST_DEVICE inline typename InputMat::value_type take_from_discrete_cdf(Inpu
         return T(1.0);
     }
     return cdf(k);
+}
+
+namespace detail {
+
+    XSF_HOST_DEVICE inline double von_mises_cdf_series(double k, double x, unsigned int p) {
+        double s, c, sn, cn, r, v;
+        unsigned int n;
+        s = std::sin(x);
+        c = std::cos(x);
+        sn = std::sin(p * x);
+        cn = std::cos(p * x);
+        r = 0;
+        v = 0;
+        for (n = p - 1; n > 0; --n) {
+            double sn_new = sn * c - cn * s;
+            double cn_new = cn * c + sn * s;
+            sn = sn_new;
+            cn = cn_new;
+            r = k / (2 * n + k * r);
+            v = r * (sn / n + v);
+        }
+        return 0.5 + x / (2.0 * M_PI) + v / M_PI;
+    }
+
+    XSF_HOST_DEVICE inline double von_mises_cdf_normalapprox(double k, double x) {
+        double b = xsf::cephes::detail::SQRT2OPI / cephes::i0e(k);
+        double z = b * std::sin(x / 2.0);
+        return ndtr(z);
+    }
+
+} // namespace detail
+
+XSF_HOST_DEVICE inline double von_mises_cdf(double k, double x) {
+    // CDF of the von Mises distribution with concentration k, extended
+    // periodically over x.
+    //
+    // For k < 50, this uses the backward-recursion series method of Hill [1],
+    // Algorithm 518, with constants chosen for about 12 decimal digits. For k >= 50,
+    // this switches to a large-concentration normal approximation.
+    //
+    // References:
+    // [1] G. W. Hill, "Algorithm 518: Incomplete Bessel Function I0.
+    //     The Von Mises Distribution [S14]", ACM Transactions on Mathematical
+    //     Software, 3(3), 279-284, 1977.
+    //     DOI: https://doi.org/10.1145/355744.355753
+
+    if (k < 0) {
+        set_error("von_mises_cdf", SF_ERROR_DOMAIN, NULL);
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+
+    double ix = std::round(x / (2 * M_PI));
+    x -= ix * 2.0 * M_PI;
+
+    // These values should give 12 decimal digits
+    const double ck = 50.0;
+    const double a1 = 28.0, a2 = 0.5, a3 = 100.0, a4 = 5.0;
+    double result;
+    if (k < ck) {
+        unsigned int p = static_cast<unsigned int>(1 + a1 + a2 * k - a3 / (k + a4));
+        result = detail::von_mises_cdf_series(k, x, p);
+        result = std::min(std::max(result, 0.0), 1.0);
+    } else {
+        result = detail::von_mises_cdf_normalapprox(k, x);
+    }
+    return result + ix;
+}
+
+XSF_HOST_DEVICE inline float von_mises_cdf(float k, float x) {
+    return static_cast<float>(von_mises_cdf(static_cast<double>(k), static_cast<double>(x)));
 }
 
 } // namespace xsf
