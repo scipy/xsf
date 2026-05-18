@@ -143,6 +143,8 @@ namespace cephes {
         constexpr double j1_Z1 = 1.46819706421238932572E1;
         constexpr double j1_Z2 = 4.92184563216946036703E1;
 
+        constexpr double sqrt_eps = 1.490116119384765625e-8; // sqrt(epsilon)
+
     } // namespace detail
 
     XSF_HOST_DEVICE inline double j1(double x) {
@@ -152,7 +154,9 @@ namespace cephes {
         if (x < 0) {
             return -j1(-x);
         }
-
+        if (x < detail::sqrt_eps) {
+            return 0.5 * x;
+        }
         if (w <= 5.0) {
             z = x * x;
             w = polevl(z, detail::j1_RP, 3) / p1evl(z, detail::j1_RQ, 8);
