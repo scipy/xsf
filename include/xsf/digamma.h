@@ -34,6 +34,17 @@ namespace detail {
     // Value of the negative root
     constexpr double digamma_negrootval = 7.2897639029768949e-17;
 
+    // Limit of digamma(z) for non-finite complex z.
+    // Precondition: !std::isfinite(z.real()) || !std::isfinite(z.imag()).
+    template <typename T>
+    XSF_HOST_DEVICE inline std::complex<T> digamma_nonfinite_limit(std::complex<T> z) {
+        const T qnan = std::numeric_limits<T>::quiet_NaN();
+        if (std::isnan(z.real()) || std::isnan(z.imag())) return {qnan, qnan};
+        if (std::isinf(z.imag())) return {qnan, qnan};
+        if (z.real() > T{0}) return {std::numeric_limits<T>::infinity(), T{0}};
+        return {qnan, qnan};
+    }
+
     template <typename T>
     XSF_HOST_DEVICE T digamma_zeta_series(T z, double root, double rootval) {
         T res = rootval;
@@ -144,6 +155,12 @@ XSF_HOST_DEVICE inline std::complex<double> digamma(std::complex<double> z) {
      * - If |z| is small, use a recurrence relation to make |z| large
      * enough to use the asymptotic series.
      */
+
+    // Non-finite z: std::abs(complex) can return NaN, false-routing dispatch.
+    if (!std::isfinite(z.real()) || !std::isfinite(z.imag())) {
+        return detail::digamma_nonfinite_limit(z);
+    }
+
     double absz = std::abs(z);
     std::complex<double> res = 0;
     /* Use the asymptotic series for z away from the negative real axis
