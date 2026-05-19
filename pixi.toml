@@ -48,7 +48,7 @@ libarrow-all = ">=19.0.1,<20"
 # clean xsref dir
 clean-xsref = { cwd = ".", cmd = "rm -rf xsref", description = "Remove the local xsref." }
 # clone xsref
-clone-xsref.cmd = "git clone --depth 1 --branch v0.0.0 https://github.com/scipy/xsref.git"
+clone-xsref.cmd = "git clone --depth 1 https://github.com/scipy/xsref.git"
 clone-xsref.cwd = "."
 clone-xsref.depends-on = ["clean-xsref"]
 clone-xsref.description = "Clone xsref after cleaning old checkout."
