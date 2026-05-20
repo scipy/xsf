@@ -143,13 +143,14 @@ std::string get_platform_str() {
      * (Boost isn't a dependency yet but this is planned)
      * and we should have tolerance files for a wider variety of
      * compiler/os/architecture combos, including for specific compiler
-     * versions. For now, there are these two platforms with tolerance
-     * files and we use the former with Clang on Mac and the later
-     * otherwise. */
+     * versions. For now, there are three known platforms with tolerance
+     * files and we use "other" otherwise. */
 #if defined(__clang__) && defined(__APPLE__) && defined(__aarch64__)
     return "clang-darwin-aarch64";
 #elif defined(__GNUG__) && !defined(__clang__) && defined(__linux__) && defined(__x86_64__)
     return "gcc-linux-x86_64";
+#elif (defined(_MSC_VER) || (defined(__clang__) && defined(_WIN32))) && defined(_M_X64)
+    return "msvc-windows-x86_64";
 #else
     return "other";
 #endif
