@@ -1348,7 +1348,7 @@ namespace amos {
         // TEST FOR PROPER RANGE
         //
         az = std::abs(z);
-        bb = std::numeric_limits<double>::max() * 0.5;
+        bb = std::numeric_limits<int>::max() * 0.5;
         aa = std::fmin(0.5 / tol, bb);
         if ((az > aa) || (fn > aa)) {
             *ierr = 4;
@@ -1961,7 +1961,7 @@ namespace amos {
         fn = fnu + (n - 1);
 
         aa = 0.5 / tol;
-        bb = std::numeric_limits<double>::max() * 0.5;
+        bb = std::numeric_limits<int>::max() * 0.5;
         aa = std::fmin(aa, bb);
         if ((az > aa) || (fn > aa)) {
             *ierr = 4;
@@ -5836,9 +5836,7 @@ namespace amos {
         std::complex<double> asum[2] = {0.0};
         std::complex<double> bsum[2] = {0.0};
         std::complex<double> cy[2] = {0.0};
-        double bry[3] = {
-            (1.0 + THRESHOLD_MIN / tol), 1.0 / (1.0 + THRESHOLD_MIN / tol), std::numeric_limits<double>::max()
-        };
+        double bry[3] = {THRESHOLD_MIN / tol, tol / THRESHOLD_MIN, std::numeric_limits<double>::max()};
 
         kdflg = 1;
         kflag = 1;
