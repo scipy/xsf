@@ -25,7 +25,7 @@ TEST_CASE("make_matrix_ee", "[mathieu][xsf_tests]") {
     int N = 6;
 
     std::vector<double> D(N, 0.0);
-    std::vector<double> E(N-1, 0.0);
+    std::vector<double> E(N - 1, 0.0);
     double q = 2.0;
 
     std::vector<double> E_expected = {2.8284271247461903, 2.0, 2.0, 2.0, 2.0};
