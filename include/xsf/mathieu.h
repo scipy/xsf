@@ -14,7 +14,7 @@
  * to the original (with the exception that a policy template arg has been
  * added to allow either degrees or radians to be used for angular arguments).
  *
- * Stuart Brorson's implementations follow prototypes written in MatLab and
+ * Stuart Brorson's implementations follow prototypes written in MATLAB and
  * maintained on GitHub at https://github.com/brorson/MathieuFcnsFourier.
  * A full write up for the algorithms is available at
  * https://github.com/brorson/ScipyMathieuPaper.
@@ -54,7 +54,7 @@ namespace mathieu {
     /* Calculates the first element along the diagonal of the recurrence
      * relation matrix as a function of the shape parameter ``q``.
      *
-     * Templated on function parity (even vs odd mathieu functions) and
+     * Templated on function parity (even vs odd Mathieu functions) and
      * order parity (whether the order parameter ``m`` is even or odd).
      */
     template <Parity FuncParity, Parity OrderParity>
@@ -172,7 +172,7 @@ namespace mathieu {
         return N;
     }
 
-    /* Sum the fourier series for computing angular Mathieu functions.
+    /* Sum the Fourier series for computing angular Mathieu functions.
      *
      * The fourier coefficients ``X`` are the values of the eigenvector
      * associated to the characteristic eigenvalue. xsf does not currently
@@ -194,7 +194,7 @@ namespace mathieu {
      * value of the AngleUnits template argument.
      *
      * Ouputs:
-     * out = Value of angular mathieu function for given fourier coefficients at angle v
+     * out = Value of angular mathieu function for given fourier coefficients at angle v.
      * out_diff = Derivative of angular mathieu function for given fourier coefficients at angle v.
      */
     template <
