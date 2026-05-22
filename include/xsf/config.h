@@ -56,6 +56,7 @@
 #ifdef __CUDACC__
 #define XSF_HOST_DEVICE __host__ __device__
 
+#include <cuda/std/algorithm>
 #include <cuda/std/array>
 #include <cuda/std/cmath>
 #include <cuda/std/cstddef>
@@ -153,6 +154,16 @@ using array = cuda::std::array<T, N>;
 template <typename T>
 XSF_HOST_DEVICE void swap(T &a, T &b) {
     cuda::std::swap(a, b);
+}
+
+template <typename T>
+XSF_HOST_DEVICE constexpr const T& min(const T& a, const T& b) {
+    return cuda::std::min(a, b);
+}
+
+template <typename T>
+XSF_HOST_DEVICE constexpr const T& max(const T& a, const T& b) {
+    return cuda::std::max(a, b);
 }
 
 // Reimplement std::clamp until it's available in CuPy
