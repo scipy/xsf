@@ -56,6 +56,7 @@
 #ifdef __CUDACC__
 #define XSF_HOST_DEVICE __host__ __device__
 
+#include <cuda/std/array>
 #include <cuda/std/cmath>
 #include <cuda/std/cstddef>
 #include <cuda/std/cstdint>
@@ -143,6 +144,9 @@ XSF_HOST_DEVICE inline double ldexp(double num, int exp) { return ::ldexp(num, e
 XSF_HOST_DEVICE inline double fmod(double x, double y) { return ::fmod(x, y); }
 XSF_HOST_DEVICE inline double nextafter(double from, double to) { return ::nextafter(from, to); }
 #endif
+
+template <typename T, size_t N>
+using array = cuda::std::array<T, N>;
 
 template <typename T>
 XSF_HOST_DEVICE void swap(T &a, T &b) {
