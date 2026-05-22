@@ -163,8 +163,9 @@ namespace mathieu {
         int N;
 
         // This is sort of ad-hoc ...
-        if (q > 1.0) {
-            double qq = std::log10(q); // I need to use size of q to compute N.
+        double abs_q = std::abs(q);
+        if (abs_q > 1.0) {
+            double qq = std::log10(abs_q); // I need to use size of q to compute N.
             N = m + 25 + 10 * qq;
         } else {
             N = m + 25;
