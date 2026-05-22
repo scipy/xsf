@@ -159,41 +159,6 @@ inline double gdtr(double a, double b, double x) { return cephes::gdtr(a, b, x);
 
 inline double gdtrc(double a, double b, double x) { return cephes::gdtrc(a, b, x); }
 
-XSF_HOST_DEVICE inline double gdtria(double p, double b, double x) {
-    if ((x <= 0) || (p < 0.0) || (p > 1.0)) {
-        return std::numeric_limits<double>::quiet_NaN();
-    }
-    if ((b == 0) && (p == 0)) {
-        if (std::isinf(x) && (x > 0)) {
-            return std::numeric_limits<double>::quiet_NaN();
-        }
-        return 0.0;
-    }
-    return gammaincinv(b, p) / x;
-}
-
-XSF_HOST_DEVICE inline float gdtria(float p, float b, float x) {
-    return static_cast<float>(gdtria(static_cast<double>(p), static_cast<double>(b), static_cast<double>(x)));
-}
-
-XSF_HOST_DEVICE inline double gdtrix(double a, double b, double p) {
-    if ((p < 0.0) || (p > 1.0)) {
-        return std::numeric_limits<double>::quiet_NaN();
-    }
-    if ((a == 0) && (b == 0)) {
-        return std::numeric_limits<double>::quiet_NaN();
-    }
-    // if a or b is positive infinite, return NaN
-    if ((std::isinf(a) || std::isinf(b)) && (a >= 0 && b >= 0)) {
-        return std::numeric_limits<double>::quiet_NaN();
-    }
-    return gammaincinv(b, p) / a;
-}
-
-XSF_HOST_DEVICE inline float gdtrix(float a, float b, float p) {
-    return static_cast<float>(gdtrix(static_cast<double>(a), static_cast<double>(b), static_cast<double>(p)));
-}
-
 inline double kolmogorov(double x) { return cephes::kolmogorov(x); }
 
 inline double kolmogc(double x) { return cephes::kolmogc(x); }
