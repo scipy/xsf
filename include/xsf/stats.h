@@ -6,6 +6,7 @@
 #include "cephes/const.h"
 #include "cephes/fdtr.h"
 #include "cephes/gdtr.h"
+#include "cephes/i0.h"
 #include "cephes/incbet.h"
 #include "cephes/incbi.h"
 #include "cephes/nbdtr.h"
