@@ -1,6 +1,6 @@
 #pragma once
 
-#include "xsf/config.h"
+#include "config.h"
 #include "third_party/kokkos/mdspan.hpp"
 
 namespace xsf {
