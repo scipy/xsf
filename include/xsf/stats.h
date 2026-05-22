@@ -107,8 +107,8 @@ XSF_HOST_DEVICE inline std::complex<double> log_ndtr(std::complex<double> z) {
     }
 
     z *= -M_SQRT1_2;
-    double x = std::real(z);
-    double y = std::imag(z);
+    double x = z.real();
+    double y = z.imag();
 
     /* Compute the principal branch of $log(exp(-z^2))$, using the fact that
      * $log(e^t) = log|e^t| + i Arg(e^t)$, and that if $t = r + is$, then
