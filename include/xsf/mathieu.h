@@ -78,7 +78,7 @@ namespace mathieu {
     /* Calculates the first element along the off-diagonal of the recurrence
      * relation matrix as a function of the shape parameter ``q``.
      *
-     * Templated on function parity (even vs odd mathieu functions) and
+     * Templated on function parity (even vs odd Mathieu functions) and
      * order parity (whether the order parameter ``m`` is even or odd).
      */
     template <Parity FuncParity, Parity OrderParity>
@@ -117,7 +117,7 @@ namespace mathieu {
 
       Template arguments:
 
-      FuncParity = parity of mathieu function, Parity::Even for the
+      FuncParity = parity of Mathieu function, Parity::Even for the
       even Mathieu function and Parity::Odd for the odd
       Mathieu function.
 
@@ -174,13 +174,13 @@ namespace mathieu {
 
     /* Sum the Fourier series for computing angular Mathieu functions.
      *
-     * The fourier coefficients ``X`` are the values of the eigenvector
+     * The Fourier coefficients ``X`` are the values of the eigenvector
      * associated to the characteristic eigenvalue. xsf does not currently
      * supply a kernel for computing this eigenvector.
      *
      * Template arguments:
      *
-     * FuncParity = parity of mathieu function, Parity::Even for the
+     * FuncParity = parity of Mathieu function, Parity::Even for the
      * even Mathieu function and Parity::Odd for the odd
      * Mathieu function.
      *
@@ -189,13 +189,13 @@ namespace mathieu {
      * AngleUnits = AngleUnitPolicy::Radians or AngleUnitPolicy::Degrees.
      *
      * Inputs:
-     * X = A 1d mdspan view of the fourier coefficients.
+     * X = A 1d mdspan view of the Fourier coefficients.
      * v = Angular argument, in either radians or degrees depending on the
      * value of the AngleUnits template argument.
      *
      * Ouputs:
-     * out = Value of angular mathieu function for given fourier coefficients at angle v.
-     * out_diff = Derivative of angular mathieu function for given fourier coefficients at angle v.
+     * out = Value of angular Mathieu function for given Fourier coefficients at angle v.
+     * out_diff = Derivative of angular Mathieu function for given Fourier coefficients at angle v.
      */
     template <
         Parity FuncParity, Parity OrderParity, AngleUnitPolicy AngleUnits = AngleUnitPolicy::Radians, typename InputMat>
