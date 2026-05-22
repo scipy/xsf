@@ -242,9 +242,11 @@ namespace mathieu {
 
         /* This makes sure the fcn has the right overall sign.
          * The eigenvector solver that found the coefficients may have
-         * given the coefficients with an incorrect sign.
+         * given the correct vector of coefficients, but with the sign
+         * flipped.
          * These functions satisfy cem(m, q, 0) > 0 and sem'(m, q, 0) > 0
-         * and we can use that to ensure the sign is correct.
+         * (follows from https://dlmf.nist.gov/28.2#E29).
+         * Use these to fix the sign if needed.
          * Someday combine this with the above sums into the same for loop. */
         double x = 0.0;
         for (decltype(N) l = 0; l < N; l++) {
