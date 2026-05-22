@@ -1,7 +1,7 @@
 /* These tests are adapted from the test code written by Stuart Brorson for
  * https://github.com/scipy/xsf/pull/99. It includes only tests for the
  * kernels featured in xsf for generating the recurrence matrices and
- * calculating Fourier sums. xsf does not contain full implementions of Mathieu
+ * calculating Fourier sums. xsf does not contain full implementations of Mathieu
  * functions, only kernels which can potentially be used in SciPy or CuPy as
  * part of a full CPU or GPU implementation. Generating the Fourier coefficients
  * requires finding eigenvectors of a symmetric tridiagonal matrix, something which
@@ -25,7 +25,7 @@ TEST_CASE("make_matrix_ee", "[mathieu][xsf_tests]") {
     int N = 6;
 
     std::vector<double> D(N, 0.0);
-    std::vector<double> E(N, 0.0);
+    std::vector<double> E(N-1, 0.0);
     double q = 2.0;
 
     std::vector<double> E_expected = {2.8284271247461903, 2.0, 2.0, 2.0, 2.0};
@@ -137,7 +137,7 @@ TEST_CASE("make_matrix_oo", "[mathieu][xsf_tests]") {
     }
 }
 
-TEST_CASE("sum_fourier_series_even_even_q1_m0", "[mathieu][xsf_texts]") {
+TEST_CASE("sum_fourier_series_even_even_q1_m0", "[mathieu][xsf_tests]") {
     double q = 1.0;
     int m = 0;
     // Fourier coefficients
@@ -155,7 +155,7 @@ TEST_CASE("sum_fourier_series_even_even_q1_m0", "[mathieu][xsf_texts]") {
 
     const std::vector<double> v = linspace(0.0, M_PI, 9);
 
-    /* Reference values computed with wolfram engine. */
+    /* Reference values computed with Wolfram Engine. */
     std::vector<double> expected = {0.38482782930129905, 0.45675426482776166, 0.6543520522319161,
                                     0.8892092001491974,  0.9984585148130367,  0.8892092001491975,
                                     0.6543520522319162,  0.4567542648277617,  0.38482782930129905};
@@ -182,7 +182,7 @@ TEST_CASE("sum_fourier_series_even_even_q1_m0", "[mathieu][xsf_texts]") {
     }
 }
 
-TEST_CASE("sum_fourier_series_even_even_q1_m2", "[mathieu][xsf_texts]") {
+TEST_CASE("sum_fourier_series_even_even_q1_m2", "[mathieu][xsf_tests]") {
     double q = 1.0;
     int m = 2;
     // Fourier coefficients
@@ -196,7 +196,7 @@ TEST_CASE("sum_fourier_series_even_even_q1_m2", "[mathieu][xsf_texts]") {
 
     const std::vector<double> v = linspace(0.0, M_PI, 9);
 
-    /* Reference values computed with wolfram engine. */
+    /* Reference values computed with Wolfram Engine. */
     std::vector<double> expected = {1.0859619368890114,   0.8856612185226889,  0.29865157290705935,
                                     -0.45171855334041594, -0.8157268390500982, -0.4517185533404161,
                                     0.2986515729070591,   0.8856612185226888,  1.0859619368890114};
