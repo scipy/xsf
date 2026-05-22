@@ -110,6 +110,8 @@ XSF_HOST_DEVICE inline bool signbit(double x) { return cuda::std::signbit(x); }
 
 XSF_HOST_DEVICE inline double hypot(double x, double y) { return cuda::std::hypot(x, y); }
 
+XSF_HOST_DEVICE inline double atan2(double y, double x) { return cuda::std::atan2(y, x); }
+
 // Fallback to global namespace for functions unsupported on NVRTC
 #ifndef __CUDACC_RTC__
 XSF_HOST_DEVICE inline double ceil(double x) { return cuda::std::ceil(x); }
