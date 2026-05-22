@@ -223,7 +223,7 @@ TEST_CASE("sum_fourier_series_even_even_q1_m2", "[mathieu][xsf_tests]") {
     }
 }
 
-TEST_CASE("sum_fourier_series_even_even_q1_m4", "[mathieu][xsf_texts]") {
+TEST_CASE("sum_fourier_series_even_even_q1_m4", "[mathieu][xsf_tests]") {
     double q = 1.0;
     int m = 4;
     // Fourier coefficients
@@ -264,7 +264,7 @@ TEST_CASE("sum_fourier_series_even_even_q1_m4", "[mathieu][xsf_texts]") {
     }
 }
 
-TEST_CASE("sum_fourier_series_even_odd_q1_m1", "[mathieu][xsf_texts]") {
+TEST_CASE("sum_fourier_series_even_odd_q1_m1", "[mathieu][xsf_tests]") {
     double q = 1.0;
     int m = 1;
     // Fourier coefficients
@@ -313,7 +313,7 @@ TEST_CASE("sum_fourier_series_even_odd_q1_m1", "[mathieu][xsf_texts]") {
     }
 }
 
-TEST_CASE("sum_fourier_series_even_odd_q1_m3", "[mathieu][xsf_texts]") {
+TEST_CASE("sum_fourier_series_even_odd_q1_m3", "[mathieu][xsf_tests]") {
     double q = 1.0;
     int m = 3;
     // Fourier coefficients
@@ -361,7 +361,7 @@ TEST_CASE("sum_fourier_series_even_odd_q1_m3", "[mathieu][xsf_texts]") {
     }
 }
 
-TEST_CASE("sum_fourier_series_odd_even_q1_m2", "[mathieu][xsf_texts]") {
+TEST_CASE("sum_fourier_series_odd_even_q1_m2", "[mathieu][xsf_tests]") {
     double q = 1.0;
     int m = 2;
     // Fourier coefficients
@@ -403,7 +403,7 @@ TEST_CASE("sum_fourier_series_odd_even_q1_m2", "[mathieu][xsf_texts]") {
     }
 }
 
-TEST_CASE("sum_fourier_series_odd_even_q1_m4", "[mathieu][xsf_texts]") {
+TEST_CASE("sum_fourier_series_odd_even_q1_m4", "[mathieu][xsf_tests]") {
     double q = 1.0;
     int m = 4;
     // Fourier coefficients
@@ -445,7 +445,7 @@ TEST_CASE("sum_fourier_series_odd_even_q1_m4", "[mathieu][xsf_texts]") {
     }
 }
 
-TEST_CASE("sum_fourier_series_odd_odd_q1_m1", "[mathieu][xsf_texts]") {
+TEST_CASE("sum_fourier_series_odd_odd_q1_m1", "[mathieu][xsf_tests]") {
     double q = 1.0;
     int m = 1;
     // Fourier coefficients
@@ -491,7 +491,7 @@ TEST_CASE("sum_fourier_series_odd_odd_q1_m1", "[mathieu][xsf_texts]") {
     }
 }
 
-TEST_CASE("sum_fourier_series_odd_odd_q1_m3", "[mathieu][xsf_texts]") {
+TEST_CASE("sum_fourier_series_odd_odd_q1_m3", "[mathieu][xsf_tests]") {
     double q = 1.0;
     int m = 3;
     // Fourier coefficients
