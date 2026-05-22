@@ -6,7 +6,7 @@
 
 namespace xsf {
 
-template <typename T, int ndim, int is_c_contiguous, int index_32_bits, int core_ndim>
+template <typename T, int ndim, bool is_c_contiguous, bool index_32_bits, int core_ndim>
 __device__ inline auto as_mdspan(const CArray<T, ndim, is_c_contiguous, index_32_bits, core_ndim>& arr) {
     cuda::std::array<cuda::std::ptrdiff_t, ndim> exts;
     cuda::std::array<cuda::std::ptrdiff_t, ndim> strs;
