@@ -1,5 +1,6 @@
 #pragma once
 
+#include "config.h"
 #include "cephes/bdtr.h"
 #include "cephes/chdtr.h"
 #include "cephes/const.h"
