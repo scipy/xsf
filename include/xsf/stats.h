@@ -378,15 +378,15 @@ namespace detail {
 
         // Initialize output array with zeros.
         for (decltype(n) i = 0; i < n + 1; ++i) {
-            res(i) = T(0.0);
+            res(i) = T(0);
         }
 
         if (n == 0) {
-            res(0) = T(1.0);
+            res(0) = T(1);
             return;
         }
 
-        res(0) = T(1.0) - p(0);
+        res(0) = T(1) - p(0);
         res(1) = p(0);
 
         for (decltype(n) i = 1; i < n; i++) {
@@ -439,9 +439,9 @@ XSF_HOST_DEVICE inline void poisson_binom_cdf_all(InputMat p, OutputMat res) {
 
     detail::poisson_binom_pmf_all_impl(p, res);
     for (decltype(n) i = 1; i < n; i++) {
-        res(i) = std::min(res(i) + res(i - 1), T(1.0));
+        res(i) = std::min(res(i) + res(i - 1), T(1));
     }
-    res(n) = T(1.0);
+    res(n) = T(1);
 }
 
 template <typename InputMat>
@@ -449,7 +449,7 @@ XSF_HOST_DEVICE inline typename InputMat::value_type take_from_pmf(InputMat pmf,
     using T = typename InputMat::value_type;
     auto size = pmf.extent(0);
     if ((k < 0) || (k >= static_cast<long long int>(size))) {
-        return T(0.0);
+        return T(0);
     }
     return pmf(k);
 }
@@ -459,10 +459,10 @@ XSF_HOST_DEVICE inline typename InputMat::value_type take_from_discrete_cdf(Inpu
     using T = typename InputMat::value_type;
     auto size = cdf.extent(0);
     if (k < 0) {
-        return T(0.0);
+        return T(0);
     }
     if (k >= static_cast<long long int>(size) - 1) {
-        return T(1.0);
+        return T(1);
     }
     return cdf(k);
 }
