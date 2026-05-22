@@ -124,13 +124,13 @@ XSF_HOST_DEVICE inline std::complex<double> log_ndtr(std::complex<double> z) {
 
     std::complex<double> val1 = std::complex<double>(mRe_z2, im);
 
-    std::complex<double> val2 = log(xsf::wofz(complex<double>(-y, x)));
+    std::complex<double> val2 = std::log(xsf::wofz(complex<double>(-y, x)));
     std::complex<double> result = val1 + val2 - M_LN2;
 
     /* Again, select the principal branch: log(z) = log|z| + i arg(z), thus
      * the imaginary part of the result should belong to [-pi, pi].
      */
-    im = imag(result);
+    im = result.imag();
     if (im >= M_PI) {
         im -= 2 * M_PI;
     }
