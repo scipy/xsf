@@ -240,12 +240,24 @@ namespace mathieu {
             }
         } // for (k=(N-1) ...
 
-        // This makes sure the fcn has the right overall sign for q<0.
-        // Someday combine this with the above sums into the same for loop.
+        /* This makes sure the fcn has the right overall sign.
+         * The eigenvector solver that found the coefficients may have
+         * given the coefficients with an incorrect sign.
+         * These functions satisfy cem(m, q, 0) > 0 and sem'(m, q, 0) > 0
+         * and we can use that to ensure the sign is correct.
+         * Someday combine this with the above sums into the same for loop. */
         double x = 0.0;
         for (decltype(N) l = 0; l < N; l++) {
-            x += X(l);
+            if constexpr (FuncParity == Parity::Even) {
+                // sum of coefficients A_k equals cem(m, q, 0)
+                x += X(l);
+            } else {
+                // sum of k * B_k equals sem'(m, q, 0)
+                double r = sqrt_di<Parity::Odd, OrderParity>(l);
+                x += r * X(l);
+            }
         }
+
         auto sgn = std::copysign(1.0, x);
         out = sgn * (xep + xem);
         out_diff = sgn * (xedp + xedm);
