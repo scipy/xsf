@@ -1,6 +1,5 @@
 #pragma once
 
-#include "config.h"
 #include "cephes/bdtr.h"
 #include "cephes/chdtr.h"
 #include "cephes/const.h"
@@ -15,9 +14,9 @@
 #include "cephes/owens_t.h"
 #include "cephes/pdtr.h"
 #include "cephes/tukey.h"
+#include "config.h"
 #include "erf.h"
 #include "gamma.h"
-
 
 namespace xsf {
 

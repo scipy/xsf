@@ -157,17 +157,17 @@ XSF_HOST_DEVICE void swap(T &a, T &b) {
 
 // Reimplement std::min, std::max, std::clamp until they are available in CuPy
 template <typename T>
-XSF_HOST_DEVICE constexpr const T& min(const T& a, const T& b) {
+XSF_HOST_DEVICE constexpr const T &min(const T &a, const T &b) {
     return a < b ? a : b;
 }
 
 template <typename T>
-XSF_HOST_DEVICE constexpr const T& max(const T& a, const T& b) {
+XSF_HOST_DEVICE constexpr const T &max(const T &a, const T &b) {
     return a < b ? b : a;
 }
 
 template <typename T>
-XSF_HOST_DEVICE constexpr const T& clamp(const T& v, const T& lo, const T& hi) {
+XSF_HOST_DEVICE constexpr const T &clamp(const T &v, const T &lo, const T &hi) {
     return v < lo ? lo : (v > hi ? hi : v);
 }
 

@@ -14,19 +14,27 @@ XSF_HOST_DEVICE T gamma(T x) {
 
 XSF_HOST_DEVICE inline double gammainc(double a, double x) { return cephes::igam(a, x); }
 
-XSF_HOST_DEVICE inline float gammainc(float a, float x) { return gammainc(static_cast<double>(a), static_cast<double>(x)); }
+XSF_HOST_DEVICE inline float gammainc(float a, float x) {
+    return gammainc(static_cast<double>(a), static_cast<double>(x));
+}
 
 XSF_HOST_DEVICE inline double gammaincinv(double a, double p) { return cephes::igami(a, p); }
 
-XSF_HOST_DEVICE inline float gammaincinv(float a, float p) { return gammaincinv(static_cast<double>(a), static_cast<double>(p)); }
+XSF_HOST_DEVICE inline float gammaincinv(float a, float p) {
+    return gammaincinv(static_cast<double>(a), static_cast<double>(p));
+}
 
 XSF_HOST_DEVICE inline double gammaincc(double a, double x) { return cephes::igamc(a, x); }
 
-XSF_HOST_DEVICE inline float gammaincc(float a, float x) { return gammaincc(static_cast<double>(a), static_cast<double>(x)); }
+XSF_HOST_DEVICE inline float gammaincc(float a, float x) {
+    return gammaincc(static_cast<double>(a), static_cast<double>(x));
+}
 
 XSF_HOST_DEVICE inline double gammainccinv(double a, double p) { return cephes::igamci(a, p); }
 
-XSF_HOST_DEVICE inline float gammainccinv(float a, float p) { return gammainccinv(static_cast<double>(a), static_cast<double>(p)); }
+XSF_HOST_DEVICE inline float gammainccinv(float a, float p) {
+    return gammainccinv(static_cast<double>(a), static_cast<double>(p));
+}
 
 XSF_HOST_DEVICE inline double gammaln(double x) { return cephes::lgam(x); }
 

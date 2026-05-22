@@ -1,8 +1,7 @@
-#include "config.h"
 #include "bessel.h"
 #include "cephes/kolmogorov.h"
+#include "config.h"
 #include "gamma.h"
-
 
 namespace xsf {
 
@@ -139,4 +138,4 @@ XSF_HOST_DEVICE inline double cdf_cvm(double x, int n = -1) {
     return std::min(std::max(cdf, 0.0), 1.0);
 }
 
-}
+} // namespace xsf
