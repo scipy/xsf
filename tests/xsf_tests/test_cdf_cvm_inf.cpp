@@ -1,5 +1,5 @@
 #include "../testing_utils.h"
-#include <xsf/stats.h>
+#include <xsf/stats_numpy.h>
 
 TEST_CASE("cdf_cvm_inf test", "[cdf_cvm_inf][xsf_tests]") {
     // Reference values computed with scipy.stats._hypotests._cdf_cvm_inf

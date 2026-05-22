@@ -1,5 +1,5 @@
 #include "../testing_utils.h"
-#include <xsf/stats.h>
+#include <xsf/stats_numpy.h>
 
 namespace {
 
