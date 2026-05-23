@@ -4,7 +4,7 @@
  * must supply an eigenvalue and eigenvector solver for symmetric tridiagonal
  * matrices, such as dstevd from LAPACK, to construct a complete implementation.
  *
- * This code is based on code written by Stuart Brorson (github @brorson) which is
+ * This code is based on code written by Stuart Brorson (GitHub @brorson) which is
  * available at https://github.com/scipy/xsf/pull/99. It isolates out the parts
  * which are fit for xsf as a library of simple numerical kernels which can be used
  * on both CPU and GPU. Parts for which the approach used on CPU and GPU must

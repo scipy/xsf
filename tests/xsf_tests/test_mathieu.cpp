@@ -54,7 +54,7 @@ TEST_CASE("make_matrix_eo", "[mathieu][xsf_tests]") {
     int N = 6;
 
     std::vector<double> D(N, 0.0);
-    std::vector<double> E(N, 0.0);
+    std::vector<double> E(N - 1, 0.0);
     double q = 2.0;
 
     std::vector<double> E_expected = {2.0, 2.0, 2.0, 2.0, 2.0};
@@ -83,7 +83,7 @@ TEST_CASE("make_matrix_oe", "[mathieu][xsf_tests]") {
     int N = 6;
 
     std::vector<double> D(N, 0.0);
-    std::vector<double> E(N, 0.0);
+    std::vector<double> E(N - 1, 0.0);
     double q = 2.0;
 
     std::vector<double> E_expected = {2.0, 2.0, 2.0, 2.0, 2.0};
