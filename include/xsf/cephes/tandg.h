@@ -127,7 +127,10 @@ namespace cephes {
                 return sign * 1.0;
             } else if (x == 90.0) {
                 set_error((cotflg ? "cotdg" : "tandg"), SF_ERROR_SINGULAR, NULL);
-                return std::numeric_limits<double>::infinity();
+                if (static_cast<long long>(k) & 1) {
+                    sign *= -1;
+                }
+                return sign * std::numeric_limits<double>::infinity();
             }
             /* x is now transformed into [0, 90) */
             return sign * std::tan(x * detail::PI180);
