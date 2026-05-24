@@ -167,10 +167,18 @@ namespace cephes {
         }
 
         if (x <= 5.0) {
-            z = x * x;
             if (x < 1.0e-5) {
+                /* For very small x, x*x underflows to zero and raises a
+                 * spurious floating-point exception. j0(x) = 1 - x^2/4 + ...
+                 * is 1.0 to machine precision when x*x underflows.
+                 */
+                if (x < 2e-154) {
+                    return (1.0);
+                }
+                z = x * x;
                 return (1.0 - z / 4.0);
             }
+            z = x * x;
 
             p = (z - detail::j0_DR1) * (z - detail::j0_DR2);
             p = p * polevl(z, detail::j0_RP, 3) / p1evl(z, detail::j0_RQ, 8);
@@ -209,6 +217,16 @@ namespace cephes {
             } else if (x < 0.0) {
                 set_error("y0", SF_ERROR_DOMAIN, NULL);
                 return std::numeric_limits<double>::quiet_NaN();
+            }
+            /* When x is very small, x*x underflows to zero, which raises a
+             * spurious floating-point exception. Avoid the underflow by using
+             * the limiting form directly: for tiny x, j0(x) ≈ 1 and the
+             * rational approximation reduces to its constant term.
+             */
+            if (x < 2e-154) {
+                w = detail::j0_YP[7] / detail::j0_YQ[6];
+                w += M_2_PI * std::log(x);
+                return (w);
             }
             z = x * x;
             w = polevl(z, detail::j0_YP, 7) / p1evl(z, detail::j0_YQ, 7);
