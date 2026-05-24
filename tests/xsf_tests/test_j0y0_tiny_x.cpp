@@ -42,7 +42,7 @@ TEST_CASE("j0 tiny x underflow threshold", "[j0][y0][xsf_tests]") {
         CHECK(w < 0.0);
     }
 
-    SECTION("j0 and y0 at values just above double_min") {
+    SECTION("j0 and y0 at values just above sqrt_double_min") {
         // Values just above the threshold should still compute correctly
         // via the normal path without underflow exceptions
         auto j = xsf::cephes::j0(2e-154);

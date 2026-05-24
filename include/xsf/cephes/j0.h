@@ -105,7 +105,7 @@ namespace cephes {
 
     namespace detail {
 
-        inline constexpr double double_min = 1.4916681462400413e-154;
+        inline constexpr double sqrt_double_min = 1.4916681462400413e-154;
 
         constexpr double j0_PP[7] = {
             7.96936729297347051624E-4, 8.28352392107440799803E-2, 1.23953371646414299388E0,  5.44725003058768775090E0,
@@ -170,11 +170,11 @@ namespace cephes {
 
         if (x <= 5.0) {
             if (x < 1.0e-5) {
-                /* For x < double_min (~1.49e-154), x*x underflows to zero and raises a
+                /* For x < sqrt_double_min (~1.49e-154), x*x underflows to zero and raises a
                  * spurious floating-point exception. j0(x) = 1 - x^2/4 + ...
                  * is 1.0 to machine precision when x*x underflows.
                  */
-                if (x < detail::double_min) {
+                if (x < detail::sqrt_double_min) {
                     return (1.0);
                 }
                 z = x * x;
@@ -220,12 +220,12 @@ namespace cephes {
                 set_error("y0", SF_ERROR_DOMAIN, NULL);
                 return std::numeric_limits<double>::quiet_NaN();
             }
-            /* When x < double_min (~1.49e-154), x*x underflows to zero, which raises a
+            /* When x < sqrt_double_min (~1.49e-154), x*x underflows to zero, which raises a
              * spurious floating-point exception. Avoid the underflow by using
              * the limiting form directly: for tiny x, j0(x) ≈ 1 and the
              * rational approximation reduces to its constant term.
              */
-            if (x < detail::double_min) {
+            if (x < detail::sqrt_double_min) {
                 w = detail::j0_YP[7] / detail::j0_YQ[6];
                 w += M_2_PI * std::log(x);
                 return (w);
