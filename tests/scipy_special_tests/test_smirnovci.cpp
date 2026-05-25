@@ -1,6 +1,6 @@
 #include "../testing_utils.h"
 
-#include <xsf/stats_numpy.h>
+#include <xsf/cpu/stats.h>
 
 namespace fs = std::filesystem;
 
@@ -17,7 +17,7 @@ TEST_CASE("smirnovci pd->d scipy_special_tests", "[smirnovci][pd->d][scipy_speci
 
     auto [n, p] = input;
     auto [desired, fallback] = output;
-    auto out = xsf::smirnovci(n, p);
+    auto out = xsf::cpu::smirnovci(n, p);
     auto error = xsf::extended_relative_error(out, desired);
     tol = adjust_tolerance(tol);
     CAPTURE(n, p, out, desired, error, tol, fallback);

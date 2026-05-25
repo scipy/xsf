@@ -1,7 +1,7 @@
-#include "bessel.h"
-#include "cephes/kolmogorov.h"
-#include "config.h"
-#include "gamma.h"
+#include "../bessel.h"
+#include "../cephes/kolmogorov.h"
+#include "../config.h"
+#include "../gamma.h"
 
 namespace xsf {
 namespace cpu {

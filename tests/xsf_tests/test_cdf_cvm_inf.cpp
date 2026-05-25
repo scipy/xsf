@@ -1,5 +1,5 @@
 #include "../testing_utils.h"
-#include <xsf/stats_numpy.h>
+#include <xsf/cpu/stats.h>
 
 TEST_CASE("cdf_cvm_inf test", "[cdf_cvm_inf][xsf_tests]") {
     // Reference values computed with scipy.stats._hypotests._cdf_cvm_inf
@@ -27,7 +27,7 @@ TEST_CASE("cdf_cvm_inf test", "[cdf_cvm_inf][xsf_tests]") {
     for (int i = 0; i < n_points; ++i) {
         const double x = xs[i];
         const double ref = expected[i];
-        const double result = xsf::cdf_cvm_inf(x);
+        const double result = xsf::cpu::cdf_cvm_inf(x);
         const auto rel_error = xsf::extended_relative_error(result, ref);
 
         CAPTURE(i, x, result, ref, rtol, rel_error);

@@ -1,11 +1,11 @@
 #include "../testing_utils.h"
-#include <xsf/stats_numpy.h>
+#include <xsf/cpu/stats.h>
 
 namespace {
 
 void check_cdf(const std::vector<double> &xs, const std::vector<double> &expected, int n, double rtol = 1e-12) {
     for (int i = 0; i < xs.size(); ++i) {
-        const double result = xsf::cdf_cvm(xs[i], n);
+        const double result = xsf::cpu::cdf_cvm(xs[i], n);
         const auto rel_error = xsf::extended_relative_error(result, expected[i]);
         CAPTURE(i, xs[i], n, result, expected[i], rtol, rel_error);
         REQUIRE(rel_error <= rtol);
@@ -123,8 +123,8 @@ TEST_CASE("cdf_cvm n=10", "[cdf_cvm][xsf_tests]") { check_cdf(xs_n_10, expected_
 TEST_CASE("cdf_cvm n=inf", "[cdf_cvm][xsf_tests]") { check_cdf(xs_n_inf, expected_n_inf, -1); }
 TEST_CASE("cdf_cvm default parameter (n=-1)", "[cdf_cvm][xsf_tests]") {
     for (int i = 0; i < n_points; ++i) {
-        const double res_default = xsf::cdf_cvm(xs_n_inf[i]);
-        const double res_explicit = xsf::cdf_cvm(xs_n_inf[i], -1);
+        const double res_default = xsf::cpu::cdf_cvm(xs_n_inf[i]);
+        const double res_explicit = xsf::cpu::cdf_cvm(xs_n_inf[i], -1);
         CAPTURE(i, xs_n_inf[i], res_default, res_explicit);
         REQUIRE(res_default == res_explicit);
     }
