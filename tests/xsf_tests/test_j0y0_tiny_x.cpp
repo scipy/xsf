@@ -1,6 +1,6 @@
 #include "../testing_utils.h"
-#include <xsf/cephes/j0.h>
 #include <cfenv>
+#include <xsf/cephes/j0.h>
 
 TEST_CASE("j0 tiny x underflow threshold", "[j0][y0][xsf_tests]") {
     // Regression test for gh-25199: j0/y0 at tiny x should not raise spurious
