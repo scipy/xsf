@@ -2,13 +2,6 @@
 #include <cfenv>
 #include <xsf/cephes/j0.h>
 
-#define CHECK_NO_UNDERFLOW(expr)                                                           \
-    do {                                                                                   \
-        std::feclearexcept(FE_ALL_EXCEPT);                                                 \
-        CHECK(expr);                                                                       \
-        CHECK(std::fetestexcept(FE_UNDERFLOW) == 0);                                       \
-    } while (0)
-
 TEST_CASE("j0 tiny x underflow threshold", "[j0][y0][xsf_tests]") {
     // Regression test for gh-25199: j0/y0 at tiny x should not raise spurious
     // FP exceptions from x*x underflowing to zero.
@@ -21,15 +14,18 @@ TEST_CASE("j0 tiny x underflow threshold", "[j0][y0][xsf_tests]") {
     //     print(x, mp.nstr(mp.besselj(0, x), 18), mp.nstr(mp.bessely(0, x), 18))
 
     SECTION("j0 at tiny x should not underflow") {
-        // j0(0) = 1
-        CHECK_NO_UNDERFLOW(xsf::cephes::j0(0.0) == 1.0);
-        // j0(1e-200) = 1.0 (to machine precision)
-        CHECK_NO_UNDERFLOW(xsf::cephes::j0(1e-200) == 1.0);
-        // j0(1e-100) = 1.0 (to machine precision)
-        CHECK_NO_UNDERFLOW(xsf::cephes::j0(1e-100) == 1.0);
-        // j0 at 1e-10, still below 1e-5 threshold, uses 1 - x^2/4
-        CHECK_NO_UNDERFLOW(xsf::cephes::j0(1e-10) == 1.0);
-        // j0 at 1e-5, edge of the small-x branch (should not underflow)
+        using test_case = std::tuple<double, double>;
+        auto [x, expected] = GENERATE(
+            test_case{0.0, 1.0},       test_case{1e-200, 1.0},
+            test_case{1e-100, 1.0},    test_case{1e-10, 1.0},
+            test_case{2e-154, 1.0}
+        );
+        std::feclearexcept(FE_ALL_EXCEPT);
+        CHECK(xsf::cephes::j0(x) == expected);
+        CHECK(std::fetestexcept(FE_UNDERFLOW) == 0);
+    }
+
+    SECTION("j0 at 1e-5 uses 1 - x^2/4") {
         std::feclearexcept(FE_ALL_EXCEPT);
         auto w = xsf::cephes::j0(1e-5);
         CHECK(w > 0.9999999999);
@@ -38,26 +34,25 @@ TEST_CASE("j0 tiny x underflow threshold", "[j0][y0][xsf_tests]") {
     }
 
     SECTION("y0 at tiny x should not underflow") {
-        // y0(0) = -inf
-        CHECK_NO_UNDERFLOW(xsf::cephes::y0(0.0) == -std::numeric_limits<double>::infinity());
-        // y0(1e-200) should avoid spurious overflow/underflow
-        // Reference from scipy test: -293.2480438468798
-        CHECK_NO_UNDERFLOW(xsf::cephes::y0(1e-200) == -293.2480438468798);
-        // y0(1e-100) should also be computed safely
-        // mpmath: y0(1e-100) = -145.3526521672157...
+        using test_case = std::tuple<double, double>;
+        auto [x, expected] = GENERATE(
+            test_case{0.0, -std::numeric_limits<double>::infinity()},
+            test_case{1e-200, -293.2480438468798}
+        );
+        std::feclearexcept(FE_ALL_EXCEPT);
+        CHECK(xsf::cephes::y0(x) == expected);
+        CHECK(std::fetestexcept(FE_UNDERFLOW) == 0);
+    }
+
+    SECTION("y0 at 1e-100 is finite and negative") {
         std::feclearexcept(FE_ALL_EXCEPT);
         auto w = xsf::cephes::y0(1e-100);
-        // Just check it's finite and negative
         CHECK(std::isfinite(w));
         CHECK(w < 0.0);
         CHECK(std::fetestexcept(FE_UNDERFLOW) == 0);
     }
 
-    SECTION("j0 and y0 at values just above sqrt_double_min") {
-        // Values just above the threshold should still compute correctly
-        // via the normal path without underflow exceptions
-        CHECK_NO_UNDERFLOW(xsf::cephes::j0(2e-154) == 1.0);
-
+    SECTION("y0 at 2e-154 is finite and negative") {
         std::feclearexcept(FE_ALL_EXCEPT);
         auto y = xsf::cephes::y0(2e-154);
         CHECK(std::isfinite(y));
