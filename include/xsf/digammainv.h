@@ -50,7 +50,7 @@ namespace detail {
         // digamma(x) app. log(x) for large x, so digammainv(y) must be inf for y > log(DBL_MAX)
         if (y > cephes::detail::MAXLOG) {
             set_error("digammainv", SF_ERROR_OVERFLOW, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return std::numeric_limits<double>::infinity();
         }
         // digamma(x) -> - inf for x -> 0+, so digammainv must be zero for y = - inf
         if (std::isinf(y) && y < 0) {

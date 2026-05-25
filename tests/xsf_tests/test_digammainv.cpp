@@ -21,9 +21,9 @@ TEST_CASE("digammainv edge cases", "[digammainv][xsf_tests]") {
     const double log_max_double = std::log(std::numeric_limits<double>::max());
 
     REQUIRE(std::isnan(xsf::digammainv(nan)));
-    REQUIRE(std::isnan(xsf::digammainv(inf)));
+    REQUIRE(xsf::digammainv(inf) == inf);
     REQUIRE(xsf::digammainv(-inf) == 0.0);
-    REQUIRE(std::isnan(xsf::digammainv(std::nextafter(log_max_double, inf))));
+    REQUIRE(xsf::digammainv(std::nextafter(log_max_double, inf)) == inf);
 }
 
 TEST_CASE("digammainv precision", "[digammainv][xsf_tests]") {
