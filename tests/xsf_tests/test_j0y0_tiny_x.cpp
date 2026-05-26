@@ -16,10 +16,7 @@ TEST_CASE("j0 tiny x underflow threshold", "[j0][y0][xsf_tests]") {
     SECTION("j0 at tiny x should not underflow") {
         using test_case = std::tuple<double, double>;
         auto [x, expected] = GENERATE(
-            test_case{0.0, 1.0},
-            test_case{1e-200, 1.0},
-            test_case{1e-100, 1.0},
-            test_case{1e-10, 1.0},
+            test_case{0.0, 1.0}, test_case{1e-200, 1.0}, test_case{1e-100, 1.0}, test_case{1e-10, 1.0},
             test_case{2e-154, 1.0}
         );
         std::feclearexcept(FE_ALL_EXCEPT);
@@ -37,10 +34,8 @@ TEST_CASE("j0 tiny x underflow threshold", "[j0][y0][xsf_tests]") {
 
     SECTION("y0 at tiny x should not underflow") {
         using test_case = std::tuple<double, double>;
-        auto [x, expected] = GENERATE(
-            test_case{0.0, -std::numeric_limits<double>::infinity()},
-            test_case{1e-200, -293.2480438468798}
-        );
+        auto [x, expected] =
+            GENERATE(test_case{0.0, -std::numeric_limits<double>::infinity()}, test_case{1e-200, -293.2480438468798});
         std::feclearexcept(FE_ALL_EXCEPT);
         CHECK(xsf::cephes::y0(x) == expected);
         CHECK(std::fetestexcept(FE_UNDERFLOW) == 0);
