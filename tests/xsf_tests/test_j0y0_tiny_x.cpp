@@ -46,19 +46,12 @@ TEST_CASE("j0 tiny x underflow threshold", "[j0][y0][xsf_tests]") {
         CHECK(std::fetestexcept(FE_UNDERFLOW) == 0);
     }
 
-    SECTION("y0 at 1e-100 is finite and negative") {
+    SECTION("y0 at tiny x is finite with no underflow") {
+        auto x = GENERATE(1e-100, 2e-154);
         std::feclearexcept(FE_ALL_EXCEPT);
-        auto w = xsf::cephes::y0(1e-100);
+        auto w = xsf::cephes::y0(x);
         CHECK(std::isfinite(w));
         CHECK(w < 0.0);
-        CHECK(std::fetestexcept(FE_UNDERFLOW) == 0);
-    }
-
-    SECTION("y0 at 2e-154 is finite and negative") {
-        std::feclearexcept(FE_ALL_EXCEPT);
-        auto y = xsf::cephes::y0(2e-154);
-        CHECK(std::isfinite(y));
-        CHECK(y < 0.0);
         CHECK(std::fetestexcept(FE_UNDERFLOW) == 0);
     }
 }
