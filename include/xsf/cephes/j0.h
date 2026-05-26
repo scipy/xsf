@@ -168,9 +168,7 @@ namespace cephes {
 
         if (x <= 5.0) {
             if (x < 3e-8) {
-                /* For x < 3e-8, 1 - x^2/4 rounds to 1.0 in double precision
-                 * (x^2/4 is below machine epsilon). Avoid computing x*x entirely.
-                 */
+                /* x^2/4 is below machine epsilon — 1 - x^2/4 rounds to 1.0. */
                 return (1.0);
             }
             if (x < 1.0e-5) {
@@ -217,10 +215,8 @@ namespace cephes {
                 set_error("y0", SF_ERROR_DOMAIN, NULL);
                 return std::numeric_limits<double>::quiet_NaN();
             }
-            /* When x < 3e-8, x*x/4 is below machine epsilon for double precision.
-             * Avoid computing x*x entirely by using the limiting form directly.
-             */
             if (x < 3e-8) {
+                /* x*x/4 below machine epsilon — use limiting form directly. */
                 w = detail::j0_YP[7] / detail::j0_YQ[6];
                 w += M_2_PI * std::log(x);
                 return (w);
