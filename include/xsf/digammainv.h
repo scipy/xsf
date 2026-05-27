@@ -14,11 +14,10 @@ namespace detail {
     //   x0 = -1 / (y + gamma)  if y < -2.22
     // where gamma = 0.5772... is the Euler-Mascheroni constant.
     XSF_HOST_DEVICE inline double digammainv_initial_guess(double y) {
-        constexpr double euler_mascheroni = 0.5772156649015328606;
         if (y >= -2.22) {
             return std::exp(y) + 0.5;
         }
-        return -1.0 / (y + euler_mascheroni);
+        return -1.0 / (y + cephes::detail::SCIPY_EULER);
     }
 
     // Refine an initial guess x using Newton-Raphson iteration:
