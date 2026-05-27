@@ -167,10 +167,15 @@ namespace cephes {
         }
 
         if (x <= 5.0) {
-            z = x * x;
+            if (x < 3e-8) {
+                /* x^2/4 is below machine epsilon — 1 - x^2/4 rounds to 1.0. */
+                return (1.0);
+            }
             if (x < 1.0e-5) {
+                z = x * x;
                 return (1.0 - z / 4.0);
             }
+            z = x * x;
 
             p = (z - detail::j0_DR1) * (z - detail::j0_DR2);
             p = p * polevl(z, detail::j0_RP, 3) / p1evl(z, detail::j0_RQ, 8);
@@ -209,6 +214,12 @@ namespace cephes {
             } else if (x < 0.0) {
                 set_error("y0", SF_ERROR_DOMAIN, NULL);
                 return std::numeric_limits<double>::quiet_NaN();
+            }
+            if (x < 3e-8) {
+                /* x*x/4 below machine epsilon — use limiting form directly. */
+                w = detail::j0_YP[7] / detail::j0_YQ[6];
+                w += M_2_PI * std::log(x);
+                return (w);
             }
             z = x * x;
             w = polevl(z, detail::j0_YP, 7) / p1evl(z, detail::j0_YQ, 7);
