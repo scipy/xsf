@@ -153,12 +153,9 @@ TEST_CASE("wilcoxon_pmf_all exact small cases", "[wilcoxon_pmf]") {
     REQUIRE(wilcoxon_pmf_table(1) == std::vector<double>{0.5, 0.5});
     REQUIRE(wilcoxon_pmf_table(2) == std::vector<double>{0.25, 0.25, 0.25, 0.25});
     REQUIRE(wilcoxon_pmf_table(3) == std::vector<double>{0.125, 0.125, 0.125, 0.25, 0.125, 0.125, 0.125});
-    REQUIRE(
-        wilcoxon_pmf_table(5) == std::vector<double>{
-                                     0.03125, 0.03125, 0.03125, 0.0625, 0.0625, 0.09375, 0.09375, 0.09375, 0.09375,
-                                     0.09375, 0.09375, 0.0625, 0.0625, 0.03125, 0.03125, 0.03125
-                                 }
-    );
+    const std::vector<double> expected_n5 = {0.03125, 0.03125, 0.03125, 0.0625, 0.0625, 0.09375, 0.09375, 0.09375,
+                                             0.09375, 0.09375, 0.09375, 0.0625, 0.0625, 0.03125, 0.03125, 0.03125};
+    REQUIRE(wilcoxon_pmf_table(5) == expected_n5);
 
     std::vector<double> pmf_table = wilcoxon_pmf_table(3);
     std::mdspan pmf_span(pmf_table.data(), pmf_table.size());
