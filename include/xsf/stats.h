@@ -487,11 +487,42 @@ inline double pdtrc(double k, double m) { return cephes::pdtrc(k, m); }
 
 inline double pdtri(int k, double y) { return cephes::pdtri(k, y); }
 
+template <typename InputMat>
+XSF_HOST_DEVICE inline typename InputMat::value_type take_from_discrete_sf(InputMat pmf, long long int k) {
+    // Return the inclusive survival mass sum_{i >= k} pmf(i).
+    using T = typename InputMat::value_type;
+    auto size = pmf.extent(0);
+    if (k >= static_cast<long long int>(size)) {
+        return T(0.0);
+    }
+    auto k0 = k < 0 ? decltype(size)(0) : static_cast<decltype(size)>(k);
+    T total = T(0.0);
+    for (auto i = k0; i < size; ++i) {
+        total += pmf(i);
+    }
+    return total;
+}
+
 namespace detail {
+
+    template <typename FreqTable2D>
+    struct cvm_freq_table_row {
+        using value_type = typename FreqTable2D::value_type;
+
+        FreqTable2D freq_table;
+        int64_t row;
+
+        // Expose the selected frequency-table row as a 1D distribution.
+        XSF_HOST_DEVICE inline auto extent(int) const { return freq_table.extent(1); }
+
+        // Read the k-th entry from the selected frequency-table row.
+        XSF_HOST_DEVICE inline value_type operator()(int64_t k) const { return freq_table(row, k); }
+    };
 
     template <typename FreqTable2D>
     XSF_HOST_DEVICE inline void
     cvm_freq_table_all(int64_t m, int64_t n, int64_t a, int64_t b, FreqTable2D gs, FreqTable2D next_gs) {
+        // Fill the exact Cramér-von Mises two-sample frequency table.
         using T = typename FreqTable2D::value_type;
         int64_t K = static_cast<int64_t>(gs.extent(1));
 
@@ -548,6 +579,7 @@ namespace detail {
 
 template <typename FreqTable2D>
 XSF_HOST_DEVICE inline void cvm_2samp_freq_table(int64_t m, int64_t n, FreqTable2D freq_table, FreqTable2D workspace) {
+    // Prepare constants and generate the frequency table used by the exact p-value.
     /*
      * Generate the exact Cramér-von Mises two-sample frequency table for
      * sample sizes m and n. The table is independent of the scalar statistic.
@@ -567,6 +599,7 @@ XSF_HOST_DEVICE inline void cvm_2samp_freq_table(int64_t m, int64_t n, FreqTable
 
 template <typename FreqTable2D>
 XSF_HOST_DEVICE inline double pval_cvm_2samp_exact(double s, int64_t m, int64_t n, FreqTable2D freq_table) {
+    // Compute the exact p-value from a precomputed Cramér-von Mises frequency table.
     /*
      * Compute the exact p-value of the Cramér-von Mises two-sample test
      * for a given value s of the test statistic and where m and n are the sizes
@@ -593,15 +626,8 @@ XSF_HOST_DEVICE inline double pval_cvm_2samp_exact(double s, int64_t m, int64_t 
     int64_t zeta =
         static_cast<int64_t>(std::floor((lcm * lcm * (m + n) * (6.0 * s - mn * (4.0 * mn - 1))) / (6.0 * mn * mn)));
 
-    int64_t K = static_cast<int64_t>(freq_table.extent(1));
-
-    // Clamp to prevent negative indexing when zeta < 0.
-    int64_t k0 = std::max<int64_t>(0, zeta);
-
-    int64_t sum_freq = 0;
-    for (int64_t k = k0; k < K; ++k) {
-        sum_freq += freq_table(m, k);
-    }
+    detail::cvm_freq_table_row<FreqTable2D> freq_table_row{freq_table, m};
+    auto sum_freq = take_from_discrete_sf(freq_table_row, zeta);
 
     double combinations = xsf::binom(static_cast<double>(m + n), static_cast<double>(m));
     return sum_freq / combinations;
