@@ -26,13 +26,23 @@ for m, n in zip(list_m, list_n):
     assert np.isclose(res.pvalue, p_value, rtol=rtol), "The p-values do not match!"
     print(f"U={U}, m={m}, n={n}, p-value={p_value}")
 */
+TEST_CASE("take_from_discrete_sf test", "[take_from_discrete_sf][xsf_tests]") {
+    std::vector<double> pmf = {0.125, 0.375, 0.375, 0.125};
+    std::mdspan pmf_span(pmf.data(), pmf.size());
+
+    REQUIRE(xsf::take_from_discrete_sf(pmf_span, -1) == 1.0);
+    REQUIRE(xsf::take_from_discrete_sf(pmf_span, 0) == 1.0);
+    REQUIRE(xsf::take_from_discrete_sf(pmf_span, 1) == 0.875);
+    REQUIRE(xsf::take_from_discrete_sf(pmf_span, 3) == 0.125);
+    REQUIRE(xsf::take_from_discrete_sf(pmf_span, 4) == 0.0);
+}
+
 TEST_CASE("pval_cvm_2samp_exact test", "[pval_cvm_2samp_exact][xsf_tests]") {
     using test_case = std::tuple<double, int, int, double, double>;
     auto [s, m, n, pval_expected, rtol] = GENERATE(
-        test_case{8862.0, 14, 8, 0.2679738562091503, 1e-10},
-        test_case{3491.0000000000005, 14, 5, 0.34657722738218094, 1e-10},
-        test_case{12559.0, 5, 26, 0.11812654860485784, 1e-10},
-        test_case{8901.0, 23, 5, 0.9907610907610908, 1e-10} //, test_case{119376.0, 20, 21, 0.5716351061359124, 1e-10}
+        test_case{12559.0, 5, 26, 0.11812654860485784, 1e-10}, test_case{8901.0, 23, 5, 0.9907610907610908, 1e-10},
+        test_case{119376.0, 20, 21, 0.5716351061359124, 1e-10}, test_case{8862.0, 14, 8, 0.2679738562091503, 1e-10},
+        test_case{3491.0000000000005, 14, 5, 0.34657722738218094, 1e-10}
     );
 
     const int64_t lcm = std::lcm(m, n);
@@ -50,4 +60,24 @@ TEST_CASE("pval_cvm_2samp_exact test", "[pval_cvm_2samp_exact][xsf_tests]") {
     const double rel_error = xsf::extended_relative_error(pval, pval_expected);
     CAPTURE(s, m, n, K, pval, pval_expected, rel_error);
     REQUIRE(rel_error <= rtol);
+}
+
+TEST_CASE("pval_cvm_2samp_exact edge cases", "[pval_cvm_2samp_exact][xsf_tests]") {
+    using test_case = std::tuple<double, int, int, double>;
+    auto [s, m, n, pval_expected] = GENERATE(test_case{0.0, 3, 3, 1.0}, test_case{1e6, 3, 3, 0.0});
+
+    const int64_t lcm = std::lcm(m, n);
+    const int64_t K = (m + n) * lcm * lcm + 1;
+
+    std::vector<int64_t> buf1((m + 1) * K, 0);
+    std::vector<int64_t> buf2((m + 1) * K, 0);
+
+    using mdspan_2d = std::mdspan<int64_t, std::dextents<size_t, 2>>;
+    mdspan_2d gs(buf1.data(), static_cast<size_t>(m + 1), static_cast<size_t>(K));
+    mdspan_2d next_gs(buf2.data(), static_cast<size_t>(m + 1), static_cast<size_t>(K));
+
+    xsf::cvm_2samp_freq_table(m, n, gs, next_gs);
+    auto pval = xsf::pval_cvm_2samp_exact(s, m, n, gs);
+    CAPTURE(s, m, n, K, pval, pval_expected);
+    REQUIRE(pval == pval_expected);
 }
