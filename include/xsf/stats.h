@@ -502,85 +502,6 @@ inline float tukeylambdacdf(float x, double lmbda) {
     return tukeylambdacdf(static_cast<double>(x), static_cast<double>(lmbda));
 }
 
-inline std::vector<double> wilcoxon_pmf(int n) {
-    // PMF of the Wilcoxon signed-rank statistic.
-    // The returned vector has length n*(n+1)/2 + 1, and the k-th element contains
-    // the probability of observing a test statistic equal to k for n pairs of
-    // observations.
-    std::vector<double> pmf = {1.0};
-    for (int k = 1; k < n + 1; k++) {
-        std::vector<double> tmp(k * (k + 1) / 2 + 1, 0.0);
-        int m = static_cast<int>(pmf.size());
-        for (int i = 0; i < m; i++) {
-            tmp[i] += 0.5 * pmf[i];
-            tmp[i + k] += 0.5 * pmf[i];
-        }
-        pmf = std::move(tmp);
-    }
-    return pmf;
-}
-
-inline std::vector<double> wilcoxon_cdf_table(const std::vector<double> &pmf) {
-    // Cumulative probabilities for CDF/SF queries.
-    std::vector<double> cdf_table(pmf.size());
-    double sum = 0.0;
-    for (int i = 0; i < static_cast<int>(pmf.size()); ++i) {
-        sum += pmf[i];
-        cdf_table[i] = sum;
-    }
-    return cdf_table;
-}
-
-inline double wilcoxon_cdf1(int k, const std::vector<double> &cdf_table, int n) {
-    const int max_k = n * (n + 1) / 2;
-    if (k < 0) {
-        return 0.0;
-    }
-    if (k >= max_k) {
-        return 1.0;
-    }
-    return cdf_table[k];
-}
-
-inline double wilcoxon_sf1(int k, const std::vector<double> &cdf_table, int n) {
-    const int max_k = n * (n + 1) / 2;
-    if (k < 0) {
-        return 1.0;
-    }
-    if (k > max_k) {
-        return 0.0;
-    }
-    return 1.0 - (k > 0 ? cdf_table[k - 1] : 0.0);
-}
-
-inline double wilcoxon_cdf(int k, const std::vector<double> &cdf_table, int n) {
-    // CDF of the Wilcoxon signed-rank statistic for integer k and n pairs of observations.
-    const double mn = n * (n + 1) / 4.0;
-    return (k <= mn) ? wilcoxon_cdf1(k, cdf_table, n) : 1.0 - wilcoxon_sf1(k + 1, cdf_table, n);
-}
-
-inline double wilcoxon_cdf(double k, const std::vector<double> &cdf_table, int n) {
-    // CDF of the Wilcoxon signed-rank statistic for real k and n pairs of observations.
-    if (std::isnan(k) || n < 0) {
-        return std::numeric_limits<double>::quiet_NaN();
-    }
-    return wilcoxon_cdf(static_cast<int>(k), cdf_table, n);
-}
-
-inline double wilcoxon_sf(int k, const std::vector<double> &cdf_table, int n) {
-    // SF of the Wilcoxon signed-rank statistic for integer k and n pairs of observations.
-    const double mn = n * (n + 1) / 4.0;
-    return (k <= mn) ? wilcoxon_sf1(k, cdf_table, n) : 1.0 - wilcoxon_cdf1(k - 1, cdf_table, n);
-}
-
-inline double wilcoxon_sf(double k, const std::vector<double> &cdf_table, int n) {
-    // SF of the Wilcoxon signed-rank statistic for real k and n pairs of observations.
-    if (std::isnan(k) || n < 0) {
-        return std::numeric_limits<double>::quiet_NaN();
-    }
-    return wilcoxon_sf(static_cast<int>(k), cdf_table, n);
-}
-
 namespace detail {
 
     template <typename InputMat, typename OutputMat>
@@ -677,6 +598,123 @@ XSF_HOST_DEVICE inline typename InputMat::value_type take_from_discrete_cdf(Inpu
         return T(1.0);
     }
     return cdf(k);
+}
+
+namespace detail {
+
+    template <typename OutputMat>
+    XSF_HOST_DEVICE inline void wilcoxon_pmf_all_impl(int n, OutputMat res) {
+        /* Shared implementation used by PMF and CDF table generation. */
+        using T = typename OutputMat::value_type;
+        const int max_k = n * (n + 1) / 2;
+
+        for (int i = 0; i <= max_k; ++i) {
+            res(i) = T(0.0);
+        }
+        res(0) = T(1.0);
+
+        for (int k = 1; k <= n; ++k) {
+            const int curr_max = k * (k + 1) / 2;
+            // Iterate backwards so res(i - k) still holds its previous-step value.
+            for (int i = curr_max; i >= 0; --i) {
+                res(i) = T(0.5) * (res(i) + (i >= k ? res(i - k) : T(0.0)));
+            }
+        }
+    }
+
+} // namespace detail
+
+template <typename OutputMat>
+XSF_HOST_DEVICE inline void wilcoxon_pmf_all(int n, OutputMat res) {
+    /* Fill `res` with the full PMF table for a Wilcoxon signed-rank statistic.
+     *
+     * res should be an mdspan view of a 1d array of length
+     * n * (n + 1) / 2 + 1. It is up to the caller to pass valid values
+     * for n and res.
+     */
+    if (n < 0) {
+        set_error("_wilcoxon_pmf_all", SF_ERROR_DOMAIN, "n must be non-negative");
+        return;
+    }
+
+    const long long int out_size = static_cast<long long int>(res.extent(0));
+    const long long int expected_size = static_cast<long long int>(n) * (n + 1) / 2 + 1;
+    if (out_size != expected_size) {
+        set_error("_wilcoxon_pmf_all", SF_ERROR_MEMORY, "out.shape[-1] must be n * (n + 1) / 2 + 1");
+        return;
+    }
+
+    detail::wilcoxon_pmf_all_impl(n, res);
+}
+
+template <typename OutputMat>
+XSF_HOST_DEVICE inline void wilcoxon_cdf_all(int n, OutputMat res) {
+    /* Fill `res` with the full CDF table for a Wilcoxon signed-rank statistic. */
+    using T = typename OutputMat::value_type;
+
+    if (n < 0) {
+        set_error("_wilcoxon_cdf_all", SF_ERROR_DOMAIN, "n must be non-negative");
+        return;
+    }
+
+    const long long int out_size = static_cast<long long int>(res.extent(0));
+    const long long int expected_size = static_cast<long long int>(n) * (n + 1) / 2 + 1;
+    if (out_size != expected_size) {
+        set_error("_wilcoxon_cdf_all", SF_ERROR_MEMORY, "out.shape[-1] must be n * (n + 1) / 2 + 1");
+        return;
+    }
+
+    detail::wilcoxon_pmf_all_impl(n, res);
+    for (long long int i = 1; i < out_size - 1; ++i) {
+        res(i) = std::min(res(i) + res(i - 1), T(1.0));
+    }
+    res(out_size - 1) = T(1.0);
+}
+
+template <typename InputMat>
+XSF_HOST_DEVICE inline typename InputMat::value_type wilcoxon_pmf(long long int k, InputMat pmf) {
+    /* Return a scalar value from a precomputed PMF table. */
+    return take_from_pmf(pmf, k);
+}
+
+template <typename InputMat>
+XSF_HOST_DEVICE inline typename InputMat::value_type wilcoxon_pmf(double k, InputMat pmf) {
+    using T = typename InputMat::value_type;
+    if (std::isnan(k)) {
+        return std::numeric_limits<T>::quiet_NaN();
+    }
+    return wilcoxon_pmf(static_cast<long long int>(k), pmf);
+}
+
+template <typename InputMat>
+XSF_HOST_DEVICE inline typename InputMat::value_type wilcoxon_cdf(long long int k, InputMat cdf) {
+    /* Return a scalar value from a precomputed CDF table. */
+    return take_from_discrete_cdf(cdf, k);
+}
+
+template <typename InputMat>
+XSF_HOST_DEVICE inline typename InputMat::value_type wilcoxon_cdf(double k, InputMat cdf) {
+    using T = typename InputMat::value_type;
+    if (std::isnan(k)) {
+        return std::numeric_limits<T>::quiet_NaN();
+    }
+    return wilcoxon_cdf(static_cast<long long int>(k), cdf);
+}
+
+template <typename InputMat>
+XSF_HOST_DEVICE inline typename InputMat::value_type wilcoxon_sf(long long int k, InputMat cdf) {
+    /* Return a scalar survival probability from a precomputed CDF table. */
+    using T = typename InputMat::value_type;
+    return T(1.0) - take_from_discrete_cdf(cdf, k - 1);
+}
+
+template <typename InputMat>
+XSF_HOST_DEVICE inline typename InputMat::value_type wilcoxon_sf(double k, InputMat cdf) {
+    using T = typename InputMat::value_type;
+    if (std::isnan(k)) {
+        return std::numeric_limits<T>::quiet_NaN();
+    }
+    return wilcoxon_sf(static_cast<long long int>(k), cdf);
 }
 
 namespace detail {
