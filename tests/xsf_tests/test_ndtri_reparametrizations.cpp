@@ -5,8 +5,8 @@
 #include <limits>
 
 TEST_CASE("nrdtrimn test", "[nrdtrimn][xsf_tests]") {
-
-    SECTION("nrdtrimn double precision invalid inputs") {
+    // checks for both double and float precision
+    SECTION("nrdtrimn invalid inputs") {
         // test cases with invalid inputs that should return NaN
         using test_case = std::tuple<double, double, double, double>;
         auto [p, std, x, expected] = GENERATE(
@@ -30,45 +30,20 @@ TEST_CASE("nrdtrimn test", "[nrdtrimn][xsf_tests]") {
             test_case(-0.1, 1.0, 0.0, std::numeric_limits<double>::quiet_NaN()), // p < 0
             test_case(1.1, 1.0, 0.0, std::numeric_limits<double>::quiet_NaN())   // p > 1
         );
-        const double rtol = 100 * std::numeric_limits<double>::epsilon();
-        const auto output = xsf::nrdtrimn(p, std, x);
-        const auto rel_error = xsf::extended_relative_error(output, expected);
-        CAPTURE(p, std, x, output, expected, rtol, rel_error);
-        REQUIRE(rel_error <= rtol);
+        const double rtol_double = 100 * std::numeric_limits<double>::epsilon();
+        const auto output_double = xsf::nrdtrimn(p, std, x);
+        const auto rel_error_double = xsf::extended_relative_error(output_double, expected);
+        CAPTURE(p, std, x, output_double, expected, rtol_double, rel_error_double);
+        REQUIRE(rel_error_double <= rtol_double);
+
+        const float rtol_float = 100 * std::numeric_limits<float>::epsilon();
+        const auto output_float = xsf::nrdtrimn(static_cast<float>(p), static_cast<float>(std), static_cast<float>(x));
+        const auto rel_error_float = xsf::extended_relative_error(output_float, static_cast<float>(expected));
+        CAPTURE(p, std, x, output_float, expected, rtol_float, rel_error_float);
+        REQUIRE(rel_error_float <= rtol_float);
     }
 
-    SECTION("nrdtrimn float precision invalid inputs") {
-        // test cases with invalid inputs that should return NaN
-        using test_case = std::tuple<float, float, float, float>;
-        auto [p, std, x, expected] = GENERATE(
-            test_case{
-                std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(),
-                std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()
-            }, // all NaN
-            test_case{
-                0.5, std::numeric_limits<float>::quiet_NaN(), 0.0, std::numeric_limits<float>::quiet_NaN()
-            }, // NaN std
-            test_case{
-                0.5, 1.0, std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()
-            }, // NaN x
-            test_case(
-                std::numeric_limits<float>::quiet_NaN(), 1.0, 0.0, std::numeric_limits<float>::quiet_NaN()
-            ),                                                                  // NaN p
-            test_case{0.5, 0.0, 0.0, std::numeric_limits<float>::quiet_NaN()},  // std == 0
-            test_case{0.5, -1.0, 0.0, std::numeric_limits<float>::quiet_NaN()}, // std < 0
-            test_case{0.0, 1.0, 0.0, std::numeric_limits<float>::quiet_NaN()},  // p == 0
-            test_case{1.0, 1.0, 0.0, std::numeric_limits<float>::quiet_NaN()},  // p == 1
-            test_case(-0.1, 1.0, 0.0, std::numeric_limits<float>::quiet_NaN()), // p < 0
-            test_case(1.1, 1.0, 0.0, std::numeric_limits<float>::quiet_NaN())   // p > 1
-        );
-        const float rtol = 100 * std::numeric_limits<float>::epsilon();
-        const auto output = xsf::nrdtrimn(p, std, x);
-        const auto rel_error = xsf::extended_relative_error(output, expected);
-        CAPTURE(p, std, x, output, expected, rtol, rel_error);
-        REQUIRE(rel_error <= rtol);
-    }
-
-    SECTION("nrdtrimn double precision scipy reference values") {
+    SECTION("nrdtrimn scipy reference values") {
         // Reference values computed with scipy.special.nrdtrimn using:
         // import numpy as np
         // from scipy import special
@@ -115,71 +90,23 @@ TEST_CASE("nrdtrimn test", "[nrdtrimn][xsf_tests]") {
             test_case{0.09983145651403719, 4.79589784180209, -3.737889916297603, 2.412909149035708},
             test_case{0.5965966533916149, 4.8160516653037995, -6.4207428941426485, -7.598497069341223}
         );
-        const double rtol = 100 * std::numeric_limits<double>::epsilon();
-        const auto output = xsf::nrdtrimn(p, std, x);
-        const auto rel_error = xsf::extended_relative_error(output, expected);
-        CAPTURE(p, std, x, output, expected, rtol, rel_error);
-        REQUIRE(rel_error <= rtol);
-    }
+        const double rtol_double = 100 * std::numeric_limits<double>::epsilon();
+        const auto output_double = xsf::nrdtrimn(p, std, x);
+        const auto rel_error_double = xsf::extended_relative_error(output_double, expected);
+        CAPTURE(p, std, x, output_double, expected, rtol_double, rel_error_double);
+        REQUIRE(rel_error_double <= rtol_double);
 
-    SECTION("nrdtrimn float precision scipy reference values") {
-        // Reference values computed with scipy.special.nrdtrimn using:
-        // import numpy as np
-        // from scipy import special
-
-        // rng= np.random.default_rng(12345)
-
-        // p_s = rng.uniform(0.01, 0.99, 30).astype(np.float32)
-        // std_s = rng.uniform(0.1, 10.0, 30).astype(np.float32)
-        // x_s = rng.uniform(-10.0, 10.0, 30).astype(np.float32)
-
-        // for p, std, x in zip(p_s, std_s, x_s):
-        //     output = special.nrdtrimn(p, std, x)
-        //     print(f"test_case{{{p}, {std}, {x}, {output}}}")
-        using test_case = std::tuple<float, float, float, float>;
-        auto [p, std, x, expected] = GENERATE(
-            test_case{0.2327893078327179, 8.561944961547852, -4.895352840423584, 1.3522279262542725},
-            test_case{0.3204231858253479, 6.0560503005981445, -4.048694610595703, -1.2234517335891724},
-            test_case{0.7914181351661682, 9.326684951782227, -4.4186577796936035, -11.985879898071289},
-            test_case{0.6727295517921448, 7.275335311889648, -4.788415908813477, -8.043858528137207},
-            test_case{0.3932873606681824, 8.619458198547363, -0.34476813673973083, 1.9890464544296265},
-            test_case{0.3361576497554779, 9.300444602966309, -5.7604193687438965, -1.8265867233276367},
-            test_case{0.5963425636291504, 5.507241725921631, -0.0873880684375763, -1.430557370185852},
-            test_case{0.19299949705600739, 9.382962226867676, -5.07477331161499, 3.059279203414917},
-            test_case{0.66930091381073, 5.000380516052246, 6.769652843475342, 4.579568386077881},
-            test_case{0.9329668283462524, 2.810354471206665, -6.397387981414795, -10.608022689819336},
-            test_case{0.25328078866004944, 4.5726094245910645, 7.243125915527344, 10.280258178710938},
-            test_case{0.9399035573005676, 6.68388557434082, -6.434010982513428, -16.820531845092773},
-            test_case{0.6638926863670349, 3.3758201599121094, 5.010626792907715, 3.5822818279266357},
-            test_case{0.10397997498512268, 9.044194221496582, 2.2224080562591553, 13.610811233520508},
-            test_case{0.4430028796195984, 2.6450343132019043, -5.816899299621582, -5.43770694732666},
-            test_case{0.8787503242492676, 3.4643006324768066, 5.197448253631592, 1.1485037803649902},
-            test_case{0.6935044527053833, 2.6626486778259277, -5.014788627624512, -6.361578941345215},
-            test_case{0.3299434185028076, 3.618920087814331, -8.288565635681152, -6.695989608764648},
-            test_case{0.7292495965957642, 0.14972110092639923, 2.3611345291137695, 2.2697229385375977},
-            test_case{0.2257322520017624, 6.323184967041016, 0.7393665909767151, 5.500571250915527},
-            test_case{0.0899626761674881, 2.8955888748168945, 2.6905341148376465, 6.573474884033203},
-            test_case{0.166697695851326, 0.7740681171417236, -6.512517929077148, -5.763763904571533},
-            test_case{0.34329816699028015, 6.206606864929199, -5.036710262298584, -2.5324785709381104},
-            test_case{0.4658893048763275, 1.8456305265426636, 3.6964597702026367, 3.854459285736084},
-            test_case{0.27109259366989136, 3.1134450435638428, -8.382567405700684, -6.4848856925964355},
-            test_case{0.8094608783721924, 4.464779376983643, 7.501471996307373, 3.5907211303710938},
-            test_case{0.1994284987449646, 1.587003231048584, -1.426112413406372, -0.08721437305212021},
-            test_case{0.13687969744205475, 2.257495641708374, 2.3678839206695557, 4.8385910987854},
-            test_case{0.09983145445585251, 4.795897960662842, -3.7378900051116943, 2.4129092693328857},
-            test_case{0.5965966582298279, 4.816051483154297, -6.420742988586426, -7.59849739074707}
-        );
-        const float rtol = 100 * std::numeric_limits<float>::epsilon();
-        const auto output = xsf::nrdtrimn(p, std, x);
-        const auto rel_error = xsf::extended_relative_error(output, expected);
-        CAPTURE(p, std, x, output, expected, rtol, rel_error);
-        REQUIRE(rel_error <= rtol);
+        const float rtol_float = 100 * std::numeric_limits<float>::epsilon();
+        const auto output_float = xsf::nrdtrimn(static_cast<float>(p), static_cast<float>(std), static_cast<float>(x));
+        const auto rel_error_float = xsf::extended_relative_error(output_float, static_cast<float>(expected));
+        CAPTURE(p, std, x, output_float, expected, rtol_float, rel_error_float);
+        REQUIRE(rel_error_float <= rtol_float);
     }
 }
 
 TEST_CASE("nrdtrisd test", "[nrdtrisd][xsf_tests]") {
-
-    SECTION("nrdtrisd double precision invalid inputs") {
+    // checks for both double and float precision
+    SECTION("nrdtrisd invalid inputs") {
         // test cases with invalid inputs that should return NaN
         using test_case = std::tuple<double, double, double, double>;
         auto [mean, p, x, expected] = GENERATE(
@@ -201,43 +128,20 @@ TEST_CASE("nrdtrisd test", "[nrdtrisd][xsf_tests]") {
             test_case{0.0, -0.1, 0.0, std::numeric_limits<double>::quiet_NaN()}, // p < 0
             test_case{0.0, 1.1, 0.0, std::numeric_limits<double>::quiet_NaN()}   // p > 1
         );
-        const double rtol = 100 * std::numeric_limits<double>::epsilon();
-        const auto output = xsf::nrdtrisd(mean, p, x);
-        const auto rel_error = xsf::extended_relative_error(output, expected);
-        CAPTURE(mean, p, x, output, expected, rtol, rel_error);
-        REQUIRE(rel_error <= rtol);
+        const double rtol_double = 100 * std::numeric_limits<double>::epsilon();
+        const auto output_double = xsf::nrdtrisd(mean, p, x);
+        const auto rel_error_double = xsf::extended_relative_error(output_double, expected);
+        CAPTURE(mean, p, x, output_double, expected, rtol_double, rel_error_double);
+        REQUIRE(rel_error_double <= rtol_double);
+
+        const float rtol_float = 100 * std::numeric_limits<float>::epsilon();
+        const auto output_float = xsf::nrdtrisd(static_cast<float>(mean), static_cast<float>(p), static_cast<float>(x));
+        const auto rel_error_float = xsf::extended_relative_error(output_float, static_cast<float>(expected));
+        CAPTURE(mean, p, x, output_float, expected, rtol_float, rel_error_float);
+        REQUIRE(rel_error_float <= rtol_float);
     }
 
-    SECTION("nrdtrisd float precision invalid inputs") {
-        // test cases with invalid inputs that should return NaN
-        using test_case = std::tuple<float, float, float, float>;
-        auto [mean, p, x, expected] = GENERATE(
-            test_case{
-                std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(),
-                std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()
-            }, // all NaN
-            test_case{
-                0.0, std::numeric_limits<float>::quiet_NaN(), 0.0, std::numeric_limits<float>::quiet_NaN()
-            }, // NaN p
-            test_case{
-                std::numeric_limits<float>::quiet_NaN(), 0.5, 0.0, std::numeric_limits<float>::quiet_NaN()
-            }, // NaN mean
-            test_case{
-                0.0, 0.5, std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()
-            },                                                                  // NaN x
-            test_case{0.0, 0.0, 0.0, std::numeric_limits<float>::quiet_NaN()},  // p == 0
-            test_case{0.0, 1.0, 0.0, std::numeric_limits<float>::quiet_NaN()},  // p == 1
-            test_case{0.0, -0.1, 0.0, std::numeric_limits<float>::quiet_NaN()}, // p < 0
-            test_case{0.0, 1.1, 0.0, std::numeric_limits<float>::quiet_NaN()}   // p > 1
-        );
-        const float rtol = 100 * std::numeric_limits<float>::epsilon();
-        const auto output = xsf::nrdtrisd(mean, p, x);
-        const auto rel_error = xsf::extended_relative_error(output, expected);
-        CAPTURE(mean, p, x, output, expected, rtol, rel_error);
-        REQUIRE(rel_error <= rtol);
-    }
-
-    SECTION("nrdtrisd double precision scipy reference values") {
+    SECTION("nrdtrisd scipy reference values") {
         // Reference values computed with scipy.special.nrdtrisd using:
         // import numpy as np
         // from scipy import special
@@ -284,64 +188,16 @@ TEST_CASE("nrdtrisd test", "[nrdtrisd][xsf_tests]") {
             test_case{-8.166704969101282, 0.4748464530268736, -3.737889916297603, -70.19566984245017},
             test_case{1.971360273298263, 0.47684147797956805, -6.4207428941426485, 144.48604671757812}
         );
-        const double rtol = 100 * std::numeric_limits<double>::epsilon();
-        const auto output = xsf::nrdtrisd(mean, p, x);
-        const auto rel_error = xsf::extended_relative_error(output, expected);
-        CAPTURE(mean, p, x, output, expected, rtol, rel_error);
-        REQUIRE(rel_error <= rtol);
-    }
+        const double rtol_double = 100 * std::numeric_limits<double>::epsilon();
+        const auto output_double = xsf::nrdtrisd(mean, p, x);
+        const auto rel_error_double = xsf::extended_relative_error(output_double, expected);
+        CAPTURE(mean, p, x, output_double, expected, rtol_double, rel_error_double);
+        REQUIRE(rel_error_double <= rtol_double);
 
-    SECTION("nrdtrisd float precision scipy reference values") {
-        // Reference values computed with scipy.special.nrdtrisd using:
-        // import numpy as np
-        // from scipy import special
-
-        // rng= np.random.default_rng(12345)
-
-        // mean_s = rng.uniform(-10.0, 10.0, 30).astype(np.float32)
-        // p_s = rng.uniform(0.01, 0.99, 30).astype(np.float32)
-        // x_s = rng.uniform(-10.0, 10.0, 30).astype(np.float32)
-
-        // for mean, p, x in zip(mean_s, p_s, x_s):
-        //     output = special.nrdtrisd(mean, p, x)
-        //     print(f"test_case{{{mean}, {p}, {x}, {output}}}")
-        using test_case = std::tuple<float, float, float, float>;
-        auto [mean, p, x, expected] = GENERATE(
-            test_case{-5.453279495239258, 0.8476470708847046, -4.895352840423584, 0.5435793399810791},
-            test_case{-3.6648333072662354, 0.5995888113975525, -4.048694610595703, -1.5215507745742798},
-            test_case{5.9473090171813965, 0.923348605632782, -4.4186577796936035, -7.259273529052734},
-            test_case{3.5250933170318604, 0.7202857136726379, -4.788415908813477, -14.243009567260742},
-            test_case{-2.177809000015259, 0.8533402681350708, -0.34476813673973083, 1.7443121671676636},
-            test_case{-3.343721389770508, 0.9207510352134705, -5.7604193687438965, -1.7137982845306396},
-            test_case{1.9661750793457031, 0.5452622771263123, -0.0873880684375763, -18.061208724975586},
-            test_case{-6.265316486358643, 0.9289194941520691, -5.07477331161499, 0.8111122250556946},
-            test_case{3.455120801925659, 0.4950881898403168, 6.769652843475342, -269.2029113769531},
-            test_case{8.836057662963867, 0.2782977223396301, -6.397387981414795, 25.911365509033203},
-            test_case{-5.035085678100586, 0.45274314284324646, 7.243125915527344, -103.40960693359375},
-            test_case{8.977622985839844, 0.6617381572723389, -6.434010982513428, -36.93961715698242},
-            test_case{3.3447489738464355, 0.334273099899292, 5.010626792907715, -3.890927791595459},
-            test_case{-8.08204174041748, 0.8953849077224731, 2.2224080562591553, 8.20623779296875},
-            test_case{-1.163206696510315, 0.26193270087242126, -5.816899299621582, 7.301074028015137},
-            test_case{7.729598522186279, 0.34303176403045654, 5.197448253631592, 6.264552593231201},
-            test_case{3.9490699768066406, 0.26367634534835815, -5.014788627624512, 14.182146072387695},
-            test_case{-3.4705426692962646, 0.35833755135536194, -8.288565635681152, 13.276227951049805},
-            test_case{4.678563117980957, 0.014921886846423149, 2.3611345291137695, 1.0668786764144897},
-            test_case{-5.597301006317139, 0.6260324716567993, 0.7393665909767151, 19.71807861328125},
-            test_case{-8.368108749389648, 0.28673505783081055, 2.6905341148376465, -19.644155502319336},
-            test_case{-6.802087783813477, 0.07672593742609024, -6.512517929077148, -0.20285895466804504},
-            test_case{-3.1979963779449463, 0.6144924163818359, -5.036710262298584, -6.317578315734863},
-            test_case{-0.6961369514465332, 0.1827998012304306, 3.6964597702026367, -4.8550567626953125},
-            test_case{-4.671579360961914, 0.30830061435699463, -8.382567405700684, 7.411998748779297},
-            test_case{6.31552791595459, 0.44206908345222473, 7.501471996307373, -8.138211250305176},
-            test_case{-6.134112358093262, 0.15719829499721527, -1.426112413406372, -4.679737091064453},
-            test_case{-7.410618305206299, 0.22357028722763062, 2.3678839206695557, -12.863222122192383},
-            test_case{-8.166705131530762, 0.4748464524745941, -3.7378900051116943, -70.19567108154297},
-            test_case{1.9713603258132935, 0.4768414795398712, -6.420742988586426, 144.48605346679688}
-        );
-        const float rtol = 100 * std::numeric_limits<float>::epsilon();
-        const auto output = xsf::nrdtrisd(mean, p, x);
-        const auto rel_error = xsf::extended_relative_error(output, expected);
-        CAPTURE(mean, p, x, output, expected, rtol, rel_error);
-        REQUIRE(rel_error <= rtol);
+        const float rtol_float = 100 * std::numeric_limits<float>::epsilon();
+        const auto output_float = xsf::nrdtrisd(static_cast<float>(mean), static_cast<float>(p), static_cast<float>(x));
+        const auto rel_error_float = xsf::extended_relative_error(output_float, static_cast<float>(expected));
+        CAPTURE(mean, p, x, output_float, expected, rtol_float, rel_error_float);
+        REQUIRE(rel_error_float <= rtol_float);
     }
 }
