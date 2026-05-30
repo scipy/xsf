@@ -14,7 +14,7 @@ XSF_HOST_DEVICE inline double gdtria(double p, double b, double x) {
     if (x == 0) {
         return std::numeric_limits<double>::quiet_NaN();
     }
-    if ((b == 0) & (p == 0)) {
+    if ((b == 0) && (p == 0)) {
         if (std::isinf(x) && (x > 0)) {
             return std::numeric_limits<double>::quiet_NaN();
         }
