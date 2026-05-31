@@ -4814,13 +4814,14 @@ namespace specfun {
         w1 = 0.0;
         w2 = 0.0;
 
+	T sign_kd = (kd % 2 == 0) ? static_cast<T>(1) : static_cast<T>(-1);
         if (kc != 2) {
             *f1r = 0.0;
             for (k = 1; k <= km; k++) {
                 if (kd == 1) {
-                    *f1r += pow(-1, ic + k) * fg[k - 1] * bj1[k - 1] * bj2[k - 1];
+                    *f1r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] * bj1[k - 1] * bj2[k - 1];
                 } else if (kd == 2 || kd == 3) {
-                    *f1r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] * (bj1[k - 1] * bj2[k] + pow(static_cast<T>(-1), kd) * bj1[k] * bj2[k - 1]);
+                    *f1r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] * (bj1[k - 1] * bj2[k] + sign_kd * bj1[k] * bj2[k - 1]);
                 } else {
                     *f1r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] * (bj1[k - 1] * bj2[k + 1] - bj1[k + 1] * bj2[k - 1]);
                 }
@@ -4839,8 +4840,8 @@ namespace specfun {
                     *d1r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] * (c2 * bj1[k - 1] * dj2[k - 1] - c1 * dj1[k - 1] * bj2[k - 1]);
                 } else if (kd == 2 || kd == 3) {
                     *d1r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] *
-                            (c2 * (bj1[k - 1] * dj2[k] + pow(static_cast<T>(-1), kd) * bj1[k] * dj2[k - 1]) -
-                             c1 * (dj1[k - 1] * bj2[k] + pow(static_cast<T>(-1), kd) * dj1[k] * bj2[k - 1]));
+                            (c2 * (bj1[k - 1] * dj2[k] + sign_kd * bj1[k] * dj2[k - 1]) -
+                             c1 * (dj1[k - 1] * bj2[k] + sign_kd * dj1[k] * bj2[k - 1]));
                 } else {
                     *d1r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] *
                             (c2 * (bj1[k - 1] * dj2[k + 1] - bj1[k + 1] * dj2[k - 1]) -
@@ -4863,7 +4864,7 @@ namespace specfun {
             if (kd == 1) {
                 *f2r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] * bj1[k - 1] * by2[k - 1];
             } else if (kd == 2 || kd == 3) {
-                *f2r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] * (bj1[k - 1] * by2[k] + pow(static_cast<T>(-1), kd) * bj1[k] * by2[k - 1]);
+                *f2r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] * (bj1[k - 1] * by2[k] + sign_kd * bj1[k] * by2[k - 1]);
             } else {
                 *f2r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] * (bj1[k - 1] * by2[k + 1] - bj1[k + 1] * by2[k - 1]);
             }
@@ -4881,8 +4882,8 @@ namespace specfun {
                 *d2r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] * (c2 * bj1[k - 1] * dy2[k - 1] - c1 * dj1[k - 1] * by2[k - 1]);
             } else if (kd == 2 || kd == 3) {
                 *d2r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] *
-                        (c2 * (bj1[k - 1] * dy2[k] + pow(static_cast<T>(-1), kd) * bj1[k] * dy2[k - 1]) -
-                         c1 * (dj1[k - 1] * by2[k] + pow(static_cast<T>(-1), kd) * dj1[k] * by2[k - 1]));
+                        (c2 * (bj1[k - 1] * dy2[k] + sign_kd * bj1[k] * dy2[k - 1]) -
+                         c1 * (dj1[k - 1] * by2[k] + sign_kd * dj1[k] * by2[k - 1]));
             } else {
                 *d2r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] *
                         (c2 * (bj1[k - 1] * dy2[k + 1] - bj1[k + 1] * dy2[k - 1]) -
