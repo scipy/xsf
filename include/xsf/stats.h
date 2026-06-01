@@ -269,8 +269,8 @@ inline std::complex<float> log_ndtr(std::complex<float> z) {
 
 inline double nbdtr(int k, int n, double p) { return cephes::nbdtr(k, n, p); }
 
-XSF_HOST_DEVICE inline bool bivariate_normal_cdf_boundary(double dh, double dk, double r, double &p) {
-    // Handles degenerate cases for bivariate_normal_cdf (infinite arguments or zero correlation).
+XSF_HOST_DEVICE inline bool bivariate_normal_sf_boundary(double dh, double dk, double r, double &p) {
+    // Handles degenerate cases for bivariate_normal_sf (infinite arguments or zero correlation).
     // Returns true and sets p if a boundary case applies, false otherwise.
 
     const double math_inf = std::numeric_limits<double>::infinity();
@@ -312,19 +312,21 @@ constexpr double bvn_x20[10] = {0.9931285991850949, 0.9639719272779138, 0.912234
                                 0.7463319064601508, 0.6360536807265150, 0.5108670019508271, 0.3737060887154196,
                                 0.2277858511416451, 0.07652652113349733};
 
-XSF_HOST_DEVICE inline double bivariate_normal_cdf(double dh, double dk, double r) {
-    // CDF of the bivariate normal distribution with zero means, unit variances,
-    // and correlation r, evaluated at (dh, dk).
+XSF_HOST_DEVICE inline double bivariate_normal_sf(double dh, double dk, double r) {
+    // Survival function of the standard bivariate normal distribution.
     //
-    // dh, dk: the values at which to evaluate the CDF
-    // r: the correlation coefficient, must be in [-1, 1]
+    // Return P(X > dh, Y > dk) for a standard bivariate normal vector 
+    // (X, Y) with correlation r.
+    //
+    // dh, dk are the lower limits of the upper tail, and r must satisfy
+    // -1 <= r <= 1.
     //
     // Adapted from the MATLAB original implementation by Dr. Alan Genz;
     // see license information in _qmvnt.py
     // In the comments, phid is the CDF of the standard normal distribution.
 
     double p;
-    if (bivariate_normal_cdf_boundary(dh, dk, r, p)) {
+    if (bivariate_normal_sf_boundary(dh, dk, r, p)) {
         return p;
     }
     // else, tp = 2*pi; h = dh; k = dk; hk = h*k; bvn = 0;
