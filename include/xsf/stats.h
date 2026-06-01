@@ -315,7 +315,7 @@ constexpr double bvn_x20[10] = {0.9931285991850949, 0.9639719272779138, 0.912234
 XSF_HOST_DEVICE inline double bivariate_normal_sf(double dh, double dk, double r) {
     // Survival function of the standard bivariate normal distribution.
     //
-    // Return P(X > dh, Y > dk) for a standard bivariate normal vector 
+    // Return P(X > dh, Y > dk) for a standard bivariate normal vector
     // (X, Y) with correlation r.
     //
     // dh, dk are the lower limits of the upper tail, and r must satisfy
