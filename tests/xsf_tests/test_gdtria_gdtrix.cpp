@@ -22,7 +22,7 @@ TEST_CASE("gdtria basic", "[gdtria][xsf_tests]") {
             test_case{
                 std::numeric_limits<double>::quiet_NaN(), 1.0, 0.2, std::numeric_limits<double>::quiet_NaN()
             },                                                                   // NaN p
-            test_case{0.5, 0.0, 0.2, std::numeric_limits<double>::quiet_NaN()},  //  b == 0
+            test_case{0.5, 0.0, 0.2, std::numeric_limits<double>::quiet_NaN()},  // b == 0
             test_case{0.5, -1.0, 0.2, std::numeric_limits<double>::quiet_NaN()}, // b < 0
             test_case{0.0, 1.0, 0.2, 0.0},                                       // p == 0
             test_case{1.0, 1.0, 0.2, std::numeric_limits<double>::infinity()},   // p == 1
@@ -48,7 +48,7 @@ TEST_CASE("gdtria basic", "[gdtria][xsf_tests]") {
         // import numpy as np
         // from scipy import special
 
-        // rng= np.random.default_rng(12345)
+        // rng = np.random.default_rng(12345)
 
         // p_s = rng.uniform(0.01, 0.99, 30)
         // b_s = rng.uniform(0.1, 10.0, 30)
@@ -106,8 +106,8 @@ TEST_CASE("gdtria basic", "[gdtria][xsf_tests]") {
 
 TEST_CASE("gdtrix basic", "[gdtrix][xsf_tests]") {
     // checks for both double and float precision
-    SECTION("gdtrix double precision invalid and edge case inputs") {
-        // test cases with invalid and edge case  inputs
+    SECTION("gdtrix invalid and edge case inputs") {
+        // test cases with invalid and edge case inputs
         using test_case = std::tuple<double, double, double, double>;
         auto [a, b, p, expected] = GENERATE(
             test_case{
@@ -123,7 +123,7 @@ TEST_CASE("gdtrix basic", "[gdtrix][xsf_tests]") {
             test_case{
                 std::numeric_limits<double>::quiet_NaN(), 1.0, 0.2, std::numeric_limits<double>::quiet_NaN()
             },                                                                   // NaN a
-            test_case{0.0, 0.1, 0.2, std::numeric_limits<double>::infinity()},   //  a == 0
+            test_case{0.0, 0.1, 0.2, std::numeric_limits<double>::infinity()},   // a == 0
             test_case{0.5, 0.0, 0.2, std::numeric_limits<double>::quiet_NaN()},  // b == 0
             test_case{0.5, -0.1, 0.2, std::numeric_limits<double>::quiet_NaN()}, // b < 0
             test_case{1.0, 0.2, -0.1, std::numeric_limits<double>::quiet_NaN()}, // p < 0
@@ -144,12 +144,12 @@ TEST_CASE("gdtrix basic", "[gdtrix][xsf_tests]") {
         REQUIRE(rel_error_float <= rtol_float);
     }
 
-    SECTION("gdtrix double precision scipy reference values") {
+    SECTION("gdtrix scipy reference values") {
         // Reference values computed with scipy.special.gdtrix using:
         // import numpy as np
         // from scipy import special
 
-        // rng= np.random.default_rng(12345)
+        // rng = np.random.default_rng(12345)
 
         // a_s = rng.uniform(-10.0, 10.0, 30)
         // b_s = rng.uniform(0.1, 10.0, 30)
