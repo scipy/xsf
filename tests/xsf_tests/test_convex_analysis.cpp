@@ -136,8 +136,7 @@ TEST_CASE("huber", "[huber][xsf_tests]") {
     REQUIRE(xsf::extended_absolute_error(xsf::huber(2, 2.5), 2 * (2.5 - 0.5 * 2)) <= abs_tol);
 
     const std::vector<std::tuple<double, double>> cases = {
-        {-1.25, 0.5}, {0, 1}, {0.25, -0.1}, {0.25, -0.25}, {0.25, -0.5},
-        {1, 0.5},    {1, 1},  {1, 2},       {3, -4},       {5, 4},
+        {-1.25, 0.5}, {0, 1}, {0.25, -0.1}, {0.25, -0.25}, {0.25, -0.5}, {1, 0.5}, {1, 1}, {1, 2}, {3, -4}, {5, 4},
     };
 
     for (auto [delta, r] : cases) {
