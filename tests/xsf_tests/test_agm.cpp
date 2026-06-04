@@ -30,19 +30,15 @@ TEST_CASE("agm finite cases", "[agm][xsf_tests]") {
     using test_case = std::tuple<double, double, double>;
     auto [a, b, expected] = GENERATE(
         test_case{1, 2, 1.4567910310469068}, test_case{2, 1, 1.4567910310469068},
-        test_case{-1, -2, -1.4567910310469068},
-        test_case{24, 6, 13.458171481725614}, test_case{13, 123456789.5, 11111458.498599306},
-        test_case{1e30, 1, 2.229223055945383e+28}, test_case{1e-22, 1, 0.030182566420169886},
-        test_case{1e150, 1e180, 2.229223055945383e+178},
-        test_case{1e180, 1e-150, 2.0634722510162677e+177},
-        test_case{1e-150, 1e-170, 3.3112619670463756e-152},
+        test_case{-1, -2, -1.4567910310469068}, test_case{24, 6, 13.458171481725614},
+        test_case{13, 123456789.5, 11111458.498599306}, test_case{1e30, 1, 2.229223055945383e+28},
+        test_case{1e-22, 1, 0.030182566420169886}, test_case{1e150, 1e180, 2.229223055945383e+178},
+        test_case{1e180, 1e-150, 2.0634722510162677e+177}, test_case{1e-150, 1e-170, 3.3112619670463756e-152},
         test_case{std::numeric_limits<double>::min(), std::numeric_limits<double>::max(), 1.9892072050015473e+305},
         test_case{
             0.75 * std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), 1.564904312298045e+308
         },
-        test_case{
-            std::numeric_limits<double>::min(), 3 * std::numeric_limits<double>::min(), 4.1466849866735005e-308
-        }
+        test_case{std::numeric_limits<double>::min(), 3 * std::numeric_limits<double>::min(), 4.1466849866735005e-308}
     );
 
     const auto output = xsf::agm(a, b);
