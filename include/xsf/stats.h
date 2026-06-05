@@ -441,6 +441,10 @@ XSF_HOST_DEVICE inline double bivariate_normal_sf(double dh, double dk, double r
     return bvn < 0.0 ? 0.0 : (bvn > 1.0 ? 1.0 : bvn);
 }
 
+XSF_HOST_DEVICE inline float bivariate_normal_sf(float dh, float dk, float r) {
+    return bivariate_normal_sf(static_cast<double>(dh), static_cast<double>(dk), static_cast<double>(r));
+}
+
 inline double nbdtrc(int k, int n, double p) { return cephes::nbdtrc(k, n, p); }
 
 inline double nbdtri(int k, int n, double p) { return cephes::nbdtri(k, n, p); }
