@@ -17,6 +17,8 @@ XSF_HOST_DEVICE inline double entr(double x) {
     }
 }
 
+XSF_HOST_DEVICE inline float entr(float x) { return entr(static_cast<double>(x)); }
+
 // Elementwise function for computing Kullback-Leibler divergence.
 XSF_HOST_DEVICE inline double kl_div(double x, double y) {
     if (std::isnan(x) || std::isnan(y)) {
@@ -29,6 +31,8 @@ XSF_HOST_DEVICE inline double kl_div(double x, double y) {
         return std::numeric_limits<double>::infinity();
     }
 }
+
+XSF_HOST_DEVICE inline float kl_div(float x, float y) { return kl_div(static_cast<double>(x), static_cast<double>(y)); }
 
 // Elementwise function for computing relative entropy.
 XSF_HOST_DEVICE inline double rel_entr(double x, double y) {
@@ -57,6 +61,10 @@ XSF_HOST_DEVICE inline double rel_entr(double x, double y) {
     return x * (std::log(x) - std::log(y));
 }
 
+XSF_HOST_DEVICE inline float rel_entr(float x, float y) {
+    return rel_entr(static_cast<double>(x), static_cast<double>(y));
+}
+
 // Huber loss function.
 XSF_HOST_DEVICE inline double huber(double delta, double r) {
     if (delta < 0) {
@@ -66,6 +74,10 @@ XSF_HOST_DEVICE inline double huber(double delta, double r) {
     } else {
         return delta * (std::fabs(r) - 0.5 * delta);
     }
+}
+
+XSF_HOST_DEVICE inline float huber(float delta, float r) {
+    return huber(static_cast<double>(delta), static_cast<double>(r));
 }
 
 // Pseudo-Huber loss function.
@@ -83,6 +95,10 @@ XSF_HOST_DEVICE inline double pseudo_huber(double delta, double r) {
         //                      =  expm1(0.5*log1p(v*v))
         return u * u * std::expm1(0.5 * std::log1p(v * v));
     }
+}
+
+XSF_HOST_DEVICE inline float pseudo_huber(float delta, float r) {
+    return pseudo_huber(static_cast<double>(delta), static_cast<double>(r));
 }
 
 } // namespace xsf
