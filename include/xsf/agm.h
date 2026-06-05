@@ -1,7 +1,7 @@
 #pragma once
 
-#include "config.h"
 #include "cephes/ellpk.h"
+#include "config.h"
 
 namespace xsf {
 
