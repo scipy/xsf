@@ -6,7 +6,7 @@ authors = [
 channels = ["https://prefix.dev/conda-forge"]
 description = "Special function implementations."
 name = "xsf"
-platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
+platforms = ["win-64", "linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
 version = "0.2.2"
 
 ## Build
@@ -48,7 +48,7 @@ libarrow-all = ">=19.0.1,<20"
 # clean xsref dir
 clean-xsref = { cwd = ".", cmd = "rm -rf xsref", description = "Remove the local xsref." }
 # clone xsref
-clone-xsref.cmd = "git clone --depth 1 --branch v0.0.0 https://github.com/scipy/xsref.git"
+clone-xsref.cmd = "git clone https://github.com/scipy/xsref.git && git -C xsref checkout 4e9b2343813136e355f0262754a3929d98bc5bff"
 clone-xsref.cwd = "."
 clone-xsref.depends-on = ["clean-xsref"]
 clone-xsref.description = "Clone xsref after cleaning old checkout."
@@ -200,22 +200,22 @@ platforms = ["linux-64"]
 python = ">=3.12.0,<3.13"
 pip = "*"
 setuptools = "*"
-cupy = "*"
+cupy = ">=14.0.0"
 pytest = "*"
 pytest-forked = "*"
 
 [feature.cupy-tests.tasks]
 # Since CuPy tests are only available on Linux, we can use bash like
 # this to only clone xsref if it isn't already there and checked out
-# at the proper tag.
+# at the proper commit.
 clone-xsref-test-cupy.cmd = """
 bash -c '
 if [ -d xsref ]; then
-  tag=$(git -C xsref describe --tags --exact-match 2>/dev/null || true)
+  commit=$(git -C xsref rev-parse HEAD 2>/dev/null || true)
 fi
-if [ \"$tag\" != v0.0.0 ]; then
+if [ \"$commit\" != 4e9b2343813136e355f0262754a3929d98bc5bff ]; then
   rm -rf xsref
-  git clone --branch v0.0.0 --depth 1 https://github.com/scipy/xsref.git
+  git clone https://github.com/scipy/xsref.git && git -C xsref checkout 4e9b2343813136e355f0262754a3929d98bc5bff
 fi
 '
 """

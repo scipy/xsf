@@ -37,6 +37,12 @@ XSF_HOST_DEVICE inline double gammasgn(double x) { return cephes::gammasgn(x); }
 XSF_HOST_DEVICE inline float gammasgn(float x) { return gammasgn(static_cast<double>(x)); }
 
 XSF_HOST_DEVICE inline std::complex<double> gamma(std::complex<double> z) {
+    // Guard against NaN/Inf inputs: std::exp(complex) is implemented in
+    // libstdc++ as std::polar(std::exp(re), im), and std::polar asserts
+    // __rho >= 0 under _GLIBCXX_ASSERTIONS -- which is false for NaN.
+    if (!std::isfinite(z.real()) || !std::isfinite(z.imag())) {
+        return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+    }
     // Compute Gamma(z) using loggamma.
     if (z.real() <= 0 && z == std::floor(z.real())) {
         // Poles

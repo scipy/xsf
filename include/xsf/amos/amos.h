@@ -1140,7 +1140,7 @@ namespace amos {
                 return nz;
             }
             ck = std::exp(cz);
-            for (int i = 0; i < (nn + 1); i++) {
+            for (int i = 0; i < nn; i++) {
                 y[i] *= ck;
             }
             /* 90 */
@@ -1770,7 +1770,7 @@ namespace amos {
             *ierr = 2;
             return 0;
         }
-        if (xx > 0.0) {
+        if (xx >= 0.0) {
             return nz;
         }
         //
@@ -3653,7 +3653,7 @@ namespace amos {
         nz = 0;
         xx = std::real(z);
         yy = std::imag(z);
-        ax = std::fabs(xx) + std::sqrt(3.);
+        ax = std::fabs(xx) * std::sqrt(3.);
         ay = std::fabs(yy);
         iform = 1;
         if (ay > ax) {
@@ -5046,7 +5046,7 @@ namespace amos {
         }
         /* 80 */
         if (nd > 2) {
-            rz = 1.0 / z;
+            rz = 2.0 / z;
             s1 = cy[0];
             s2 = cy[1];
             c1r = csr[iflag - 1];
@@ -5622,7 +5622,7 @@ namespace amos {
                 return -1;
             }
             nz = n;
-            for (i = 0; i < (n + 1); i++) {
+            for (i = 0; i < n; i++) {
                 y[i] = 0.0;
             }
             return nz;
@@ -6067,8 +6067,7 @@ namespace amos {
                 // REFINE ESTIMATE AND TEST
                 //
                 aphi = std::abs(phid);
-                aarg = std::abs(argd);
-                rs1 += std::log(aphi) - 0.25 * std::log(aarg) - aic;
+                rs1 += std::log(aphi);
                 if (std::fabs(rs1) < elim) {
                     goto L120;
                 }
@@ -6379,7 +6378,7 @@ namespace amos {
         } else {
             zn = -zr * std::complex<double>(0, 1);
             if (yy <= 0.) {
-                zn = std::conj(zn);
+                zn.real(-zn.real());
             }
             unhj(zn, gnu, 1, tol, &phi, &arg, &zeta1, &zeta2, &asum, &bsum);
             cz = zeta2 - zeta1;
@@ -6479,13 +6478,13 @@ namespace amos {
                 }
                 if (rcz > -elim) {
                     ascle = 1e3 * d1mach[0] / tol;
-                    cz = std::log(phi);
+                    cz += std::log(phi);
                     if (iform != 1) {
                         cz -= 0.25 * std::log(arg) + aic;
                     }
                     ax = std::exp(rcz) / tol;
                     ay = std::imag(cz);
-                    cz = ax * (std::cos(ay) + std::sin(ay * std::complex<double>(0, 1)));
+                    cz = ax * (std::cos(ay) + std::sin(ay) * std::complex<double>(0, 1));
                     if (!(uchk(cz, ascle, tol))) {
                         return nuf;
                     }
