@@ -74,6 +74,6 @@ XSF_HOST_DEVICE inline double agm(double a, double b) {
     return sgn * detail::agm_iter(a, b);
 }
 
-inline float agm(float a, float b) { return agm(static_cast<double>(a), static_cast<double>(b)); }
+XSF_HOST_DEVICE inline float agm(float a, float b) { return agm(static_cast<double>(a), static_cast<double>(b)); }
 
 } // namespace xsf
