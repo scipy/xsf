@@ -32,9 +32,7 @@ XSF_HOST_DEVICE inline double kl_div(double x, double y) {
     }
 }
 
-XSF_HOST_DEVICE inline float kl_div(float x, float y) {
-    return kl_div(static_cast<double>(x), static_cast<double>(y));
-}
+XSF_HOST_DEVICE inline float kl_div(float x, float y) { return kl_div(static_cast<double>(x), static_cast<double>(y)); }
 
 // Elementwise function for computing relative entropy.
 XSF_HOST_DEVICE inline double rel_entr(double x, double y) {
