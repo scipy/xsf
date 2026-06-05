@@ -10,6 +10,27 @@ platforms = ["win-64", "linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
 version = "0.2.2"
 
 
+# environments
+
+[environments.default]
+features = ["build", "tests", "tests-debug"]
+solve-group = "default"
+
+[environments.tests-ci]
+features = ["build", "tests", "tests-ci", "tests-debug", "tests-debug-ci", "coverage"]
+solve-group = "default"
+
+[environments.lint]
+features = ["clang-format"]
+solve-group = "default"
+
+[environments.cupy-tests]
+features = ["cupy-tests"]
+solve-group = "default"
+
+
+# features
+
 [feature.build.dependencies]
 cmake = ">=3.30.5,<4"
 cxx-compiler = ">=1.8.0,<2"
@@ -221,20 +242,3 @@ cmd = "pip install ."
 description = "Run CuPy integration tests."
 depends-on = ["install-xsref-test-cupy"]
 cmd = "pytest --forked python_tests/test_cupy.py"
-
-
-[environments.default]
-features = ["build", "tests", "tests-debug"]
-solve-group = "default"
-
-[environments.tests-ci]
-features = ["build", "tests", "tests-ci", "tests-debug", "tests-debug-ci", "coverage"]
-solve-group = "default"
-
-[environments.lint]
-features = ["clang-format"]
-solve-group = "default"
-
-[environments.cupy-tests]
-features = ["cupy-tests"]
-solve-group = "default"
