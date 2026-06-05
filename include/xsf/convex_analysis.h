@@ -1,8 +1,5 @@
 #pragma once
 
-#include <cmath>
-#include <limits>
-
 #include "config.h"
 
 namespace xsf {
