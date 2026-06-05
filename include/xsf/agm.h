@@ -1,10 +1,7 @@
 #pragma once
 
-#include <cmath>
-#include <limits>
-
-#include "cephes/ellpk.h"
 #include "config.h"
+#include "cephes/ellpk.h"
 
 namespace xsf {
 
