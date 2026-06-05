@@ -8,6 +8,7 @@ description = "Special function implementations."
 name = "xsf"
 platforms = ["win-64", "linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
 version = "0.2.2"
+requires-pixi = ">=0.68.0"
 
 
 # environments
