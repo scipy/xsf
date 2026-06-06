@@ -1140,7 +1140,7 @@ namespace amos {
                 return nz;
             }
             ck = std::exp(cz);
-            for (int i = 0; i < (nn + 1); i++) {
+            for (int i = 0; i < nn; i++) {
                 y[i] *= ck;
             }
             /* 90 */
@@ -1770,7 +1770,7 @@ namespace amos {
             *ierr = 2;
             return 0;
         }
-        if (xx > 0.0) {
+        if (xx >= 0.0) {
             return nz;
         }
         //
@@ -5622,7 +5622,7 @@ namespace amos {
                 return -1;
             }
             nz = n;
-            for (i = 0; i < (n + 1); i++) {
+            for (i = 0; i < n; i++) {
                 y[i] = 0.0;
             }
             return nz;
@@ -6067,8 +6067,7 @@ namespace amos {
                 // REFINE ESTIMATE AND TEST
                 //
                 aphi = std::abs(phid);
-                aarg = std::abs(argd);
-                rs1 += std::log(aphi) - 0.25 * std::log(aarg) - aic;
+                rs1 += std::log(aphi);
                 if (std::fabs(rs1) < elim) {
                     goto L120;
                 }

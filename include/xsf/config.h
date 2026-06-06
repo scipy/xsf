@@ -251,7 +251,12 @@ using cuda::std::uint64_t;
 } // namespace std
 
 #else
+#if defined(__HIPCC__) || defined(__HIP__)
+// HIP-clang strictly enforces host/device call boundaries.
+#define XSF_HOST_DEVICE __host__ __device__
+#else
 #define XSF_HOST_DEVICE
+#endif
 
 #include <algorithm>
 #include <cassert>
