@@ -162,7 +162,7 @@ ccache = ">=4.11.2,<5"
 
 # TODO: use a task arg for parallelism https://github.com/prefix-dev/pixi/pull/3433
 [feature.tests-ci.tasks.build-tests-ci]
-description = "Build release test binaries for CI (configure for coverage)."
+description = "Build release test binaries for CI with coverage enabled."
 depends-on = ["clone-xsref", "configure-coverage"]
 cmd = ["cmake", "--build", "build", "-j3", "--config", "Release"]
 
