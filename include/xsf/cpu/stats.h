@@ -58,7 +58,7 @@ namespace cpu {
     }
 
     // Helpers for psi1 computations
-    XSF_HOST_DEVICE inline double psi1_G(double y) {
+    inline double psi1_G(double y) {
         // Helper implementing the G-type Bessel combination appearing in equation 1.10
         // in Csörgő, S. and Faraway, J. (1996).
         double z = y * y / 4.0;
@@ -66,7 +66,7 @@ namespace cpu {
         return std::exp(-z) * std::pow(y / 2.0, 1.5) * b / std::sqrt(M_PI);
     }
 
-    XSF_HOST_DEVICE inline double psi1_H(double y) {
+    inline double psi1_H(double y) {
         // Helper implementing the H-type Bessel combination appearing in equation 1.10
         // in Csörgő, S. and Faraway, J. (1996).
         double z = y * y / 4.0;
@@ -74,7 +74,7 @@ namespace cpu {
         return std::exp(-z) * std::pow(y / 2.0, 2.5) * b / std::sqrt(M_PI);
     }
 
-    XSF_HOST_DEVICE inline double psi1_term(int k, double x) {
+    inline double psi1_term(int k, double x) {
         // Compute the k-th term of the psi1 series expansion in equation 1.10
         // of Csörgő, S. and Faraway, J. (1996).
         double m = 2.0 * k + 1.0;
@@ -91,7 +91,7 @@ namespace cpu {
         return e1 + e2 + e3 + e4 + e5;
     }
 
-    XSF_HOST_DEVICE inline double psi1_mod(double x) {
+    inline double psi1_mod(double x) {
         // psi1 is defined in equation 1.10 in Csörgő, S. and Faraway, J. (1996).
         // This implements a modified version by excluding the term V(x) / 12
         // (here: cdf_cvm_inf(x) / 12) to avoid evaluating cdf_cvm_inf(x) twice in cdf_cvm.
@@ -114,7 +114,7 @@ namespace cpu {
         return tot;
     }
 
-    XSF_HOST_DEVICE inline double cdf_cvm(double x, int n = -1) {
+    inline double cdf_cvm(double x, int n = -1) {
         // Calculate the CDF of the Cramér-von Mises statistic for a finite sample
         // size n. If n=-1, use the asymptotic CDF (n=inf).
         //
