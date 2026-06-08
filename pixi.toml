@@ -167,10 +167,13 @@ cmd = ["open", "index.html"]
 ccache = "*"
 
 # TODO: use a task arg for parallelism https://github.com/prefix-dev/pixi/pull/3433
-[feature.tests-ci.tasks.build-tests-ci]
-description = "Build release test binaries for CI with coverage enabled."
-depends-on = ["clone-xsref", "configure-coverage"]
+[feature.tests-ci.tasks.build-only-ci]
+description = "Build release binaries for CI."
 cmd = ["cmake", "--build", "build", "-j3", "--config", "Release"]
+
+[feature.tests-ci.tasks.build-tests-ci]
+description = "Build release test binaries with coverage enabled."
+depends-on = ["clone-xsref", "configure-coverage", "build-only-ci"]
 
 [feature.tests-ci.tasks.tests-ci]
 description = "Run release CTest suite for CI."
@@ -192,14 +195,17 @@ cmd = [
 ]
 
 
-[feature.tests-debug-ci.tasks.build-tests-debug-ci]
-description = "Build debug test binaries for CI."
-depends-on = ["clone-xsref", "configure-tests-debug"]
+[feature.tests-debug-ci.tasks.build-debug-only-ci]
+description = "Build the debug CMake configuration in build-debug/ for CI."
 cmd = ["cmake", "--build", "build-debug", "-j3", "--config", "Debug"]
+
+[feature.tests-debug-ci.tasks.build-tests-debug-ci]
+description = "Build debug test binaries in build-debug/ for CI."
+depends-on = ["clone-xsref", "configure-tests-debug", "build-debug-only-ci"]
 
 [feature.tests-debug-ci.tasks.tests-debug-ci]
 description = "Run debug CTest suite for CI."
-depends-on = ["clone-xsref", "build-tests-debug-ci"]
+depends-on = ["build-tests-debug-ci"]
 cmd = [
   "ctest",
   "--output-on-failure",
