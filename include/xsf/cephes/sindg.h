@@ -108,7 +108,7 @@ namespace cephes {
 
         /* make argument positive but save the sign */
         sign = 1;
-        if (x < 0) {
+        if (std::signbit(x)) {
             x = -x;
             sign = -1;
         }
