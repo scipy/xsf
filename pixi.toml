@@ -9,6 +9,7 @@ name = "xsf"
 platforms = ["win-64", "linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
 version = "0.2.2"
 requires-pixi = ">=0.68.0"
+preview = ["pixi-build"]
 
 
 # environments
@@ -23,6 +24,7 @@ solve-group = "default"
 
 [environments.lint]
 features = ["clang-format"]
+no-default-feature = true
 solve-group = "default"
 
 [environments.cupy-tests]
@@ -30,7 +32,14 @@ features = ["cupy-tests"]
 solve-group = "default"
 
 
-# features
+# default feature
+
+[dependencies]
+python = "*"
+xsref = { git = "https://github.com/scipy/xsref", rev = "1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331" }
+
+
+# non-default features
 
 [feature.build.dependencies]
 cmake = "*"
@@ -73,15 +82,6 @@ depends-on = ["configure", "build-only"]
 catch2 = "*"
 libarrow-all = "*"
 
-[feature.tests.tasks.clean-xsref]
-description = "Remove the local xsref."
-cmd = "rm -rf xsref"
-
-[feature.tests.tasks.clone-xsref]
-description = "Clone xsref after cleaning old checkout."
-depends-on = ["clean-xsref"]
-cmd = "git clone https://github.com/scipy/xsref.git && git -C xsref checkout 4e9b2343813136e355f0262754a3929d98bc5bff"
-
 [feature.tests.tasks.configure-tests]
 description = "Configure CMake with BUILD_TESTS enabled in build/."
 cmd = [
@@ -100,7 +100,7 @@ depends-on = ["configure-tests", "build-only"]
 
 [feature.tests.tasks.tests]
 description = "Run CTest test suite from build/tests with verbose failures."
-depends-on = ["clone-xsref", "build-tests"]
+depends-on = ["build-tests"]
 cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests"]
 
 
@@ -120,7 +120,7 @@ cmd = [
 
 [feature.tests-debug.tasks.tests-debug]
 description = "Run debug-mode CTest suite from build-debug/tests."
-depends-on = ["clone-xsref", "configure-tests-debug", "build-debug-only"]
+depends-on = ["configure-tests-debug", "build-debug-only"]
 cmd = ["ctest", "--output-on-failure", "--test-dir", "build-debug/tests"]
 
 
@@ -153,7 +153,6 @@ cmd = [
   # We want to build in the build directory
   "-B build",
 ]
-env.XSREF_TABLES_PATH = "$PWD/xsref/tables"
 env.CC = "ccache $CC"
 env.CXX = "ccache $CXX"
 
@@ -173,7 +172,7 @@ cmd = ["cmake", "--build", "build", "-j3", "--config", "Release"]
 
 [feature.tests-ci.tasks.build-tests-ci]
 description = "Build release test binaries with coverage enabled."
-depends-on = ["clone-xsref", "configure-coverage", "build-only-ci"]
+depends-on = ["configure-coverage", "build-only-ci"]
 
 [feature.tests-ci.tasks.tests-ci]
 description = "Run release CTest suite for CI."
@@ -201,7 +200,7 @@ cmd = ["cmake", "--build", "build-debug", "-j3", "--config", "Debug"]
 
 [feature.tests-debug-ci.tasks.build-tests-debug-ci]
 description = "Build debug test binaries in build-debug/ for CI."
-depends-on = ["clone-xsref", "configure-tests-debug", "build-debug-only-ci"]
+depends-on = ["configure-tests-debug", "build-debug-only-ci"]
 
 [feature.tests-debug-ci.tasks.tests-debug-ci]
 description = "Run debug CTest suite for CI."
@@ -221,37 +220,10 @@ cmd = [
 platforms = ["linux-64"]
 
 [feature.cupy-tests.dependencies]
-python = "*"
-pip = "*"
-setuptools = "*"
 cupy = "*"
 pytest = "*"
 pytest-forked = "*"
 
-[feature.cupy-tests.tasks.clone-xsref-test-cupy]
-description = "Ensure xsref is present locally for CuPy tests."
-# Since CuPy tests are only available on Linux, we can use bash like
-# this to only clone xsref if it isn't already there and checked out
-# at the proper commit.
-cmd = """
-bash -c '
-if [ -d xsref ]; then
-  commit=$(git -C xsref rev-parse HEAD 2>/dev/null || true)
-fi
-if [ \"$commit\" != 4e9b2343813136e355f0262754a3929d98bc5bff ]; then
-  rm -rf xsref
-  git clone https://github.com/scipy/xsref.git && git -C xsref checkout 4e9b2343813136e355f0262754a3929d98bc5bff
-fi
-'
-"""
-
-[feature.cupy-tests.tasks.install-xsref-test-cupy]
-description = "Install the local xsref package needed by CuPy tests."
-depends-on = ["clone-xsref-test-cupy"]
-cwd = "xsref"
-cmd = "pip install ."
-
 [feature.cupy-tests.tasks.test-cupy]
 description = "Run CuPy integration tests."
-depends-on = ["install-xsref-test-cupy"]
 cmd = "pytest --forked python_tests/test_cupy.py"
