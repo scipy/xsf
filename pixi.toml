@@ -57,13 +57,15 @@ cmd = [
 ]
 
 [feature.build.tasks.build-only]
-description = "Build the existing CMake configuration in the build directory."
-# Just build without configure
+description = "Build the release CMake configuration in the build directory."
 cmd = ["cmake", "--build", "build", "--config", "Release"]
+
+[feature.tests-debug.tasks.build-debug-only]
+description = "Build the debug CMake configuration in build-debug/."
+cmd = ["cmake", "--build", "build-debug", "--config", "Debug"]
 
 [feature.build.tasks.build]
 description = "Run configure, then build the project with default settings."
-# Build with default configuration
 depends-on = ["configure", "build-only"]
 
 
@@ -116,14 +118,9 @@ cmd = [
   "-B build-debug",
 ]
 
-[feature.tests-debug.tasks.build-tests-debug]
-description = "Build the debug test configuration in build-debug/."
-depends-on = ["configure-tests-debug"]
-cmd = ["cmake", "--build", "build-debug", "--config", "Debug"]
-
 [feature.tests-debug.tasks.tests-debug]
 description = "Run debug-mode CTest suite from build-debug/tests."
-depends-on = ["clone-xsref", "build-tests-debug"]
+depends-on = ["clone-xsref", "configure-tests-debug", "build-debug-only"]
 cmd = ["ctest", "--output-on-failure", "--test-dir", "build-debug/tests"]
 
 
