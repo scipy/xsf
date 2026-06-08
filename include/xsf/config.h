@@ -56,6 +56,7 @@
 #ifdef __CUDACC__
 #define XSF_HOST_DEVICE __host__ __device__
 
+#include <cuda/std/array>
 #include <cuda/std/cmath>
 #include <cuda/std/cstddef>
 #include <cuda/std/cstdint>
@@ -95,6 +96,8 @@ XSF_HOST_DEVICE inline double tan(double x) { return cuda::std::tan(x); }
 
 XSF_HOST_DEVICE inline double atan(double x) { return cuda::std::atan(x); }
 
+XSF_HOST_DEVICE inline double asin(double x) { return cuda::std::asin(x); }
+
 XSF_HOST_DEVICE inline double acos(double x) { return cuda::std::acos(x); }
 
 XSF_HOST_DEVICE inline double sinh(double x) { return cuda::std::sinh(x); }
@@ -106,6 +109,8 @@ XSF_HOST_DEVICE inline double asinh(double x) { return cuda::std::asinh(x); }
 XSF_HOST_DEVICE inline bool signbit(double x) { return cuda::std::signbit(x); }
 
 XSF_HOST_DEVICE inline double hypot(double x, double y) { return cuda::std::hypot(x, y); }
+
+XSF_HOST_DEVICE inline double atan2(double y, double x) { return cuda::std::atan2(y, x); }
 
 // Fallback to global namespace for functions unsupported on NVRTC
 #ifndef __CUDACC_RTC__
@@ -142,15 +147,28 @@ XSF_HOST_DEVICE inline double fmod(double x, double y) { return ::fmod(x, y); }
 XSF_HOST_DEVICE inline double nextafter(double from, double to) { return ::nextafter(from, to); }
 #endif
 
+template <typename T, size_t N>
+using array = cuda::std::array<T, N>;
+
 template <typename T>
 XSF_HOST_DEVICE void swap(T &a, T &b) {
     cuda::std::swap(a, b);
 }
 
-// Reimplement std::clamp until it's available in CuPy
+// Reimplement std::min, std::max, std::clamp until they are available in CuPy
 template <typename T>
-XSF_HOST_DEVICE constexpr T clamp(T &v, T &lo, T &hi) {
-    return v < lo ? lo : (v > hi ? lo : v);
+XSF_HOST_DEVICE constexpr const T &min(const T &a, const T &b) {
+    return a < b ? a : b;
+}
+
+template <typename T>
+XSF_HOST_DEVICE constexpr const T &max(const T &a, const T &b) {
+    return a < b ? b : a;
+}
+
+template <typename T>
+XSF_HOST_DEVICE constexpr const T &clamp(const T &v, const T &lo, const T &hi) {
+    return v < lo ? lo : (v > hi ? hi : v);
 }
 
 template <typename T>
@@ -233,7 +251,12 @@ using cuda::std::uint64_t;
 } // namespace std
 
 #else
+#if defined(__HIPCC__) || defined(__HIP__)
+// HIP-clang strictly enforces host/device call boundaries.
+#define XSF_HOST_DEVICE __host__ __device__
+#else
 #define XSF_HOST_DEVICE
+#endif
 
 #include <algorithm>
 #include <cassert>

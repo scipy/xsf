@@ -22,7 +22,36 @@ inline float expm1(float x) { return expm1(static_cast<double>(x)); }
 // precision.
 inline std::complex<double> expm1(std::complex<double> z) {
     if (!std::isfinite(std::real(z)) || !std::isfinite(std::imag(z))) {
-        return std::exp(z) - 1.0;
+        // libstdc++'s std::exp(complex) is implemented via std::polar and
+        // does not follow C99 cexp semantics for non-finite inputs (e.g.
+        // it returns (inf, nan) for exp(inf+0i) instead of (inf, 0), and
+        // it aborts under _GLIBCXX_ASSERTIONS when a NaN reaches polar).
+        // Compute the non-finite branches directly.
+        double zr = std::real(z);
+        double zi = std::imag(z);
+        constexpr double inf = std::numeric_limits<double>::infinity();
+        constexpr double nan = std::numeric_limits<double>::quiet_NaN();
+        if (std::isnan(zr)) {
+            return std::complex<double>{nan, nan};
+        }
+        if (std::isinf(zr)) {
+            if (zr < 0) {
+                // exp(-inf + i*y) = 0 for any y (C99 conventions), so
+                // expm1 = -1 + 0i regardless of zi.
+                return std::complex<double>{-1.0, 0.0};
+            }
+            // zr == +inf
+            if (zi == 0.0) {
+                return std::complex<double>{inf, zi};
+            }
+            if (std::isfinite(zi)) {
+                return std::complex<double>{inf * std::cos(zi), inf * std::sin(zi)};
+            }
+            // zi is +/-inf or NaN: magnitude is inf, phase undefined.
+            return std::complex<double>{inf, nan};
+        }
+        // zr finite, zi non-finite (inf or NaN).
+        return std::complex<double>{nan, nan};
     }
 
     double x;

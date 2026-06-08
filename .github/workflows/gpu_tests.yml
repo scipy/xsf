@@ -15,7 +15,7 @@ concurrency:
 jobs:
   cupy_tests:
     name: CuPy GPU
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64-gpu:22.04
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64-gpu:24.04
     steps:
       - name: Checkout xsf repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -40,7 +40,7 @@ jobs:
 
       - uses: prefix-dev/setup-pixi@ba3bb36eb2066252b2363392b7739741bb777659 # v0.8.1
         with:
-          pixi-version: v0.39.2
+          pixi-version: v0.70.1
           manifest-path: pixi.toml
           cache: false
 
