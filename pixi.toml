@@ -6,10 +6,31 @@ authors = [
 channels = ["https://prefix.dev/conda-forge"]
 description = "Special function implementations."
 name = "xsf"
-platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
-version = "0.2.0"
+platforms = ["win-64", "linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
+version = "0.2.2"
+requires-pixi = ">=0.68.0"
 
-## Build
+
+# environments
+
+[environments.default]
+features = ["build", "tests", "tests-debug"]
+solve-group = "default"
+
+[environments.tests-ci]
+features = ["build", "tests", "tests-ci", "tests-debug", "tests-debug-ci", "coverage"]
+solve-group = "default"
+
+[environments.lint]
+features = ["clang-format"]
+solve-group = "default"
+
+[environments.cupy-tests]
+features = ["cupy-tests"]
+solve-group = "default"
+
+
+# features
 
 [feature.build.dependencies]
 cmake = ">=3.30.5,<4"
@@ -17,6 +38,7 @@ cxx-compiler = ">=1.8.0,<2"
 make = ">=4.4.1,<5"
 
 [feature.build.tasks.configure]
+description = "Configure CMake in the build directory for a release build."
 cmd = [
   "cmake",
   # The source is in the root directory
@@ -24,32 +46,34 @@ cmd = [
   # We want to build in the build directory
   "-B build",
 ]
-cwd = "."
 
 [feature.build.tasks.build-only]
+description = "Build the existing CMake configuration in the build directory."
 # Just build without configure
 cmd = ["cmake", "--build", "build", "--config", "Release"]
-cwd = "."
 
 [feature.build.tasks.build]
+description = "Run configure, then build the project with default settings."
 # Build with default configuration
 depends-on = ["configure", "build-only"]
 
-## Tests
 
 [feature.tests.dependencies]
 catch2 = ">=3.8.0,<4"
 libarrow-all = ">=19.0.1,<20"
 
-[feature.tests.tasks]
-# clean xsref dir
-clean-xsref = { cwd = ".", cmd = "rm -rf xsref" }
-# clone xsref
-clone-xsref.cmd = "git clone --depth 1 --branch v0.0.0 https://github.com/scipy/xsref.git"
-clone-xsref.cwd = "."
-clone-xsref.depends-on = ["clean-xsref"]
-# configure cmake for tests
-configure-tests.cmd = [
+[feature.tests.tasks.clean-xsref]
+description = "Remove the local xsref."
+cmd = "rm -rf xsref"
+
+[feature.tests.tasks.clone-xsref]
+description = "Clone xsref after cleaning old checkout."
+depends-on = ["clean-xsref"]
+cmd = "git clone https://github.com/scipy/xsref.git && git -C xsref checkout 4e9b2343813136e355f0262754a3929d98bc5bff"
+
+[feature.tests.tasks.configure-tests]
+description = "Configure CMake with BUILD_TESTS enabled in build/."
+cmd = [
   "cmake",
   # Enable building tests
   "-DBUILD_TESTS=ON",
@@ -58,18 +82,20 @@ configure-tests.cmd = [
   # We want to build in the build directory
   "-B build",
 ]
-configure-tests.cwd = "."
-# build for tests
-build-tests.depends-on = ["configure-tests", "build-only"]
-# run tests
-tests.cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests"]
-tests.depends-on = ["clone-xsref", "build-tests"]
-tests.cwd = "."
 
-## Tests of debug build (catches asserts that can cause program to abort)
+[feature.tests.tasks.build-tests]
+description = "Configure and build the project for test execution."
+depends-on = ["configure-tests", "build-only"]
 
-[feature.tests-debug.tasks]
-configure-tests-debug.cmd = [
+[feature.tests.tasks.tests]
+description = "Run CTest test suite from build/tests with verbose failures."
+depends-on = ["clone-xsref", "build-tests"]
+cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests"]
+
+
+[feature.tests-debug.tasks.configure-tests-debug]
+description = "Configure CMake with BUILD_TESTS enabled in Debug mode (catches asserts that can cause program to abort)."
+cmd = [
   "cmake",
   # Enable building tests
   "-DBUILD_TESTS=ON",
@@ -80,34 +106,37 @@ configure-tests-debug.cmd = [
   # use build-debug directory to avoid overwriting build directory.
   "-B build-debug",
 ]
-configure-tests-debug.cwd = "."
 
-build-tests-debug.cmd = ["cmake", "--build", "build-debug", "--config", "Debug"]
-build-tests-debug.depends-on = ["configure-tests-debug"]
-build-tests-debug.cwd = "."
+[feature.tests-debug.tasks.build-tests-debug]
+description = "Build the debug test configuration in build-debug/."
+depends-on = ["configure-tests-debug"]
+cmd = ["cmake", "--build", "build-debug", "--config", "Debug"]
 
-tests-debug.cmd = ["ctest", "--output-on-failure", "--test-dir", "build-debug/tests"]
-tests-debug.depends-on = ["clone-xsref", "build-tests-debug"]
-tests-debug.cwd = "."
+[feature.tests-debug.tasks.tests-debug]
+description = "Run debug-mode CTest suite from build-debug/tests."
+depends-on = ["clone-xsref", "build-tests-debug"]
+cmd = ["ctest", "--output-on-failure", "--test-dir", "build-debug/tests"]
 
-## clang-format
 
 [feature.clang-format.dependencies]
 git = "*"
 clang-format = "*"
 
-[feature.clang-format.tasks]
-format = "git ls-files '*.cpp' '*.h' | xargs clang-format -i --style=file"
-format-dry-error = "git ls-files '*.cpp' '*.h' | xargs clang-format --style=file --Werror --dry-run"
+[feature.clang-format.tasks.format]
+description = "Format tracked C++ source and header files in place."
+cmd = "git ls-files '*.cpp' '*.h' | xargs clang-format -i --style=file"
 
-## Coverage
+[feature.clang-format.tasks.format-dry-error]
+description = "Check C++ formatting and fail if any file needs changes."
+cmd = "git ls-files '*.cpp' '*.h' | xargs clang-format --style=file --Werror --dry-run"
+
 
 [feature.coverage.dependencies]
 lcov = ">=1.16,<2"
 
-[feature.coverage.tasks]
-# Configure with tests and coverage
-configure-coverage.cmd = [
+[feature.coverage.tasks.configure-coverage]
+description = "Configure CMake for coverage instrumentation and tests."
+cmd = [
   "cmake",
   # Enable building tests
   "-DBUILD_TESTS=ON",
@@ -118,31 +147,34 @@ configure-coverage.cmd = [
   # We want to build in the build directory
   "-B build",
 ]
-configure-coverage.cwd = "."
-configure-coverage.env.XSREF_TABLES_PATH = "$PWD/xsref/tables"
-configure-coverage.env.CC = "ccache $CC"
-configure-coverage.env.CXX = "ccache $CXX"
-# Open coverage report
-open-coverage.cmd = ["open", "index.html"]
-open-coverage.cwd = "build/coverage_report"
+env.XSREF_TABLES_PATH = "$PWD/xsref/tables"
+env.CC = "ccache $CC"
+env.CXX = "ccache $CXX"
 
-## Tests CI
+[feature.coverage.tasks.open-coverage]
+description = "Open the generated HTML coverage report index page."
+cwd = "build/coverage_report"
+cmd = ["open", "index.html"]
+
 
 [feature.tests-ci.dependencies]
 ccache = ">=4.11.2,<5"
 
-[feature.tests-ci.tasks]
-# Build and generate coverage report
 # TODO: use a task arg for parallelism https://github.com/prefix-dev/pixi/pull/3433
-build-tests-ci.cmd = ["cmake", "--build", "build", "-j3", "--config", "Release"]
-build-tests-ci.depends-on = ["clone-xsref", "configure-coverage"]
-build-tests-ci.cwd = "."
-# Run tests
-tests-ci.cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests", "-j3"]
-tests-ci.depends-on = ["build-tests-ci"]
-tests-ci.cwd = "."
-# Coverage
-coverage.cmd = [
+[feature.tests-ci.tasks.build-tests-ci]
+description = "Build release test binaries for CI with coverage enabled."
+depends-on = ["clone-xsref", "configure-coverage"]
+cmd = ["cmake", "--build", "build", "-j3", "--config", "Release"]
+
+[feature.tests-ci.tasks.tests-ci]
+description = "Run release CTest suite for CI."
+depends-on = ["build-tests-ci"]
+cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests", "-j3"]
+
+[feature.tests-ci.tasks.coverage]
+description = "Build and generate the HTML coverage report target."
+depends-on = ["tests-ci"]
+cmd = [
   "cmake",
   "--build",
   "build",
@@ -152,15 +184,17 @@ coverage.cmd = [
   "--config",
   "Release",
 ]
-coverage.depends-on = ["tests-ci"]
-coverage.cwd = "."
 
-[feature.tests-debug-ci.tasks]
-build-tests-debug-ci.cmd = ["cmake", "--build", "build-debug", "-j3", "--config", "Debug"]
-build-tests-debug-ci.depends-on = ["clone-xsref", "configure-tests-debug"]
-build-tests-debug-ci.cwd = "."
 
-tests-debug-ci.cmd = [
+[feature.tests-debug-ci.tasks.build-tests-debug-ci]
+description = "Build debug test binaries for CI."
+depends-on = ["clone-xsref", "configure-tests-debug"]
+cmd = ["cmake", "--build", "build-debug", "-j3", "--config", "Debug"]
+
+[feature.tests-debug-ci.tasks.tests-debug-ci]
+description = "Run debug CTest suite for CI."
+depends-on = ["clone-xsref", "build-tests-debug-ci"]
+cmd = [
   "ctest",
   "--output-on-failure",
   "--test-dir",
@@ -169,11 +203,8 @@ tests-debug-ci.cmd = [
   "--build-config",
   "Debug",
 ]
-tests-debug-ci.depends-on = ["clone-xsref", "build-tests-debug-ci"]
-tests-debug-ci.cwd = "."
 
 
-# CuPy tests
 [feature.cupy-tests]
 platforms = ["linux-64"]
 
@@ -181,35 +212,34 @@ platforms = ["linux-64"]
 python = ">=3.12.0,<3.13"
 pip = "*"
 setuptools = "*"
-cupy = "*"
+cupy = ">=14.0.0"
 pytest = "*"
 pytest-forked = "*"
 
-[feature.cupy-tests.tasks]
+[feature.cupy-tests.tasks.clone-xsref-test-cupy]
+description = "Ensure xsref is present locally for CuPy tests."
 # Since CuPy tests are only available on Linux, we can use bash like
 # this to only clone xsref if it isn't already there and checked out
-# at the proper tag.
-clone-xsref-test-cupy.cmd = """
+# at the proper commit.
+cmd = """
 bash -c '
 if [ -d xsref ]; then
-  tag=$(git -C xsref describe --tags --exact-match 2>/dev/null || true)
+  commit=$(git -C xsref rev-parse HEAD 2>/dev/null || true)
 fi
-if [ \"$tag\" != v0.0.0 ]; then
+if [ \"$commit\" != 4e9b2343813136e355f0262754a3929d98bc5bff ]; then
   rm -rf xsref
-  git clone --branch v0.0.0 --depth 1 https://github.com/scipy/xsref.git
+  git clone https://github.com/scipy/xsref.git && git -C xsref checkout 4e9b2343813136e355f0262754a3929d98bc5bff
 fi
 '
 """
-clone-xsref-test-cupy.cwd = "."
-install-xsref-test-cupy.cmd = "pip install ."
-install-xsref-test-cupy.cwd = "xsref"
-install-xsref-test-cupy.depends-on = ["clone-xsref-test-cupy"]
-test-cupy.cmd = "pytest --forked python_tests/test_cupy.py"
-test-cupy.cwd = "."
-test-cupy.depends-on = ["install-xsref-test-cupy"]
 
-[environments]
-default = { features = ["build", "tests", "tests-debug"], solve-group = "default" }
-tests-ci = { features = ["build", "tests", "tests-ci", "tests-debug", "tests-debug-ci", "coverage"], solve-group = "default"}
-lint = { features = ["clang-format"], solve-group = "default" }
-cupy-tests = { features = ["cupy-tests"], solve-group = "default" }
+[feature.cupy-tests.tasks.install-xsref-test-cupy]
+description = "Install the local xsref package needed by CuPy tests."
+depends-on = ["clone-xsref-test-cupy"]
+cwd = "xsref"
+cmd = "pip install ."
+
+[feature.cupy-tests.tasks.test-cupy]
+description = "Run CuPy integration tests."
+depends-on = ["install-xsref-test-cupy"]
+cmd = "pytest --forked python_tests/test_cupy.py"

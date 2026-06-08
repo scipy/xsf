@@ -1,0 +1,21 @@
+# This file contains globs for automatically adding labels based on changed files,
+# for use with https://github.com/actions/labeler.
+
+CI:
+- changed-files:
+  - any-glob-to-any-file:
+    - .github/workflows/**
+    - .github/label*.yml
+
+Documentation:
+- changed-files:
+  - any-glob-to-any-file:
+    - CONTRIBUTING.md
+    - README.md
+    - .github/PULL_REQUEST_TEMPLATE.md
+
+GPU:
+- changed-files:
+  - any-glob-to-any-file:
+    - python_tests/test_cupy.py
+    - .github/workflows/gpu_tests.yml
