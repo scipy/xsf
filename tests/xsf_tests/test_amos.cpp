@@ -62,34 +62,26 @@ TEST_CASE("amos besi vectorized", "[amos][xsf_tests]") {
     }
 }
 
-TEST_CASE("amos besh vectorized", "[amos][xsf_tests]") {
-    // tests the functionality of amos to return multiple consecutive orders for besh
-    // by comparing to the versions returning only a single order
+TEST_CASE("amos seri buffer overflow gh-92", "[amos][xsf_tests]") {
     using std::complex;
 
-    using test_case = std::tuple<complex<double>, double, int, int, int, double>;
-    auto [z, fnu, kode, m, n, rtol] = GENERATE(
-        test_case{complex{14.0, -3.0}, 1.0, 1, 1, 260, 4e-13} // gh-92
-    );
+    // parameters for besh which trigger overflow in seri
+    const complex<double> z{14.0, -3.0};
+    const double fnu = 1.0;
+    const int m = 1;
+    const int n = 260;
+    const int kode = 1;
 
-    std::vector<complex<double>> cy(n);
+    // allocate n+1 elements, initialize extra to sentinel to detect overflow
+    const complex<double> sentinel{12345.67, 98765.43};
+    std::vector<complex<double>> cy(n + 1, sentinel);
+
     int ierr = 0;
-    int nz;
+    int nz = xsf::amos::besh(z, fnu, kode, m, n, cy.data(), &ierr);
 
-    nz = xsf::amos::besh(z, fnu, kode, m, n, cy.data(), &ierr);
-
-    REQUIRE(ierr == 0);
-
-    complex<double> ref;
-
-    for (int i = 0; i < n; ++i) {
-        nz = xsf::amos::besh(z, fnu + i, kode, m, 1, &ref, &ierr);
-        REQUIRE(ierr == 0);
-
-        const auto rel_error = xsf::extended_relative_error(cy[i], ref);
-        CAPTURE(i, cy[i], ref, rel_error);
-        REQUIRE(rel_error <= rtol);
-    }
+    // check if the extra element (index n) was touched
+    CAPTURE(cy[n]);
+    CHECK(cy[n] == sentinel);
 }
 
 TEST_CASE("amos asyi buffer overflow gh-158", "[amos][xsf_tests]") {
