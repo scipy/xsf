@@ -34,10 +34,10 @@ solve-group = "default"
 
 [feature.build.dependencies]
 cmake = "*"
-make = ">=4.4.1,<5"
+make = "*"
 
 [feature.build.target.unix.dependencies]
-cxx-compiler = ">=1.8.0,<2"
+cxx-compiler = "*"
 
 [feature.build.target.win-64.dependencies]
 vs2026_win-64 = "*"
@@ -68,8 +68,8 @@ depends-on = ["configure", "build-only"]
 
 
 [feature.tests.dependencies]
-catch2 = ">=3.8.0,<4"
-libarrow-all = ">=19.0.1,<20"
+catch2 = "*"
+libarrow-all = "*"
 
 [feature.tests.tasks.clean-xsref]
 description = "Remove the local xsref."
@@ -141,7 +141,7 @@ cmd = "git ls-files '*.cpp' '*.h' | xargs clang-format --style=file --Werror --d
 
 
 [feature.coverage.dependencies]
-lcov = ">=1.16,<2"
+lcov = "*"
 
 [feature.coverage.tasks.configure-coverage]
 description = "Configure CMake for coverage instrumentation and tests."
@@ -167,7 +167,7 @@ cmd = ["open", "index.html"]
 
 
 [feature.tests-ci.dependencies]
-ccache = ">=4.11.2,<5"
+ccache = "*"
 
 # TODO: use a task arg for parallelism https://github.com/prefix-dev/pixi/pull/3433
 [feature.tests-ci.tasks.build-tests-ci]
@@ -218,10 +218,10 @@ cmd = [
 platforms = ["linux-64"]
 
 [feature.cupy-tests.dependencies]
-python = ">=3.12.0,<3.13"
+python = "*"
 pip = "*"
 setuptools = "*"
-cupy = ">=14.0.0"
+cupy = "*"
 pytest = "*"
 pytest-forked = "*"
 
