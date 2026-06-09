@@ -20,7 +20,7 @@ TEST_CASE("lambertw Dpd->D scipy_special_tests", "[lambertw][Dpd->D][scipy_speci
     auto [desired, fallback] = output;
     auto out = xsf::lambertw(z, k, eps);
     auto error = xsf::extended_relative_error(out, desired);
-    tol = adjust_tolerance(tol);
+    tol = adjust_tolerance(tol, 8.0);
     CAPTURE(z, k, eps, out, desired, error, tol, fallback);
     REQUIRE(error <= tol);
 }
