@@ -299,7 +299,7 @@ namespace detail {
                 -10.8       ,    5.20833333,   -2.66666667,    1.5       ,
                 -1.        ,    1.        , 0.
             };
-            double w = cephes::polevl(z, coeff, 10);
+            return cephes::polevl(z, coeff, 10);
         }
 
     } // namespace lambertw_real
