@@ -62,6 +62,28 @@ TEST_CASE("amos besi vectorized", "[amos][xsf_tests]") {
     }
 }
 
+TEST_CASE("amos seri buffer overflow gh-92", "[amos][xsf_tests]") {
+    using std::complex;
+
+    // parameters for besh which trigger overflow in seri
+    const complex<double> z{14.0, -3.0};
+    const double fnu = 1.0;
+    const int m = 1;
+    const int n = 260;
+    const int kode = 1;
+
+    const complex<double> sentinel{12345.67, 98765.43};
+    std::vector<complex<double>> cy(n + 2, sentinel);
+
+    int ierr = 0;
+    int nz = xsf::amos::besh(z, fnu, kode, m, n, cy.data() + 1, &ierr);
+
+    // check if guards elements were touched
+    CAPTURE(cy[0], cy[n + 1]);
+    CHECK(cy[0] == sentinel);
+    CHECK(cy[n + 1] == sentinel);
+}
+
 TEST_CASE("amos asyi buffer overflow gh-158", "[amos][xsf_tests]") {
     using std::complex;
 
