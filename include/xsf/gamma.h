@@ -57,7 +57,25 @@ XSF_HOST_DEVICE inline std::complex<double> gamma(std::complex<double> z) {
         set_error("gamma", SF_ERROR_SINGULAR, NULL);
         return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
     }
-    return std::exp(loggamma(z));
+
+    if (z.real() <= -std::ldexp(1.0, std::numeric_limits<double>::digits)) {
+        return {0.0, std::copysign(0.0, z.imag())};
+    }
+
+    std::complex<double> lg = loggamma(z);
+    if (lg.real() == -std::numeric_limits<double>::infinity()) {
+        return {0.0, std::copysign(0.0, z.imag())};
+    }
+    const double max = std::numeric_limits<double>::max();
+    if (lg.real() > std::log(max) && z.imag() == 0.0) {
+        return {std::numeric_limits<double>::infinity(), std::copysign(0.0, z.imag())};
+    }
+    if (lg.real() > std::log(max) && z.real() > std::sqrt(max) && std::abs(z.imag()) > std::sqrt(max)) {
+        return {
+            -std::numeric_limits<double>::infinity(), std::copysign(std::numeric_limits<double>::infinity(), z.imag())
+        };
+    }
+    return std::exp(lg);
 }
 
 XSF_HOST_DEVICE inline std::complex<float> gamma(std::complex<float> z) {
