@@ -101,12 +101,13 @@ TEST_CASE("amos buni buffer overflow gh-93", "[amos][xsf_tests]") {
 
     // allocate n+1 elements, initialize extra to sentinel to detect overflow
     const complex<double> sentinel{12345.67, 98765.43};
-    std::vector<complex<double>> cy(n + 1, sentinel);
+    std::vector<complex<double>> cy(n + 2, sentinel);
 
     int ierr = 0;
-    int nz = xsf::amos::besh(z, fnu, kode, m, n, cy.data(), &ierr);
+    int nz = xsf::amos::besh(z, fnu, kode, m, n, cy.data() + 1, &ierr);
 
-    // check if the extra element (index n) was touched
-    CAPTURE(cy[n]);
-    CHECK(cy[n] == sentinel);
+    // check if guards elements were touched
+    CAPTURE(cy[0], cy[n + 1]);
+    CHECK(cy[0] == sentinel);
+    CHECK(cy[n + 1] == sentinel);
 }
