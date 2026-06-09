@@ -24,6 +24,40 @@ TEST_CASE("gamma D->D scipy_special_tests", "[gamma][D->D][scipy_special_tests]"
     REQUIRE(error <= tol);
 }
 
+TEST_CASE("gamma D->D huge negative inputs underflow to zero", "[gamma][D->D][scipy_special_tests]") {
+    SET_FP_FORMAT()
+    auto z = GENERATE(
+        std::complex<double>{-8.98847e307, -10.0}, std::complex<double>{-8.98847e307, 1e-30},
+        std::complex<double>{-8.98847e307, 2.99808e154}
+    );
+
+    auto out = xsf::gamma(z);
+    CAPTURE(z, out);
+    REQUIRE(out.real() == 0.0);
+    REQUIRE(out.imag() == 0.0);
+}
+
+TEST_CASE("gamma D->D positive real axis overflows", "[gamma][D->D][scipy_special_tests]") {
+    SET_FP_FORMAT()
+    auto z = GENERATE(std::complex<double>{2.99808e154, 0.0}, std::complex<double>{8.98847e307, 0.0});
+
+    auto out = xsf::gamma(z);
+    CAPTURE(z);
+    CAPTURE(out);
+    REQUIRE(out.real() == std::numeric_limits<double>::infinity());
+    REQUIRE(out.imag() == 0.0);
+}
+
+TEST_CASE("gamma D->D balanced huge inputs overflow", "[gamma][D->D][scipy_special_tests]") {
+    SET_FP_FORMAT()
+    auto z = GENERATE(std::complex<double>{2.99808e154, 2.99808e154}, std::complex<double>{2.99808e154, -2.99808e154});
+
+    auto out = xsf::gamma(z);
+    CAPTURE(z, out);
+    REQUIRE(out.real() == -std::numeric_limits<double>::infinity());
+    REQUIRE(out.imag() == std::copysign(std::numeric_limits<double>::infinity(), z.imag()));
+}
+
 TEST_CASE("gamma d->d scipy_special_tests", "[gamma][d->d][scipy_special_tests]") {
     SET_FP_FORMAT()
     auto [input, output, tol] = GENERATE(
