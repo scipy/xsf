@@ -293,13 +293,29 @@ namespace detail {
         XSF_HOST_DEVICE inline double lambertw_series(double z) {
             /* Compute the principal branch of the W function using the series expansion around zero.
             See section 1.3 of [4].
+            Empirically, no benefit is seen beyond order 16.
+            Highest accuracy is in the domain [-0.0525, 0.0525].
             */
             constexpr double coeff[] = {
-                -275.57319224,  118.62522321,  -52.01269841,   23.34305556,
-                -10.8       ,    5.20833333,   -2.66666667,    1.5       ,
-                -1.        ,    1.        , 0.
+                -55103.621972903835,
+                22324.3085127066,
+                -9104.500241158019,
+                3741.4497029592385,
+                -1551.1605194805195,
+                649.7871723434745,
+                -275.5731922398589,
+                118.62522321428571,
+                -52.01269841269841,
+                23.343055555555555,
+                -10.8,
+                5.208333333333333,
+                -2.6666666666666665,
+                1.5,
+                -1.0,
+                1.0,
+                0.0
             };
-            return cephes::polevl(z, coeff, 10);
+            return cephes::polevl(z, coeff, 16);
         }
 
     } // namespace lambertw_real
@@ -319,7 +335,7 @@ XSF_HOST_DEVICE inline double lambertw(double z, long k, double tol) {
     }
 
     if (k == 0) {
-        if (abs(z) < 0.055) {
+        if (std::abs(z) < 0.055) {
             // empirically determined region around zero where 10 terms of the
             // series expansion is more accurate than the minimax approximation
             return lambertw_series(z);
