@@ -18,7 +18,8 @@
  https://github.com/mpmath/mpmath/blob/c5939823669e1bcce151d89261b802fe0d8978b4/mpmath/functions/functions.py#L435-L461
  * [3]
  https://web.archive.org/web/20230504171447/https://mpmath.org/doc/current/functions/powers.html#lambert-w-function
- * [4] Corless and Jeffrey, "The Lambert W Function". https://www.uwo.ca/apmaths/faculty/jeffrey/pdfs/pcam0143_proof_2.pdf
+ * [4] Corless and Jeffrey, "The Lambert W Function".
+ https://www.uwo.ca/apmaths/faculty/jeffrey/pdfs/pcam0143_proof_2.pdf
 
  * TODO: use a series expansion when extremely close to the branch point
  * at `-1/e` and make sure that the proper branch is chosen there.
