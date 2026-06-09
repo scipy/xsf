@@ -160,7 +160,11 @@ XSF_HOST_DEVICE inline std::complex<double> rgamma(std::complex<double> z) {
         // Zeros at 0, -1, -2, ...
         return 0.0;
     }
-    return std::exp(-loggamma(z));
+    std::complex<double> lg = loggamma(z);
+    if (lg.real() == std::numeric_limits<double>::infinity()) {
+        return {0.0, std::copysign(0.0, z.imag())};
+    }
+    return std::exp(-lg);
 }
 
 XSF_HOST_DEVICE inline std::complex<float> rgamma(std::complex<float> z) {
