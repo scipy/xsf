@@ -116,7 +116,7 @@ namespace cephes {
 
     /* Evaluate a rational function. See [1]. */
 
-    /* The function ratevl is only used once in cephes/lanczos.h. */
+    /* The function ratevl is only used in lambertw.h cephes/lanczos.h.*/
     XSF_HOST_DEVICE inline double ratevl(double x, const double num[], int M, const double denom[], int N) {
         int i, dir;
         double y, num_ans, denom_ans;

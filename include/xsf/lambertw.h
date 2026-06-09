@@ -18,7 +18,7 @@
  https://github.com/mpmath/mpmath/blob/c5939823669e1bcce151d89261b802fe0d8978b4/mpmath/functions/functions.py#L435-L461
  * [3]
  https://web.archive.org/web/20230504171447/https://mpmath.org/doc/current/functions/powers.html#lambert-w-function
- *
+ * [4] Corless and Jeffrey, "The Lambert W Function". https://www.uwo.ca/apmaths/faculty/jeffrey/pdfs/pcam0143_proof_2.pdf
 
  * TODO: use a series expansion when extremely close to the branch point
  * at `-1/e` and make sure that the proper branch is chosen there.
@@ -289,6 +289,19 @@ namespace detail {
                                    -7.0580758756624790550,    +1.8249006287190617068E+1,
                                    -2.4446872319343475890E+1, +1.7740962374121397994E+1,
                                    -6.6279455994747624059,    +1};
+
+        XSF_HOST_DEVICE inline double lambertw_series(double z) {
+            /* Compute the principal branch of the W function using the series expansion around zero.
+            See section 1.3 of [4].
+            */
+            constexpr double coeff[] = {
+                -275.57319224,  118.62522321,  -52.01269841,   23.34305556,
+                -10.8       ,    5.20833333,   -2.66666667,    1.5       ,
+                -1.        ,    1.        , 0.
+            };
+            double w = cephes::polevl(z, coeff, 10);
+        }
+
     } // namespace lambertw_real
 
 } // namespace detail
@@ -306,6 +319,11 @@ XSF_HOST_DEVICE inline double lambertw(double z, long k, double tol) {
     }
 
     if (k == 0) {
+        if (abs(z) < 0.055) {
+            // empirically determined region around zero where 10 terms of the
+            // series expansion is more accurate than the minimax approximation
+            return lambertw_series(z);
+        }
         if (z < +2.1820144653320312500) {
             return cephes::ratevl(std::sqrt(z - z0), P1, 8, Q1, 7);
         }
