@@ -1,3 +1,5 @@
+// Translated from Cython to C++ by the xsf developers in 2026.
+// Original implementation by Warren Weckesser.
 #pragma once
 
 #include "config.h"
