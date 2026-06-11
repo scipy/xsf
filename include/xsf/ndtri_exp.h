@@ -1,3 +1,5 @@
+// Translated from Cython to C++ by the xsf developers in 2026.
+
 // Implementation of the inverse of the logarithm of the CDF of the standard
 // normal distribution.
 
