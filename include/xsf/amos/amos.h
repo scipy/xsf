@@ -4336,7 +4336,7 @@ namespace amos {
 
         std::complex<double> ak1, ck, coef, crsc, cz, half_z, rz, s1, s2, w[2];
         double aa, acz, ak, arm, ascle, atol, az, dfnu, fnup, rak1, rs, rtr1, s, ss, x;
-        int ib, iflag, il, k, l, m, nn;
+        int ib, iflag, il, k, m, nn;
 
         int nz = 0;
         az = std::abs(z);
