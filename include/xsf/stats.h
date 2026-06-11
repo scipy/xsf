@@ -628,9 +628,8 @@ template <typename OutputMat>
 XSF_HOST_DEVICE inline void wilcoxon_pmf_all(int n, OutputMat res) {
     /* Fill `res` with the full PMF table for a Wilcoxon signed-rank statistic.
      *
-     * res should be an mdspan view of a 1d array of length
-     * n * (n + 1) / 2 + 1. It is up to the caller to pass valid values
-     * for n and res.
+     * res should be an mdspan view of a 1d array of length n * (n + 1) / 2 + 1.
+     * It is up to the caller to pass valid values for n and res.
      */
     if (n < 0) {
         set_error("_wilcoxon_pmf_all", SF_ERROR_DOMAIN, "n must be non-negative");
