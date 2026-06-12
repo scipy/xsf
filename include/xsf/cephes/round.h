@@ -70,5 +70,7 @@ namespace cephes {
         return (y);
     }
 
+    inline float round(float x) { return static_cast<float>(round(static_cast<double>(x))); }
+
 } // namespace cephes
 } // namespace xsf
