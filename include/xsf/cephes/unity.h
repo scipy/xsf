@@ -182,5 +182,7 @@ namespace cephes {
         }
     }
 
+    XSF_HOST_DEVICE inline float lgam1p(float x) { return static_cast<float>(lgam1p(static_cast<double>(x))); }
+
 } // namespace cephes
 } // namespace xsf
