@@ -2,6 +2,9 @@
 authors = [
   "Albert Steppi <albert.steppi@gmail.com>",
   "Irwin Zaid <irwin.zaid@gmail.com>",
+  "Florian Bourgey <bourgeyflorian@gmail.com>",
+  "Lucas Colley <lucas.colley8@gmail.com>",
+  "Daniel Schmitz <danielschmitzsiegen@googlemail.com>",
 ]
 channels = ["https://prefix.dev/conda-forge"]
 description = "Special function implementations."
