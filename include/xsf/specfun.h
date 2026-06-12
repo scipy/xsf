@@ -110,4 +110,8 @@ inline double pmv(double m, double v, double x) {
     return out;
 }
 
+inline float pmv(float m, float v, float x) {
+    return static_cast<float>(pmv(static_cast<double>(m), static_cast<double>(v), static_cast<double>(x)));
+}
+
 } // namespace xsf
