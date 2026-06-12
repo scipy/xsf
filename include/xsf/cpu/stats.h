@@ -8,23 +8,43 @@ namespace cpu {
 
     inline double kolmogorov(double x) { return cephes::kolmogorov(x); }
 
+    inline float kolmogorov(float x) { return static_cast<float>(kolmogorov(static_cast<double>(x))); }
+
     inline double kolmogc(double x) { return cephes::kolmogc(x); }
+
+    inline float kolmogc(float x) { return static_cast<float>(kolmogc(static_cast<double>(x))); }
 
     inline double kolmogi(double x) { return cephes::kolmogi(x); }
 
+    inline float kolmogi(float x) { return static_cast<float>(kolmogi(static_cast<double>(x))); }
+
     inline double kolmogci(double x) { return cephes::kolmogci(x); }
+
+    inline float kolmogci(float x) { return static_cast<float>(kolmogci(static_cast<double>(x))); }
 
     inline double kolmogp(double x) { return cephes::kolmogp(x); }
 
+    inline float kolmogp(float x) { return static_cast<float>(kolmogp(static_cast<double>(x))); }
+
     inline double smirnov(int n, double x) { return cephes::smirnov(n, x); }
+
+    inline float smirnov(int n, float x) { return static_cast<float>(smirnov(n, static_cast<double>(x))); }
 
     inline double smirnovc(int n, double x) { return cephes::smirnovc(n, x); }
 
+    inline float smirnovc(int n, float x) { return static_cast<float>(smirnovc(n, static_cast<double>(x))); }
+
     inline double smirnovi(int n, double x) { return cephes::smirnovi(n, x); }
+
+    inline float smirnovi(int n, float x) { return static_cast<float>(smirnovi(n, static_cast<double>(x))); }
 
     inline double smirnovci(int n, double x) { return cephes::smirnovci(n, x); }
 
+    inline float smirnovci(int n, float x) { return static_cast<float>(smirnovci(n, static_cast<double>(x))); }
+
     inline double smirnovp(int n, double x) { return cephes::smirnovp(n, x); }
+
+    inline float smirnovp(int n, float x) { return static_cast<float>(smirnovp(n, static_cast<double>(x))); }
 
     inline double cdf_cvm_inf(double x) {
         // CDF of the Cramer-von Mises test statistic (infinite sample limit).
