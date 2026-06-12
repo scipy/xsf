@@ -22,9 +22,21 @@ namespace xsf {
 
 XSF_HOST_DEVICE inline double bdtr(double k, int n, double p) { return cephes::bdtr(k, n, p); }
 
+XSF_HOST_DEVICE inline float bdtr(float k, int n, float p) {
+    return static_cast<float>(bdtr(static_cast<double>(k), n, static_cast<double>(p)));
+}
+
 XSF_HOST_DEVICE inline double bdtri(double k, int n, double y) { return cephes::bdtri(k, n, y); }
 
+XSF_HOST_DEVICE inline float bdtri(float k, int n, float y) {
+    return static_cast<float>(bdtri(static_cast<double>(k), n, static_cast<double>(y)));
+}
+
 XSF_HOST_DEVICE inline double bdtrc(double k, int n, double p) { return cephes::bdtrc(k, n, p); }
+
+XSF_HOST_DEVICE inline float bdtrc(float k, int n, float p) {
+    return static_cast<float>(bdtrc(static_cast<double>(k), n, static_cast<double>(p)));
+}
 
 XSF_HOST_DEVICE inline double chdtr(double df, double x) { return cephes::chdtr(df, x); }
 
@@ -36,15 +48,39 @@ XSF_HOST_DEVICE inline float chdtrc(float df, float x) { return static_cast<floa
 
 XSF_HOST_DEVICE inline double chdtri(double df, double y) { return cephes::chdtri(df, y); }
 
+XSF_HOST_DEVICE inline float chdtri(float df, float y) {
+    return static_cast<float>(chdtri(static_cast<double>(df), static_cast<double>(y)));
+}
+
 XSF_HOST_DEVICE inline double fdtr(double a, double b, double x) { return cephes::fdtr(a, b, x); }
+
+XSF_HOST_DEVICE inline float fdtr(float a, float b, float x) {
+    return static_cast<float>(fdtr(static_cast<double>(a), static_cast<double>(b), static_cast<double>(x)));
+}
 
 XSF_HOST_DEVICE inline double fdtrc(double a, double b, double x) { return cephes::fdtrc(a, b, x); }
 
+XSF_HOST_DEVICE inline float fdtrc(float a, float b, float x) {
+    return static_cast<float>(fdtrc(static_cast<double>(a), static_cast<double>(b), static_cast<double>(x)));
+}
+
 XSF_HOST_DEVICE inline double fdtri(double a, double b, double y) { return cephes::fdtri(a, b, y); }
+
+XSF_HOST_DEVICE inline float fdtri(float a, float b, float y) {
+    return static_cast<float>(fdtri(static_cast<double>(a), static_cast<double>(b), static_cast<double>(y)));
+}
 
 XSF_HOST_DEVICE inline double gdtr(double a, double b, double x) { return cephes::gdtr(a, b, x); }
 
+XSF_HOST_DEVICE inline float gdtr(float a, float b, float x) {
+    return static_cast<float>(gdtr(static_cast<double>(a), static_cast<double>(b), static_cast<double>(x)));
+}
+
 XSF_HOST_DEVICE inline double gdtrc(double a, double b, double x) { return cephes::gdtrc(a, b, x); }
+
+XSF_HOST_DEVICE inline float gdtrc(float a, float b, float x) {
+    return static_cast<float>(gdtrc(static_cast<double>(a), static_cast<double>(b), static_cast<double>(x)));
+}
 
 XSF_HOST_DEVICE XSF_HOST_DEVICE inline double ndtr(double x) { return cephes::ndtr(x); }
 
@@ -145,6 +181,10 @@ XSF_HOST_DEVICE inline std::complex<float> log_ndtr(std::complex<float> z) {
 }
 
 XSF_HOST_DEVICE inline double nbdtr(int k, int n, double p) { return cephes::nbdtr(k, n, p); }
+
+XSF_HOST_DEVICE inline float nbdtr(int k, int n, float p) {
+    return static_cast<float>(nbdtr(k, n, static_cast<double>(p)));
+}
 
 XSF_HOST_DEVICE inline bool bivariate_normal_sf_boundary(double dh, double dk, double r, double &p) {
     // Handles degenerate cases for bivariate_normal_sf (infinite arguments or zero correlation).
@@ -320,11 +360,19 @@ XSF_HOST_DEVICE inline double bivariate_normal_sf(double dh, double dk, double r
 
 XSF_HOST_DEVICE inline double nbdtrc(int k, int n, double p) { return cephes::nbdtrc(k, n, p); }
 
+XSF_HOST_DEVICE inline float nbdtrc(int k, int n, float p) {
+    return static_cast<float>(nbdtrc(k, n, static_cast<double>(p)));
+}
+
 XSF_HOST_DEVICE inline float bivariate_normal_sf(float dh, float dk, float r) {
     return bivariate_normal_sf(static_cast<double>(dh), static_cast<double>(dk), static_cast<double>(r));
 }
 
 XSF_HOST_DEVICE inline double nbdtri(int k, int n, double p) { return cephes::nbdtri(k, n, p); }
+
+XSF_HOST_DEVICE inline float nbdtri(int k, int n, float p) {
+    return static_cast<float>(nbdtri(k, n, static_cast<double>(p)));
+}
 
 XSF_HOST_DEVICE inline double ndtri(double x) { return cephes::ndtri(x); }
 
@@ -363,16 +411,30 @@ XSF_HOST_DEVICE XSF_HOST_DEVICE inline float nrdtrisd(float mean, float p, float
 
 XSF_HOST_DEVICE inline double owens_t(double h, double a) { return cephes::owens_t(h, a); }
 
+XSF_HOST_DEVICE inline float owens_t(float h, float a) {
+    return static_cast<float>(owens_t(static_cast<double>(h), static_cast<double>(a)));
+}
+
 XSF_HOST_DEVICE inline double pdtr(double k, double m) { return cephes::pdtr(k, m); }
+
+XSF_HOST_DEVICE inline float pdtr(float k, float m) {
+    return static_cast<float>(pdtr(static_cast<double>(k), static_cast<double>(m)));
+}
 
 XSF_HOST_DEVICE inline double pdtrc(double k, double m) { return cephes::pdtrc(k, m); }
 
+XSF_HOST_DEVICE inline float pdtrc(float k, float m) {
+    return static_cast<float>(pdtrc(static_cast<double>(k), static_cast<double>(m)));
+}
+
 XSF_HOST_DEVICE inline double pdtri(int k, double y) { return cephes::pdtri(k, y); }
+
+XSF_HOST_DEVICE inline float pdtri(int k, float y) { return static_cast<float>(pdtri(k, static_cast<double>(y))); }
 
 XSF_HOST_DEVICE inline double tukeylambdacdf(double x, double lmbda) { return cephes::tukeylambdacdf(x, lmbda); }
 
-XSF_HOST_DEVICE inline float tukeylambdacdf(float x, double lmbda) {
-    return tukeylambdacdf(static_cast<double>(x), static_cast<double>(lmbda));
+XSF_HOST_DEVICE inline float tukeylambdacdf(float x, float lmbda) {
+    return static_cast<float>(tukeylambdacdf(static_cast<double>(x), static_cast<double>(lmbda)));
 }
 
 namespace detail {
