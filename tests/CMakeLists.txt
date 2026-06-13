@@ -1,4 +1,19 @@
-set(XSREF_TABLES_PATH "${CMAKE_SOURCE_DIR}/xsref/tables")
+set(Python3_FIND_VIRTUALENV ONLY)
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+execute_process(
+  COMMAND "${Python3_EXECUTABLE}" -c "import xsref.tables as t; print(t.get_tables_path())"
+  OUTPUT_VARIABLE PY_OUT
+  ERROR_VARIABLE PY_ERR
+  RESULT_VARIABLE PY_RES
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+if(NOT PY_RES EQUAL 0)
+  message(FATAL_ERROR "Failed to get xsref tables path: ${PY_ERR}")
+endif()
+
+set(XSREF_TABLES_PATH "${PY_OUT}" CACHE PATH "Path to xsref tables" FORCE)
+
 find_package(Catch2 3 REQUIRED)
 find_package(Arrow REQUIRED)
 find_package(Parquet REQUIRED)

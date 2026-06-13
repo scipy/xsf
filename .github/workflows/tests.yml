@@ -45,12 +45,12 @@ jobs:
           key:  ${{ github.workflow }}-ccache-${{ matrix.environment }}-${{ matrix.runs-on }}-${{ steps.prep-ccache.outputs.timestamp }}
           restore-keys: ${{ github.workflow }}-ccache-${{ matrix.environment }}-${{ matrix.runs-on }}-
       - name: Build xsf
-        run: pixi run --environment=tests-ci build-tests-ci
+        run: pixi run build-tests-ci
       - name: Run tests
-        run: pixi run --skip-deps --environment=tests-ci tests-ci
+        run: pixi run --skip-deps tests-ci
       - name: Generate coverage report
         if: runner.os != 'Windows'
-        run: pixi run --skip-deps --environment=tests-ci coverage
+        run: pixi run --skip-deps coverage
       - name: Upload HTML coverage report
         if: runner.os != 'Windows'
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882  # v4.4.3
@@ -92,9 +92,9 @@ jobs:
           key:  ${{ github.workflow }}-ccache-${{ matrix.environment }}-${{ matrix.runs-on }}-${{ steps.prep-ccache.outputs.timestamp }}
           restore-keys: ${{ github.workflow }}-ccache-${{ matrix.environment }}-${{ matrix.runs-on }}-
       - name: Build xsf
-        run: pixi run --environment=tests-ci build-tests-debug-ci
+        run: pixi run build-tests-debug-ci
       - name: Run tests
-        run: pixi run --skip-deps --environment=tests-ci tests-debug-ci
+        run: pixi run --skip-deps tests-debug-ci
       - name: Ccache performance
         shell: bash -l {0}
         run: pixi run --environment=tests-ci ccache -s
