@@ -1,3 +1,4 @@
+// Translated from Cython to C++ by the xsf developers in 2026.
 #pragma once
 
 #include "cephes/ellpk.h"
