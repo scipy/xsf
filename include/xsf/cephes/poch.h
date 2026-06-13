@@ -81,5 +81,9 @@ namespace cephes {
 
         return r * std::exp(lgam(a + m) - lgam(a)) * gammasgn(a + m) * gammasgn(a);
     }
+
+    XSF_HOST_DEVICE inline float poch(float a, float m) {
+        return static_cast<float>(poch(static_cast<double>(a), static_cast<double>(m)));
+    }
 } // namespace cephes
 } // namespace xsf

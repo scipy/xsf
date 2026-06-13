@@ -1140,7 +1140,7 @@ namespace amos {
                 return nz;
             }
             ck = std::exp(cz);
-            for (int i = 0; i < (nn + 1); i++) {
+            for (int i = 0; i < nn; i++) {
                 y[i] *= ck;
             }
             /* 90 */
@@ -1770,7 +1770,7 @@ namespace amos {
             *ierr = 2;
             return 0;
         }
-        if (xx > 0.0) {
+        if (xx >= 0.0) {
             return nz;
         }
         //
@@ -4336,7 +4336,7 @@ namespace amos {
 
         std::complex<double> ak1, ck, coef, crsc, cz, half_z, rz, s1, s2, w[2];
         double aa, acz, ak, arm, ascle, atol, az, dfnu, fnup, rak1, rs, rtr1, s, ss, x;
-        int ib, iflag, il, k, l, m, nn;
+        int ib, iflag, il, k, m, nn;
 
         int nz = 0;
         az = std::abs(z);
@@ -4476,8 +4476,8 @@ namespace amos {
             //
             s1 = w[0];
             s2 = w[1];
-            l = 3;
-            for (int l = 3; l < (nn + 1); l++) {
+            int l;
+            for (l = 3; l < (nn + 1); l++) {
                 ck = s2;
                 s2 = s1 + (ak + fnu) * rz * s2;
                 s1 = ck;
@@ -5622,7 +5622,7 @@ namespace amos {
                 return -1;
             }
             nz = n;
-            for (i = 0; i < (n + 1); i++) {
+            for (i = 0; i < n; i++) {
                 y[i] = 0.0;
             }
             return nz;
@@ -6067,8 +6067,7 @@ namespace amos {
                 // REFINE ESTIMATE AND TEST
                 //
                 aphi = std::abs(phid);
-                aarg = std::abs(argd);
-                rs1 += std::log(aphi) - 0.25 * std::log(aarg) - aic;
+                rs1 += std::log(aphi);
                 if (std::fabs(rs1) < elim) {
                     goto L120;
                 }
