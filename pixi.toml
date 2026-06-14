@@ -54,10 +54,6 @@ cxx-compiler = "*"
 [feature.build.target.win-64.dependencies]
 vs2026_win-64 = "*"
 
-[feature.build.target.win-64.activation.env]
-# TODO: remove once https://github.com/conda-forge/vc-feedstock/issues/125 is resolved
-CMAKE_GENERATOR = "Visual Studio 18 2026"
-
 [feature.build.tasks.configure]
 description = "Configure CMake in the build directory for a release build."
 cmd = [
