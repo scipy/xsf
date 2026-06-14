@@ -36,4 +36,8 @@ inline double hyperu(double a, double b, double x) {
     return hypu(a, b, x);
 }
 
+inline float hyperu(float a, float b, float x) {
+    return static_cast<float>(hyperu(static_cast<double>(a), static_cast<double>(b), static_cast<double>(x)));
+}
+
 } // namespace xsf
