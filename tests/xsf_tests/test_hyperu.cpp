@@ -7,7 +7,7 @@
 #include <cmath>
 #include <limits>
 #include <tuple>
-#include <xsf/hyperu.h>
+#include <xsf/cpu/hyperu.h>
 
 TEST_CASE("hyperu negative x", "[hyperu][xsf_tests]") {
     const double nan = std::numeric_limits<double>::quiet_NaN();
@@ -16,15 +16,15 @@ TEST_CASE("hyperu negative x", "[hyperu][xsf_tests]") {
         for (const double b : {-1.0, -0.5, 0.0, 0.5, 1.0}) {
             for (const double x : linspace(-100.0, -1.0, 10)) {
                 CAPTURE(a, b, x);
-                REQUIRE(std::isnan(xsf::hyperu(a, b, x)));
+                REQUIRE(std::isnan(xsf::cpu::hyperu(a, b, x)));
             }
         }
     }
 
-    REQUIRE(std::isnan(xsf::hyperu(nan, 1.0, -1.0)));
+    REQUIRE(std::isnan(xsf::cpu::hyperu(nan, 1.0, -1.0)));
 }
 
-TEST_CASE("hyperu special cases", "[hyperu][xsf_tests]") { REQUIRE(xsf::hyperu(0.0, 1.0, 1.0) == 1.0); }
+TEST_CASE("hyperu special cases", "[hyperu][xsf_tests]") { REQUIRE(xsf::cpu::hyperu(0.0, 1.0, 1.0) == 1.0); }
 
 TEST_CASE("hyperu nan inputs", "[hyperu][xsf_tests]") {
     const double nan = std::numeric_limits<double>::quiet_NaN();
@@ -34,7 +34,7 @@ TEST_CASE("hyperu nan inputs", "[hyperu][xsf_tests]") {
             for (const double x : {0.25, 3.0, nan}) {
                 const bool expected_nan = std::isnan(a) || std::isnan(b) || std::isnan(x);
                 CAPTURE(a, b, x);
-                REQUIRE(std::isnan(xsf::hyperu(a, b, x)) == expected_nan);
+                REQUIRE(std::isnan(xsf::cpu::hyperu(a, b, x)) == expected_nan);
             }
         }
     }
@@ -70,7 +70,7 @@ TEST_CASE("hyperu gh-15650 mpmath reference values", "[hyperu][xsf_tests]") {
         test_case{-0.21628242470175185, 1.0, 0.1, 0.4687227684115524}
     );
 
-    const double result = xsf::hyperu(a, b, x);
+    const double result = xsf::cpu::hyperu(a, b, x);
     const double error = xsf::extended_relative_error(result, expected);
     CAPTURE(a, b, x, result, expected, error);
     REQUIRE(error <= 1e-13);
@@ -79,7 +79,7 @@ TEST_CASE("hyperu gh-15650 mpmath reference values", "[hyperu][xsf_tests]") {
 TEST_CASE("hyperu gh-15650 sanity", "[hyperu][xsf_tests]") {
     for (const double a : linspace(-0.5, 0.5, 500)) {
         for (const double x : linspace(1e-6, 1e-1, 500)) {
-            const double result = xsf::hyperu(a, 1.0, x);
+            const double result = xsf::cpu::hyperu(a, 1.0, x);
             CAPTURE(a, x, result);
             REQUIRE(std::abs(result) < 1e3);
         }
