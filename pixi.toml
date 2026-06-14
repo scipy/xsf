@@ -21,8 +21,8 @@ preview = ["pixi-build"]
 features = ["build", "tests", "tests-debug"]
 solve-group = "default"
 
-[environments.tests-ci]
-features = ["build", "tests", "tests-ci", "tests-debug", "tests-debug-ci", "coverage"]
+[environments.ci]
+features = ["build", "tests", "tests-debug", "cov", "ci"]
 solve-group = "default"
 
 [environments.lint]
@@ -70,15 +70,21 @@ cmd = [
 
 [feature.build.tasks.build-only]
 description = "Build the release CMake configuration in the build directory."
-cmd = ["cmake", "--build", "build", "--config", "Release"]
+args = [{ arg = "parallel", default = "2" }]
+cmd = ["cmake", "--build", "build", "--config", "Release", "-j{{ parallel }}"]
 
 [feature.tests-debug.tasks.build-debug-only]
 description = "Build the debug CMake configuration in build-debug/."
-cmd = ["cmake", "--build", "build-debug", "--config", "Debug"]
+args = [{ arg = "parallel", default = "2" }]
+cmd = ["cmake", "--build", "build-debug", "--config", "Debug", "-j{{ parallel }}"]
 
 [feature.build.tasks.build]
 description = "Run configure, then build the project with default settings."
-depends-on = ["configure", "build-only"]
+args = [{ arg = "parallel", default = "2" }]
+depends-on = [
+  "configure",
+  { task = "build-only", args = ["{{ parallel }}"] },
+]
 
 
 [feature.tests.dependencies]
@@ -99,12 +105,17 @@ cmd = [
 
 [feature.tests.tasks.build-tests]
 description = "Configure and build the project for test execution."
-depends-on = ["configure-tests", "build-only"]
+args = [{ arg = "parallel", default = "2" }]
+depends-on = [
+  "configure-tests",
+  { task = "build-only", args = ["{{ parallel }}"] },
+]
 
 [feature.tests.tasks.tests]
 description = "Run CTest test suite from build/tests with verbose failures."
-depends-on = ["build-tests"]
-cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests"]
+args = [{ arg = "parallel", default = "2" }]
+depends-on = [{ task = "build-tests", args = ["{{ parallel }}"] }]
+cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests", "-j{{ parallel }}"]
 
 
 [feature.tests-debug.tasks.configure-tests-debug]
@@ -121,10 +132,19 @@ cmd = [
   "-B build-debug",
 ]
 
+[feature.tests.tasks.build-tests-debug]
+description = "Configure and build the project for test execution in Debug mode."
+args = [{ arg = "parallel", default = "2" }]
+depends-on = [
+  "configure-tests-debug",
+  { task = "build-debug-only", args = ["{{ parallel }}"] },
+]
+
 [feature.tests-debug.tasks.tests-debug]
 description = "Run debug-mode CTest suite from build-debug/tests."
-depends-on = ["configure-tests-debug", "build-debug-only"]
-cmd = ["ctest", "--output-on-failure", "--test-dir", "build-debug/tests"]
+args = [{ arg = "parallel", default = "2" }]
+depends-on = [{ task = "build-tests-debug", args = ["{{ parallel }}"] },]
+cmd = ["ctest", "--output-on-failure", "--test-dir", "build-debug/tests", "-j{{ parallel }}"]
 
 
 [feature.clang-format.dependencies]
@@ -140,10 +160,14 @@ description = "Check C++ formatting and fail if any file needs changes."
 cmd = "git ls-files '*.cpp' '*.h' | xargs clang-format --style=file --Werror --dry-run"
 
 
-[feature.coverage.dependencies]
+[feature.ci.dependencies]
+ccache = "*"
+
+
+[feature.cov.dependencies]
 lcov = "*"
 
-[feature.coverage.tasks.configure-coverage]
+[feature.cov.tasks.configure-coverage]
 description = "Configure CMake for coverage instrumentation and tests."
 cmd = [
   "cmake",
@@ -159,63 +183,41 @@ cmd = [
 env.CC = "ccache $CC"
 env.CXX = "ccache $CXX"
 
-[feature.coverage.tasks.open-coverage]
+[feature.cov.tasks.open-coverage]
 description = "Open the generated HTML coverage report index page."
 cwd = "build/coverage_report"
 cmd = ["open", "index.html"]
 
 
-[feature.tests-ci.dependencies]
-ccache = "*"
-
-# TODO: use a task arg for parallelism https://github.com/prefix-dev/pixi/pull/3433
-[feature.tests-ci.tasks.build-only-ci]
-description = "Build release binaries for CI."
-cmd = ["cmake", "--build", "build", "-j3", "--config", "Release"]
-
-[feature.tests-ci.tasks.build-tests-ci]
+[feature.cov.tasks.build-tests-cov]
 description = "Build release test binaries with coverage enabled."
-depends-on = ["configure-coverage", "build-only-ci"]
+args = [{ arg = "parallel", default = "2" }]
+depends-on = [
+  "configure-coverage",
+  { task = "build-only", args = ["{{ parallel }}"] },
+]
 
-[feature.tests-ci.tasks.tests-ci]
-description = "Run release CTest suite for CI."
-depends-on = ["build-tests-ci"]
-cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests", "-j3"]
+[feature.cov.tasks.tests-cov]
+description = "Run release CTest suite configured for coverage."
+args = [{ arg = "parallel", default = "2" }]
+depends-on = [
+  { task = "build-tests-cov", args = ["{{ parallel }}"] },
+  { task = "tests", args = ["{{ parallel }}"] },
+]
 
-[feature.tests-ci.tasks.coverage]
+[feature.cov.tasks.coverage]
 description = "Build and generate the HTML coverage report target."
-depends-on = ["tests-ci"]
+args = [{ arg = "parallel", default = "2" }]
+depends-on = [{ task = "tests-cov", args = ["{{ parallel }}"] }]
 cmd = [
   "cmake",
   "--build",
   "build",
   "--target",
   "coverage_html",
-  "-j3",
+  "-j{{ parallel }}",
   "--config",
   "Release",
-]
-
-
-[feature.tests-debug-ci.tasks.build-debug-only-ci]
-description = "Build the debug CMake configuration in build-debug/ for CI."
-cmd = ["cmake", "--build", "build-debug", "-j3", "--config", "Debug"]
-
-[feature.tests-debug-ci.tasks.build-tests-debug-ci]
-description = "Build debug test binaries in build-debug/ for CI."
-depends-on = ["configure-tests-debug", "build-debug-only-ci"]
-
-[feature.tests-debug-ci.tasks.tests-debug-ci]
-description = "Run debug CTest suite for CI."
-depends-on = ["build-tests-debug-ci"]
-cmd = [
-  "ctest",
-  "--output-on-failure",
-  "--test-dir",
-  "build-debug/tests",
-  "-j3",
-  "--build-config",
-  "Debug",
 ]
 
 
