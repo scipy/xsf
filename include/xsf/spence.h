@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "cephes/spence.h"
 #include "config.h"
 #include "zlog1.h"
 
@@ -82,7 +83,7 @@ namespace detail {
 
 } // namespace detail
 
-XSF_HOST_DEVICE inline std::complex<double> cspence(std::complex<double> z) {
+XSF_HOST_DEVICE inline std::complex<double> spence(std::complex<double> z) {
     /*
      * Compute Spence's function for complex arguments. The strategy is:
      * - If z is close to 0, use a series centered at 0.
@@ -106,8 +107,17 @@ XSF_HOST_DEVICE inline std::complex<double> cspence(std::complex<double> z) {
     }
 }
 
-XSF_HOST_DEVICE inline std::complex<float> cspence(std::complex<float> z) {
-    return static_cast<std::complex<float>>(cspence(static_cast<std::complex<double>>(z)));
+XSF_HOST_DEVICE inline std::complex<float> spence(std::complex<float> z) {
+    return static_cast<std::complex<float>>(spence(static_cast<std::complex<double>>(z)));
 }
+
+XSF_HOST_DEVICE inline double spence(double z) {
+    if (std::isnan(z)) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    return xsf::cephes::spence(z);
+}
+
+XSF_HOST_DEVICE inline float spence(float z) { return static_cast<float>(spence(static_cast<double>(z))); }
 
 } // namespace xsf

@@ -21,7 +21,7 @@ TEST_CASE("cspence special values test", "[cspence][xsf_tests]") {
         std::complex<double>(-M_PI * M_PI / 10 - std::log(phi) * std::log(phi), 0)
     };
     for (std::size_t i = 0; i < z.size(); ++i) {
-        const std::complex<double> res = xsf::cspence(std::complex<double>(z[i]));
+        const std::complex<double> res = xsf::spence(std::complex<double>(z[i]));
         const double rel_error = xsf::extended_relative_error(res, expected[i]);
         CAPTURE(i, z[i], res, expected[i], rtol, rel_error);
         REQUIRE(rel_error <= rtol);
@@ -30,7 +30,7 @@ TEST_CASE("cspence special values test", "[cspence][xsf_tests]") {
 
 TEST_CASE("cspence nan", "[cspence][xsf_tests]") {
     const double nan = std::numeric_limits<double>::quiet_NaN();
-    const auto w1 = xsf::cspence(std::complex<double>{nan, 0.0});
+    const auto w1 = xsf::spence(std::complex<double>{nan, 0.0});
     REQUIRE(std::isnan(w1.real()));
     REQUIRE(std::isnan(w1.imag()));
 }
@@ -110,7 +110,7 @@ TEST_CASE("cspence circle about z=1", "[cspence][xsf_tests]") {
     };
 
     for (std::size_t i = 0; i < z.size(); ++i) {
-        const std::complex<double> res = xsf::cspence(z[i]);
+        const std::complex<double> res = xsf::spence(z[i]);
         const double rel_error = xsf::extended_relative_error(res, expected[i]);
         CAPTURE(i, z[i], res, expected[i], rtol, rel_error);
         REQUIRE(rel_error <= rtol);
