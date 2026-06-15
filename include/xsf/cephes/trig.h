@@ -46,7 +46,7 @@ namespace cephes {
 
         T r = std::fmod(x, T(2.0));
         if (r == T(0.5)) {
-            // We don't want to return -T(0.0)
+            // We don't want to return -0.0
             return T(0.0);
         }
         if (r < T(1.0)) {
