@@ -11,13 +11,13 @@
 
 #pragma once
 
-#include "cephes/numbers.h"
 #include "cephes/sindg.h"
 #include "cephes/tandg.h"
 #include "cephes/trig.h"
 #include "cephes/unity.h"
 #include "config.h"
 #include "evalpoly.h"
+#include "numbers.h"
 
 namespace xsf {
 
@@ -29,7 +29,7 @@ XSF_HOST_DEVICE T sinpi(T x) {
 template <typename T>
 XSF_HOST_DEVICE std::complex<T> sinpi(std::complex<T> z) {
     T x = z.real();
-    T piy = cephes::pi_v<T> * z.imag();
+    T piy = numbers::pi_v<T> * z.imag();
     T abspiy = std::abs(piy);
     T sinpix = cephes::sinpi(x);
     T cospix = cephes::cospi(x);
@@ -78,7 +78,7 @@ XSF_HOST_DEVICE T cospi(T x) {
 template <typename T>
 XSF_HOST_DEVICE std::complex<T> cospi(std::complex<T> z) {
     T x = z.real();
-    T piy = cephes::pi_v<T> * z.imag();
+    T piy = numbers::pi_v<T> * z.imag();
     T abspiy = std::abs(piy);
     T sinpix = cephes::sinpi(x);
     T cospix = cephes::cospi(x);

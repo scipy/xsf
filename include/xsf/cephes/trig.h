@@ -12,7 +12,7 @@
 #pragma once
 
 #include "../config.h"
-#include "numbers.h"
+#include "../numbers.h"
 
 namespace xsf {
 namespace cephes {
@@ -29,11 +29,11 @@ namespace cephes {
 
         T r = std::fmod(x, T(2.0));
         if (r < T(0.5)) {
-            return s * std::sin(pi_v<T> * r);
+            return s * std::sin(numbers::pi_v<T> * r);
         } else if (r > T(1.5)) {
-            return s * std::sin(pi_v<T> * (r - T(2.0)));
+            return s * std::sin(numbers::pi_v<T> * (r - T(2.0)));
         } else {
-            return -s * std::sin(pi_v<T> * (r - T(1.0)));
+            return -s * std::sin(numbers::pi_v<T> * (r - T(1.0)));
         }
     }
 
@@ -50,9 +50,9 @@ namespace cephes {
             return T(0.0);
         }
         if (r < T(1.0)) {
-            return -std::sin(pi_v<T> * (r - T(0.5)));
+            return -std::sin(numbers::pi_v<T> * (r - T(0.5)));
         } else {
-            return std::sin(pi_v<T> * (r - T(1.5)));
+            return std::sin(numbers::pi_v<T> * (r - T(1.5)));
         }
     }
 } // namespace cephes
