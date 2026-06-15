@@ -17,46 +17,6 @@
 namespace xsf {
 namespace cephes {
 
-    /* Compute acos(x) / pi */
-    template <typename T>
-    XSF_HOST_DEVICE T acospi(double x) {
-        double r = std::acos(x) / pi_v<T>;
-        if (std::isgreater(r, T(1.0))) {
-            return T(1.0);
-        }
-        return r;
-    }
-
-    /* Compute asin(x) / pi */
-    template <typename T>
-    XSF_HOST_DEVICE T asinpi(double x) {
-        double r = std::asin(x) / pi_v<T>;
-        if (std::isgreater(r, T(1.0))) {
-            return T(1.0);
-        }
-        return r;
-    }
-
-    /* Compute atan(x) / pi */
-    template <typename T>
-    XSF_HOST_DEVICE T atanpi(T x) {
-        double r = std::atan(x) / pi_v<T>;
-        if (isgreater(std::fabs(r), T(0.5))) {
-            return std::copysign(T(0.5), r);
-        }
-        return r;
-    }
-
-    /* Compute atan2(y, x) / pi */
-    template <typename T>
-    XSF_HOST_DEVICE T atan2pi(double y, double x) {
-        double r = std::atan2(y, x) / pi_v<T>;
-        if (std::isgreater(std::fabs(r), T(1.0))) {
-            return std::copysign(T(1.0), r);
-        }
-        return r;
-    }
-
     /* Compute sin(pi * x). */
     template <typename T>
     XSF_HOST_DEVICE T sinpi(T x) {
@@ -95,35 +55,5 @@ namespace cephes {
             return std::sin(pi_v<T> * (r - T(1.5)));
         }
     }
-
-    /* Compute tan(pi * x). */
-    template <typename T>
-    XSF_HOST_DEVICE T tanpi(T x) {
-        T y, absy;
-        if (!std::isfinite(x)) {
-            return std::tan(x);
-        }
-        y = x - T(2.0) * std::round(T(0.5) * x);
-        absy = std::fabs(y);
-        if (absy == T(0.0)) {
-            return std::copysign(T(0.0), x);
-        }
-        if (absy == T(1.0)) {
-            return std::copysign(T(0.0), -x);
-        }
-        if (absy == T(0.5)) {
-            errno = ERANGE;
-            return T(1.0) / std::copysign(T(0.0), y);
-        }
-        if (absy > T(0.5)) {
-            y -= std::copysign(T(1.0), y);
-            absy = std::fabs(y);
-        }
-        if (absy <= T(0.25)) {
-            return std::tan(pi_v<T> * y);
-        }
-        return std::copysign(T(1.0) / std::tan(pi_v<T> * (T(0.5) - absy)), y);
-    }
-
 } // namespace cephes
 } // namespace xsf
