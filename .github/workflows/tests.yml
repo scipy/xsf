@@ -5,8 +5,8 @@ on: [ push, pull_request ]
 permissions:
   contents: read  # to fetch code (actions/checkout)
 
-env:
-  CCACHE_DIR: "${{ github.workspace }}/.ccache"
+# env:
+#   CCACHE_DIR: "${{ github.workspace }}/.ccache"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -26,50 +26,45 @@ jobs:
         with:
           pixi-version: v0.75.0
           cache: true
+          cache-key: coverage-
           environments: coverage
-      - name:  Prepare compiler cache
-        id:    prep-ccache
-        shell: bash
-        run: |
-          mkdir -p "${CCACHE_DIR}"
-          echo "dir=$CCACHE_DIR" >> $GITHUB_OUTPUT
-          NOW=$(date -u +"%F-%T")
-          echo "timestamp=${NOW}" >> $GITHUB_OUTPUT
-      - name: Setup compiler cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        id:   cache-ccache
-        with:
-          path: ${{ steps.prep-ccache.outputs.dir }}
-          key:  v4-${{ github.workflow }}-ccache-${{ matrix.runs-on }}-release-${{ steps.prep-ccache.outputs.timestamp }}
-          restore-keys: v4-${{ github.workflow }}-ccache-${{ matrix.runs-on }}-release-
+      # - name:  Prepare compiler cache
+      #   id:    prep-ccache
+      #   shell: bash
+      #   run: |
+      #     mkdir -p "${CCACHE_DIR}"
+      #     echo "dir=$CCACHE_DIR" >> $GITHUB_OUTPUT
+      #     NOW=$(date -u +"%F-%T")
+      #     echo "timestamp=${NOW}" >> $GITHUB_OUTPUT
+      # - name: Setup compiler cache
+      #   uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      #   id:   cache-ccache
+      #   with:
+      #     path: ${{ steps.prep-ccache.outputs.dir }}
+      #     key:  v4-${{ github.workflow }}-ccache-${{ matrix.runs-on }}-release-${{ steps.prep-ccache.outputs.timestamp }}
+      #     restore-keys: v4-${{ github.workflow }}-ccache-${{ matrix.runs-on }}-release-
       - name: Determine number of workers
         run: |
           if [[ "$RUNNER_OS" == "Linux" ]]; then
             echo "NUM_WORKERS=$(nproc)" >> $GITHUB_ENV
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
             echo "NUM_WORKERS=$(sysctl -n hw.ncpu)" >> $GITHUB_ENV
-          elif [[ "$RUNNER_OS" == "Windows" ]]; then
-            echo "NUM_WORKERS=$NUMBER_OF_PROCESSORS" >> "$GITHUB_ENV"
           fi
         shell: bash
-      - name: Build xsf
-        run: pixi run build-tests-cov
       - name: Run tests
-        run: pixi run --skip-deps tests-only $NUM_WORKERS
+        run: pixi run --environment=coverage tests $NUM_WORKERS
       - name: Generate coverage report
-        if: runner.os != 'Windows'
-        run: pixi run --skip-deps coverage $NUM_WORKERS
+        run: pixi run --skip-deps coverage
       - name: Upload HTML coverage report
-        if: runner.os != 'Windows'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: cov-html-${{ matrix.runs-on }}
-          path: build/coverage_report/**
-      - name: Ccache performance
-        shell: bash -l {0}
-        run: pixi run ccache -s
+          path: .pixi/envs/coverage/share/xsf/cov/coverage_report/**
+      # - name: Ccache performance
+      #   shell: bash -l {0}
+      #   run: pixi run ccache -s
 
-  release:
+  tests-release:
     # for platforms without coverage support
     name: Release
     runs-on: ${{ matrix.runs-on }}
@@ -77,28 +72,30 @@ jobs:
       fail-fast: false
       matrix:
         runs-on: [windows-latest]
+        environment: [tests-release]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
         with:
           pixi-version: v0.75.0
           cache: true
-          environments: default
-      - name:  Prepare compiler cache
-        id:    prep-ccache
-        shell: bash
-        run: |
-          mkdir -p "${CCACHE_DIR}"
-          echo "dir=$CCACHE_DIR" >> $GITHUB_OUTPUT
-          NOW=$(date -u +"%F-%T")
-          echo "timestamp=${NOW}" >> $GITHUB_OUTPUT
-      - name: Setup compiler cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        id:   cache-ccache
-        with:
-          path: ${{ steps.prep-ccache.outputs.dir }}
-          key:  v4-${{ github.workflow }}-ccache-${{ matrix.runs-on }}-release-${{ steps.prep-ccache.outputs.timestamp }}
-          restore-keys: v4-${{ github.workflow }}-ccache-${{ matrix.runs-on }}-release-
+          cache-key: release-
+          environments: ${{ matrix.environment }}
+      # - name:  Prepare compiler cache
+      #   id:    prep-ccache
+      #   shell: bash
+      #   run: |
+      #     mkdir -p "${CCACHE_DIR}"
+      #     echo "dir=$CCACHE_DIR" >> $GITHUB_OUTPUT
+      #     NOW=$(date -u +"%F-%T")
+      #     echo "timestamp=${NOW}" >> $GITHUB_OUTPUT
+      # - name: Setup compiler cache
+      #   uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      #   id:   cache-ccache
+      #   with:
+      #     path: ${{ steps.prep-ccache.outputs.dir }}
+      #     key:  v4-${{ github.workflow }}-ccache-${{ matrix.runs-on }}-release-${{ steps.prep-ccache.outputs.timestamp }}
+      #     restore-keys: v4-${{ github.workflow }}-ccache-${{ matrix.runs-on }}-release-
       - name: Determine number of workers
         run: |
           if [[ "$RUNNER_OS" == "Linux" ]]; then
@@ -109,13 +106,11 @@ jobs:
             echo "NUM_WORKERS=$NUMBER_OF_PROCESSORS" >> "$GITHUB_ENV"
           fi
         shell: bash
-      - name: Build xsf
-        run: pixi run build-tests
       - name: Run tests
-        run: pixi run --skip-deps tests-only $NUM_WORKERS
-      - name: Ccache performance
-        shell: bash -l {0}
-        run: pixi run ccache -s
+        run: pixi run --environment=${{ matrix.environment }} tests $NUM_WORKERS
+      # - name: Ccache performance
+      #   shell: bash -l {0}
+      #   run: pixi run ccache -s
 
   tests-debug:
     name: Debug ${{ matrix.runs-on }}
@@ -124,28 +119,30 @@ jobs:
       fail-fast: false
       matrix:
         runs-on: [ubuntu-latest, ubuntu-24.04-arm]
+        environment: [tests-debug]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
         with:
           pixi-version: v0.75.0
           cache: true
-          environments: default
-      - name:  Prepare compiler cache
-        id:    prep-ccache
-        shell: bash
-        run: |
-          mkdir -p "${CCACHE_DIR}"
-          echo "dir=$CCACHE_DIR" >> $GITHUB_OUTPUT
-          NOW=$(date -u +"%F-%T")
-          echo "timestamp=${NOW}" >> $GITHUB_OUTPUT
-      - name: Setup compiler cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        id:   cache-ccache
-        with:
-          path: ${{ steps.prep-ccache.outputs.dir }}
-          key:  v4-${{ github.workflow }}-ccache-${{ matrix.runs-on }}-debug-${{ steps.prep-ccache.outputs.timestamp }}
-          restore-keys: v4-${{ github.workflow }}-ccache-${{ matrix.runs-on }}-debug-
+          cache-key: tests-debug
+          environments: ${{ matrix.environment }}
+      # - name:  Prepare compiler cache
+      #   id:    prep-ccache
+      #   shell: bash
+      #   run: |
+      #     mkdir -p "${CCACHE_DIR}"
+      #     echo "dir=$CCACHE_DIR" >> $GITHUB_OUTPUT
+      #     NOW=$(date -u +"%F-%T")
+      #     echo "timestamp=${NOW}" >> $GITHUB_OUTPUT
+      # - name: Setup compiler cache
+      #   uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      #   id:   cache-ccache
+      #   with:
+      #     path: ${{ steps.prep-ccache.outputs.dir }}
+      #     key:  v4-${{ github.workflow }}-ccache-${{ matrix.runs-on }}-debug-${{ steps.prep-ccache.outputs.timestamp }}
+      #     restore-keys: v4-${{ github.workflow }}-ccache-${{ matrix.runs-on }}-debug-
       - name: Determine number of workers
         run: |
           if [[ "$RUNNER_OS" == "Linux" ]]; then
@@ -156,10 +153,8 @@ jobs:
             echo "NUM_WORKERS=$NUMBER_OF_PROCESSORS" >> "$GITHUB_ENV"
           fi
         shell: bash
-      - name: Build xsf
-        run: pixi run build-tests-debug
       - name: Run tests
-        run: pixi run --skip-deps tests-debug $NUM_WORKERS
-      - name: Ccache performance
-        shell: bash -l {0}
-        run: pixi run ccache -s
+        run: pixi run --environment=${{ matrix.environment }} tests $NUM_WORKERS
+      # - name: Ccache performance
+      #   shell: bash -l {0}
+      #   run: pixi run ccache -s

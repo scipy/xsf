@@ -43,6 +43,7 @@ jobs:
           manifest-path: pixi.toml
           cache: true
           cache-key: gpu-pixi-
+          environments: cupy-tests
 
       - name: Run CuPy tests
         run: pixi run test-cupy

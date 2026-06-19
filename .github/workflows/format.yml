@@ -5,9 +5,6 @@ on: [ push, pull_request ]
 permissions:
   contents: read  # to fetch code (actions/checkout)
 
-env:
-  CCACHE_DIR: "${{ github.workspace }}/.ccache"
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
@@ -16,17 +13,13 @@ jobs:
   format:
     name: Check formatting
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        environment: [lint]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
         with:
           pixi-version: v0.75.0
           cache: true
-          environments: ${{ matrix.environment }}
+          environments: lint
       - name: Check for formatting violations
         run: |
           pixi run format-dry-error
