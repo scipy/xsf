@@ -57,7 +57,7 @@ jobs:
       - name: Build xsf
         run: pixi run --environment=ci build-tests-cov $NUM_WORKERS
       - name: Run tests
-        run: pixi run --environment=ci --skip-deps tests $NUM_WORKERS
+        run: pixi run --environment=ci --skip-deps tests-only $NUM_WORKERS
       - name: Generate coverage report
         if: runner.os != 'Windows'
         run: pixi run --environment=ci --skip-deps coverage $NUM_WORKERS
