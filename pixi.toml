@@ -1,4 +1,7 @@
 [workspace]
+name = "xsf"
+version = "0.2.2"
+description = "Special function implementations."
 authors = [
   "Albert Steppi <albert.steppi@gmail.com>",
   "Irwin Zaid <irwin.zaid@gmail.com>",
@@ -6,223 +9,104 @@ authors = [
   "Lucas Colley <lucas.colley8@gmail.com>",
   "Daniel Schmitz <danielschmitzsiegen@googlemail.com>",
 ]
+platforms = [
+  "linux-64",
+  "linux-aarch64",
+  "osx-arm64",
+  "win-64",
+  "osx-64",
+]
 channels = ["https://prefix.dev/conda-forge"]
-description = "Special function implementations."
-name = "xsf"
-platforms = ["win-64", "linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
-version = "0.2.2"
-requires-pixi = ">=0.68.0"
+requires-pixi = ">=0.74.0"
 preview = ["pixi-build"]
 
+[workspace.target.win.build-variants]
+cxx_compiler = ["vs2026"]
 
-# environments
+# this currently hits https://github.com/prefix-dev/pixi/issues/6727,
+# uncomment when that is resolved
+# [package]
+# name = { workspace = true }
+# version = { workspace = true }
+# build.backend.name = "pixi-build-cmake"
 
-[environments.default]
-features = ["build", "tests", "tests-debug"]
-solve-group = "default"
+[target.unix.activation]
+env.SHARE_PREFIX = "$CONDA_PREFIX/share"
 
-[environments.coverage]
-features = ["build", "tests", "cov"]
-solve-group = "default"
+[target.win.activation]
+env.SHARE_PREFIX = "%CONDA_PREFIX%/Library/share"
 
-[environments.lint]
-features = ["clang-format"]
-no-default-feature = true
-solve-group = "default"
-
-[environments.cupy-tests]
-features = ["cupy-tests"]
-solve-group = "default"
-
-
-# default feature
-
-[dependencies]
-python = "*"
-xsref = { git = "https://github.com/scipy/xsref", rev = "1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331" }
-
-
-# non-default features
-
-[feature.build.dependencies]
-cmake = "*"
-ninja = "*"
-ccache = "*"
-
-[feature.build.target.unix.dependencies]
-cxx-compiler = "*"
-
-[feature.build.target.win-64.dependencies]
-vs2026_win-64 = "*"
-
-[feature.build.tasks.configure]
-description = "Configure CMake in the build directory for a release build."
-cmd = [
-  "cmake",
-  # The source is in the root directory
-  "-S .",
-  # We want to build in the build directory
-  "-B build",
-  # use ninja
-  "-G Ninja",
-  # release build
-  "-DCMAKE_BUILD_TYPE=Release",
-]
-
-[feature.build.tasks.build-only]
-description = "Build the release CMake configuration in the build directory."
-cmd = ["cmake", "--build", "build"]
-
-[feature.build.tasks.build]
-description = "Run configure, then build the project with default settings."
-depends-on = ["configure", "build-only"]
-
-
-[feature.tests.dependencies]
-catch2 = "*"
-libarrow-all = "*"
-
-[feature.tests.tasks.configure-tests]
-description = "Configure CMake with BUILD_TESTS enabled in build/."
-cmd = [
-  "cmake",
-  # Enable building tests
-  "-DBUILD_TESTS=ON",
-  # The source is in the root directory
-  "-S .",
-  # We want to build in the build directory
-  "-B build",
-  # use ninja
-  "-G Ninja",
-  # release build
-  "-DCMAKE_BUILD_TYPE=Release",
-]
-
-[feature.tests.tasks.build-tests]
-description = "Configure and build the project for test execution."
-depends-on = ["configure-tests", "build-only"]
-
-[feature.tests.tasks.tests-only]
-description = "Run CTest test suite from build/tests with verbose failures."
+[tasks.tests]
+description = "Run test suite."
 args = [{ arg = "parallel", default = "2" }]
-cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests", "-j{{ parallel }}"]
+cmd = ["ctest", "--output-on-failure", "--test-dir", "$SHARE_PREFIX/xsf/tests", "-j{{ parallel }}"]
+default-environment = "tests-release"
 
-[feature.tests.tasks.tests]
-description = "Build and run CTest test suite from build/tests with verbose failures."
-args = [{ arg = "parallel", default = "2" }]
-depends-on = [
-  "build-tests",
-  { task = "tests-only", args = ["{{ parallel }}"] },
-]
+[environments]
+tests-release = {
+  solve-group = "xsf-release",
+  dependencies.xsf.path = "packages/tests-release",
+}
+tests-debug = {
+  dependencies.xsf.path = "packages/tests-debug",
+}
 
+coverage = {
+  platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64"],
+  dependencies = {
+    xsf.path = "packages/coverage",
+  },
+  activation = {
+    env = {
+      COVERAGE_DIR = "$CONDA_PREFIX/share/xsf/cov",
+      GCOV_PREFIX = "$CONDA_PREFIX/share/xsf/cov",
+    },
+    scripts = ["scripts/coverage_activation.sh"],
+  },
+  tasks = {
+    coverage = {
+      description = "Generate HTML coverage report.",
+      depends-on = [{
+        task = "tests",
+        environment = "coverage",
+      }],
+      cmd = "scripts/coverage.sh",
+    },
+    open-coverage = {
+      description = "Open HTML coverage report.",
+      depends-on = "coverage",
+      cmd = ["open", "$SHARE_PREFIX/xsf/cov/coverage_report/index.html"],
+    },
+  }
+}
 
-[feature.tests-debug.tasks.configure-tests-debug]
-description = "Configure CMake with BUILD_TESTS enabled in Debug mode (catches asserts that can cause program to abort)."
-cmd = [
-  "cmake",
-  # Enable building tests
-  "-DBUILD_TESTS=ON",
-  # set as debug build
-  "-DCMAKE_BUILD_TYPE=Debug",
-  # The source is in the root directory
-  "-S .",
-  # use build-debug directory to avoid overwriting build directory.
-  "-B build-debug",
-  # use ninja
-  "-G Ninja",
-  # debug build
-  "-DCMAKE_BUILD_TYPE=Debug",
-]
+cupy-tests = {
+  solve-group = "xsf-release",
+  platforms = ["linux-64"],
+  dependencies = {
+    cupy = "*",
+    pytest-forked = "*",
+    polars = "*",
+  },
+  tasks.test-cupy = {
+    description = "Run CuPy integration tests.",
+    cmd = "pytest --forked python_tests/test_cupy.py",
+  },
+}
 
-[feature.tests-debug.tasks.build-debug-only]
-description = "Build the debug CMake configuration in build-debug/."
-cmd = ["cmake", "--build", "build-debug"]
-
-[feature.tests.tasks.build-tests-debug]
-description = "Configure and build the project for test execution in Debug mode."
-depends-on = ["configure-tests-debug", "build-debug-only"]
-
-[feature.tests-debug.tasks.tests-debug]
-description = "Run debug-mode CTest suite from build-debug/tests."
-args = [{ arg = "parallel", default = "2" }]
-depends-on = ["build-tests-debug"]
-cmd = ["ctest", "--output-on-failure", "--test-dir", "build-debug/tests", "-j{{ parallel }}"]
-
-
-[feature.clang-format.dependencies]
-git = "*"
-clang-format = "*"
-
-[feature.clang-format.tasks.format]
-description = "Format tracked C++ source and header files in place."
-cmd = "git ls-files '*.cpp' '*.h' | xargs clang-format -i --style=file"
-
-[feature.clang-format.tasks.format-dry-error]
-description = "Check C++ formatting and fail if any file needs changes."
-cmd = "git ls-files '*.cpp' '*.h' | xargs clang-format --style=file --Werror --dry-run"
-
-
-[feature.cov]
-platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
-
-[feature.cov.dependencies]
-lcov = "*"
-
-[feature.cov.tasks.configure-coverage]
-description = "Configure CMake for coverage instrumentation and tests."
-cmd = [
-  "cmake",
-  # Enable building tests
-  "-DBUILD_TESTS=ON",
-  # Enable Coverage
-  "-DCMAKE_BUILD_TYPE=Coverage",
-  # The source is in the root directory
-  "-S .",
-  # We want to build in the build directory
-  "-B build",
-  # use ninja
-  "-G Ninja",
-]
-
-[feature.cov.tasks.open-coverage]
-description = "Open the generated HTML coverage report index page."
-cwd = "build/coverage_report"
-cmd = ["open", "index.html"]
-
-
-[feature.cov.tasks.build-tests-cov]
-description = "Build release test binaries with coverage enabled."
-depends-on = ["configure-coverage", "build-only"]
-
-[feature.cov.tasks.tests-cov]
-description = "Run release CTest suite configured for coverage."
-args = [{ arg = "parallel", default = "2" }]
-depends-on = [
-  "build-tests-cov",
-  { task = "tests-only", args = ["{{ parallel }}"] },
-]
-
-[feature.cov.tasks.coverage]
-description = "Build and generate the HTML coverage report target."
-args = [{ arg = "parallel", default = "2" }]
-depends-on = [{ task = "tests-cov", args = ["{{ parallel }}"] }]
-cmd = [
-  "cmake",
-  "--build",
-  "build",
-  "--target",
-  "coverage_html",
-]
-
-
-[feature.cupy-tests]
-platforms = ["linux-64"]
-
-[feature.cupy-tests.dependencies]
-cupy = "*"
-pytest = "*"
-pytest-forked = "*"
-
-[feature.cupy-tests.tasks.test-cupy]
-description = "Run CuPy integration tests."
-cmd = "pytest --forked python_tests/test_cupy.py"
+lint = {
+  dependencies = {
+    git = "*",
+    clang-format = "*",
+  },
+  tasks = {
+    format = {
+      description = "Format tracked C++ source and header files in place.",
+      cmd = "git ls-files '*.cpp' '*.h' | xargs clang-format --style=file -i",
+    },
+    format-dry-error = {
+      description = "Check C++ formatting and fail if any file needs changes.",
+      cmd = "git ls-files '*.cpp' '*.h' | xargs clang-format --style=file --Werror --dry-run",
+    },
+  },
+}

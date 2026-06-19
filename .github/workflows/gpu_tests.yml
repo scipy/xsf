@@ -43,6 +43,7 @@ jobs:
           pixi-version: v0.75.0
           manifest-path: pixi.toml
           cache: false
+          environments: cupy-tests
 
       - name: Run CuPy tests
         run: pixi run test-cupy

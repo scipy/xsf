@@ -1,0 +1,22 @@
+[package]
+name = { workspace = true }
+version = { workspace = true }
+build = {
+  backend.name = "pixi-build-cmake",
+  config.extra-args = ["-DBUILD_TESTS=ON"],
+  flags = ["tests", "release"],
+  source.path = "../..",
+}
+build-dependencies = {
+  xsref = {
+    git = "https://github.com/lucascolley/xsref",
+    rev = "6b5fd6c23abadb3a60fafd14c7c3f0fdf2c1b743",
+  },
+}
+host-dependencies = {
+  catch2 = "*",
+  libarrow-all = "*",
+}
+run-dependencies = {
+  cmake = "*",
+}
