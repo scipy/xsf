@@ -14,12 +14,11 @@ concurrency:
 
 jobs:
   tests:
-    name: ${{ matrix.environment }} ${{ matrix.runs-on }}
+    name: Release + Coverage ${{ matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: false
       matrix:
-        environment: [tests-ci]
         runs-on: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
 
     steps:
@@ -28,7 +27,8 @@ jobs:
         with:
           pixi-version: v0.70.1
           cache: true
-          environments: ${{ matrix.environment }}
+          cache-key: ${{ matrix.runs-on }}
+          environments: ci
       - name:  Prepare compiler cache
         id:    prep-ccache
         shell: bash
@@ -42,15 +42,25 @@ jobs:
         id:   cache-ccache
         with:
           path: ${{ steps.prep-ccache.outputs.dir }}
-          key:  ${{ github.workflow }}-ccache-${{ matrix.environment }}-${{ matrix.runs-on }}-${{ steps.prep-ccache.outputs.timestamp }}
-          restore-keys: ${{ github.workflow }}-ccache-${{ matrix.environment }}-${{ matrix.runs-on }}-
+          key:  ${{ github.workflow }}-ccache-${{ matrix.runs-on }}-${{ steps.prep-ccache.outputs.timestamp }}
+          restore-keys: ${{ github.workflow }}-ccache-${{ matrix.runs-on }}-
+      - name: Determine number of workers
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            echo "NUM_WORKERS=$(nproc)" >> $GITHUB_ENV
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            echo "NUM_WORKERS=$(sysctl -n hw.ncpu)" >> $GITHUB_ENV
+          elif [[ "$RUNNER_OS" == "Windows" ]]; then
+            echo "NUM_WORKERS=$NUMBER_OF_PROCESSORS" >> "$GITHUB_ENV"
+          fi
+        shell: bash
       - name: Build xsf
-        run: pixi run build-tests-ci
+        run: pixi run --environment=ci build-tests-cov $NUM_WORKERS
       - name: Run tests
-        run: pixi run --skip-deps tests-ci
+        run: pixi run --environment=ci --skip-deps tests $NUM_WORKERS
       - name: Generate coverage report
         if: runner.os != 'Windows'
-        run: pixi run --skip-deps coverage
+        run: pixi run --environment=ci --skip-deps coverage $NUM_WORKERS
       - name: Upload HTML coverage report
         if: runner.os != 'Windows'
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882  # v4.4.3
@@ -59,14 +69,13 @@ jobs:
           path: build/coverage_report/**
       - name: Ccache performance
         shell: bash -l {0}
-        run: pixi run --environment=tests-ci ccache -s
+        run: pixi run --environment=ci ccache -s
   tests-debug:
-    name: ${{ matrix.environment }} ${{ matrix.runs-on }} Debug
+    name: Debug ${{ matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: false
       matrix:
-        environment: [tests-ci]
         runs-on: [ubuntu-latest, ubuntu-24.04-arm]
 
     steps:
@@ -75,7 +84,8 @@ jobs:
         with:
           pixi-version: v0.70.1
           cache: true
-          environments: ${{ matrix.environment }}
+          cache-key: ${{ matrix.runs-on }}
+          environments: ci
       - name:  Prepare compiler cache
         id:    prep-ccache
         shell: bash
@@ -89,12 +99,22 @@ jobs:
         id:   cache-ccache
         with:
           path: ${{ steps.prep-ccache.outputs.dir }}
-          key:  ${{ github.workflow }}-ccache-${{ matrix.environment }}-${{ matrix.runs-on }}-${{ steps.prep-ccache.outputs.timestamp }}
-          restore-keys: ${{ github.workflow }}-ccache-${{ matrix.environment }}-${{ matrix.runs-on }}-
+          key:  ${{ github.workflow }}-ccache-${{ matrix.runs-on }}-${{ steps.prep-ccache.outputs.timestamp }}
+          restore-keys: ${{ github.workflow }}-ccache-${{ matrix.runs-on }}-
+      - name: Determine number of workers
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            echo "NUM_WORKERS=$(nproc)" >> $GITHUB_ENV
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            echo "NUM_WORKERS=$(sysctl -n hw.ncpu)" >> $GITHUB_ENV
+          elif [[ "$RUNNER_OS" == "Windows" ]]; then
+            echo "NUM_WORKERS=$NUMBER_OF_PROCESSORS" >> "$GITHUB_ENV"
+          fi
+        shell: bash
       - name: Build xsf
-        run: pixi run build-tests-debug-ci
+        run: pixi run --environment=ci build-tests-debug $NUM_WORKERS
       - name: Run tests
-        run: pixi run --skip-deps tests-debug-ci
+        run: pixi run --environment=ci --skip-deps tests-debug $NUM_WORKERS
       - name: Ccache performance
         shell: bash -l {0}
-        run: pixi run --environment=tests-ci ccache -s
+        run: pixi run --environment=ci ccache -s
