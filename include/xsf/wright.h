@@ -366,6 +366,12 @@ XSF_HOST_DEVICE inline std::complex<double> wrightomega(std::complex<double> z) 
     return w;
 }
 
+XSF_HOST_DEVICE inline std::complex<float> wrightomega(std::complex<float> z) {
+    std::complex<double> w;
+    detail::wrightomega_ext(static_cast<std::complex<double>>(z), &w, NULL);
+    return static_cast<std::complex<float>>(w);
+}
+
 XSF_HOST_DEVICE inline double wrightomega(double x) {
     double w, wp1, e, r;
 
@@ -433,4 +439,6 @@ XSF_HOST_DEVICE inline double wrightomega(double x) {
 
     return w;
 }
+
+XSF_HOST_DEVICE inline float wrightomega(float x) { return static_cast<float>(wrightomega(static_cast<double>(x))); }
 } // namespace xsf
