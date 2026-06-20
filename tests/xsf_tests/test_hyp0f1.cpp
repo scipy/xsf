@@ -43,6 +43,29 @@ TEST_CASE("hyp0f1 basic complex values", "[hyp0f1][xsf_tests]") {
     REQUIRE(error <= 1e-12);
 }
 
+TEST_CASE("hyp0f1 float overloads", "[hyp0f1][xsf_tests]") {
+    SECTION("real") {
+        auto [v, z] = GENERATE(
+            std::tuple<float, float>{2.5F, 0.5F}, std::tuple<float, float>{3.0F, -1.5F},
+            std::tuple<float, float>{1.5F, 1.0F}
+        );
+        const float result = xsf::hyp0f1(v, z);
+        const float expected = static_cast<float>(xsf::hyp0f1(static_cast<double>(v), static_cast<double>(z)));
+        CAPTURE(v, z, result, expected);
+        REQUIRE(result == expected);
+    }
+
+    SECTION("complex") {
+        const float v = 0.8F;
+        const std::complex<float> z{0.5F, 0.5F};
+        const std::complex<float> result = xsf::hyp0f1(v, z);
+        const auto expected =
+            static_cast<std::complex<float>>(xsf::hyp0f1(static_cast<double>(v), std::complex<double>{z}));
+        CAPTURE(v, z, result, expected);
+        REQUIRE(result == expected);
+    }
+}
+
 TEST_CASE("hyp0f1 gh-5764 basic complex value", "[hyp0f1][xsf_tests]") {
     const std::complex<double> z{0.5, 0.5};
     const std::complex<double> expected{1.6139719776441115, 0.80893054061790665};
