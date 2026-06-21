@@ -7,6 +7,8 @@ permissions:
 
 env:
   CCACHE_DIR: "${{ github.workspace }}/.ccache"
+  # Needed because Pixi doesn't set mtime for compilers
+  CCACHE_COMPILERCHECK: "content"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -20,7 +22,6 @@ jobs:
       fail-fast: false
       matrix:
         runs-on: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
-
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: prefix-dev/setup-pixi@92815284c57faa15cd896c4d5cfb2d59f32dc43d # v0.8.3
@@ -28,7 +29,7 @@ jobs:
           pixi-version: v0.70.1
           cache: true
           cache-key: ${{ matrix.runs-on }}
-          environments: ci
+          environments: default
       - name:  Prepare compiler cache
         id:    prep-ccache
         shell: bash
@@ -42,8 +43,8 @@ jobs:
         id:   cache-ccache
         with:
           path: ${{ steps.prep-ccache.outputs.dir }}
-          key:  ${{ github.workflow }}-ccache-${{ matrix.runs-on }}-${{ steps.prep-ccache.outputs.timestamp }}
-          restore-keys: ${{ github.workflow }}-ccache-${{ matrix.runs-on }}-
+          key:  ${{ github.workflow }}-ccache-${{ matrix.runs-on }}-release-${{ steps.prep-ccache.outputs.timestamp }}
+          restore-keys: ${{ github.workflow }}-ccache-${{ matrix.runs-on }}-release-
       - name: Determine number of workers
         run: |
           if [[ "$RUNNER_OS" == "Linux" ]]; then
@@ -55,12 +56,12 @@ jobs:
           fi
         shell: bash
       - name: Build xsf
-        run: pixi run --environment=ci build-tests-cov $NUM_WORKERS
+        run: pixi run build-tests-cov $NUM_WORKERS
       - name: Run tests
-        run: pixi run --environment=ci --skip-deps tests-only $NUM_WORKERS
+        run: pixi run --skip-deps tests-only $NUM_WORKERS
       - name: Generate coverage report
         if: runner.os != 'Windows'
-        run: pixi run --environment=ci --skip-deps coverage $NUM_WORKERS
+        run: pixi run --skip-deps coverage $NUM_WORKERS
       - name: Upload HTML coverage report
         if: runner.os != 'Windows'
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882  # v4.4.3
@@ -69,7 +70,8 @@ jobs:
           path: build/coverage_report/**
       - name: Ccache performance
         shell: bash -l {0}
-        run: pixi run --environment=ci ccache -s
+        run: pixi run ccache -s
+
   tests-debug:
     name: Debug ${{ matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
@@ -77,7 +79,6 @@ jobs:
       fail-fast: false
       matrix:
         runs-on: [ubuntu-latest, ubuntu-24.04-arm]
-
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: prefix-dev/setup-pixi@92815284c57faa15cd896c4d5cfb2d59f32dc43d # v0.8.3
@@ -85,7 +86,7 @@ jobs:
           pixi-version: v0.70.1
           cache: true
           cache-key: ${{ matrix.runs-on }}
-          environments: ci
+          environments: default
       - name:  Prepare compiler cache
         id:    prep-ccache
         shell: bash
@@ -99,8 +100,8 @@ jobs:
         id:   cache-ccache
         with:
           path: ${{ steps.prep-ccache.outputs.dir }}
-          key:  ${{ github.workflow }}-ccache-${{ matrix.runs-on }}-${{ steps.prep-ccache.outputs.timestamp }}
-          restore-keys: ${{ github.workflow }}-ccache-${{ matrix.runs-on }}-
+          key:  ${{ github.workflow }}-ccache-${{ matrix.runs-on }}-debug-${{ steps.prep-ccache.outputs.timestamp }}
+          restore-keys: ${{ github.workflow }}-ccache-${{ matrix.runs-on }}-debug-
       - name: Determine number of workers
         run: |
           if [[ "$RUNNER_OS" == "Linux" ]]; then
@@ -112,9 +113,9 @@ jobs:
           fi
         shell: bash
       - name: Build xsf
-        run: pixi run --environment=ci build-tests-debug $NUM_WORKERS
+        run: pixi run build-tests-debug $NUM_WORKERS
       - name: Run tests
-        run: pixi run --environment=ci --skip-deps tests-debug $NUM_WORKERS
+        run: pixi run --skip-deps tests-debug $NUM_WORKERS
       - name: Ccache performance
         shell: bash -l {0}
-        run: pixi run --environment=ci ccache -s
+        run: pixi run ccache -s
