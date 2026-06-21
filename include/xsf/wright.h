@@ -392,7 +392,7 @@ XSF_HOST_DEVICE inline double wrightomega(double x) {
 
     if (x < -50.0) {
         /*
-         * Skip the iterative scheme because it exp(x) is already
+         * Skip the iterative scheme because  exp(x) is already
          * accurate to double precision.
          */
         w = std::exp(x);
@@ -409,7 +409,7 @@ XSF_HOST_DEVICE inline double wrightomega(double x) {
         return x;
     }
 
-    /* Split int three distinct intervals (-inf,-2), [-2,1), [1,inf) */
+    /* Split into three distinct intervals (-inf,-2), [-2,1), [1,inf) */
     if (x < -2.0) {
         /* exponential is approx < 1.3e-1 accurate */
         w = std::exp(x);
