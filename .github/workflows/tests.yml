@@ -43,8 +43,8 @@ jobs:
         id:   cache-ccache
         with:
           path: ${{ steps.prep-ccache.outputs.dir }}
-          key:  ${{ github.workflow }}-ccache-${{ matrix.runs-on }}-release-${{ steps.prep-ccache.outputs.timestamp }}
-          restore-keys: ${{ github.workflow }}-ccache-${{ matrix.runs-on }}-release-
+          key:  v1-${{ github.workflow }}-ccache-${{ matrix.runs-on }}-release-${{ steps.prep-ccache.outputs.timestamp }}
+          restore-keys: v1-${{ github.workflow }}-ccache-${{ matrix.runs-on }}-release-
       - name: Determine number of workers
         run: |
           if [[ "$RUNNER_OS" == "Linux" ]]; then
@@ -100,8 +100,8 @@ jobs:
         id:   cache-ccache
         with:
           path: ${{ steps.prep-ccache.outputs.dir }}
-          key:  ${{ github.workflow }}-ccache-${{ matrix.runs-on }}-debug-${{ steps.prep-ccache.outputs.timestamp }}
-          restore-keys: ${{ github.workflow }}-ccache-${{ matrix.runs-on }}-debug-
+          key:  v1-${{ github.workflow }}-ccache-${{ matrix.runs-on }}-debug-${{ steps.prep-ccache.outputs.timestamp }}
+          restore-keys: v1-${{ github.workflow }}-ccache-${{ matrix.runs-on }}-debug-
       - name: Determine number of workers
         run: |
           if [[ "$RUNNER_OS" == "Linux" ]]; then
