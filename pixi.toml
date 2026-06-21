@@ -18,11 +18,7 @@ preview = ["pixi-build"]
 # environments
 
 [environments.default]
-features = ["build", "tests", "tests-debug"]
-solve-group = "default"
-
-[environments.ci]
-features = ["build", "tests", "tests-debug", "cov", "ci"]
+features = ["build", "tests", "tests-debug", "cov"]
 solve-group = "default"
 
 [environments.lint]
@@ -47,12 +43,21 @@ xsref = { git = "https://github.com/scipy/xsref", rev = "1a5bb3d39efe4e9f26dc4da
 [feature.build.dependencies]
 cmake = "*"
 ninja = "*"
+ccache = "*"
+
+[feature.build.activation.env]
+CC = "ccache $CC"
+CXX = "ccache $CXX"
 
 [feature.build.target.unix.dependencies]
 cxx-compiler = "*"
 
 [feature.build.target.win-64.dependencies]
 vs2026_win-64 = "*"
+
+[feature.build.target.win-64.activation.env]
+CC = "ccache cl.exe"
+CXX = "ccache cl.exe"
 
 [feature.build.tasks.configure]
 description = "Configure CMake in the build directory for a release build."
@@ -155,10 +160,6 @@ description = "Check C++ formatting and fail if any file needs changes."
 cmd = "git ls-files '*.cpp' '*.h' | xargs clang-format --style=file --Werror --dry-run"
 
 
-[feature.ci.dependencies]
-ccache = "*"
-
-
 [feature.cov.dependencies]
 lcov = "*"
 
@@ -177,8 +178,6 @@ cmd = [
   # use ninja
   "-G Ninja",
 ]
-env.CC = "ccache $CC"
-env.CXX = "ccache $CXX"
 
 [feature.cov.tasks.open-coverage]
 description = "Open the generated HTML coverage report index page."
