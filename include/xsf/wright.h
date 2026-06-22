@@ -118,8 +118,7 @@ namespace detail {
         }
     }
 
-    XSF_HOST_DEVICE inline int
-    wrightomega_ext(std::complex<double> z, std::complex<double> *w) {
+    XSF_HOST_DEVICE inline int wrightomega_ext(std::complex<double> z, std::complex<double> *w) {
         double pi = M_PI, s = 1.0;
         double x, y, ympi, yppi, near;
         std::complex<double> e, r, pz, wp1, t, fac;
