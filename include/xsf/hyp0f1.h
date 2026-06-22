@@ -58,6 +58,10 @@ namespace detail {
 inline double hyp0f1(double v, double z) {
     double arg, arg_exp, bess_val;
 
+    if (std::isnan(v) || std::isnan(z)) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+
     // Handle poles and zeros.
     if (v <= 0.0 && v == std::floor(v)) {
         return std::numeric_limits<double>::quiet_NaN();
@@ -92,6 +96,11 @@ inline float hyp0f1(float v, float z) { return hyp0f1(static_cast<double>(v), st
 inline std::complex<double> hyp0f1(double v, std::complex<double> z) {
     std::complex<double> arg, s, t1, t2;
     std::complex<double> r;
+
+    if (std::isnan(v) || std::isnan(z.real()) || std::isnan(z.imag())) {
+        double nan = std::numeric_limits<double>::quiet_NaN();
+        return {nan, nan};
+    }
 
     // Handle poles and zeros.
     if (v <= 0.0 && v == std::floor(v)) {
