@@ -50,7 +50,7 @@
 /**********************************************************************/
 /* wrightomega_ext is the extended routine for evaluating the wright  */
 /* omega function with the option of extracting the last update step, */
-/* the penultimate residual and the condition number estimate.        */
+/* and the penultimate residual.        */
 /*                                                                    */
 /* Calling:                                                           */
 /*   success = wrightomega_ext(z,w,e,r,cond);                         */
@@ -61,10 +61,6 @@
 /*                                                                    */
 /*   w  --  double complex*                                           */
 /*          Pointer to return value of Wrightomega(z).                */
-/*                                                                    */
-/*   cond  --  double complex*                                        */
-/*         Pointer to the condition number estimate. If NULL the      */
-/*         condition number is not calculated.                        */
 /*                                                                    */
 /* Output: returns 0 on successful exit.                               */
 /**********************************************************************/
@@ -122,8 +118,7 @@ namespace detail {
         }
     }
 
-    XSF_HOST_DEVICE inline int
-    wrightomega_ext(std::complex<double> z, std::complex<double> *w, std::complex<double> *cond) {
+    XSF_HOST_DEVICE inline int wrightomega_ext(std::complex<double> z, std::complex<double> *w) {
         double pi = M_PI, s = 1.0;
         double x, y, ympi, yppi, near;
         std::complex<double> e, r, pz, wp1, t, fac;
@@ -211,9 +206,6 @@ namespace detail {
             if (*w == 0.0) {
                 set_error("wrightomega", SF_ERROR_UNDERFLOW, "underflow in exponential series");
                 /* Skip the iterative scheme because it computes log(*w) */
-                if (cond != NULL) {
-                    *cond = z / (1.0 + *w);
-                }
                 return 0;
             }
         }
@@ -246,9 +238,6 @@ namespace detail {
             if (std::abs(z) > 1e50)
             /* Series is accurate and the iterative scheme could overflow */
             {
-                if (cond != NULL) {
-                    *cond = z / (1.0 + *w);
-                }
                 return 0;
             }
         }
@@ -269,9 +258,6 @@ namespace detail {
             if (std::abs(z) > 1e50)
             /* Series is accurate and the iterative scheme could overflow */
             {
-                if (cond != NULL) {
-                    *cond = z / (1.0 + *w);
-                }
                 return 0;
             }
         }
@@ -291,9 +277,6 @@ namespace detail {
             if (std::abs(z) > 1e50)
             /* Series is accurate and the iterative scheme could overflow */
             {
-                if (cond != NULL) {
-                    *cond = z / (1.0 + *w);
-                }
                 return 0;
             }
         }
@@ -349,26 +332,19 @@ namespace detail {
         /***********************/
         *w = s * *w;
 
-        /***************************************************/
-        /*  Provide condition number estimate if requested */
-        /***************************************************/
-        if (cond != NULL) {
-            *cond = z / (1.0 + *w);
-        }
-
         return 0;
     }
 } // namespace detail
 
 XSF_HOST_DEVICE inline std::complex<double> wrightomega(std::complex<double> z) {
     std::complex<double> w;
-    detail::wrightomega_ext(z, &w, NULL);
+    detail::wrightomega_ext(z, &w);
     return w;
 }
 
 XSF_HOST_DEVICE inline std::complex<float> wrightomega(std::complex<float> z) {
     std::complex<double> w;
-    detail::wrightomega_ext(static_cast<std::complex<double>>(z), &w, NULL);
+    detail::wrightomega_ext(static_cast<std::complex<double>>(z), &w);
     return static_cast<std::complex<float>>(w);
 }
 
