@@ -906,6 +906,9 @@ inline std::complex<double> cyl_bessel_j(double v, std::complex<double> z) {
             cy_j = detail::rotate_jy(cy_j, cy_y, v);
         }
     }
+    if (z.real() >= 0 && z.imag() == 0 && std::isfinite(cy_j.real())) {
+        cy_j.imag(0);
+    }
     return cy_j;
 }
 
@@ -973,6 +976,9 @@ inline std::complex<double> cyl_bessel_y(double v, std::complex<double> z) {
             set_error_and_nan("yv(jv):", ierr_to_sferr(nz, ierr), cy_j);
             cy_y = detail::rotate_jy(cy_y, cy_j, -v);
         }
+    }
+    if (z.real() >= 0 && z.imag() == 0 && std::isfinite(cy_y.real())) {
+        cy_y.imag(0);
     }
     return cy_y;
 }
