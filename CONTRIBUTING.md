@@ -49,10 +49,10 @@ pixi run tests
 For incremental local work, you can run the steps separately:
 
 ```shell
-pixi run clone-xsref
 pixi run configure-tests
-pixi run build-only -j8
-pixi run --skip-deps tests -j2
+# '8' here determines the number of workers used
+pixi run build-only 8
+pixi run tests-only 2
 ```
 
 Useful variants:
@@ -76,17 +76,15 @@ pixi run format
 
 ## Coverage
 
-Coverage support is wired through the `tests-ci` environment and CMake coverage
-targets.
-
 Generate a local HTML coverage report with:
 
 ```shell
-pixi run --environment=tests-ci clone-xsref
-pixi run --environment=tests-ci configure-coverage
-pixi run --skip-deps --environment=tests-ci build-tests-ci
-pixi run --skip-deps --environment=tests-ci tests-ci
-pixi run --skip-deps --environment=tests-ci coverage
+pixi run coverage
+# or
+pixi run configure-coverage
+pixi run --skip-deps build-tests-cov
+pixi run --skip-deps tests-only
+pixi run --skip-deps coverage
 ```
 
 The generated report is written to `build/coverage_report/index.html`.
@@ -94,8 +92,8 @@ The generated report is written to `build/coverage_report/index.html`.
 For subsequent runs in the same build tree, it is usually enough to rerun:
 
 ```shell
-pixi run --skip-deps --environment=tests-ci tests-ci
-pixi run --skip-deps --environment=tests-ci coverage
+pixi run --skip-deps tests-only
+pixi run --skip-deps coverage
 ```
 
 ## Pull requests
