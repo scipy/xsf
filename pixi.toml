@@ -1,4 +1,7 @@
 [workspace]
+name = "xsf"
+version = "0.2.2"
+description = "Special function implementations."
 authors = [
   "Albert Steppi <albert.steppi@gmail.com>",
   "Irwin Zaid <irwin.zaid@gmail.com>",
@@ -6,13 +9,24 @@ authors = [
   "Lucas Colley <lucas.colley8@gmail.com>",
   "Daniel Schmitz <danielschmitzsiegen@googlemail.com>",
 ]
-channels = ["https://prefix.dev/conda-forge"]
-description = "Special function implementations."
-name = "xsf"
 platforms = ["win-64", "linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
-version = "0.2.2"
+channels = ["https://prefix.dev/conda-forge"]
 requires-pixi = ">=0.68.0"
 preview = ["pixi-build"]
+
+[workspace.target.win.build-variants]
+cxx_compiler = ["vs2026"]
+
+
+# xsf package definition
+
+[package]
+name = { workspace = true }
+version = { workspace = true }
+
+[package.build.backend]
+name = "pixi-build-cmake"
+version = "*"
 
 
 # environments
