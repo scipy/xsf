@@ -1,12 +1,30 @@
-
 #pragma once
 
 #include "cephes/igam.h"
 #include "config.h"
 #include "error.h"
+#include "gamma.h"
 #include "tools.h"
 
 namespace xsf {
+
+XSF_HOST_DEVICE inline double gdtria(double p, double b, double x) {
+
+    if (x == 0) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    if ((b == 0) && (p == 0)) {
+        if (std::isinf(x) && (x > 0)) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        return 0.0;
+    }
+    return gammaincinv(b, p) / x;
+}
+
+XSF_HOST_DEVICE inline float gdtria(float p, float b, float x) {
+    return static_cast<float>(gdtria(static_cast<double>(p), static_cast<double>(b), static_cast<double>(x)));
+}
 
 XSF_HOST_DEVICE inline double gdtrib(double a, double p, double x) {
     if (std::isnan(p) || std::isnan(a) || std::isnan(x)) {
@@ -95,4 +113,23 @@ XSF_HOST_DEVICE inline double gdtrib(double a, double p, double x) {
     return result;
 }
 
+XSF_HOST_DEVICE inline float gdtrib(float a, float p, float x) {
+    return static_cast<float>(gdtrib(static_cast<double>(a), static_cast<double>(p), static_cast<double>(x)));
+}
+
+XSF_HOST_DEVICE inline double gdtrix(double a, double b, double p) {
+
+    if ((a == 0) && (b == 0)) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    // if a or b is positive infinite, return NaN
+    if ((std::isinf(a) || std::isinf(b)) && (a >= 0 && b >= 0)) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    return gammaincinv(b, p) / a;
+}
+
+XSF_HOST_DEVICE inline float gdtrix(float a, float b, float p) {
+    return static_cast<float>(gdtrix(static_cast<double>(a), static_cast<double>(b), static_cast<double>(p)));
+}
 } // namespace xsf

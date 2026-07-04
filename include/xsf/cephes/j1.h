@@ -143,6 +143,8 @@ namespace cephes {
         constexpr double j1_Z1 = 1.46819706421238932572E1;
         constexpr double j1_Z2 = 4.92184563216946036703E1;
 
+        constexpr double sqrt_eps = 1.490116119384765625e-8; // sqrt(epsilon)
+
     } // namespace detail
 
     XSF_HOST_DEVICE inline double j1(double x) {
@@ -152,7 +154,9 @@ namespace cephes {
         if (x < 0) {
             return -j1(-x);
         }
-
+        if (x < detail::sqrt_eps) {
+            return 0.5 * x;
+        }
         if (w <= 5.0) {
             z = x * x;
             w = polevl(z, detail::j1_RP, 3) / p1evl(z, detail::j1_RQ, 8);
@@ -164,9 +168,14 @@ namespace cephes {
         z = w * w;
         p = polevl(z, detail::j1_PP, 6) / polevl(z, detail::j1_PQ, 6);
         q = polevl(z, detail::j1_QP, 7) / p1evl(z, detail::j1_QQ, 7);
-        xn = x - detail::THPIO4;
-        p = p * std::cos(xn) - w * q * std::sin(xn);
-        return (p * detail::SQRT2OPI / std::sqrt(x));
+        if (x < 10.0) {
+            xn = x - detail::THPIO4;
+            p = p * std::cos(xn) - w * q * std::sin(xn);
+            return (p * detail::SQRT2OPI / std::sqrt(x));
+        }
+        double a = M_SQRT1_2 * (w * q - p);
+        double b = M_SQRT1_2 * (p + w * q);
+        return (a * std::cos(x) + b * std::sin(x)) * detail::SQRT2OPI / std::sqrt(x);
     }
 
     XSF_HOST_DEVICE inline double y1(double x) {

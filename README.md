@@ -1,30 +1,9 @@
 # xsf
-Special function implementations.
 
-See https://github.com/scipy/xsf/issues/1 for context.
+Header-only special function implementations extracted from [SciPy](https://github.com/scipy/scipy).
 
-## Tests
+See [scipy/xsf#1](https://github.com/scipy/xsf/issues/1) for project background.
 
-To run the tests:
-- [clone this repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
-- `cd xsf`
-- [install Pixi](https://pixi.sh/latest/#installation)
-- `pixi run tests`
+## Contributing
 
-You can trigger a rebuild inbetween test runs with:
-
-```shell
-pixi run build-tests
-```
-
-For subsequent test runs, to skip re-cloning [`xsref`](https://github.com/scipy/xsref) or to control parallelism for individual commands, you can use:
-
-```shell
-pixi run clone-xsref
-pixi run configure-tests
-pixi run build-only -j8
-pixi run --skip-deps tests -j2
-```
-
-> [!NOTE]  
-> This has currently only been tested on Linux.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, remotes, testing, formatting, and coverage.

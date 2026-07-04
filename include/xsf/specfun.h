@@ -86,6 +86,9 @@ inline double hypu(double a, double b, double x) {
 }
 
 inline double hyp1f1(double a, double b, double x) {
+    if (std::isnan(a) || std::isnan(b) || std::isnan(x)) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
     double outy;
 
     outy = specfun::chgm(x, a, b);
@@ -105,6 +108,10 @@ inline double pmv(double m, double v, double x) {
     out = specfun::lpmv(x, int_m, v);
     SPECFUN_CONVINF("pmv", out);
     return out;
+}
+
+inline float pmv(float m, float v, float x) {
+    return static_cast<float>(pmv(static_cast<double>(m), static_cast<double>(v), static_cast<double>(x)));
 }
 
 } // namespace xsf

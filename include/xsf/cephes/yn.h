@@ -114,5 +114,7 @@ namespace cephes {
         return (sign * an);
     }
 
+    XSF_HOST_DEVICE inline float yn(int n, float x) { return static_cast<float>(yn(n, static_cast<double>(x))); }
+
 } // namespace cephes
 } // namespace xsf

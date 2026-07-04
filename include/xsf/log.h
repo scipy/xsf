@@ -45,8 +45,17 @@ inline std::complex<double> log1p(std::complex<double> z) {
     double x, y, az, azi;
 
     if (!std::isfinite(std::real(z)) || !std::isfinite(std::imag(z))) {
-        z = z + 1.0;
-        return std::log(z);
+        // libstdc++'s std::log(complex) uses std::abs which loses Inf
+        // through a normalization step (e.g. std::abs(complex(-inf, 1))
+        // returns NaN instead of Inf). Compute |z+1| with std::hypot,
+        // which handles Inf correctly per C99.
+        double zr = std::real(z) + 1.0;
+        double zi = std::imag(z);
+        if (std::isnan(zr) && std::isnan(zi)) {
+            constexpr double nan = std::numeric_limits<double>::quiet_NaN();
+            return std::complex<double>{nan, nan};
+        }
+        return std::complex<double>{std::log(std::hypot(zr, zi)), std::atan2(zi, zr)};
     }
 
     double zr = z.real();

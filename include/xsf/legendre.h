@@ -441,8 +441,7 @@ template <typename NormPolicy, typename T, typename Func>
 void assoc_legendre_p_for_each_n_m(NormPolicy norm, int n, int m, T z, int branch_cut, T (&res)[2], Func f) {
     T res_m_abs_m[2];
     assoc_legendre_p_for_each_m_abs_m(
-        norm, m, z, branch_cut, res_m_abs_m,
-        [norm, n, z, branch_cut, &res, f](int m, const T(&res_m_abs_m)[2]) {
+        norm, m, z, branch_cut, res_m_abs_m, [norm, n, z, branch_cut, &res, f](int m, const T(&res_m_abs_m)[2]) {
             res[0] = res_m_abs_m[1];
 
             assoc_legendre_p_for_each_n(
@@ -451,8 +450,7 @@ void assoc_legendre_p_for_each_n_m(NormPolicy norm, int n, int m, T z, int branc
         }
     );
     assoc_legendre_p_for_each_m_abs_m(
-        norm, -m, z, branch_cut, res_m_abs_m,
-        [norm, n, z, branch_cut, &res, f](int m, const T(&res_m_abs_m)[2]) {
+        norm, -m, z, branch_cut, res_m_abs_m, [norm, n, z, branch_cut, &res, f](int m, const T(&res_m_abs_m)[2]) {
             res[0] = res_m_abs_m[1];
 
             assoc_legendre_p_for_each_n(
@@ -946,7 +944,9 @@ void lqmn(T x, OutputMat1 qm, OutputMat2 qd) {
 
     for (i = 1; i <= m; i++) {
         for (j = 0; j <= n; j++) {
-            qd(i, j) = ls * i * x / xs * qm(i, j) + (i + j) * (j - i + 1.) / xq * qm(i - 1, j);
+            qd(i, j) = ls * i * x / xs * qm(i, j) + (static_cast<double>(i) + static_cast<double>(j)) *
+                                                        (static_cast<double>(j) - static_cast<double>(i) + 1.0) / xq *
+                                                        qm(i - 1, j);
         }
     }
 }
@@ -1072,7 +1072,8 @@ void lqmn(std::complex<T> z, OutputMat1 cqm, OutputMat2 cqd) {
     for (i = 1; i <= m; i++) {
         for (j = 0; j <= n; j++) {
             cqd(i, j) = static_cast<T>(ls * i) * z / zs * cqm(i, j) +
-                        static_cast<T>((i + j) * (j - i + 1)) / zq * cqm(i - 1, j);
+                        (static_cast<T>(i) + static_cast<T>(j)) *
+                            (static_cast<T>(j) - static_cast<T>(i) + static_cast<T>(1)) / zq * cqm(i - 1, j);
         }
     }
 }

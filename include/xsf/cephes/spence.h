@@ -123,5 +123,7 @@ namespace cephes {
         return (y);
     }
 
+    XSF_HOST_DEVICE inline float spence(float x) { return static_cast<float>(spence(static_cast<double>(x))); }
+
 } // namespace cephes
 } // namespace xsf

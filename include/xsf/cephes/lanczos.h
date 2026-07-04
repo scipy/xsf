@@ -113,5 +113,9 @@ namespace cephes {
     XSF_HOST_DEVICE double lanczos_sum_expg_scaled(double x) {
         return ratevl(x, detail::lanczos_sum_expg_scaled_num, 12, detail::lanczos_sum_expg_scaled_denom, 12);
     }
+
+    XSF_HOST_DEVICE inline float lanczos_sum_expg_scaled(float x) {
+        return static_cast<float>(lanczos_sum_expg_scaled(static_cast<double>(x)));
+    }
 } // namespace cephes
 } // namespace xsf

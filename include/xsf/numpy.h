@@ -238,6 +238,8 @@ namespace numpy {
     // 3 inputs, 1 output
     using fff_f = float (*)(float, float, float);
     using ddd_d = double (*)(double, double, double);
+    using flf_f = double (*)(double, long, double);
+    using dld_d = double (*)(double, long, double);
     using Flf_F = cfloat (*)(cfloat, long int, float);
     using Dld_D = cdouble (*)(cdouble, long int, double);
 
@@ -801,17 +803,21 @@ namespace numpy {
             map_dims_type map_dims = static_cast<ufunc_data<Func> *>(data)->map_dims;
             map_dims(dims + 1, new_dims.data());
 
+            char *local_args[sizeof...(Args) + 1];
+            for (npy_uintp j = 0; j <= sizeof...(Args); ++j) {
+                local_args[j] = args[j];
+            }
+
             Func func = static_cast<ufunc_data<Func> *>(data)->func;
             for (npy_intp i = 0; i < dims[0]; ++i) {
                 Res res = func(
                     npy_traits<Args>::get(
-                        args[I], new_dims.data() + ranks_scan[I], steps + ranks_scan[I] + sizeof...(Args) + 1
+                        local_args[I], new_dims.data() + ranks_scan[I], steps + ranks_scan[I] + sizeof...(Args) + 1
                     )...
                 );
-                npy_traits<Res>::set(args[sizeof...(Args)], res); // assign to the output pointer
-
+                npy_traits<Res>::set(local_args[sizeof...(Args)], res); // assign to the output pointer
                 for (npy_uintp j = 0; j <= sizeof...(Args); ++j) {
-                    args[j] += steps[j];
+                    local_args[j] += steps[j];
                 }
             }
 
@@ -837,16 +843,20 @@ namespace numpy {
             map_dims_type map_dims = static_cast<ufunc_data<Func> *>(data)->map_dims;
             map_dims(dims + 1, new_dims.data());
 
+            char *local_args[sizeof...(Args)];
+            for (npy_uintp j = 0; j < sizeof...(Args); ++j) {
+                local_args[j] = args[j];
+            }
             Func func = static_cast<ufunc_data<Func> *>(data)->func;
             for (npy_intp i = 0; i < dims[0]; ++i) {
                 func(
                     npy_traits<Args>::get(
-                        args[I], new_dims.data() + ranks_scan[I], steps + ranks_scan[I] + sizeof...(Args)
+                        local_args[I], new_dims.data() + ranks_scan[I], steps + ranks_scan[I] + sizeof...(Args)
                     )...
                 );
 
                 for (npy_uintp j = 0; j < sizeof...(Args); ++j) {
-                    args[j] += steps[j];
+                    local_args[j] += steps[j];
                 }
             }
 

@@ -1117,7 +1117,7 @@ namespace amos {
                 return nz;
             }
             ck = std::exp(cz);
-            for (int i = 0; i < (nn + 1); i++) {
+            for (int i = 0; i < nn; i++) {
                 y[i] *= ck;
             }
             /* 90 */
@@ -1742,7 +1742,7 @@ namespace amos {
             *ierr = 2;
             return 0;
         }
-        if (xx > 0.0) {
+        if (xx >= 0.0) {
             return nz;
         }
         //
@@ -2636,7 +2636,7 @@ namespace amos {
         dfnu = fnu + n - 1;
         if ((az <= 2.) || (az * az * 0.25 <= (dfnu + 1.0))) {
             /* GOTO 10 */
-            nw = seri(z, fnu, kode, n, cy, tol, elim, alim);
+            nw = seri(z, fnu, kode, nn, cy, tol, elim, alim);
             inw = std::abs(nw);
             nz += inw;
             nn -= inw;
@@ -2659,7 +2659,7 @@ namespace amos {
                 //
                 // MILLER ALGORITHM NORMALIZED BY THE SERIES
                 //
-                nw = mlri(z, fnu, kode, n, cy, tol);
+                nw = mlri(z, fnu, kode, nn, cy, tol);
                 if (nw < 0) {
                     nz = -1;
                     if (nw == -2) {
@@ -2676,7 +2676,7 @@ namespace amos {
                 //
                 // ASYMPTOTIC EXPANSION FOR LARGE Z
                 //
-                nw = asyi(z, fnu, kode, n, cy, rl, tol, elim, alim);
+                nw = asyi(z, fnu, kode, nn, cy, rl, tol, elim, alim);
                 if (nw < 0) {
                     nz = -1;
                     if (nw == -2) {
@@ -2730,7 +2730,7 @@ namespace amos {
         /* 60 */
         if (az <= rl) {
             /* 70 */
-            nw = mlri(z, fnu, kode, n, cy, tol);
+            nw = mlri(z, fnu, kode, nn, cy, tol);
             if (nw < 0) {
                 nz = -1;
                 if (nw == -2) {
@@ -3621,7 +3621,7 @@ namespace amos {
         nz = 0;
         xx = std::real(z);
         yy = std::imag(z);
-        ax = std::fabs(xx) + std::sqrt(3.);
+        ax = std::fabs(xx) * std::sqrt(3.);
         ay = std::fabs(yy);
         iform = 1;
         if (ay > ax) {
@@ -3720,7 +3720,7 @@ namespace amos {
             nl = n - 1;
             fnui = nl;
             k = nl;
-            for (i = 0; i < (nl + 1); i++) {
+            for (i = 0; i < nl; i++) {
                 st = s2;
                 s2 = (fnu + fnui) * rz * s2 + s1;
                 s1 = st;
@@ -4259,7 +4259,7 @@ namespace amos {
         }
 
         if (p1 == 0.) {
-            p1 = std::complex<double>(0, 0);
+            p1 = std::complex<double>(tol, tol);
         }
 
         cy[n - 1] = p2 / p1;
@@ -4272,7 +4272,7 @@ namespace amos {
         cdfnu = fnu * rz;
 
         for (i = 2; i < (n + 1); i++) {
-            pt = cdfnu + t1 * rz * cy[k];
+            pt = cdfnu + t1 * rz + cy[k];
             if (pt == 0.0) {
                 pt = std::complex<double>(tol, tol);
             }
@@ -4304,7 +4304,7 @@ namespace amos {
 
         std::complex<double> ak1, ck, coef, crsc, cz, half_z, rz, s1, s2, w[2];
         double aa, acz, ak, arm, ascle, atol, az, dfnu, fnup, rak1, rs, rtr1, s, ss, x;
-        int ib, iflag, il, k, l, m, nn;
+        int ib, iflag, il, k, m, nn;
 
         int nz = 0;
         az = std::abs(z);
@@ -4444,8 +4444,8 @@ namespace amos {
             //
             s1 = w[0];
             s2 = w[1];
-            l = 3;
-            for (int l = 3; l < (nn + 1); l++) {
+            int l;
+            for (l = 3; l < (nn + 1); l++) {
                 ck = s2;
                 s2 = s1 + (ak + fnu) * rz * s2;
                 s1 = ck;
@@ -5011,7 +5011,7 @@ namespace amos {
         }
         /* 80 */
         if (nd > 2) {
-            rz = 1.0 / z;
+            rz = 2.0 / z;
             s1 = cy[0];
             s2 = cy[1];
             c1r = csr[iflag - 1];
@@ -5584,7 +5584,7 @@ namespace amos {
                 return -1;
             }
             nz = n;
-            for (i = 0; i < (n + 1); i++) {
+            for (i = 0; i < n; i++) {
                 y[i] = 0.0;
             }
             return nz;
@@ -6027,8 +6027,7 @@ namespace amos {
                 // REFINE ESTIMATE AND TEST
                 //
                 aphi = std::abs(phid);
-                aarg = std::abs(argd);
-                rs1 += std::log(aphi) - 0.25 * std::log(aarg) - aic;
+                rs1 += std::log(aphi);
                 if (std::fabs(rs1) < elim) {
                     goto L120;
                 }
@@ -6339,7 +6338,7 @@ namespace amos {
         } else {
             zn = -zr * std::complex<double>(0, 1);
             if (yy <= 0.) {
-                zn = std::conj(zn);
+                zn.real(-zn.real());
             }
             unhj(zn, gnu, 1, tol, &phi, &arg, &zeta1, &zeta2, &asum, &bsum);
             cz = zeta2 - zeta1;
@@ -6438,14 +6437,14 @@ namespace amos {
                     rcz -= 0.25 * std::log(aarg) + aic;
                 }
                 if (rcz > -elim) {
-                    ascle = THRESHOLD_MIN / tol;
-                    cz = std::log(phi);
+                    ascle = 1e3 * d1mach[0] / tol;
+                    cz += std::log(phi);
                     if (iform != 1) {
                         cz -= 0.25 * std::log(arg) + aic;
                     }
                     ax = std::exp(rcz) / tol;
                     ay = std::imag(cz);
-                    cz = ax * (std::cos(ay) + std::sin(ay * std::complex<double>(0, 1)));
+                    cz = ax * (std::cos(ay) + std::sin(ay) * std::complex<double>(0, 1));
                     if (!(uchk(cz, ascle, tol))) {
                         return nuf;
                     }

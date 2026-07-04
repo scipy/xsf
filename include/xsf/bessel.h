@@ -625,7 +625,8 @@ inline std::complex<double> cyl_bessel_je(double v, std::complex<double> z) {
 }
 
 inline std::complex<float> cyl_bessel_je(float v, std::complex<float> x) {
-    return static_cast<std::complex<float>>(cyl_bessel_je(static_cast<double>(v), static_cast<std::complex<double>>(x))
+    return static_cast<std::complex<float>>(
+        cyl_bessel_je(static_cast<double>(v), static_cast<std::complex<double>>(x))
     );
 }
 
@@ -686,7 +687,8 @@ inline std::complex<double> cyl_bessel_ye(double v, std::complex<double> z) {
 }
 
 inline std::complex<float> cyl_bessel_ye(float v, std::complex<float> x) {
-    return static_cast<std::complex<float>>(cyl_bessel_ye(static_cast<double>(v), static_cast<std::complex<double>>(x))
+    return static_cast<std::complex<float>>(
+        cyl_bessel_ye(static_cast<double>(v), static_cast<std::complex<double>>(x))
     );
 }
 
@@ -740,7 +742,8 @@ inline std::complex<double> cyl_bessel_ie(double v, std::complex<double> z) {
 }
 
 inline std::complex<float> cyl_bessel_ie(float v, std::complex<float> x) {
-    return static_cast<std::complex<float>>(cyl_bessel_ie(static_cast<double>(v), static_cast<std::complex<double>>(x))
+    return static_cast<std::complex<float>>(
+        cyl_bessel_ie(static_cast<double>(v), static_cast<std::complex<double>>(x))
     );
 }
 
@@ -780,7 +783,8 @@ inline std::complex<double> cyl_bessel_ke(double v, std::complex<double> z) {
 }
 
 inline std::complex<float> cyl_bessel_ke(float v, std::complex<float> x) {
-    return static_cast<std::complex<float>>(cyl_bessel_ke(static_cast<double>(v), static_cast<std::complex<double>>(x))
+    return static_cast<std::complex<float>>(
+        cyl_bessel_ke(static_cast<double>(v), static_cast<std::complex<double>>(x))
     );
 }
 
@@ -824,7 +828,8 @@ inline std::complex<double> cyl_hankel_1e(double v, std::complex<double> z) {
 }
 
 inline std::complex<float> cyl_hankel_1e(float v, std::complex<float> z) {
-    return static_cast<std::complex<float>>(cyl_hankel_1e(static_cast<double>(v), static_cast<std::complex<double>>(z))
+    return static_cast<std::complex<float>>(
+        cyl_hankel_1e(static_cast<double>(v), static_cast<std::complex<double>>(z))
     );
 }
 
@@ -853,7 +858,8 @@ inline std::complex<double> cyl_hankel_2e(double v, std::complex<double> z) {
 }
 
 inline std::complex<float> cyl_hankel_2e(float v, std::complex<float> z) {
-    return static_cast<std::complex<float>>(cyl_hankel_2e(static_cast<double>(v), static_cast<std::complex<double>>(z))
+    return static_cast<std::complex<float>>(
+        cyl_hankel_2e(static_cast<double>(v), static_cast<std::complex<double>>(z))
     );
 }
 

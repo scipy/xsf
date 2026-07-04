@@ -162,6 +162,10 @@ namespace cephes {
             return res;
         }
 
+        XSF_HOST_DEVICE inline float igam_fac(float a, float x) {
+            return igam_fac(static_cast<double>(a), static_cast<double>(x));
+        }
+
         /* Compute igamc using DLMF 8.9.2. */
         XSF_HOST_DEVICE inline double igamc_continued_fraction(double a, double x) {
             int i;

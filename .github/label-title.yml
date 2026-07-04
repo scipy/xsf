@@ -1,0 +1,29 @@
+# This file contains regexes for automatically adding labels based on issue/PR titles,
+# for use with https://github.com/github/issue-labeler.
+
+Build issues:
+  - 'BLD'
+
+CI:
+  - 'CI'
+
+Bug:
+  - '(BUG|FIX)'
+
+Documentation:
+  - 'DOC'
+
+DX:
+  - 'DEV'
+
+Enhancement:
+  - 'ENH'
+
+Maintenance:
+  - '(MAINT|TST)'
+
+Question:
+  - '(Q|q)uery'
+
+RFC:
+  - 'RFC'

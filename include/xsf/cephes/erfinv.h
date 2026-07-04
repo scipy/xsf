@@ -72,5 +72,7 @@ namespace cephes {
         }
     }
 
+    XSF_HOST_DEVICE inline float erfcinv(float y) { return static_cast<float>(erfcinv(static_cast<double>(y))); }
+
 } // namespace cephes
 } // namespace xsf
