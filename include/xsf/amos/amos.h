@@ -6437,7 +6437,7 @@ namespace amos {
                     rcz -= 0.25 * std::log(aarg) + aic;
                 }
                 if (rcz > -elim) {
-                    ascle = 1e3 * d1mach[0] / tol;
+                    ascle = THRESHOLD_MIN / tol;
                     cz += std::log(phi);
                     if (iform != 1) {
                         cz -= 0.25 * std::log(arg) + aic;
