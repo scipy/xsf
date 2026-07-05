@@ -4,6 +4,7 @@
 
 #include <array>
 #include <cmath>
+#include <complex>
 #include <cstddef>
 #include <tuple>
 #include <utility>
@@ -24,7 +25,7 @@ double binom_int(double a, int k) {
 }
 
 Coefficients linear_power(double c0, double c1, int n) {
-    Coefficients out(n + 1, 0.0);
+    Coefficients out(n + 1.0, 0.0);
     for (int j = 0; j <= n; ++j) {
         out[j] = binom_int(n, j) * std::pow(c0, n - j) * std::pow(c1, j);
     }
@@ -41,8 +42,9 @@ Coefficients multiply(const Coefficients &a, const Coefficients &b) {
     return out;
 }
 
-double polyval(const Coefficients &coeffs, double x) {
-    double out = 0.0;
+template <typename T>
+T polyval(const Coefficients &coeffs, T x) {
+    T out = 0.0;
     for (auto it = coeffs.rbegin(); it != coeffs.rend(); ++it) {
         out = out * x + *it;
     }
@@ -78,8 +80,35 @@ void check_poly(
                     x = x_range.second;
                 }
 
-                const double out = eval_func(n, params, x);
+                const auto out = eval_func(n, params, x);
                 const double expected = polyval(coeffs, x);
+                const double error = xsf::extended_absolute_error(out, expected);
+                const double tol = 1e-12 + rtol * std::abs(expected);
+                CAPTURE(n, params, x, out, expected, error, tol);
+                REQUIRE(error <= tol);
+            }
+        }
+    }
+}
+
+template <typename CoefficientsFunc, typename EvalFunc>
+void check_complex_poly(
+    CoefficientsFunc coefficients_func, EvalFunc eval_func, const std::vector<std::pair<double, double>> &param_ranges,
+    const std::vector<std::complex<double>> &xs, double rtol, int nn = 10, int nparam = 10
+) {
+    for (int n = 0; n < nn; ++n) {
+        const int ncases = param_ranges.empty() ? 1 : nparam;
+        for (int ip = 0; ip < ncases; ++ip) {
+            Parameters params;
+            params.reserve(param_ranges.size());
+            for (std::size_t k = 0; k < param_ranges.size(); ++k) {
+                params.push_back(sample(param_ranges[k].first, param_ranges[k].second, 23 * n + nparam * k + ip));
+            }
+            const auto coeffs = coefficients_func(n, params);
+
+            for (const auto &x : xs) {
+                const auto out = eval_func(n, params, x);
+                const auto expected = polyval(coeffs, x);
                 const double error = xsf::extended_absolute_error(out, expected);
                 const double tol = 1e-12 + rtol * std::abs(expected);
                 CAPTURE(n, params, x, out, expected, error, tol);
@@ -125,11 +154,12 @@ void check_recurrence(
 } // namespace
 
 TEST_CASE("eval_jacobi matches constructed polynomials", "[eval_jacobi][xsf_tests]") {
+    // Mirrors scipy/special/tests/test_orthogonal_eval.py::TestPolys.test_jacobi
     check_poly(
         [](int n, const Parameters &params) {
             const double alpha = params[0];
             const double beta = params[1];
-            Coefficients out(n + 1, 0.0);
+            Coefficients out(n + 1.0, 0.0);
             const double scale = std::ldexp(1.0, -n);
             for (int m = 0; m <= n; ++m) {
                 const double c = scale * binom_int(n + alpha, m) * binom_int(n + beta, n - m);
@@ -140,14 +170,37 @@ TEST_CASE("eval_jacobi matches constructed polynomials", "[eval_jacobi][xsf_test
             }
             return out;
         },
-        [](int n, const Parameters &params, double x) {
-            return xsf::eval_jacobi(static_cast<double>(n), params[0], params[1], x);
+        [](double n, const Parameters &params, double x) { return xsf::eval_jacobi(n, params[0], params[1], x); },
+        {{-0.99, 10.0}, {-0.99, 10.0}}, {-1.0, 1.0}, 1e-5
+    );
+}
+
+TEST_CASE("eval_jacobi supports complex inputs", "[eval_jacobi][xsf_tests]") {
+    // Mirrors scipy/special/tests/test_orthogonal_eval.py::TestPolys.test_jacobi for complex inputs
+    check_complex_poly(
+        [](double n, const Parameters &params) {
+            const double alpha = params[0];
+            const double beta = params[1];
+            Coefficients out(n + 1.0, 0.0);
+            const double scale = std::ldexp(1.0, -n);
+            for (int m = 0; m <= n; ++m) {
+                const double c = scale * binom_int(n + alpha, m) * binom_int(n + beta, n - m);
+                const auto term = multiply(linear_power(-1.0, 1.0, n - m), linear_power(1.0, 1.0, m));
+                for (int j = 0; j <= n; ++j) {
+                    out[j] += c * term[j];
+                }
+            }
+            return out;
+        },
+        [](double n, const Parameters &params, std::complex<double> x) {
+            return xsf::eval_jacobi(n, params[0], params[1], x);
         },
         {{-0.99, 10.0}, {-0.99, 10.0}}, {-1.0, 1.0}, 1e-5
     );
 }
 
 TEST_CASE("eval_sh_jacobi matches constructed polynomials", "[eval_sh_jacobi][xsf_tests]") {
+    // Mirrors scipy/special/tests/test_orthogonal_eval.py::TestPolys.test_sh_jacobi
     check_poly(
         [](int n, const Parameters &params) {
             const double p = params[0];
@@ -165,34 +218,61 @@ TEST_CASE("eval_sh_jacobi matches constructed polynomials", "[eval_sh_jacobi][xs
             }
             return out;
         },
-        [](int n, const Parameters &params, double x) {
-            return xsf::eval_sh_jacobi(static_cast<double>(n), params[0], params[1], x);
+        [](double n, const Parameters &params, double x) { return xsf::eval_sh_jacobi(n, params[0], params[1], x); },
+        {{1.0, 10.0}, {0.0, 1.0}}, {0.0, 1.0}, 1e-5
+    );
+}
+
+TEST_CASE("eval_sh_jacobi for complex inputs", "[eval_sh_jacobi][xsf_tests]") {
+    // Mirrors scipy/special/tests/test_orthogonal_eval.py::TestPolys.test_sh_jacobi for complex inputs
+    check_complex_poly(
+        [](double n, const Parameters &params) {
+            const double p = params[0];
+            const double q = params[1];
+            const double alpha = p - q;
+            const double beta = q - 1.0;
+            const double scale = 1.0 / xsf::binom(2.0 * n + p - 1.0, n);
+            Coefficients out(n + 1, 0.0);
+            for (int m = 0; m <= n; ++m) {
+                const double c = scale * binom_int(n + alpha, m) * binom_int(n + beta, n - m);
+                const auto term = multiply(linear_power(-1.0, 1.0, n - m), linear_power(0.0, 1.0, m));
+                for (int j = 0; j <= n; ++j) {
+                    out[j] += c * term[j];
+                }
+            }
+            return out;
+        },
+        [](double n, const Parameters &params, std::complex<double> x) {
+            return xsf::eval_sh_jacobi(n, params[0], params[1], x);
         },
         {{1.0, 10.0}, {0.0, 1.0}}, {0.0, 1.0}, 1e-5
     );
 }
 
 TEST_CASE("eval_jacobi recurrence overload", "[eval_jacobi][xsf_tests]") {
+    // Mirrors scipy/special/tests/test_orthogonal_eval.py::TestRecurrence.test_jacobi
     check_recurrence(
-        [](int n, const Parameters &params, double x) { return xsf::eval_jacobi_l(n, params[0], params[1], x); },
-        [](int n, const Parameters &params, double x) {
-            return xsf::eval_jacobi(static_cast<double>(n), params[0], params[1], x);
+        [](std::ptrdiff_t n, const Parameters &params, double x) {
+            return xsf::eval_jacobi_l(n, params[0], params[1], x);
         },
+        [](double n, const Parameters &params, double x) { return xsf::eval_jacobi(n, params[0], params[1], x); },
         {{-0.99, 10.0}, {-0.99, 10.0}}, {-1.0, 1.0}
     );
 }
 
 TEST_CASE("eval_sh_jacobi recurrence overload", "[eval_sh_jacobi][xsf_tests]") {
+    // Mirrors scipy/special/tests/test_orthogonal_eval.py::TestRecurrence.test_sh_jacobi
     check_recurrence(
-        [](int n, const Parameters &params, double x) { return xsf::eval_sh_jacobi_l(n, params[0], params[1], x); },
-        [](int n, const Parameters &params, double x) {
-            return xsf::eval_sh_jacobi(static_cast<double>(n), params[0], params[1], x);
+        [](std::ptrdiff_t n, const Parameters &params, double x) {
+            return xsf::eval_sh_jacobi_l(n, params[0], params[1], x);
         },
+        [](double n, const Parameters &params, double x) { return xsf::eval_sh_jacobi(n, params[0], params[1], x); },
         {{1.0, 10.0}, {0.0, 1.0}}, {0.0, 1.0}
     );
 }
 
 TEST_CASE("eval_jacobi alpha=-1 beta=1", "[eval_jacobi][xsf_tests]") {
+    // Mirrors scipy/special/tests/test_orthogonal_eval.py::test_jacobi_alpha_minus_one_beta_plus_one
     using test_case = std::tuple<int, std::array<double, 11>>;
     // gh-7001 - expected values were computed with mathematica.
     auto [n, expected] = GENERATE(
@@ -220,6 +300,7 @@ TEST_CASE("eval_jacobi alpha=-1 beta=1", "[eval_jacobi][xsf_tests]") {
 }
 
 TEST_CASE("eval_jacobi alpha=-1 beta=-1", "[eval_jacobi][xsf_tests]") {
+    // Mirrors scipy/special/tests/test_orthogonal_eval.py::test_jacobi_alpha_minus_one_beta_minus_one
     using test_case = std::tuple<int, std::array<double, 11>>;
     // gh-7001 - expected values were computed with mathematica.
     auto [n, expected] = GENERATE(
