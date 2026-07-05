@@ -1,13 +1,9 @@
+#include "../../include/xsf/config.h"
 #include "../testing_utils.h"
 
 #include <xsf/orthogonal_eval.h>
 
 #include <array>
-#include <cmath>
-#include <complex>
-#include <cstddef>
-#include <tuple>
-#include <utility>
 #include <vector>
 
 namespace {
@@ -21,7 +17,7 @@ double binom_int(double a, int k) {
 }
 
 std::vector<double> linear_power(double c0, double c1, int n) {
-    std::vector<double> out(n + 1.0, 0.0);
+    std::vector<double> out(n + 1, 0.0);
     for (int j = 0; j <= n; ++j) {
         out[j] = binom_int(n, j) * std::pow(c0, n - j) * std::pow(c1, j);
     }
@@ -194,7 +190,7 @@ TEST_CASE("eval_jacobi supports complex inputs", "[eval_jacobi][xsf_tests]") {
         [](double n, const std::vector<double> &params, std::complex<double> x) {
             return xsf::eval_jacobi(n, params[0], params[1], x);
         },
-        {{-0.99, 10.0}, {-0.99, 10.0}}, {-1.0, 1.0}, 1e-5
+        {{-0.99, 10.0}, {-0.99, 10.0}}, {{-0.75, -0.25}, {-0.25, 0.5}, {0.0, -0.5}, {0.5, 0.25}, {0.75, -0.75}}, 1e-5
     );
 }
 
@@ -246,7 +242,7 @@ TEST_CASE("eval_sh_jacobi for complex inputs", "[eval_sh_jacobi][xsf_tests]") {
         [](double n, const std::vector<double> &params, std::complex<double> x) {
             return xsf::eval_sh_jacobi(n, params[0], params[1], x);
         },
-        {{1.0, 10.0}, {0.0, 1.0}}, {0.0, 1.0}, 1e-5
+        {{1.0, 10.0}, {0.0, 1.0}}, {{0.1, 0.2}, {0.25, -0.3}, {0.5, 0.4}, {0.75, -0.2}, {0.9, 0.1}}, 1e-5
     );
 }
 
@@ -254,7 +250,7 @@ TEST_CASE("eval_jacobi recurrence overload", "[eval_jacobi][xsf_tests]") {
     // Mirrors scipy/special/tests/test_orthogonal_eval.py::TestRecurrence.test_jacobi
     check_recurrence(
         [](std::ptrdiff_t n, const std::vector<double> &params, double x) {
-            return xsf::eval_jacobi_l(n, params[0], params[1], x);
+            return xsf::eval_jacobi(n, params[0], params[1], x);
         },
         [](double n, const std::vector<double> &params, double x) {
             return xsf::eval_jacobi(n, params[0], params[1], x);
@@ -267,7 +263,7 @@ TEST_CASE("eval_sh_jacobi recurrence overload", "[eval_sh_jacobi][xsf_tests]") {
     // Mirrors scipy/special/tests/test_orthogonal_eval.py::TestRecurrence.test_sh_jacobi
     check_recurrence(
         [](std::ptrdiff_t n, const std::vector<double> &params, double x) {
-            return xsf::eval_sh_jacobi_l(n, params[0], params[1], x);
+            return xsf::eval_sh_jacobi(n, params[0], params[1], x);
         },
         [](double n, const std::vector<double> &params, double x) {
             return xsf::eval_sh_jacobi(n, params[0], params[1], x);
@@ -291,7 +287,7 @@ TEST_CASE("eval_jacobi alpha=-1 beta=1", "[eval_jacobi][xsf_tests]") {
 
     for (std::size_t j = 0; j < expected.size(); ++j) {
         const double x = -1.0 + 0.2 * static_cast<double>(j);
-        auto out = xsf::eval_jacobi_l(n, -1.0, 1.0, x);
+        auto out = xsf::eval_jacobi(static_cast<long>(n), -1.0, 1.0, x);
         auto error = xsf::extended_absolute_error(out, expected[j]);
         auto tol = 1e-14 + 1e-10 * std::abs(expected[j]);
         CAPTURE(n, x, out, expected[j], error, tol);
@@ -319,7 +315,7 @@ TEST_CASE("eval_jacobi alpha=-1 beta=-1", "[eval_jacobi][xsf_tests]") {
 
     for (std::size_t j = 0; j < expected.size(); ++j) {
         const double x = -1.0 + 0.2 * static_cast<double>(j);
-        auto out = xsf::eval_jacobi_l(n, -1.0, -1.0, x);
+        auto out = xsf::eval_jacobi(static_cast<long>(n), -1.0, -1.0, x);
         auto error = xsf::extended_absolute_error(out, expected[j]);
         auto tol = 1e-14 + 1e-10 * std::abs(expected[j]);
         CAPTURE(n, x, out, expected[j], error, tol);
