@@ -102,9 +102,11 @@ XSF_HOST_DEVICE inline double eval_sh_jacobi(long n, double p, double q, double 
 }
 
 XSF_HOST_DEVICE inline float eval_sh_jacobi(float n, float p, float q, float x) {
-    return eval_sh_jacobi(
-        static_cast<double>(n), static_cast<double>(p), static_cast<double>(q), static_cast<double>(x)
-    );
+    return detail::eval_jacobi(
+               static_cast<double>(n), static_cast<double>(p) - static_cast<double>(q), static_cast<double>(q) - 1.0,
+               2.0 * static_cast<double>(x) - 1.0
+           ) /
+           binom(2.0 * static_cast<double>(n) + static_cast<double>(p) - 1.0, static_cast<double>(n));
 }
 
 XSF_HOST_DEVICE inline float eval_sh_jacobi(long n, float p, float q, float x) {
