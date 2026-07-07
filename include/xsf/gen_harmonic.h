@@ -40,7 +40,7 @@ namespace detail {
     // See the NOTE above regarding T.
     //
     template <typename T>
-    XSF_HOST_DEVICE inline constexpr double sum_powers(T m, T n, double a) {
+    XSF_HOST_DEVICE inline double sum_powers(T m, T n, double a) {
         double sum = 0.0;
         if (a >= 0) {
             for (T i = n; i >= m; --i) {
@@ -66,7 +66,7 @@ namespace detail {
     // See the NOTE above regarding T.
     //
     template <typename T>
-    XSF_HOST_DEVICE inline constexpr double normalized_sum_powers(T j, T k, T n, double a) {
+    XSF_HOST_DEVICE inline double normalized_sum_powers(T j, T k, T n, double a) {
         double numer = 0.0;
         double denom = 0.0;
         if (a >= 0) {
