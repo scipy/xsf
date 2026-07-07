@@ -7,7 +7,7 @@ static const double INF = std::numeric_limits<double>::infinity();
 static const double NaN = std::numeric_limits<double>::quiet_NaN();
 
 TEST_CASE("gen harmonic", "[gen_harmonic][xsf_tests]") {
-    // Mirrors scipy/special/tests/test_gen_harmonic.py::test_gen_harmonic
+    // https://github.com/scipy/scipy/blob/a125578782dd3213fb57fda0f4b97c70dd054b1d/scipy/special/tests/test_gen_harmonic.py#L11-L39
     using test_case = std::tuple<int, double, double>;
     auto [n, a, expected] = GENERATE(
         test_case{8, 9.0, 1.0020083884212339}, test_case{1000, 2.5, 1.3414661912046497},
@@ -30,7 +30,7 @@ TEST_CASE("gen harmonic", "[gen_harmonic][xsf_tests]") {
 }
 
 TEST_CASE("gen harmonic exact cases", "[gen_harmonic][xsf_tests]") {
-    // Mirrors scipy/special/tests/test_gen_harmonic.py::test_gen_harmonic_exact_cases
+    // https://github.com/scipy/scipy/blob/a125578782dd3213fb57fda0f4b97c70dd054b1d/scipy/special/tests/test_gen_harmonic.py#L42-L53
     using test_case = std::tuple<int, double, double>;
     auto [n, a, expected] = GENERATE(
         test_case{10, INF, 1.0}, test_case{1, NaN, 1.0}, test_case{1, -INF, 1.0}, test_case{3, NaN, NaN},
@@ -44,7 +44,7 @@ TEST_CASE("gen harmonic exact cases", "[gen_harmonic][xsf_tests]") {
 }
 
 TEST_CASE("gen harmonic nan inputs", "[gen_harmonic][xsf_tests]") {
-    // Mirrors scipy/special/tests/test_gen_harmonic.py::test_gen_harmonic_n_nan
+    // https://github.com/scipy/scipy/blob/a125578782dd3213fb57fda0f4b97c70dd054b1d/scipy/special/tests/test_gen_harmonic.py#L56-L58
     using test_case = std::tuple<double, double, double>;
     auto [n, a, expected] = GENERATE(test_case{NaN, 0.75, NaN});
 
@@ -55,7 +55,7 @@ TEST_CASE("gen harmonic nan inputs", "[gen_harmonic][xsf_tests]") {
 }
 
 TEST_CASE("normalized gen harmonic", "[gen_harmonic][xsf_tests]") {
-    // Mirrors scipy/special/tests/test_gen_harmonic.py::test_normalized_gen_harmonic
+    // https://github.com/scipy/scipy/blob/a125578782dd3213fb57fda0f4b97c70dd054b1d/scipy/special/tests/test_gen_harmonic.py#L61-L76
     using test_case = std::tuple<int, int, int, double, double>;
     auto [j, k, n, a, expected] = GENERATE(
         test_case{400, 5000, 5000, 10.0, 4.2821759663214485e-25}, test_case{400, 5000, 5000, 3.5, 1.11086549102426e-07},
@@ -72,7 +72,7 @@ TEST_CASE("normalized gen harmonic", "[gen_harmonic][xsf_tests]") {
 }
 
 TEST_CASE("normalized gen harmonic exact cases", "[gen_harmonic][xsf_tests]") {
-    // Mirrors scipy/special/tests/test_gen_harmonic.py::test_normalized_gen_harmonic_exact_cases
+    // https://github.com/scipy/scipy/blob/a125578782dd3213fb57fda0f4b97c70dd054b1d/scipy/special/tests/test_gen_harmonic.py#L79-L94
     using test_case = std::tuple<int, int, int, double, double>;
     auto [j, k, n, a, expected] = GENERATE(
         test_case{1, 1, 1, 0.5, 1.0}, test_case{1, 1, 1, NaN, 1.0}, test_case{1, 2, 5, NaN, NaN},
@@ -87,7 +87,7 @@ TEST_CASE("normalized gen harmonic exact cases", "[gen_harmonic][xsf_tests]") {
 }
 
 TEST_CASE("normalied gen harmonic nan inputs", "[gen_harmonic][xsf_tests]") {
-    // Mirrors scipy/special/tests/test_gen_harmonic.py::test_normalized_gen_harmonic_input_nan
+    // https://github.com/scipy/scipy/blob/a125578782dd3213fb57fda0f4b97c70dd054b1d/scipy/special/tests/test_gen_harmonic.py#L97-L99
     using test_case = std::tuple<double, double, double, double, double>;
     auto [j, k, n, a, expected] = GENERATE(test_case{1.0, NaN, 10.0, 1.05, NaN});
 
