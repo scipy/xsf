@@ -1,10 +1,6 @@
 #pragma once
 
 #include <cinttypes>
-#include <cmath>
-#include <cstdint>
-#include <limits>
-#include <tuple>
 
 #include "config.h"
 #include "error.h"
