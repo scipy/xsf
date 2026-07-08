@@ -158,7 +158,7 @@ void check_recurrence(
 } // namespace
 
 TEST_CASE("eval_jacobi matches constructed polynomials", "[eval_jacobi][xsf_tests]") {
-    // Mirrors scipy/special/tests/test_orthogonal_eval.py::TestPolys.test_jacobi
+    // https://github.com/scipy/scipy/blob/a125578782dd3213fb57fda0f4b97c70dd054b1d/scipy/special/tests/test_orthogonal_eval.py#L77-L80
     check_poly(
         [](int n, const std::vector<double> &params) {
             const double alpha = params[0];
@@ -182,7 +182,8 @@ TEST_CASE("eval_jacobi matches constructed polynomials", "[eval_jacobi][xsf_test
 }
 
 TEST_CASE("eval_jacobi supports complex inputs", "[eval_jacobi][xsf_tests]") {
-    // Mirrors scipy/special/tests/test_orthogonal_eval.py::TestPolys.test_jacobi for complex inputs
+    // for complex inputs
+    // https://github.com/scipy/scipy/blob/a125578782dd3213fb57fda0f4b97c70dd054b1d/scipy/special/tests/test_orthogonal_eval.py#L77-L80
     check_complex_poly(
         [](double n, const std::vector<double> &params) {
             const double alpha = params[0];
@@ -236,7 +237,7 @@ TEST_CASE("eval_jacobi matches SciPy complex<float> reference values", "[eval_ja
 }
 
 TEST_CASE("eval_sh_jacobi matches constructed polynomials", "[eval_sh_jacobi][xsf_tests]") {
-    // Mirrors scipy/special/tests/test_orthogonal_eval.py::TestPolys.test_sh_jacobi
+    // https://github.com/scipy/scipy/blob/a125578782dd3213fb57fda0f4b97c70dd054b1d/scipy/special/tests/test_orthogonal_eval.py#L82-L85
     check_poly(
         [](int n, const std::vector<double> &params) {
             const double p = params[0];
@@ -262,7 +263,8 @@ TEST_CASE("eval_sh_jacobi matches constructed polynomials", "[eval_sh_jacobi][xs
 }
 
 TEST_CASE("eval_sh_jacobi for complex inputs", "[eval_sh_jacobi][xsf_tests]") {
-    // Mirrors scipy/special/tests/test_orthogonal_eval.py::TestPolys.test_sh_jacobi for complex inputs
+    // for complex inputs
+    // https://github.com/scipy/scipy/blob/a125578782dd3213fb57fda0f4b97c70dd054b1d/scipy/special/tests/test_orthogonal_eval.py#L82-L85
     check_complex_poly(
         [](double n, const std::vector<double> &params) {
             const double p = params[0];
@@ -318,7 +320,7 @@ TEST_CASE("eval_sh_jacobi matches SciPy complex<float> reference values", "[eval
 }
 
 TEST_CASE("eval_jacobi recurrence overload", "[eval_jacobi][xsf_tests]") {
-    // Mirrors scipy/special/tests/test_orthogonal_eval.py::TestRecurrence.test_jacobi
+    // https://github.com/scipy/scipy/blob/a125578782dd3213fb57fda0f4b97c70dd054b1d/scipy/special/tests/test_orthogonal_eval.py#L185-L188
     check_recurrence(
         [](std::ptrdiff_t n, const std::vector<double> &params, double x) {
             return xsf::eval_jacobi(n, params[0], params[1], x);
@@ -331,7 +333,7 @@ TEST_CASE("eval_jacobi recurrence overload", "[eval_jacobi][xsf_tests]") {
 }
 
 TEST_CASE("eval_sh_jacobi recurrence overload", "[eval_sh_jacobi][xsf_tests]") {
-    // Mirrors scipy/special/tests/test_orthogonal_eval.py::TestRecurrence.test_sh_jacobi
+    // https://github.com/scipy/scipy/blob/a125578782dd3213fb57fda0f4b97c70dd054b1d/scipy/special/tests/test_orthogonal_eval.py#L190-L192
     check_recurrence(
         [](std::ptrdiff_t n, const std::vector<double> &params, double x) {
             return xsf::eval_sh_jacobi(n, params[0], params[1], x);
@@ -344,7 +346,7 @@ TEST_CASE("eval_sh_jacobi recurrence overload", "[eval_sh_jacobi][xsf_tests]") {
 }
 
 TEST_CASE("eval_jacobi alpha=-1 beta=1", "[eval_jacobi][xsf_tests]") {
-    // Mirrors scipy/special/tests/test_orthogonal_eval.py::test_jacobi_alpha_minus_one_beta_plus_one
+    // https://github.com/scipy/scipy/blob/a125578782dd3213fb57fda0f4b97c70dd054b1d/scipy/special/tests/test_orthogonal_eval.py#L293-L329
     using test_case = std::tuple<int, std::array<double, 11>>;
     // gh-7001 - expected values were computed with mathematica.
     auto [n, expected] = GENERATE(
@@ -372,7 +374,7 @@ TEST_CASE("eval_jacobi alpha=-1 beta=1", "[eval_jacobi][xsf_tests]") {
 }
 
 TEST_CASE("eval_jacobi alpha=-1 beta=-1", "[eval_jacobi][xsf_tests]") {
-    // Mirrors scipy/special/tests/test_orthogonal_eval.py::test_jacobi_alpha_minus_one_beta_minus_one
+    // https://github.com/scipy/scipy/blob/a125578782dd3213fb57fda0f4b97c70dd054b1d/scipy/special/tests/test_orthogonal_eval.py#L332-L383
     using test_case = std::tuple<int, std::array<double, 11>>;
     // gh-7001 - expected values were computed with mathematica.
     auto [n, expected] = GENERATE(
