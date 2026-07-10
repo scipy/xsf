@@ -1,4 +1,4 @@
-// Numerically stable computation of iv(v+1, x) / iv(v, x)
+// Numerically stable computation of iv(v+1, x) / iv(v, x) and its inverse
 
 #pragma once
 
@@ -164,6 +164,94 @@ XSF_HOST_DEVICE inline double iv_ratio_c(double v, double x) {
 
 XSF_HOST_DEVICE inline float iv_ratio_c(float v, float x) {
     return iv_ratio_c(static_cast<double>(v), static_cast<double>(x));
+}
+
+XSF_HOST_DEVICE inline double iv_ratioinv(double v, double r) {
+    if (std::isnan(v) || std::isnan(r)) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    if (v < 0.5 || r <= 0. || r >= 1) {
+        // iv_ratioinv is only defined for v >= 0.5
+        // for r=0 or r=1, the inverse is not unique (x=0 and x=inf respectively)
+        set_error("iv_ratioinv", SF_ERROR_DOMAIN, NULL);
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    // Algorithm description: use Chandrupatla's method to find the root of
+    // f(x) = iv_ratio(v, x) - r (or f(x) = 1 - iv_ratio_c(v, x) - r if r > 0.5).
+    // Bounds from Amos, 1973. "Computation of Modified Bessel Function And Their Ratios".
+    // That paper defines the ratio as iv(v+1, x)/iv(v, x), but we define it as iv(v, x)/iv(v-1, x).
+    // Substitute v -> v-1 in eq. (9) and eq. (16) yields the following bounds for x:
+    //   x/(v-1/2 + sqrt(x^2 + (v+1/2)^2)) <= r <= x/(v-1 + sqrt(x^2 + (v+1)^2))
+    //
+    // Inverting (inequality direction flips):
+    //   lower x (from upper r-bound): r*[(v-1) + sqrt((v-1)^2 + 4v*(1-r^2))] / (1-r^2)
+    //   upper x (from lower r-bound): r*[(v-0.5) + sqrt((v-0.5)^2 + 2v*(1-r^2))] / (1-r^2)
+
+    double r_c = 1.0 - r;
+    double one_minus_r_sq = r_c * (1.0 + r); // 1 - r^2
+
+    double vm1 = v - 1.0;
+    double lower_bound = r * (vm1 + std::sqrt(vm1 * vm1 + 4.0 * v * one_minus_r_sq)) / one_minus_r_sq;
+
+    double vm05 = v - 0.5;
+    double upper_bound = r * (vm05 + std::sqrt(vm05 * vm05 + 2.0 * v * one_minus_r_sq)) / one_minus_r_sq;
+
+    // For small r both bounds converge to 2v*r (== true x). Ensure bracket has width.
+    if (upper_bound <= lower_bound) {
+        upper_bound = 2.0 * lower_bound;
+    }
+
+    auto func = [v, r, r_c](double x) {
+        if (r <= 0.5) {
+            return iv_ratio(v, x) - r;
+        }
+        return r_c - iv_ratio_c(v, x);
+    };
+
+    double xl = lower_bound;
+    double xr = upper_bound;
+    double f_xl = func(xl);
+    double f_xr = func(xr);
+
+    if (f_xl * f_xr > 0) {
+        // The Amos bounds are theoretically correct but may yield an invalid bracket
+        // due to precision issues in iv_ratio or iv_ratio_c. This happens especially for very small or large r.
+        // Fallback: use bracket_root_for_cdf_inversion to find a valid bracket.
+        // Bracketing parameters taken from gdtrib, only difference: our function is increasing
+        auto [b_xl, b_xr, b_f_xl, b_f_xr, bracket_status] = detail::bracket_root_for_cdf_inversion(
+            func, 1.0, std::numeric_limits<double>::min(), std::numeric_limits<double>::max(), -0.875, 7.0, 0.125, 8,
+            true, 342
+        );
+        if (bracket_status == 1) {
+            set_error("iv_ratioinv", SF_ERROR_UNDERFLOW, NULL);
+            return 0.0;
+        }
+        if (bracket_status == 2) {
+            set_error("iv_ratioinv", SF_ERROR_OVERFLOW, NULL);
+            return std::numeric_limits<double>::infinity();
+        }
+        if (bracket_status >= 3) {
+            set_error("iv_ratioinv", SF_ERROR_OTHER, "Computational Error");
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        xl = b_xl;
+        xr = b_xr;
+        f_xl = b_f_xl;
+        f_xr = b_f_xr;
+    }
+
+    auto [result, root_status] =
+        detail::find_root_chandrupatla(func, xl, xr, f_xl, f_xr, std::numeric_limits<double>::epsilon(), 1e-308, 1000);
+    if (root_status) {
+        // Root finding failed. This should never happen.
+        set_error("iv_ratioinv", SF_ERROR_OTHER, "Computational Error");
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    return result;
+}
+
+XSF_HOST_DEVICE inline float iv_ratioinv(float v, float r) {
+    return static_cast<float>(iv_ratioinv(static_cast<double>(v), static_cast<double>(r)));
 }
 
 } // namespace xsf
