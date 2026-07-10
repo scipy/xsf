@@ -422,5 +422,29 @@ namespace detail {
         return {std::numeric_limits<double>::quiet_NaN(), 1};
     }
 
+    /* Find root of a scalar function using Newton-Raphson.
+     *
+     * Function func must return a pair (f(x), f'(x)).
+     */
+    template <typename Function>
+    XSF_HOST_DEVICE inline std::pair<double, int> find_root_newton(
+        Function func, double x, double rtol = 4 * std::numeric_limits<double>::epsilon(), double atol = 0.0,
+        std::uint64_t maxiter = 100
+    ) {
+        for (std::uint64_t i = 0; i < maxiter; i++) {
+            auto [f, df] = func(x);
+            if (f == 0.0) {
+                return {x, 0};
+            }
+            double step = f / df;
+            double x_next = x - step;
+            if (x == x_next || std::abs(step) <= rtol * std::abs(x) + atol) {
+                return {x_next, 0};
+            }
+            x = x_next;
+        }
+        return {x, 1};
+    }
+
 } // namespace detail
 } // namespace xsf

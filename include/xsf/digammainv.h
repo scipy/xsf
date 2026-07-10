@@ -5,9 +5,17 @@
 #include "xsf/cephes/zeta.h"
 #include "xsf/config.h"
 #include "xsf/error.h"
+#include "xsf/tools.h"
 
 namespace xsf {
 namespace detail {
+
+    struct digammainv_root_functor {
+        double y;
+        XSF_HOST_DEVICE std::pair<double, double> operator()(double x) const {
+            return {cephes::psi(x) - y, cephes::zeta(2, x)};
+        }
+    };
 
     // Initial guess for digammainv using Minka (2000):
     //   x0 = exp(y) + 0.5      if y >= -2.22
@@ -24,17 +32,12 @@ namespace detail {
     //   x_new = x_old - (psi(x_old) - y) / psi'(x_old)
     // where psi'(x) = zeta(2, x) (the trigamma function).
     XSF_HOST_DEVICE inline double digammainv_newton_raphson(double x, double y) {
-        const int max_iterations = 20; // avoid infinite loops in pathological cases
-        for (int i = 0; i < max_iterations; ++i) {
-            double psi_x = cephes::psi(x);
-            double trigamma_x = cephes::zeta(2, x);
-            double step = (psi_x - y) / trigamma_x;
-            x -= step;
-            if (std::abs(step) <= std::numeric_limits<double>::epsilon() * std::abs(x)) {
-                break;
-            }
+        auto [res, status] = find_root_newton(digammainv_root_functor{y}, x);
+        if (status == 1) {
+            set_error("digammainv", SF_ERROR_NO_RESULT, NULL);
+            return std::numeric_limits<double>::quiet_NaN();
         }
-        return x;
+        return res;
     }
 
     // Compute the inverse of the digamma function for real double input y,
