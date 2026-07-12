@@ -5,16 +5,16 @@
 // Row n contains S(n, 0), S(n, 1), ..., S(n, n).
 static const double stirling2_table[11][11] = {
     {1},
-    {0,   1},
-    {0,   1,     1},
-    {0,   1,     3,     1},
-    {0,   1,     7,     6,      1},
-    {0,   1,    15,    25,     10,      1},
-    {0,   1,    31,    90,     65,     15,      1},
-    {0,   1,    63,   301,    350,    140,     21,     1},
-    {0,   1,   127,   966,   1701,   1050,    266,    28,    1},
-    {0,   1,   255,  3025,   7770,   6951,   2646,   462,   36,    1},
-    {0,   1,   511,  9330,  34105,  42525,  22827,  5880,  750,   45,  1},
+    {0, 1},
+    {0, 1, 1},
+    {0, 1, 3, 1},
+    {0, 1, 7, 6, 1},
+    {0, 1, 15, 25, 10, 1},
+    {0, 1, 31, 90, 65, 15, 1},
+    {0, 1, 63, 301, 350, 140, 21, 1},
+    {0, 1, 127, 966, 1701, 1050, 266, 28, 1},
+    {0, 1, 255, 3025, 7770, 6951, 2646, 462, 36, 1},
+    {0, 1, 511, 9330, 34105, 42525, 22827, 5880, 750, 45, 1},
 };
 
 TEST_CASE("stirling2 table values", "[stirling2][xsf_tests]") {
@@ -47,21 +47,16 @@ TEST_CASE("stirling2 single values", "[stirling2][xsf_tests]") {
 
 TEST_CASE("stirling2 negative inputs", "[stirling2][xsf_tests]") {
     REQUIRE(xsf::stirling2(-1, -1) == 0.0);
-    REQUIRE(xsf::stirling2(-1,  2) == 0.0);
-    REQUIRE(xsf::stirling2( 2, -1) == 0.0);
+    REQUIRE(xsf::stirling2(-1, 2) == 0.0);
+    REQUIRE(xsf::stirling2(2, -1) == 0.0);
 }
 
 TEST_CASE("stirling2 mixed inputs", "[stirling2][xsf_tests]") {
     using test_case = std::tuple<double, double, double>;
     // n=-1 or k=-2 returns 0; otherwise matches known table entry.
     auto [n, k, expected] = GENERATE(
-        test_case{-1, -2,    0},
-        test_case{ 0,  0,    1},
-        test_case{ 3,  2,    3},
-        test_case{ 5,  3,   25},
-        test_case{ 8,  5, 1050},
-        test_case{10,  7, 5880},
-        test_case{10,  3, 9330}
+        test_case{-1, -2, 0}, test_case{0, 0, 1}, test_case{3, 2, 3}, test_case{5, 3, 25}, test_case{8, 5, 1050},
+        test_case{10, 7, 5880}, test_case{10, 3, 9330}
     );
     const double rtol = 1e-13;
     const double result = xsf::stirling2(n, k);

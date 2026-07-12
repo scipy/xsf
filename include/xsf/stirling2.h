@@ -94,18 +94,15 @@ namespace detail {
         double x0 = lwv.real() + 1.0 / mu;
         double t0 = 1.0 / mu - 1.0;
         double F = std::sqrt(t0 / ((1.0 + t0) * (x0 - t0)));
-        double A = -n * std::log(x0) + k * std::log(std::exp(x0) - 1.0)
-                   - k * t0 + (n - k) * std::log(t0);
+        double A = -n * std::log(x0) + k * std::log(std::exp(x0) - 1.0) - k * t0 + (n - k) * std::log(t0);
 
         // F1 correction term (Horner scheme applied to numerator)
         double xt = x0 * t0;
         double t0power3 = t0 * t0 * t0;
         double num = -2.0 * x0 * x0 * x0;
         num += ((t0 + 2.0) * t0 + 2.0) * (2.0 * t0power3);
-        num += (-6.0 * t0power3 + (8.0 * t0 - 6.0 * x0 - 5.0) * xt
-                + ((2.0 * x0 + 1.0) * x0 + 3.0) * x0) * xt;
-        double denom = 24.0 * F * (1.0 + t0) * (1.0 + t0)
-                       * (x0 - t0) * (x0 - t0) * (x0 - t0) * (x0 - t0);
+        num += (-6.0 * t0power3 + (8.0 * t0 - 6.0 * x0 - 5.0) * xt + ((2.0 * x0 + 1.0) * x0 + 3.0) * x0) * xt;
+        double denom = 24.0 * F * (1.0 + t0) * (1.0 + t0) * (x0 - t0) * (x0 - t0) * (x0 - t0) * (x0 - t0);
         double F1 = num / denom;
 
         return std::exp(A) * std::pow(k, n - k) * xsf::binom(n, k) * (F - F1 / k);
