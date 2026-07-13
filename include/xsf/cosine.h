@@ -38,7 +38,8 @@ namespace detail {
     //    ts = mpmath.taylor(f, -mpmath.pi, 20)
     //    p, q = mpmath.pade(ts, 9, 10)
     //
-    // (A python script with that code is in special/_precompute/cosine_cdf.py.)
+    // (A python script with that code is in
+    //  https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/_precompute/cosine_cdf.py)
     //
     // The following are the values after converting to 64 bit floating point:
     // p = [0.0,
