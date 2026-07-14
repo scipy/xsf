@@ -108,15 +108,25 @@ namespace detail {
         return std::exp(A) * std::pow(k, n - k) * xsf::binom(n, k) * (F - F1 / k);
     }
 
+    XSF_HOST_DEVICE inline double stirling2(double n, double k) {
+        if (n <= 50) {
+            return detail::stirling2_dp(n, k);
+        }
+        return detail::stirling2_temme(n, k);
+    }
 } // namespace detail
 
-// Stirling numbers of the second kind S(n, k):
-// Uses dynamic programming for n <= 50, Temme approximation otherwise.
-XSF_HOST_DEVICE inline double stirling2(double n, double k) {
-    if (n <= 50) {
-        return detail::stirling2_dp(n, k);
-    }
-    return detail::stirling2_temme(n, k);
+XSF_HOST_DEVICE inline double stirling2(double n, double k) { return detail::stirling2(n, k); }
+
+XSF_HOST_DEVICE inline float stirling2(float n, float k) {
+    return static_cast<float>(detail::stirling2(static_cast<double>(n), static_cast<double>(k)));
+}
+
+template <typename T1, typename T2>
+XSF_HOST_DEVICE inline std::enable_if_t<std::is_integral_v<T1> && std::is_integral_v<T2>, double>
+stirling2(T1 n, T2 k) {
+    // Explicitly call the double overload using the xsf:: prefix to avoid ambiguity during lookup
+    return xsf::stirling2(static_cast<double>(n), static_cast<double>(k));
 }
 
 } // namespace xsf

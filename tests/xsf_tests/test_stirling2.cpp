@@ -19,6 +19,7 @@ static const double stirling2_table[11][11] = {
 
 TEST_CASE("stirling2 table values", "[stirling2][xsf_tests]") {
     const double rtol = 1e-12;
+    const float rtol_f = 1e-6f;
     for (int n = 0; n <= 10; ++n) {
         for (int k = 0; k <= n; ++k) {
             const double result = xsf::stirling2(static_cast<double>(n), static_cast<double>(k));
@@ -26,6 +27,14 @@ TEST_CASE("stirling2 table values", "[stirling2][xsf_tests]") {
             const auto rel_error = xsf::extended_relative_error(result, expected);
             CAPTURE(n, k, result, expected, rel_error);
             REQUIRE(rel_error <= rtol);
+
+            const float n_f = static_cast<float>(n);
+            const float k_f = static_cast<float>(k);
+            const float result_f = xsf::stirling2(n_f, k_f);
+            const float expected_f = static_cast<float>(expected);
+            const auto rel_error_f = xsf::extended_relative_error(result_f, expected_f);
+            CAPTURE(n_f, k_f, result_f, expected_f, rel_error_f);
+            REQUIRE(rel_error_f <= rtol_f);
         }
     }
 }
