@@ -49,23 +49,23 @@ TEST_CASE("stirling2 single values", "[stirling2][xsf_tests]") {
         REQUIRE(rel_error <= rtol);
     };
 
-    check(0, 0, stirling2_table[0][0]);
-    check(4, 2, stirling2_table[4][2]);
-    check(5, 3, 25);
+    check(0.0, 0.0, stirling2_table[0][0]);
+    check(4.0, 2.0, stirling2_table[4][2]);
+    check(5.0, 3.0, 25.0);
 }
 
 TEST_CASE("stirling2 negative inputs", "[stirling2][xsf_tests]") {
-    REQUIRE(xsf::stirling2(-1, -1) == 0.0);
-    REQUIRE(xsf::stirling2(-1, 2) == 0.0);
-    REQUIRE(xsf::stirling2(2, -1) == 0.0);
+    REQUIRE(xsf::stirling2(-1.0, -1.0) == 0.0);
+    REQUIRE(xsf::stirling2(-1.0, 2.0) == 0.0);
+    REQUIRE(xsf::stirling2(2.0, -1.0) == 0.0);
 }
 
 TEST_CASE("stirling2 mixed inputs", "[stirling2][xsf_tests]") {
     using test_case = std::tuple<double, double, double>;
     // n=-1 or k=-2 returns 0; otherwise matches known table entry.
     auto [n, k, expected] = GENERATE(
-        test_case{-1, -2, 0}, test_case{0, 0, 1}, test_case{3, 2, 3}, test_case{5, 3, 25}, test_case{8, 5, 1050},
-        test_case{10, 7, 5880}, test_case{10, 3, 9330}
+        test_case{-1.0, -2.0, 0.0}, test_case{0.0, 0.0, 1.0}, test_case{3.0, 2.0, 3.0}, test_case{5.0, 3.0, 25.0},
+        test_case{8.0, 5.0, 1050.0}, test_case{10.0, 7.0, 5880.0}, test_case{10.0, 3.0, 9330.0}
     );
     const double rtol = 1e-13;
     const double result = xsf::stirling2(n, k);
@@ -76,9 +76,9 @@ TEST_CASE("stirling2 mixed inputs", "[stirling2][xsf_tests]") {
 
 TEST_CASE("stirling2 k out of range", "[stirling2][xsf_tests]") {
     // k > n or k = 0 with n > 0 gives 0
-    REQUIRE(xsf::stirling2(3, 4) == 0.0);
-    REQUIRE(xsf::stirling2(5, 0) == 0.0);
-    REQUIRE(xsf::stirling2(0, 1) == 0.0);
+    REQUIRE(xsf::stirling2(3.0, 4.0) == 0.0);
+    REQUIRE(xsf::stirling2(5.0, 0.0) == 0.0);
+    REQUIRE(xsf::stirling2(0.0, 1.0) == 0.0);
 }
 
 TEST_CASE("stirling2 temme approximation accuracy", "[stirling2][xsf_tests]") {
@@ -90,20 +90,18 @@ TEST_CASE("stirling2 temme approximation accuracy", "[stirling2][xsf_tests]") {
     //   S(n, 2)   = 2^(n-1) - 1        (exact for n <= 53 in double)
     const double max_rtol = 2e-5;
 
-    for (int n : {51, 55, 60, 75, 100}) {
-        const double dn = static_cast<double>(n);
-
+    for (double n : {51.0, 55.0, 60.0, 75.0, 100.0}) {
         // S(n, 1) = 1
         {
-            const double result = xsf::stirling2(dn, 1.0);
+            const double result = xsf::stirling2(n, 1.0);
             const auto rel_error = xsf::extended_relative_error(result, 1.0);
-            CAPTURE(n, 1, result, rel_error);
+            CAPTURE(n, 1.0, result, rel_error);
             REQUIRE(rel_error <= max_rtol);
         }
 
         // S(n, n) = 1
         {
-            const double result = xsf::stirling2(dn, dn);
+            const double result = xsf::stirling2(n, n);
             const auto rel_error = xsf::extended_relative_error(result, 1.0);
             CAPTURE(n, n, result, rel_error);
             REQUIRE(rel_error <= max_rtol);
@@ -111,19 +109,19 @@ TEST_CASE("stirling2 temme approximation accuracy", "[stirling2][xsf_tests]") {
 
         // S(n, n-1) = n*(n-1)/2
         {
-            const double expected = dn * (dn - 1.0) / 2.0;
-            const double result = xsf::stirling2(dn, dn - 1.0);
+            const double expected = n * (n - 1.0) / 2.0;
+            const double result = xsf::stirling2(n, n - 1.0);
             const auto rel_error = xsf::extended_relative_error(result, expected);
-            CAPTURE(n, n - 1, result, expected, rel_error);
+            CAPTURE(n, n - 1.0, result, expected, rel_error);
             REQUIRE(rel_error <= max_rtol);
         }
 
         // S(n, 2) = 2^(n-1) - 1  (only test where representable in double, n <= 53)
-        if (n <= 53) {
-            const double expected = std::pow(2.0, dn - 1.0) - 1.0;
-            const double result = xsf::stirling2(dn, 2.0);
+        if (n <= 53.0) {
+            const double expected = std::pow(2.0, n - 1.0) - 1.0;
+            const double result = xsf::stirling2(n, 2.0);
             const auto rel_error = xsf::extended_relative_error(result, expected);
-            CAPTURE(n, 2, result, expected, rel_error);
+            CAPTURE(n, 2.0, result, expected, rel_error);
             REQUIRE(rel_error <= max_rtol);
         }
     }

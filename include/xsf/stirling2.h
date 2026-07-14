@@ -122,11 +122,4 @@ XSF_HOST_DEVICE inline float stirling2(float n, float k) {
     return static_cast<float>(detail::stirling2(static_cast<double>(n), static_cast<double>(k)));
 }
 
-template <typename T1, typename T2>
-XSF_HOST_DEVICE inline std::enable_if_t<std::is_integral_v<T1> && std::is_integral_v<T2>, double>
-stirling2(T1 n, T2 k) {
-    // Explicitly call the double overload using the xsf:: prefix to avoid ambiguity during lookup
-    return xsf::stirling2(static_cast<double>(n), static_cast<double>(k));
-}
-
 } // namespace xsf
