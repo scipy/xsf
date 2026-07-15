@@ -1286,8 +1286,8 @@ namespace amos {
         //***END PROLOGUE  ZBESH
 
         std::complex<double> zn, zt, csgn;
-        double aa, alim, aln, arg, az, cpn, dig, elim, fmm, fn, fnul, rhpi, rl, r1m5, sgn, spn, tol, xn, xx, yn,
-            yy, bb, ascle, rtol, atol;
+        double aa, alim, aln, arg, az, cpn, dig, elim, fmm, fn, fnul, rhpi, rl, r1m5, sgn, spn, tol, xn, xx, yn, yy, bb,
+            ascle, rtol, atol;
         int i, inu, inuh, ir, k, k1, k2, mm, mr, nn, nuf, nw, nz;
 
         nz = 0;
