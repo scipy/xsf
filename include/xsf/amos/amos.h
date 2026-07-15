@@ -1348,7 +1348,7 @@ namespace amos {
         // TEST FOR PROPER RANGE
         //
         az = std::abs(z);
-        bb = std::numeric_limits<int>::max() * 0.5;
+        bb = std::numeric_limits<double>::max() * 0.5;
         aa = std::fmin(0.5 / tol, bb);
         if ((az > aa) || (fn > aa)) {
             *ierr = 4;
@@ -1961,7 +1961,7 @@ namespace amos {
         fn = fnu + (n - 1);
 
         aa = 0.5 / tol;
-        bb = std::numeric_limits<int>::max() * 0.5;
+        bb = std::numeric_limits<double>::max() * 0.5;
         aa = std::fmin(aa, bb);
         if ((az > aa) || (fn > aa)) {
             *ierr = 4;
