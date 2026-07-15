@@ -1,4 +1,4 @@
-// Numerically stable computation of iv(v+1, x) / iv(v, x) and its inverse
+// Numerically stable computation of iv(v, x) / iv(v - 1, x) and its inverse
 
 #pragma once
 
