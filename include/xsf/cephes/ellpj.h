@@ -21,7 +21,7 @@
  *
  *
  * Evaluates the Jacobian elliptic functions sn(u|m), cn(u|m),
- * and dn(u|m) of parameter m between 0 and 1, and real
+ * and dn(u|m) of parameter m less than or equal to 1, and real
  * argument u.
  *
  * These functions are periodic, with quarter-period on the
