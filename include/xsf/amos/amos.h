@@ -1286,7 +1286,7 @@ namespace amos {
         //***END PROLOGUE  ZBESH
 
         std::complex<double> zn, zt, csgn;
-        double aa, alim, aln, arg, az, cpn, dig, elim, fmm, fn, fnul, rhpi, rl, r1m5, sgn, spn, tol, ufl, xn, xx, yn,
+        double aa, alim, aln, arg, az, cpn, dig, elim, fmm, fn, fnul, rhpi, rl, r1m5, sgn, spn, tol, xn, xx, yn,
             yy, bb, ascle, rtol, atol;
         int i, inu, inuh, ir, k, k1, k2, mm, mr, nn, nuf, nw, nz;
 
@@ -1484,7 +1484,7 @@ namespace amos {
         }
         zt = std::complex<double>(0.0, -fmm);
         rtol = 1.0 / tol;
-        ascle = ufl * rtol;
+        ascle = THRESHOLD_MIN * rtol;
         for (i = 1; i < (nn + 1); i++) {
             zn = cy[i - 1];
             atol = 1.0;
@@ -2183,7 +2183,7 @@ namespace amos {
 
         double xx = std::real(z);
         double yy = std::imag(z);
-        double aa, alim, aln, arg, az, dig, elim, fn, fnul, rl, r1m5, tol, ufl, bb;
+        double aa, alim, aln, arg, az, dig, elim, fn, fnul, rl, r1m5, tol, bb;
         int k, k1, k2, mr, nn, nuf, nw, nz;
 
         *ierr = 0;
