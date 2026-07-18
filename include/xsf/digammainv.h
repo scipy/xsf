@@ -37,6 +37,18 @@ namespace detail {
             set_error("digammainv", SF_ERROR_NO_RESULT, NULL);
             return std::numeric_limits<double>::quiet_NaN();
         }
+        if (status == 2) {
+            set_error("digammainv", SF_ERROR_SINGULAR, NULL);
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        if (status == 3) {
+            set_error("digammainv", SF_ERROR_NO_RESULT, NULL);
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        if (status == 4) {
+            set_error("digammainv", SF_ERROR_OVERFLOW, NULL);
+            return res;
+        }
         return res;
     }
 

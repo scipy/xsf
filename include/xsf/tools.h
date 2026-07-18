@@ -431,10 +431,28 @@ namespace detail {
         Function func, double x, double rtol = 4 * std::numeric_limits<double>::epsilon(), double atol = 0.0,
         std::uint64_t maxiter = 100
     ) {
+        if (maxiter == 0) {
+            return {x, 1};
+        }
+        if (std::isnan(x)) {
+            return {std::numeric_limits<double>::quiet_NaN(), 3};
+        }
+        if (std::isinf(x)) {
+            return {x, 4};
+        }
         for (std::uint64_t i = 0; i < maxiter; i++) {
             auto [f, df] = func(x);
-            if (f == 0.0) {
-                return {x, 0};
+            if (df == 0.0) {
+                return {std::numeric_limits<double>::quiet_NaN(), 2};
+            }
+            if (std::isnan(f) || std::isnan(df)) {
+                return {std::numeric_limits<double>::quiet_NaN(), 3};
+            }
+            if (std::isinf(f) && (f > 0)) {
+                return {std::numeric_limits<double>::infinity(), 4};
+            }
+            if (std::isinf(f) && (f < 0)) {
+                return {-std::numeric_limits<double>::infinity(), 4};
             }
             double step = f / df;
             double x_next = x - step;
