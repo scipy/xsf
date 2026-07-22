@@ -47,6 +47,7 @@ xsref = { git = "https://github.com/scipy/xsref", rev = "1a5bb3d39efe4e9f26dc4da
 [feature.build.dependencies]
 cmake = "*"
 make = "*"
+ninja = "*"
 
 [feature.build.target.unix.dependencies]
 cxx-compiler = "*"

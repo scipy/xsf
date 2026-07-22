@@ -1,10 +1,31 @@
 version: 7
 platforms:
 - name: linux-64
+  virtual-packages:
+  - __unix=0=0
+  - __linux=4.18
+  - __glibc=2.28
+  - __archspec=0=x86_64
 - name: linux-aarch64
+  virtual-packages:
+  - __unix=0=0
+  - __linux=4.18
+  - __glibc=2.28
+  - __archspec=0=aarch64
 - name: osx-64
+  virtual-packages:
+  - __unix=0=0
+  - __osx=13.0
+  - __archspec=0=x86_64
 - name: osx-arm64
+  virtual-packages:
+  - __unix=0=0
+  - __osx=13.0
+  - __archspec=0=m1
 - name: win-64
+  virtual-packages:
+  - __win=10.0
+  - __archspec=0=x86_64
 environments:
   ci:
     channels:
@@ -113,6 +134,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-64/lz4-c-1.10.0-h5888daf_1.conda
       - conda: https://prefix.dev/conda-forge/linux-64/make-4.4.1-hb9d3cd8_2.conda
       - conda: https://prefix.dev/conda-forge/linux-64/ncurses-6.6-hdb14827_0.conda
+      - conda: https://prefix.dev/conda-forge/linux-64/ninja-1.13.2-h171cf75_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/nlohmann_json-3.12.0-h54a6638_1.conda
       - conda: https://prefix.dev/conda-forge/linux-64/numpy-2.4.6-py314h2b28147_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/openssl-3.6.3-h35e630c_0.conda
@@ -147,7 +169,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/python_abi-3.14-8_cp314.conda
       - conda: https://prefix.dev/conda-forge/noarch/sysroot_linux-64-2.28-h4ee821c_9.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2025c-hc9c84f9_1.conda
-      - conda_source: xsref[6374c907] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
+      - conda_source: xsref[3759fda6] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
       linux-aarch64:
       - conda: https://prefix.dev/conda-forge/linux-aarch64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://prefix.dev/conda-forge/linux-aarch64/arrow-utils-24.0.0-hb326ee9_5_cpu.conda
@@ -251,6 +273,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-aarch64/lz4-c-1.10.0-h5ad3122_1.conda
       - conda: https://prefix.dev/conda-forge/linux-aarch64/make-4.4.1-h2a6d0cb_2.conda
       - conda: https://prefix.dev/conda-forge/linux-aarch64/ncurses-6.6-hf8d1292_0.conda
+      - conda: https://prefix.dev/conda-forge/linux-aarch64/ninja-1.13.2-hdc560ac_0.conda
       - conda: https://prefix.dev/conda-forge/linux-aarch64/nlohmann_json-3.12.0-h7ac5ae9_1.conda
       - conda: https://prefix.dev/conda-forge/linux-aarch64/numpy-2.4.6-py314he1698a1_0.conda
       - conda: https://prefix.dev/conda-forge/linux-aarch64/openssl-3.6.3-h546c87b_0.conda
@@ -285,7 +308,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/python_abi-3.14-8_cp314.conda
       - conda: https://prefix.dev/conda-forge/noarch/sysroot_linux-aarch64-2.28-h585391f_9.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2025c-hc9c84f9_1.conda
-      - conda_source: xsref[5e1d8c26] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
+      - conda_source: xsref[2394081a] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
       osx-64:
       - conda: https://prefix.dev/conda-forge/noarch/_python_abi3_support-1.0-hd8ed1ab_2.conda
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.5.20-hbd8a1cb_0.conda
@@ -404,6 +427,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-64/lz4-c-1.10.0-h240833e_1.conda
       - conda: https://prefix.dev/conda-forge/osx-64/make-4.4.1-h00291cd_2.conda
       - conda: https://prefix.dev/conda-forge/osx-64/ncurses-6.6-hcc0dc9a_0.conda
+      - conda: https://prefix.dev/conda-forge/osx-64/ninja-1.13.2-hfc0b2d5_0.conda
       - conda: https://prefix.dev/conda-forge/osx-64/nlohmann_json-3.12.0-h06076ce_1.conda
       - conda: https://prefix.dev/conda-forge/osx-64/numpy-2.4.6-py314h7b24d9b_0.conda
       - conda: https://prefix.dev/conda-forge/osx-64/openssl-3.6.3-hc881268_0.conda
@@ -426,7 +450,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-64/xxhash-0.8.3-h13e91ac_0.conda
       - conda: https://prefix.dev/conda-forge/osx-64/zlib-1.3.2-hbb4bfdb_2.conda
       - conda: https://prefix.dev/conda-forge/osx-64/zstd-1.5.7-h3eecb57_6.conda
-      - conda_source: xsref[9cfc8247] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
+      - conda_source: xsref[5da3690c] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
       osx-arm64:
       - conda: https://prefix.dev/conda-forge/noarch/_python_abi3_support-1.0-hd8ed1ab_2.conda
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.5.20-hbd8a1cb_0.conda
@@ -545,6 +569,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-arm64/lz4-c-1.10.0-h286801f_1.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/make-4.4.1-hc9fafa5_2.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/ncurses-6.6-h1d4f5a5_0.conda
+      - conda: https://prefix.dev/conda-forge/osx-arm64/ninja-1.13.2-h49c215f_0.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/nlohmann_json-3.12.0-h784d473_1.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/numpy-2.4.6-py314hb79c6fa_0.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/openssl-3.6.3-hd24854e_0.conda
@@ -567,7 +592,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-arm64/xxhash-0.8.3-haa4e116_0.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/zlib-1.3.2-h8088a28_2.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/zstd-1.5.7-hbf9d68e_6.conda
-      - conda_source: xsref[cde70c18] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
+      - conda_source: xsref[85c520fd] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
       win-64:
       - conda: https://prefix.dev/conda-forge/noarch/_python_abi3_support-1.0-hd8ed1ab_2.conda
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.5.20-h4c7d964_0.conda
@@ -655,6 +680,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/win-64/lz4-c-1.10.0-h2466b09_1.conda
       - conda: https://prefix.dev/conda-forge/win-64/make-4.4.1-h0e40799_2.conda
       - conda: https://prefix.dev/conda-forge/win-64/mkl-2026.0.0-hac47afa_908.conda
+      - conda: https://prefix.dev/conda-forge/win-64/ninja-1.13.2-h477610d_0.conda
       - conda: https://prefix.dev/conda-forge/win-64/nlohmann_json-3.12.0-h5112557_1.conda
       - conda: https://prefix.dev/conda-forge/win-64/numpy-2.4.6-py314h02f10f6_0.conda
       - conda: https://prefix.dev/conda-forge/win-64/onemkl-license-2026.0.0-h57928b3_908.conda
@@ -681,7 +707,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/win-64/xxhash-0.8.3-hbba6f48_0.conda
       - conda: https://prefix.dev/conda-forge/win-64/zlib-1.3.2-hfd05255_2.conda
       - conda: https://prefix.dev/conda-forge/win-64/zstd-1.5.7-h534d264_6.conda
-      - conda_source: xsref[c9235b6b] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
+      - conda_source: xsref[b346126a] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
   cupy-tests:
     channels:
     - url: https://prefix.dev/conda-forge/
@@ -814,7 +840,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/tomli-2.4.1-pyhcf101f3_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/typing_extensions-4.15.0-pyhcf101f3_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2025c-hc9c84f9_1.conda
-      - conda_source: xsref[6374c907] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
+      - conda_source: xsref[3759fda6] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
   default:
     channels:
     - url: https://prefix.dev/conda-forge/
@@ -918,6 +944,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-64/lz4-c-1.10.0-h5888daf_1.conda
       - conda: https://prefix.dev/conda-forge/linux-64/make-4.4.1-hb9d3cd8_2.conda
       - conda: https://prefix.dev/conda-forge/linux-64/ncurses-6.6-hdb14827_0.conda
+      - conda: https://prefix.dev/conda-forge/linux-64/ninja-1.13.2-h171cf75_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/nlohmann_json-3.12.0-h54a6638_1.conda
       - conda: https://prefix.dev/conda-forge/linux-64/numpy-2.4.6-py314h2b28147_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/openssl-3.6.3-h35e630c_0.conda
@@ -950,7 +977,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/python_abi-3.14-8_cp314.conda
       - conda: https://prefix.dev/conda-forge/noarch/sysroot_linux-64-2.28-h4ee821c_9.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2025c-hc9c84f9_1.conda
-      - conda_source: xsref[6374c907] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
+      - conda_source: xsref[3759fda6] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
       linux-aarch64:
       - conda: https://prefix.dev/conda-forge/linux-aarch64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://prefix.dev/conda-forge/linux-aarch64/arrow-utils-24.0.0-hb326ee9_5_cpu.conda
@@ -1050,6 +1077,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-aarch64/lz4-c-1.10.0-h5ad3122_1.conda
       - conda: https://prefix.dev/conda-forge/linux-aarch64/make-4.4.1-h2a6d0cb_2.conda
       - conda: https://prefix.dev/conda-forge/linux-aarch64/ncurses-6.6-hf8d1292_0.conda
+      - conda: https://prefix.dev/conda-forge/linux-aarch64/ninja-1.13.2-hdc560ac_0.conda
       - conda: https://prefix.dev/conda-forge/linux-aarch64/nlohmann_json-3.12.0-h7ac5ae9_1.conda
       - conda: https://prefix.dev/conda-forge/linux-aarch64/numpy-2.4.6-py314he1698a1_0.conda
       - conda: https://prefix.dev/conda-forge/linux-aarch64/openssl-3.6.3-h546c87b_0.conda
@@ -1082,7 +1110,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/python_abi-3.14-8_cp314.conda
       - conda: https://prefix.dev/conda-forge/noarch/sysroot_linux-aarch64-2.28-h585391f_9.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2025c-hc9c84f9_1.conda
-      - conda_source: xsref[5e1d8c26] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
+      - conda_source: xsref[2394081a] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
       osx-64:
       - conda: https://prefix.dev/conda-forge/noarch/_python_abi3_support-1.0-hd8ed1ab_2.conda
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.5.20-hbd8a1cb_0.conda
@@ -1198,6 +1226,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-64/lz4-c-1.10.0-h240833e_1.conda
       - conda: https://prefix.dev/conda-forge/osx-64/make-4.4.1-h00291cd_2.conda
       - conda: https://prefix.dev/conda-forge/osx-64/ncurses-6.6-hcc0dc9a_0.conda
+      - conda: https://prefix.dev/conda-forge/osx-64/ninja-1.13.2-hfc0b2d5_0.conda
       - conda: https://prefix.dev/conda-forge/osx-64/nlohmann_json-3.12.0-h06076ce_1.conda
       - conda: https://prefix.dev/conda-forge/osx-64/numpy-2.4.6-py314h7b24d9b_0.conda
       - conda: https://prefix.dev/conda-forge/osx-64/openssl-3.6.3-hc881268_0.conda
@@ -1218,7 +1247,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-64/tk-8.6.13-h7142dee_3.conda
       - conda: https://prefix.dev/conda-forge/osx-64/zlib-1.3.2-hbb4bfdb_2.conda
       - conda: https://prefix.dev/conda-forge/osx-64/zstd-1.5.7-h3eecb57_6.conda
-      - conda_source: xsref[9cfc8247] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
+      - conda_source: xsref[5da3690c] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
       osx-arm64:
       - conda: https://prefix.dev/conda-forge/noarch/_python_abi3_support-1.0-hd8ed1ab_2.conda
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.5.20-hbd8a1cb_0.conda
@@ -1334,6 +1363,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-arm64/lz4-c-1.10.0-h286801f_1.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/make-4.4.1-hc9fafa5_2.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/ncurses-6.6-h1d4f5a5_0.conda
+      - conda: https://prefix.dev/conda-forge/osx-arm64/ninja-1.13.2-h49c215f_0.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/nlohmann_json-3.12.0-h784d473_1.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/numpy-2.4.6-py314hb79c6fa_0.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/openssl-3.6.3-hd24854e_0.conda
@@ -1354,7 +1384,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-arm64/tk-8.6.13-h010d191_3.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/zlib-1.3.2-h8088a28_2.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/zstd-1.5.7-hbf9d68e_6.conda
-      - conda_source: xsref[cde70c18] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
+      - conda_source: xsref[85c520fd] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
       win-64:
       - conda: https://prefix.dev/conda-forge/noarch/_python_abi3_support-1.0-hd8ed1ab_2.conda
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.5.20-h4c7d964_0.conda
@@ -1439,6 +1469,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/win-64/lz4-c-1.10.0-h2466b09_1.conda
       - conda: https://prefix.dev/conda-forge/win-64/make-4.4.1-h0e40799_2.conda
       - conda: https://prefix.dev/conda-forge/win-64/mkl-2026.0.0-hac47afa_908.conda
+      - conda: https://prefix.dev/conda-forge/win-64/ninja-1.13.2-h477610d_0.conda
       - conda: https://prefix.dev/conda-forge/win-64/nlohmann_json-3.12.0-h5112557_1.conda
       - conda: https://prefix.dev/conda-forge/win-64/numpy-2.4.6-py314h02f10f6_0.conda
       - conda: https://prefix.dev/conda-forge/win-64/onemkl-license-2026.0.0-h57928b3_908.conda
@@ -1463,7 +1494,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/win-64/vs2026_win-64-19.51.36231-h7ef1f97_39.conda
       - conda: https://prefix.dev/conda-forge/win-64/zlib-1.3.2-hfd05255_2.conda
       - conda: https://prefix.dev/conda-forge/win-64/zstd-1.5.7-h534d264_6.conda
-      - conda_source: xsref[c9235b6b] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
+      - conda_source: xsref[b346126a] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
   lint:
     channels:
     - url: https://prefix.dev/conda-forge/
@@ -3418,6 +3449,18 @@ packages:
     - ncurses >=6.6,<7.0a0
   size: 918956
   timestamp: 1777422145199
+- conda: https://prefix.dev/conda-forge/linux-64/ninja-1.13.2-h171cf75_0.conda
+  sha256: 6f7d59dbec0a7b00bf5d103a4306e8886678b796ff2151b62452d4582b2a53fb
+  md5: b518e9e92493721281a60fa975bddc65
+  depends:
+  - libstdcxx >=14
+  - libgcc >=14
+  - __glibc >=2.17,<3.0.a0
+  license: Apache-2.0
+  license_family: APACHE
+  run_exports: {}
+  size: 186323
+  timestamp: 1763688260928
 - conda: https://prefix.dev/conda-forge/linux-64/nlohmann_json-3.12.0-h54a6638_1.conda
   sha256: fd2cbd8dfc006c72f45843672664a8e4b99b2f8137654eaae8c3d46dca776f63
   md5: 16c2a0e9c4a166e53632cfca4f68d020
@@ -5387,6 +5430,17 @@ packages:
     - ncurses >=6.6,<7.0a0
   size: 960036
   timestamp: 1777422174534
+- conda: https://prefix.dev/conda-forge/linux-aarch64/ninja-1.13.2-hdc560ac_0.conda
+  sha256: 45fbc7c8c44681f5cefba1e5b26ca504a4485b000c5dfaa31cec0b7bc78d0de4
+  md5: 8b5222a41b5d51fb1a5a2c514e770218
+  depends:
+  - libstdcxx >=14
+  - libgcc >=14
+  license: Apache-2.0
+  license_family: APACHE
+  run_exports: {}
+  size: 182666
+  timestamp: 1763688214250
 - conda: https://prefix.dev/conda-forge/linux-aarch64/nlohmann_json-3.12.0-h7ac5ae9_1.conda
   sha256: 03b4ffbcd3c20276f6fd9743e2d7fc8c4bed2006ac4481d90ee8f2a5d74acd5d
   md5: 6cbb2594cea5f2cc2907170655852ba9
@@ -7902,6 +7956,17 @@ packages:
     - ncurses >=6.6,<7.0a0
   size: 831711
   timestamp: 1777423052277
+- conda: https://prefix.dev/conda-forge/osx-64/ninja-1.13.2-hfc0b2d5_0.conda
+  sha256: 1646832e3c2389595569ab9a6234c119a4dedf6f4e55532a8bf07edab7f8037d
+  md5: afda563484aa0017278866707807a335
+  depends:
+  - libcxx >=19
+  - __osx >=10.13
+  license: Apache-2.0
+  license_family: APACHE
+  run_exports: {}
+  size: 178071
+  timestamp: 1763688235442
 - conda: https://prefix.dev/conda-forge/osx-64/nlohmann_json-3.12.0-h06076ce_1.conda
   sha256: 8e1b8ac88e07da2910c72466a94d1fc77aa13c722f8ddbc7ae3beb7c19b41fc7
   md5: 97d7a1cda5546cb0bbdefa3777cb9897
@@ -9953,6 +10018,17 @@ packages:
     - ncurses >=6.6,<7.0a0
   size: 805509
   timestamp: 1777423252320
+- conda: https://prefix.dev/conda-forge/osx-arm64/ninja-1.13.2-h49c215f_0.conda
+  sha256: 18d33c17b28d4771fc0b91b7b963c9ce31aca0a9af7dc8e9ee7c974bb207192c
+  md5: 175809cc57b2c67f27a0f238bd7f069d
+  depends:
+  - __osx >=11.0
+  - libcxx >=19
+  license: Apache-2.0
+  license_family: APACHE
+  run_exports: {}
+  size: 164450
+  timestamp: 1763688228613
 - conda: https://prefix.dev/conda-forge/osx-arm64/nlohmann_json-3.12.0-h784d473_1.conda
   sha256: 1945fd5b64b74ef3d57926156fb0bfe88ee637c49f3273067f7231b224f1d26d
   md5: 755cfa6c08ed7b7acbee20ccbf15a47c
@@ -11607,6 +11683,21 @@ packages:
   run_exports: {}
   size: 114354729
   timestamp: 1779293121860
+- conda: https://prefix.dev/conda-forge/win-64/ninja-1.13.2-h477610d_0.conda
+  sha256: e41a945c34a5f0bd2109b73a65486cd93023fa0a9bcba3ef98f9a3da40ba1180
+  md5: 7ecb9f2f112c66f959d2bb7dbdb89b67
+  depends:
+  - vc >=14.3,<15
+  - vc14_runtime >=14.44.35208
+  - ucrt >=10.0.20348.0
+  - vc >=14.3,<15
+  - vc14_runtime >=14.44.35208
+  - ucrt >=10.0.20348.0
+  license: Apache-2.0
+  license_family: APACHE
+  run_exports: {}
+  size: 309417
+  timestamp: 1763688227932
 - conda: https://prefix.dev/conda-forge/win-64/nlohmann_json-3.12.0-h5112557_1.conda
   sha256: 045edd5d571c235de67472ad8fe03d9706b8426c4ba9a73f408f946034b6bc5e
   md5: 24a9dde77833cc48289ef92b4e724da4
@@ -12018,7 +12109,7 @@ packages:
     - zstd >=1.5.7,<1.6.0a0
   size: 388453
   timestamp: 1764777142545
-- conda_source: xsref[5e1d8c26] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
+- conda_source: xsref[2394081a] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
   version: 0.0.0
   build: pyh4616a5c_0
   subdir: noarch
@@ -12063,7 +12154,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/noarch/setuptools-82.0.1-pyh332efcf_0.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2025c-hc9c84f9_1.conda
   - conda: https://prefix.dev/conda-forge/noarch/wheel-0.47.0-pyhd8ed1ab_0.conda
-- conda_source: xsref[6374c907] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
+- conda_source: xsref[3759fda6] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
   version: 0.0.0
   build: pyh4616a5c_0
   subdir: noarch
@@ -12107,7 +12198,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/noarch/setuptools-82.0.1-pyh332efcf_0.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2025c-hc9c84f9_1.conda
   - conda: https://prefix.dev/conda-forge/noarch/wheel-0.47.0-pyhd8ed1ab_0.conda
-- conda_source: xsref[9cfc8247] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
+- conda_source: xsref[5da3690c] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
   version: 0.0.0
   build: pyh4616a5c_0
   subdir: noarch
@@ -12147,47 +12238,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/osx-64/tk-8.6.13-h7142dee_3.conda
   - conda: https://prefix.dev/conda-forge/osx-64/uv-0.11.21-hbe083cb_0.conda
   - conda: https://prefix.dev/conda-forge/osx-64/zstd-1.5.7-h3eecb57_6.conda
-- conda_source: xsref[c9235b6b] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
-  version: 0.0.0
-  build: pyh4616a5c_0
-  subdir: noarch
-  noarch: python
-  variants:
-    target_platform: noarch
-  depends:
-  - pyarrow
-  - python >=3.11
-  - python *
-  - mpmath
-  - numpy
-  - packaging
-  - polars
-  - pyarrow-core
-  - scipy
-  host_packages:
-  - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.5.20-h4c7d964_0.conda
-  - conda: https://prefix.dev/conda-forge/noarch/packaging-26.2-pyhc364b38_0.conda
-  - conda: https://prefix.dev/conda-forge/noarch/python_abi-3.14-8_cp314.conda
-  - conda: https://prefix.dev/conda-forge/noarch/setuptools-82.0.1-pyh332efcf_0.conda
-  - conda: https://prefix.dev/conda-forge/noarch/tzdata-2025c-hc9c84f9_1.conda
-  - conda: https://prefix.dev/conda-forge/noarch/wheel-0.47.0-pyhd8ed1ab_0.conda
-  - conda: https://prefix.dev/conda-forge/win-64/bzip2-1.0.8-h0ad9c76_9.conda
-  - conda: https://prefix.dev/conda-forge/win-64/libexpat-2.8.1-hac47afa_1.conda
-  - conda: https://prefix.dev/conda-forge/win-64/libffi-3.5.2-h3d046cb_0.conda
-  - conda: https://prefix.dev/conda-forge/win-64/liblzma-5.8.3-hfd05255_0.conda
-  - conda: https://prefix.dev/conda-forge/win-64/libmpdec-4.0.0-hfd05255_1.conda
-  - conda: https://prefix.dev/conda-forge/win-64/libsqlite-3.53.2-hf5d6505_0.conda
-  - conda: https://prefix.dev/conda-forge/win-64/libzlib-1.3.2-hfd05255_2.conda
-  - conda: https://prefix.dev/conda-forge/win-64/openssl-3.6.3-hf411b9b_0.conda
-  - conda: https://prefix.dev/conda-forge/win-64/python-3.14.6-h4b44e0e_100_cp314.conda
-  - conda: https://prefix.dev/conda-forge/win-64/tk-8.6.13-h6ed50ae_3.conda
-  - conda: https://prefix.dev/conda-forge/win-64/ucrt-10.0.26100.0-h57928b3_0.conda
-  - conda: https://prefix.dev/conda-forge/win-64/uv-0.11.21-h2229357_0.conda
-  - conda: https://prefix.dev/conda-forge/win-64/vc-14.5-h1b7c187_39.conda
-  - conda: https://prefix.dev/conda-forge/win-64/vc14_runtime-14.51.36231-h1b9f54f_39.conda
-  - conda: https://prefix.dev/conda-forge/win-64/vcomp14-14.51.36231-h1b9f54f_39.conda
-  - conda: https://prefix.dev/conda-forge/win-64/zstd-1.5.7-h534d264_6.conda
-- conda_source: xsref[cde70c18] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
+- conda_source: xsref[85c520fd] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
   version: 0.0.0
   build: pyh4616a5c_0
   subdir: noarch
@@ -12227,3 +12278,43 @@ packages:
   - conda: https://prefix.dev/conda-forge/osx-arm64/tk-8.6.13-h010d191_3.conda
   - conda: https://prefix.dev/conda-forge/osx-arm64/uv-0.11.21-hc169f86_0.conda
   - conda: https://prefix.dev/conda-forge/osx-arm64/zstd-1.5.7-hbf9d68e_6.conda
+- conda_source: xsref[b346126a] @ git+https://github.com/scipy/xsref?rev=1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331#1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331
+  version: 0.0.0
+  build: pyh4616a5c_0
+  subdir: noarch
+  noarch: python
+  variants:
+    target_platform: noarch
+  depends:
+  - pyarrow
+  - python >=3.11
+  - python *
+  - mpmath
+  - numpy
+  - packaging
+  - polars
+  - pyarrow-core
+  - scipy
+  host_packages:
+  - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.5.20-h4c7d964_0.conda
+  - conda: https://prefix.dev/conda-forge/noarch/packaging-26.2-pyhc364b38_0.conda
+  - conda: https://prefix.dev/conda-forge/noarch/python_abi-3.14-8_cp314.conda
+  - conda: https://prefix.dev/conda-forge/noarch/setuptools-82.0.1-pyh332efcf_0.conda
+  - conda: https://prefix.dev/conda-forge/noarch/tzdata-2025c-hc9c84f9_1.conda
+  - conda: https://prefix.dev/conda-forge/noarch/wheel-0.47.0-pyhd8ed1ab_0.conda
+  - conda: https://prefix.dev/conda-forge/win-64/bzip2-1.0.8-h0ad9c76_9.conda
+  - conda: https://prefix.dev/conda-forge/win-64/libexpat-2.8.1-hac47afa_1.conda
+  - conda: https://prefix.dev/conda-forge/win-64/libffi-3.5.2-h3d046cb_0.conda
+  - conda: https://prefix.dev/conda-forge/win-64/liblzma-5.8.3-hfd05255_0.conda
+  - conda: https://prefix.dev/conda-forge/win-64/libmpdec-4.0.0-hfd05255_1.conda
+  - conda: https://prefix.dev/conda-forge/win-64/libsqlite-3.53.2-hf5d6505_0.conda
+  - conda: https://prefix.dev/conda-forge/win-64/libzlib-1.3.2-hfd05255_2.conda
+  - conda: https://prefix.dev/conda-forge/win-64/openssl-3.6.3-hf411b9b_0.conda
+  - conda: https://prefix.dev/conda-forge/win-64/python-3.14.6-h4b44e0e_100_cp314.conda
+  - conda: https://prefix.dev/conda-forge/win-64/tk-8.6.13-h6ed50ae_3.conda
+  - conda: https://prefix.dev/conda-forge/win-64/ucrt-10.0.26100.0-h57928b3_0.conda
+  - conda: https://prefix.dev/conda-forge/win-64/uv-0.11.21-h2229357_0.conda
+  - conda: https://prefix.dev/conda-forge/win-64/vc-14.5-h1b7c187_39.conda
+  - conda: https://prefix.dev/conda-forge/win-64/vc14_runtime-14.51.36231-h1b9f54f_39.conda
+  - conda: https://prefix.dev/conda-forge/win-64/vcomp14-14.51.36231-h1b9f54f_39.conda
+  - conda: https://prefix.dev/conda-forge/win-64/zstd-1.5.7-h534d264_6.conda
