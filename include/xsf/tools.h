@@ -426,42 +426,52 @@ namespace detail {
      *
      * Function func must return a pair (f(x), f'(x)).
      */
+
+    enum class NewtonRootFinderStatus {
+        SUCCESS = 0,
+        MAX_ITERATIONS_EXCEEDED = 1,
+        DERIVATIVE_ZERO = 2,
+        OBJECTIVE_RETURNED_NAN = 3,
+        OBJECTIVE_RETURNED_INF = 4,
+        INITIAL_GUESS_RETURNED_INF = 5
+    };
+
     template <typename Function>
-    XSF_HOST_DEVICE inline std::pair<double, int> find_root_newton(
+    XSF_HOST_DEVICE inline std::pair<double, NewtonRootFinderStatus> find_root_newton(
         Function func, double x, double rtol = 4 * std::numeric_limits<double>::epsilon(), double atol = 0.0,
         std::uint64_t maxiter = 100
     ) {
         if (maxiter == 0) {
-            return {x, 1};
-        }
-        if (std::isnan(x)) {
-            return {std::numeric_limits<double>::quiet_NaN(), 3};
+            return {x, NewtonRootFinderStatus::MAX_ITERATIONS_EXCEEDED};
         }
         if (std::isinf(x)) {
-            return {x, 4};
+            return {x, NewtonRootFinderStatus::INITIAL_GUESS_RETURNED_INF};
         }
         for (std::uint64_t i = 0; i < maxiter; i++) {
             auto [f, df] = func(x);
+            if (std::isnan(f) || std::isnan(df)) {
+                return {std::numeric_limits<double>::quiet_NaN(), NewtonRootFinderStatus::OBJECTIVE_RETURNED_NAN};
+            }
             if (f == 0.0) {
-                return {x, 0};
+                return {x, NewtonRootFinderStatus::SUCCESS};
             }
             if (!std::isfinite(f) || !std::isfinite(df)) {
-                return {std::numeric_limits<double>::quiet_NaN(), 3};
+                return {std::numeric_limits<double>::quiet_NaN(), NewtonRootFinderStatus::OBJECTIVE_RETURNED_INF};
             }
             if (df == 0.0) {
-                return {std::numeric_limits<double>::quiet_NaN(), 2};
+                return {std::numeric_limits<double>::quiet_NaN(), NewtonRootFinderStatus::DERIVATIVE_ZERO};
             }
             double step = f / df;
             double x_next = x - step;
             if (!std::isfinite(x_next)) {
-                return {std::numeric_limits<double>::quiet_NaN(), 3};
+                return {std::numeric_limits<double>::quiet_NaN(), NewtonRootFinderStatus::OBJECTIVE_RETURNED_INF};
             }
             if (x == x_next || std::abs(step) <= rtol * std::abs(x) + atol) {
-                return {x_next, 0};
+                return {x_next, NewtonRootFinderStatus::SUCCESS};
             }
             x = x_next;
         }
-        return {x, 1};
+        return {x, NewtonRootFinderStatus::MAX_ITERATIONS_EXCEEDED};
     }
 
 } // namespace detail

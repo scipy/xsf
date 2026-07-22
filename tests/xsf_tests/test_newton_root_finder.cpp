@@ -9,20 +9,20 @@ TEST_CASE("newton_root_finder happy path", "[newton_root_finder][xsf_tests]") {
     auto [result, status] = xsf::detail::find_root_newton(parabola_root_functor{}, 2.0);
     CAPTURE(result, status);
     REQUIRE(result == 1.0);
-    REQUIRE(status == 0);
+    REQUIRE(status == xsf::detail::NewtonRootFinderStatus::SUCCESS);
 }
 
 TEST_CASE("newton_root_finder initial guess is root", "[newton_root_finder][xsf_tests]") {
     auto [result, status] = xsf::detail::find_root_newton(parabola_root_functor{}, 1.0);
     CAPTURE(result, status);
     REQUIRE(result == 1.0);
-    REQUIRE(status == 0);
+    REQUIRE(status == xsf::detail::NewtonRootFinderStatus::SUCCESS);
 }
 
 TEST_CASE("newton_root_finder respects rtol parameter", "[newton_root_finder][xsf_tests]") {
     auto [result_default_rtol, status_default_rtol] = xsf::detail::find_root_newton(parabola_root_functor{}, 2.0);
     auto [result_loose_rtol, status_loose_rtol] = xsf::detail::find_root_newton(parabola_root_functor{}, 2.0, 1e-4);
-    REQUIRE(status_loose_rtol == 0);
+    REQUIRE(status_loose_rtol == xsf::detail::NewtonRootFinderStatus::SUCCESS);
     const double rel_error_default_rtol = xsf::extended_relative_error(result_default_rtol, 1.0);
     const double rel_error_loose_rtol = xsf::extended_relative_error(result_loose_rtol, 1.0);
     CAPTURE(
@@ -38,7 +38,7 @@ TEST_CASE("newton_root_finder respects atol parameter", "[newton_root_finder][xs
     auto [result_loose_atol, status_loose_atol] =
         xsf::detail::find_root_newton(parabola_root_functor{}, 2.0, 4 * std::numeric_limits<double>::epsilon(), atol);
     REQUIRE(result_loose_atol < 1.0 + atol);
-    REQUIRE(status_loose_atol == 0);
+    REQUIRE(status_loose_atol == xsf::detail::NewtonRootFinderStatus::SUCCESS);
     const double rel_error_default_atol = xsf::extended_relative_error(result_default_atol, 1.0);
     const double rel_error_loose_atol = xsf::extended_relative_error(result_loose_atol, 1.0);
     CAPTURE(
@@ -51,14 +51,14 @@ TEST_CASE("newton_root_finder respects atol parameter", "[newton_root_finder][xs
 TEST_CASE("newton_root_finder max iterations exceeded", "[newton_root_finder][xsf_tests]") {
     auto [result, status] = xsf::detail::find_root_newton(parabola_root_functor{}, 2.0, 1e-14, 0.0, 5);
     CAPTURE(result, status);
-    REQUIRE(status == 1);
+    REQUIRE(status == xsf::detail::NewtonRootFinderStatus::MAX_ITERATIONS_EXCEEDED);
 }
 
 TEST_CASE("newton_root_finder derivative zero", "[newton_root_finder][xsf_tests]") {
     // At x = 0, the derivative is zero, so the root finder should return NaN and status 2.
     auto [result, status] = xsf::detail::find_root_newton(parabola_root_functor{}, 0.0);
     CAPTURE(result, status);
-    REQUIRE(status == 2);
+    REQUIRE(status == xsf::detail::NewtonRootFinderStatus::DERIVATIVE_ZERO);
     REQUIRE(std::isnan(result));
 }
 
@@ -70,7 +70,7 @@ TEST_CASE("newton_root_finder objective returns NaN", "[newton_root_finder][xsf_
     };
     auto [result, status] = xsf::detail::find_root_newton(nan_root_functor{}, 2.0);
     CAPTURE(result, status);
-    REQUIRE(status == 3);
+    REQUIRE(status == xsf::detail::NewtonRootFinderStatus::OBJECTIVE_RETURNED_NAN);
     REQUIRE(std::isnan(result));
 }
 
@@ -86,6 +86,6 @@ TEST_CASE("newton_root_finder objective returns infinity", "[newton_root_finder]
     auto [result, status] = xsf::detail::find_root_newton(inf_root_functor{inf}, 2.0);
 
     CAPTURE(inf, result, status);
-    REQUIRE(status == 3);
+    REQUIRE(status == xsf::detail::NewtonRootFinderStatus::OBJECTIVE_RETURNED_INF);
     REQUIRE(std::isnan(result));
 }
