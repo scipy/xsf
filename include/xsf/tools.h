@@ -442,18 +442,6 @@ namespace detail {
         }
         for (std::uint64_t i = 0; i < maxiter; i++) {
             auto [f, df] = func(x);
-            if (df == 0.0) {
-                return {std::numeric_limits<double>::quiet_NaN(), 2};
-            }
-            if (std::isnan(f) || std::isnan(df)) {
-                return {std::numeric_limits<double>::quiet_NaN(), 3};
-            }
-            if (std::isinf(f) && (f > 0)) {
-                return {std::numeric_limits<double>::infinity(), 4};
-            }
-            if (std::isinf(f) && (f < 0)) {
-                return {-std::numeric_limits<double>::infinity(), 4};
-            auto [f, df] = func(x);
             if (f == 0.0) {
                 return {x, 0};
             }

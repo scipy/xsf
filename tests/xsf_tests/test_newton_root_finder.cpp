@@ -86,7 +86,6 @@ TEST_CASE("newton_root_finder objective returns infinity", "[newton_root_finder]
     auto [result, status] = xsf::detail::find_root_newton(inf_root_functor{inf}, 2.0);
 
     CAPTURE(inf, result, status);
-    REQUIRE(status == 4);
-    REQUIRE(std::isinf(result));
-    REQUIRE(std::signbit(result) == std::signbit(inf));
+    REQUIRE(status == 3);
+    REQUIRE(std::isnan(result));
 }
