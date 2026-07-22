@@ -33,19 +33,19 @@ namespace detail {
     // where psi'(x) = zeta(2, x) (the trigamma function).
     XSF_HOST_DEVICE inline double digammainv_newton_raphson(double x, double y) {
         auto [res, status] = find_root_newton(digammainv_root_functor{y}, x);
-        if (status == 1) {
+        if (status == NewtonRootFinderStatus::MAX_ITERATIONS_EXCEEDED) {
             set_error("digammainv", SF_ERROR_NO_RESULT, NULL);
             return std::numeric_limits<double>::quiet_NaN();
         }
-        if (status == 2) {
+        if (status == NewtonRootFinderStatus::DERIVATIVE_ZERO) {
             set_error("digammainv", SF_ERROR_SINGULAR, NULL);
             return std::numeric_limits<double>::quiet_NaN();
         }
-        if (status == 3) {
+        if (status == NewtonRootFinderStatus::OBJECTIVE_RETURNED_NAN) {
             set_error("digammainv", SF_ERROR_NO_RESULT, NULL);
             return std::numeric_limits<double>::quiet_NaN();
         }
-        if (status == 4) {
+        if (status == NewtonRootFinderStatus::OBJECTIVE_RETURNED_INF) {
             set_error("digammainv", SF_ERROR_OVERFLOW, NULL);
             return res;
         }
