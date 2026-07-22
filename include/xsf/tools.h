@@ -453,9 +453,21 @@ namespace detail {
             }
             if (std::isinf(f) && (f < 0)) {
                 return {-std::numeric_limits<double>::infinity(), 4};
+            auto [f, df] = func(x);
+            if (f == 0.0) {
+                return {x, 0};
+            }
+            if (!std::isfinite(f) || !std::isfinite(df)) {
+                return {std::numeric_limits<double>::quiet_NaN(), 3};
+            }
+            if (df == 0.0) {
+                return {std::numeric_limits<double>::quiet_NaN(), 2};
             }
             double step = f / df;
             double x_next = x - step;
+            if (!std::isfinite(x_next)) {
+                return {std::numeric_limits<double>::quiet_NaN(), 3};
+            }
             if (x == x_next || std::abs(step) <= rtol * std::abs(x) + atol) {
                 return {x_next, 0};
             }
