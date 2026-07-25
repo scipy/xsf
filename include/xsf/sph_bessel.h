@@ -44,6 +44,15 @@ T sph_bessel_j(long n, T x) {
         return std::numeric_limits<T>::quiet_NaN();
     }
 
+    // For real negative x, the principal-branch product
+    // sqrt(M_PI_2/x) * J_{n+1/2}(x) introduces a spurious sign relative
+    // to the (entire) function j_n. Use the reflection identity
+    // j_n(-x) = (-1)^n * j_n(x) explicitly (DLMF 10.47.14).
+    if (x < 0) {
+        T r = sph_bessel_j(n, -x);
+        return (n % 2 == 0) ? r : -r;
+    }
+
     if ((x == std::numeric_limits<T>::infinity()) || (x == -std::numeric_limits<T>::infinity())) {
         return 0;
     }
