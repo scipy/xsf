@@ -89,8 +89,7 @@ TEST_CASE("spherical_y reflection complex", "[bessel][xsf_tests]") {
         test_case{10, {5., 0}, {-26.656114405718699, 0}, 1e-14},
         test_case{10, {-5., 0}, {26.656114405718699, 0}, 1e-14},
         // Odd n => y_n(-z) = y_n(z)   https://dlmf.nist.gov/10.47#E14
-        test_case{7, {5., 0}, {-1.0273946388125984, 0}, 1e-14},
-        test_case{7, {-5., 0}, {-1.0273946388125984, 0}, 1e-14}
+        test_case{7, {5., 0}, {-1.0273946388125984, 0}, 1e-14}, test_case{7, {-5., 0}, {-1.0273946388125984, 0}, 1e-14}
     );
 
     std::complex<double> result_spherical_y = xsf::sph_bessel_y(n, z);
@@ -106,11 +105,9 @@ TEST_CASE("spherical_y_jac reflection derivative complex", "[bessel][xsf_tests]"
     // Reference values computed with mpmath.
     auto [n, z, ref_spherical_y_jac, rtol] = GENERATE(
         // Even n => y_n'(-z) = y_n'(z)   from DLMF 10.47.14 by taking the derivative with respect to z
-        test_case{10, {5., 0}, {50.954006758163679, 0}, 1e-14},
-        test_case{10, {-5., 0}, {50.954006758163679, 0}, 1e-14},
+        test_case{10, {5., 0}, {50.954006758163679, 0}, 1e-14}, test_case{10, {-5., 0}, {50.954006758163679, 0}, 1e-14},
         // Odd n => y_n'(-z) = -y_n'(z)   from DLMF 10.47.14 by taking the derivative with respect to z
-        test_case{7, {5., 0}, {1.1254238507300277, 0}, 1e-14},
-        test_case{7, {-5., 0}, {-1.1254238507300277, 0}, 1e-14}
+        test_case{7, {5., 0}, {1.1254238507300277, 0}, 1e-14}, test_case{7, {-5., 0}, {-1.1254238507300277, 0}, 1e-14}
     );
 
     std::complex<double> result_spherical_y_jac = xsf::sph_bessel_y_jac(n, z);
