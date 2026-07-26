@@ -172,7 +172,8 @@ T sph_bessel_y(long n, T x) {
     }
 
     if (x < 0) {
-        return std::pow(-1, n + 1) * sph_bessel_y(n, -x);
+        T r = sph_bessel_y(n, -x);
+        return (n % 2 == 1) ? r : -r;
     }
 
     if (x == std::numeric_limits<T>::infinity() || x == -std::numeric_limits<T>::infinity()) {
