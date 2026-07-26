@@ -45,19 +45,11 @@ cmake = "*"
 ninja = "*"
 ccache = "*"
 
-[feature.build.activation.env]
-CC = "ccache $CC"
-CXX = "ccache $CXX"
-
 [feature.build.target.unix.dependencies]
 cxx-compiler = "*"
 
 [feature.build.target.win-64.dependencies]
 vs2026_win-64 = "*"
-
-[feature.build.target.win-64.activation.env]
-CC = "ccache cl.exe"
-CXX = "ccache cl.exe"
 
 [feature.build.tasks.configure]
 description = "Configure CMake in the build directory for a release build."
@@ -69,15 +61,13 @@ cmd = [
   "-B build",
   # use ninja
   "-G Ninja",
+  # release build
+  "-DCMAKE_BUILD_TYPE=Release",
 ]
 
 [feature.build.tasks.build-only]
 description = "Build the release CMake configuration in the build directory."
-cmd = ["cmake", "--build", "build", "--config", "Release"]
-
-[feature.tests-debug.tasks.build-debug-only]
-description = "Build the debug CMake configuration in build-debug/."
-cmd = ["cmake", "--build", "build-debug", "--config", "Debug"]
+cmd = ["cmake", "--build", "build"]
 
 [feature.build.tasks.build]
 description = "Run configure, then build the project with default settings."
@@ -100,6 +90,8 @@ cmd = [
   "-B build",
   # use ninja
   "-G Ninja",
+  # release build
+  "-DCMAKE_BUILD_TYPE=Release",
 ]
 
 [feature.tests.tasks.build-tests]
@@ -134,7 +126,13 @@ cmd = [
   "-B build-debug",
   # use ninja
   "-G Ninja",
+  # debug build
+  "-DCMAKE_BUILD_TYPE=Debug",
 ]
+
+[feature.tests-debug.tasks.build-debug-only]
+description = "Build the debug CMake configuration in build-debug/."
+cmd = ["cmake", "--build", "build-debug"]
 
 [feature.tests.tasks.build-tests-debug]
 description = "Configure and build the project for test execution in Debug mode."
@@ -177,6 +175,8 @@ cmd = [
   "-B build",
   # use ninja
   "-G Ninja",
+  # release build
+  "-DCMAKE_BUILD_TYPE=Release",
 ]
 
 [feature.cov.tasks.open-coverage]
@@ -207,8 +207,6 @@ cmd = [
   "build",
   "--target",
   "coverage_html",
-  "--config",
-  "Release",
 ]
 
 
