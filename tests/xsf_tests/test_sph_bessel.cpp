@@ -152,3 +152,21 @@ TEST_CASE("spherical_y_jac reflection derivative", "[bessel][xsf_tests]") {
     CAPTURE(n, z, result_spherical_y_jac, ref_spherical_y_jac, rel_err_spherical_y_jac, rtol);
     REQUIRE(rel_err_spherical_y_jac <= rtol);
 }
+
+TEST_CASE("spherical_i tiny inputs", "[bessel][xsf_tests]") {
+    using test_case = std::tuple<long, double, double, double>;
+
+    // Reference values computed with mpmath.
+    auto [n, z, ref, rtol] = GENERATE(
+        test_case{1, 1e-50, 3.333333333333333e-51, 1e-14}, test_case{100, 0.1, 7.463271153267418e-290, 1e-10},
+        test_case{10, 5.2250558491838786e-27, 1.10313444760931e-273, 1e-14},
+        test_case{3, 1e-50, 9.523809523809524e-153, 1e-14}, test_case{10, 1e-29, 7.273091945557419e-301, 1e-8},
+        test_case{20, 1e-14, 7.625979004892142e-306, 1e-8}, test_case{200, 5, 3.168106195219311e-297, 1e-10}
+    );
+
+    double result = xsf::sph_bessel_i(n, z);
+    double rel_err = xsf::extended_relative_error(result, ref);
+
+    CAPTURE(n, z, result, ref, rel_err, rtol);
+    REQUIRE(rel_err <= rtol);
+}
