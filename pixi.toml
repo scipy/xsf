@@ -175,8 +175,6 @@ cmd = [
   "-B build",
   # use ninja
   "-G Ninja",
-  # release build
-  "-DCMAKE_BUILD_TYPE=Release",
 ]
 
 [feature.cov.tasks.open-coverage]
