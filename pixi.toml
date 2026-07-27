@@ -18,11 +18,7 @@ preview = ["pixi-build"]
 # environments
 
 [environments.default]
-features = ["build", "tests", "tests-debug"]
-solve-group = "default"
-
-[environments.ci]
-features = ["build", "tests", "tests-debug", "cov", "ci"]
+features = ["build", "tests", "tests-debug", "cov"]
 solve-group = "default"
 
 [environments.lint]
@@ -46,13 +42,22 @@ xsref = { git = "https://github.com/scipy/xsref", rev = "1a5bb3d39efe4e9f26dc4da
 
 [feature.build.dependencies]
 cmake = "*"
-make = "*"
+ninja = "*"
+ccache = "*"
+
+[feature.build.activation.env]
+CC = "ccache $CC"
+CXX = "ccache $CXX"
 
 [feature.build.target.unix.dependencies]
 cxx-compiler = "*"
 
 [feature.build.target.win-64.dependencies]
 vs2026_win-64 = "*"
+
+[feature.build.target.win-64.activation.env]
+CC = "ccache cl.exe"
+CXX = "ccache cl.exe"
 
 [feature.build.tasks.configure]
 description = "Configure CMake in the build directory for a release build."
@@ -62,25 +67,21 @@ cmd = [
   "-S .",
   # We want to build in the build directory
   "-B build",
+  # use ninja
+  "-G Ninja",
 ]
 
 [feature.build.tasks.build-only]
 description = "Build the release CMake configuration in the build directory."
-args = [{ arg = "parallel", default = "2" }]
-cmd = ["cmake", "--build", "build", "--config", "Release", "-j{{ parallel }}"]
+cmd = ["cmake", "--build", "build", "--config", "Release"]
 
 [feature.tests-debug.tasks.build-debug-only]
 description = "Build the debug CMake configuration in build-debug/."
-args = [{ arg = "parallel", default = "2" }]
-cmd = ["cmake", "--build", "build-debug", "--config", "Debug", "-j{{ parallel }}"]
+cmd = ["cmake", "--build", "build-debug", "--config", "Debug"]
 
 [feature.build.tasks.build]
 description = "Run configure, then build the project with default settings."
-args = [{ arg = "parallel", default = "2" }]
-depends-on = [
-  "configure",
-  { task = "build-only", args = ["{{ parallel }}"] },
-]
+depends-on = ["configure", "build-only"]
 
 
 [feature.tests.dependencies]
@@ -97,15 +98,13 @@ cmd = [
   "-S .",
   # We want to build in the build directory
   "-B build",
+  # use ninja
+  "-G Ninja",
 ]
 
 [feature.tests.tasks.build-tests]
 description = "Configure and build the project for test execution."
-args = [{ arg = "parallel", default = "2" }]
-depends-on = [
-  "configure-tests",
-  { task = "build-only", args = ["{{ parallel }}"] },
-]
+depends-on = ["configure-tests", "build-only"]
 
 [feature.tests.tasks.tests-only]
 description = "Run CTest test suite from build/tests with verbose failures."
@@ -116,7 +115,7 @@ cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests", "-j{{ parall
 description = "Build and run CTest test suite from build/tests with verbose failures."
 args = [{ arg = "parallel", default = "2" }]
 depends-on = [
-  { task = "build-tests", args = ["{{ parallel }}"] },
+  "build-tests",
   { task = "tests-only", args = ["{{ parallel }}"] },
 ]
 
@@ -133,20 +132,18 @@ cmd = [
   "-S .",
   # use build-debug directory to avoid overwriting build directory.
   "-B build-debug",
+  # use ninja
+  "-G Ninja",
 ]
 
 [feature.tests.tasks.build-tests-debug]
 description = "Configure and build the project for test execution in Debug mode."
-args = [{ arg = "parallel", default = "2" }]
-depends-on = [
-  "configure-tests-debug",
-  { task = "build-debug-only", args = ["{{ parallel }}"] },
-]
+depends-on = ["configure-tests-debug", "build-debug-only"]
 
 [feature.tests-debug.tasks.tests-debug]
 description = "Run debug-mode CTest suite from build-debug/tests."
 args = [{ arg = "parallel", default = "2" }]
-depends-on = [{ task = "build-tests-debug", args = ["{{ parallel }}"] },]
+depends-on = ["build-tests-debug"]
 cmd = ["ctest", "--output-on-failure", "--test-dir", "build-debug/tests", "-j{{ parallel }}"]
 
 
@@ -161,10 +158,6 @@ cmd = "git ls-files '*.cpp' '*.h' | xargs clang-format -i --style=file"
 [feature.clang-format.tasks.format-dry-error]
 description = "Check C++ formatting and fail if any file needs changes."
 cmd = "git ls-files '*.cpp' '*.h' | xargs clang-format --style=file --Werror --dry-run"
-
-
-[feature.ci.dependencies]
-ccache = "*"
 
 
 [feature.cov.dependencies]
@@ -182,9 +175,9 @@ cmd = [
   "-S .",
   # We want to build in the build directory
   "-B build",
+  # use ninja
+  "-G Ninja",
 ]
-env.CC = "ccache $CC"
-env.CXX = "ccache $CXX"
 
 [feature.cov.tasks.open-coverage]
 description = "Open the generated HTML coverage report index page."
@@ -194,17 +187,13 @@ cmd = ["open", "index.html"]
 
 [feature.cov.tasks.build-tests-cov]
 description = "Build release test binaries with coverage enabled."
-args = [{ arg = "parallel", default = "2" }]
-depends-on = [
-  "configure-coverage",
-  { task = "build-only", args = ["{{ parallel }}"] },
-]
+depends-on = ["configure-coverage", "build-only"]
 
 [feature.cov.tasks.tests-cov]
 description = "Run release CTest suite configured for coverage."
 args = [{ arg = "parallel", default = "2" }]
 depends-on = [
-  { task = "build-tests-cov", args = ["{{ parallel }}"] },
+  "build-tests-cov",
   { task = "tests-only", args = ["{{ parallel }}"] },
 ]
 
@@ -218,7 +207,6 @@ cmd = [
   "build",
   "--target",
   "coverage_html",
-  "-j{{ parallel }}",
   "--config",
   "Release",
 ]

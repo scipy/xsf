@@ -53,12 +53,14 @@ XSF_HOST_DEVICE inline std::complex<double> gamma(std::complex<double> z) {
     }
     // Compute Gamma(z) using loggamma.
     if (z.real() <= 0 && z == std::floor(z.real())) {
-        // Poles
+        // Gamma poles at non-positive integers.
         set_error("gamma", SF_ERROR_SINGULAR, NULL);
         return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
     }
 
     if (z.real() <= -std::ldexp(1.0, std::numeric_limits<double>::digits)) {
+        // For real(z) <= -2**53, every representable real part has even-integer
+        // parity, and Gamma(z) underflows to signed zero.
         return {0.0, std::copysign(0.0, z.imag())};
     }
 
@@ -71,6 +73,7 @@ XSF_HOST_DEVICE inline std::complex<double> gamma(std::complex<double> z) {
         return {std::numeric_limits<double>::infinity(), std::copysign(0.0, z.imag())};
     }
     if (lg.real() > std::log(max) && z.real() > std::sqrt(max) && std::abs(z.imag()) > std::sqrt(max)) {
+        // Avoid std::exp(complex) overflow; the quadrant follows sign(imag(z)).
         return {
             -std::numeric_limits<double>::infinity(), std::copysign(std::numeric_limits<double>::infinity(), z.imag())
         };
