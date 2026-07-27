@@ -4,7 +4,7 @@
 #include <xsf/bessel.h>
 #include <xsf/sph_bessel.h>
 
-TEST_CASE("spherical_j reflection complex", "[bessel][xsf_tests]") {
+TEST_CASE("spherical_j reflection complex", "[spherical_bessel][xsf_tests]") {
     using test_case = std::tuple<long, std::complex<double>, std::complex<double>, double>;
 
     // Reference values computed with mpmath.
@@ -24,7 +24,7 @@ TEST_CASE("spherical_j reflection complex", "[bessel][xsf_tests]") {
     REQUIRE(rel_err_spherical_j <= rtol);
 }
 
-TEST_CASE("spherical_j_jac reflection derivative complex", "[bessel][xsf_tests]") {
+TEST_CASE("spherical_j_jac reflection derivative complex", "[spherical_bessel][xsf_tests]") {
     using test_case = std::tuple<long, std::complex<double>, std::complex<double>, double>;
 
     // Reference values computed with mpmath.
@@ -44,7 +44,7 @@ TEST_CASE("spherical_j_jac reflection derivative complex", "[bessel][xsf_tests]"
     REQUIRE(rel_err_spherical_j_jac <= rtol);
 }
 
-TEST_CASE("spherical_j real reflection", "[bessel][xsf_tests]") {
+TEST_CASE("spherical_j real reflection", "[spherical_bessel][xsf_tests]") {
     using test_case = std::tuple<long, double, double, double>;
 
     // Reference values computed with mpmath.
@@ -62,7 +62,7 @@ TEST_CASE("spherical_j real reflection", "[bessel][xsf_tests]") {
     REQUIRE(rel_err_spherical_j <= rtol);
 }
 
-TEST_CASE("spherical_j_jac reflection derivative", "[bessel][xsf_tests]") {
+TEST_CASE("spherical_j_jac reflection derivative", "[spherical_bessel][xsf_tests]") {
     using test_case = std::tuple<long, double, double, double>;
 
     // Reference values computed with mpmath.
@@ -80,7 +80,7 @@ TEST_CASE("spherical_j_jac reflection derivative", "[bessel][xsf_tests]") {
     REQUIRE(rel_err_spherical_j_jac <= rtol);
 }
 
-TEST_CASE("spherical_y reflection complex", "[bessel][xsf_tests]") {
+TEST_CASE("spherical_y reflection complex", "[spherical_bessel][xsf_tests]") {
     using test_case = std::tuple<long, std::complex<double>, std::complex<double>, double>;
 
     // Reference values computed with mpmath.
@@ -99,7 +99,7 @@ TEST_CASE("spherical_y reflection complex", "[bessel][xsf_tests]") {
     REQUIRE(rel_err_spherical_y <= rtol);
 }
 
-TEST_CASE("spherical_y_jac reflection derivative complex", "[bessel][xsf_tests]") {
+TEST_CASE("spherical_y_jac reflection derivative complex", "[spherical_bessel][xsf_tests]") {
     using test_case = std::tuple<long, std::complex<double>, std::complex<double>, double>;
 
     // Reference values computed with mpmath.
@@ -117,7 +117,7 @@ TEST_CASE("spherical_y_jac reflection derivative complex", "[bessel][xsf_tests]"
     REQUIRE(rel_err_spherical_y_jac <= rtol);
 }
 
-TEST_CASE("spherical_y real reflection", "[bessel][xsf_tests]") {
+TEST_CASE("spherical_y real reflection", "[spherical_bessel][xsf_tests]") {
     using test_case = std::tuple<long, double, double, double>;
 
     // Reference values computed with mpmath.
@@ -135,7 +135,7 @@ TEST_CASE("spherical_y real reflection", "[bessel][xsf_tests]") {
     REQUIRE(rel_err_spherical_y <= rtol);
 }
 
-TEST_CASE("spherical_y_jac reflection derivative", "[bessel][xsf_tests]") {
+TEST_CASE("spherical_y_jac reflection derivative", "[spherical_bessel][xsf_tests]") {
     using test_case = std::tuple<long, double, double, double>;
 
     // Reference values computed with mpmath.
@@ -153,7 +153,7 @@ TEST_CASE("spherical_y_jac reflection derivative", "[bessel][xsf_tests]") {
     REQUIRE(rel_err_spherical_y_jac <= rtol);
 }
 
-TEST_CASE("spherical_i tiny inputs", "[bessel][xsf_tests]") {
+TEST_CASE("spherical_i tiny inputs", "[spherical_bessel][xsf_tests]") {
     using test_case = std::tuple<long, double, double, double>;
 
     // Reference values computed with mpmath.
