@@ -38,7 +38,7 @@ namespace detail {
     // See the NOTE above regarding T.
     //
     template <typename T>
-    inline double sum_powers(T m, T n, double a) {
+    XSF_HOST_DEVICE inline double sum_powers(T m, T n, double a) {
         double sum = 0.0;
         if (a >= 0) {
             for (T i = n; i >= m; --i) {
@@ -64,7 +64,7 @@ namespace detail {
     // See the NOTE above regarding T.
     //
     template <typename T>
-    inline double normalized_sum_powers(T j, T k, T n, double a) {
+    XSF_HOST_DEVICE inline double normalized_sum_powers(T j, T k, T n, double a) {
         double numer = 0.0;
         double denom = 0.0;
         if (a >= 0) {
@@ -106,7 +106,7 @@ namespace detail {
 // [1] https://en.wikipedia.org/wiki/Harmonic_number#Generalized_harmonic_numbers
 //
 template <typename T>
-inline double gen_harmonic(T n, double a) {
+XSF_HOST_DEVICE inline double gen_harmonic(T n, double a) {
     if constexpr (std::is_same_v<T, double>) {
         if (std::isnan(n)) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -159,7 +159,7 @@ inline double gen_harmonic(T n, double a) {
 }
 
 template <typename T>
-inline float gen_harmonic(T n, float a) {
+XSF_HOST_DEVICE inline float gen_harmonic(T n, float a) {
     return gen_harmonic(n, static_cast<double>(a));
 }
 
@@ -175,7 +175,7 @@ inline float gen_harmonic(T n, float a) {
 // See the NOTE above regarding T.
 //
 template <typename T>
-inline double normalized_gen_harmonic(T j, T k, T n, double a) {
+XSF_HOST_DEVICE inline double normalized_gen_harmonic(T j, T k, T n, double a) {
     if constexpr (std::is_same_v<T, double>) {
         if (std::isnan(j) || std::isnan(k) || std::isnan(n)) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -257,7 +257,7 @@ inline double normalized_gen_harmonic(T j, T k, T n, double a) {
 }
 
 template <typename T>
-inline float normalized_gen_harmonic(T j, T k, T n, float a) {
+XSF_HOST_DEVICE inline float normalized_gen_harmonic(T j, T k, T n, float a) {
     return normalized_gen_harmonic(j, k, n, static_cast<double>(a));
 }
 
