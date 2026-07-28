@@ -76,6 +76,7 @@
 
 #include "const.h"
 #include "gamma.h"
+#include "rgamma.h"
 #include "trig.h"
 
 namespace xsf {
@@ -801,8 +802,13 @@ namespace cephes {
              */
             detail::ikv_asymptotic_uniform(v, ax, &res, NULL);
         } else {
-            /* Otherwise: Temme's method */
-            detail::ikv_temme(v, ax, &res, NULL);
+            /* Check for tiny x to avoid Wronskian overflow in ikv_temme */
+            if (ax * ax < std::abs(v + 1.0) * detail::MACHEP) {
+                res = std::pow(0.5 * ax, v) * rgamma(v + 1.0);
+            } else {
+                /* Otherwise: Temme's method */
+                detail::ikv_temme(v, ax, &res, NULL);
+            }
         }
         res *= sign;
         return res;
