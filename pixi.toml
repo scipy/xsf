@@ -158,6 +158,9 @@ description = "Check C++ formatting and fail if any file needs changes."
 cmd = "git ls-files '*.cpp' '*.h' | xargs clang-format --style=file --Werror --dry-run"
 
 
+[feature.cov]
+platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
+
 [feature.cov.dependencies]
 lcov = "*"
 
