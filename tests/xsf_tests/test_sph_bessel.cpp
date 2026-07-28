@@ -4,7 +4,7 @@
 #include <xsf/bessel.h>
 #include <xsf/sph_bessel.h>
 
-TEST_CASE("spherical_j reflection complex", "[bessel][xsf_tests]") {
+TEST_CASE("spherical_j reflection complex", "[sph_bessel][xsf_tests]") {
     using test_case = std::tuple<long, std::complex<double>, std::complex<double>, double>;
 
     // Reference values computed with mpmath.
@@ -24,7 +24,7 @@ TEST_CASE("spherical_j reflection complex", "[bessel][xsf_tests]") {
     REQUIRE(rel_err_spherical_j <= rtol);
 }
 
-TEST_CASE("spherical_j_jac reflection derivative complex", "[bessel][xsf_tests]") {
+TEST_CASE("spherical_j_jac reflection derivative complex", "[sph_bessel][xsf_tests]") {
     using test_case = std::tuple<long, std::complex<double>, std::complex<double>, double>;
 
     // Reference values computed with mpmath.
@@ -44,7 +44,7 @@ TEST_CASE("spherical_j_jac reflection derivative complex", "[bessel][xsf_tests]"
     REQUIRE(rel_err_spherical_j_jac <= rtol);
 }
 
-TEST_CASE("spherical_j real reflection", "[bessel][xsf_tests]") {
+TEST_CASE("spherical_j real reflection", "[sph_bessel][xsf_tests]") {
     using test_case = std::tuple<long, double, double, double>;
 
     // Reference values computed with mpmath.
@@ -62,7 +62,7 @@ TEST_CASE("spherical_j real reflection", "[bessel][xsf_tests]") {
     REQUIRE(rel_err_spherical_j <= rtol);
 }
 
-TEST_CASE("spherical_j_jac reflection derivative", "[bessel][xsf_tests]") {
+TEST_CASE("spherical_j_jac reflection derivative", "[sph_bessel][xsf_tests]") {
     using test_case = std::tuple<long, double, double, double>;
 
     // Reference values computed with mpmath.
@@ -80,7 +80,7 @@ TEST_CASE("spherical_j_jac reflection derivative", "[bessel][xsf_tests]") {
     REQUIRE(rel_err_spherical_j_jac <= rtol);
 }
 
-TEST_CASE("spherical_y reflection complex", "[bessel][xsf_tests]") {
+TEST_CASE("spherical_y reflection complex", "[sph_bessel][xsf_tests]") {
     using test_case = std::tuple<long, std::complex<double>, std::complex<double>, double>;
 
     // Reference values computed with mpmath.
@@ -99,7 +99,7 @@ TEST_CASE("spherical_y reflection complex", "[bessel][xsf_tests]") {
     REQUIRE(rel_err_spherical_y <= rtol);
 }
 
-TEST_CASE("spherical_y_jac reflection derivative complex", "[bessel][xsf_tests]") {
+TEST_CASE("spherical_y_jac reflection derivative complex", "[sph_bessel][xsf_tests]") {
     using test_case = std::tuple<long, std::complex<double>, std::complex<double>, double>;
 
     // Reference values computed with mpmath.
@@ -117,7 +117,7 @@ TEST_CASE("spherical_y_jac reflection derivative complex", "[bessel][xsf_tests]"
     REQUIRE(rel_err_spherical_y_jac <= rtol);
 }
 
-TEST_CASE("spherical_y real reflection", "[bessel][xsf_tests]") {
+TEST_CASE("spherical_y real reflection", "[sph_bessel][xsf_tests]") {
     using test_case = std::tuple<long, double, double, double>;
 
     // Reference values computed with mpmath.
@@ -135,7 +135,7 @@ TEST_CASE("spherical_y real reflection", "[bessel][xsf_tests]") {
     REQUIRE(rel_err_spherical_y <= rtol);
 }
 
-TEST_CASE("spherical_y_jac reflection derivative", "[bessel][xsf_tests]") {
+TEST_CASE("spherical_y_jac reflection derivative", "[sph_bessel][xsf_tests]") {
     using test_case = std::tuple<long, double, double, double>;
 
     // Reference values computed with mpmath.
@@ -151,4 +151,80 @@ TEST_CASE("spherical_y_jac reflection derivative", "[bessel][xsf_tests]") {
 
     CAPTURE(n, z, result_spherical_y_jac, ref_spherical_y_jac, rel_err_spherical_y_jac, rtol);
     REQUIRE(rel_err_spherical_y_jac <= rtol);
+}
+
+TEST_CASE("spherical_i reflection complex", "[sph_bessel][xsf_tests]") {
+    using test_case = std::tuple<long, std::complex<double>, std::complex<double>, double>;
+
+    // Reference values computed with mpmath.
+    auto [n, z, ref_spherical_i, rtol] = GENERATE(
+        // Even n => i_n(-z) = i_n(z)   https://dlmf.nist.gov/10.47#E16
+        test_case{10, {5., 0}, {0.0012094137020295749, 0}, 1e-14},
+        test_case{10, {-5., 0}, {0.0012094137020295749, 0}, 1e-14},
+        // Odd n => i_n(-z) = -i_n(z)   https://dlmf.nist.gov/10.47#E16
+        test_case{7, {5., 0}, {0.078331543637981051, 0}, 1e-14},
+        test_case{7, {-5., 0}, {-0.078331543637981051, 0}, 1e-14}
+    );
+
+    std::complex<double> result_spherical_i = xsf::sph_bessel_i(n, z);
+    double rel_err_spherical_i = xsf::extended_relative_error(result_spherical_i, ref_spherical_i);
+
+    CAPTURE(n, z, result_spherical_i, ref_spherical_i, rel_err_spherical_i, rtol);
+    REQUIRE(rel_err_spherical_i <= rtol);
+}
+
+TEST_CASE("spherical_i_jac reflection derivative complex", "[sph_bessel][xsf_tests]") {
+    using test_case = std::tuple<long, std::complex<double>, std::complex<double>, double>;
+
+    // Reference values computed with mpmath.
+    auto [n, z, ref_spherical_i_jac, rtol] = GENERATE(
+        // Even n => i_n'(-z) = -i_n'(z)   from DLMF 10.47.16 by taking the derivative with respect to z
+        test_case{10, {5., 0}, {0.0026711531494343957, 0}, 1e-14},
+        test_case{10, {-5., 0}, {-0.0026711531494343957, 0}, 1e-14},
+        // Odd n => i_n'(-z) = i_n'(z)   from DLMF 10.47.16 by taking the derivative with respect to z
+        test_case{7, {5., 0}, {0.13113465531202099, 0}, 1e-14},
+        test_case{7, {-5., 0}, {0.13113465531202099, 0}, 1e-14}
+    );
+
+    std::complex<double> result_spherical_i_jac = xsf::sph_bessel_i_jac(n, z);
+    double rel_err_spherical_i_jac = xsf::extended_relative_error(result_spherical_i_jac, ref_spherical_i_jac);
+
+    CAPTURE(n, z, result_spherical_i_jac, ref_spherical_i_jac, rel_err_spherical_i_jac, rtol);
+    REQUIRE(rel_err_spherical_i_jac <= rtol);
+}
+
+TEST_CASE("spherical_i real reflection", "[sph_bessel][xsf_tests]") {
+    using test_case = std::tuple<long, double, double, double>;
+
+    // Reference values computed with mpmath.
+    auto [n, z, ref_spherical_i, rtol] = GENERATE(
+        // Even n => i_n(-x) = i_n(x)   https://dlmf.nist.gov/10.47#E16
+        test_case{10, 5., 0.0012094137020295749, 1e-14}, test_case{10, -5., 0.0012094137020295749, 1e-14},
+        // Odd n => i_n(-x) = -i_n(x)   https://dlmf.nist.gov/10.47#E16
+        test_case{7, 5., 0.078331543637981051, 1e-14}, test_case{7, -5., -0.078331543637981051, 1e-14}
+    );
+
+    double result_spherical_i = xsf::sph_bessel_i(n, z);
+    double rel_err_spherical_i = xsf::extended_relative_error(result_spherical_i, ref_spherical_i);
+
+    CAPTURE(n, z, result_spherical_i, ref_spherical_i, rel_err_spherical_i, rtol);
+    REQUIRE(rel_err_spherical_i <= rtol);
+}
+
+TEST_CASE("spherical_i_jac reflection derivative", "[sph_bessel][xsf_tests]") {
+    using test_case = std::tuple<long, double, double, double>;
+
+    // Reference values computed with mpmath.
+    auto [n, z, ref_spherical_i_jac, rtol] = GENERATE(
+        // Even n => i_n'(-x) = -i_n'(x)   from DLMF 10.47.16 by taking the derivative with respect to z
+        test_case{10, 5., 0.0026711531494343957, 1e-14}, test_case{10, -5., -0.0026711531494343957, 1e-14},
+        // Odd n => i_n'(-x) = i_n'(x)   from DLMF 10.47.16 by taking the derivative with respect to z
+        test_case{7, 5., 0.13113465531202099, 1e-14}, test_case{7, -5., 0.13113465531202099, 1e-14}
+    );
+
+    double result_spherical_i_jac = xsf::sph_bessel_i_jac(n, z);
+    double rel_err_spherical_i_jac = xsf::extended_relative_error(result_spherical_i_jac, ref_spherical_i_jac);
+
+    CAPTURE(n, z, result_spherical_i_jac, ref_spherical_i_jac, rel_err_spherical_i_jac, rtol);
+    REQUIRE(rel_err_spherical_i_jac <= rtol);
 }
