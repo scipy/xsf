@@ -242,6 +242,12 @@ using pair = cuda::std::pair<T1, T2>;
 template <typename... Types>
 using tuple = cuda::std::tuple<Types...>;
 
+template <typename T1, typename T2>
+using is_same = cuda::std::is_same<T1, T2>;
+
+template <typename T1, typename T2>
+inline constexpr bool is_same_v = cuda::std::is_same_v<T1, T2>;
+
 using cuda::std::ptrdiff_t;
 using cuda::std::size_t;
 using cuda::std::uint64_t;
@@ -260,6 +266,7 @@ using cuda::std::uint64_t;
 
 #include <algorithm>
 #include <cassert>
+#include <cinttypes>
 #include <cmath>
 #include <complex>
 #include <cstddef>
