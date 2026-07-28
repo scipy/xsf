@@ -18,7 +18,11 @@ preview = ["pixi-build"]
 # environments
 
 [environments.default]
-features = ["build", "tests", "tests-debug", "cov"]
+features = ["build", "tests", "tests-debug"]
+solve-group = "default"
+
+[environments.coverage]
+features = ["build", "tests", "cov"]
 solve-group = "default"
 
 [environments.lint]
