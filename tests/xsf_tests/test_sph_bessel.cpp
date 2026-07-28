@@ -182,8 +182,7 @@ TEST_CASE("spherical_i_jac reflection derivative complex", "[sph_bessel][xsf_tes
         test_case{10, {5., 0}, {0.0026711531494343957, 0}, 1e-14},
         test_case{10, {-5., 0}, {-0.0026711531494343957, 0}, 1e-14},
         // Odd n => i_n'(-z) = i_n'(z)   from DLMF 10.47.16 by taking the derivative with respect to z
-        test_case{7, {5., 0}, {0.13113465531202099, 0}, 1e-14},
-        test_case{7, {-5., 0}, {0.13113465531202099, 0}, 1e-14}
+        test_case{7, {5., 0}, {0.13113465531202099, 0}, 1e-14}, test_case{7, {-5., 0}, {0.13113465531202099, 0}, 1e-14}
     );
 
     std::complex<double> result_spherical_i_jac = xsf::sph_bessel_i_jac(n, z);
