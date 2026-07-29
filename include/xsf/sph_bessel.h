@@ -263,6 +263,11 @@ T sph_bessel_i(long n, T x) {
         return std::numeric_limits<T>::quiet_NaN();
     }
 
+    if (x < 0) {
+        T r = sph_bessel_i(n, -x);
+        return (n % 2 == 0) ? r : -r;
+    }
+
     if (x == 0) {
         // https://dlmf.nist.gov/10.52.E1
         if (n == 0) {
