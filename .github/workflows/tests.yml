@@ -28,7 +28,6 @@ jobs:
         with:
           pixi-version: v0.75.0
           cache: true
-          cache-key: ${{ matrix.runs-on }}
           environments: coverage
       - name:  Prepare compiler cache
         id:    prep-ccache
@@ -86,7 +85,6 @@ jobs:
         with:
           pixi-version: v0.75.0
           cache: true
-          cache-key: ${{ matrix.runs-on }}
           environments: default
       - name:  Prepare compiler cache
         id:    prep-ccache
@@ -134,7 +132,6 @@ jobs:
         with:
           pixi-version: v0.75.0
           cache: true
-          cache-key: ${{ matrix.runs-on }}
           environments: default
       - name:  Prepare compiler cache
         id:    prep-ccache
