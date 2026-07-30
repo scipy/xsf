@@ -102,3 +102,30 @@ TEST_CASE("j1 right tail gh-large-input", "[j1][xsf_tests]") {
     CAPTURE(x, w, ref, rtol, rel_error);
     REQUIRE(rel_error <= rtol);
 }
+
+TEST_CASE("y1 right tail gh-large-input", "[y1][xsf_tests]") {
+    using test_case = std::tuple<double, double, double>;
+    // Reference values computed with mpmath with 1000 digits of precision:
+    //
+    // import math
+    // import mpmath as mp
+    // mp.mp.dps = 1000
+    // xs = [
+    //     math.nextafter(10.0, 0.0), 10.0, math.nextafter(10.0, math.inf),
+    //     100.0, 1e4, 1e8, 1e12, 1e13, 1e15, 1e20,
+    // ]
+    // for x in xs:
+    //     print(x, mp.nstr(mp.bessely(1, x), 18))
+    auto [x, ref, rtol] = GENERATE(
+        test_case{9.999999999999998, 0.24901542420695383, 5e-15}, test_case{10.0, 0.24901542420695388, 5e-15},
+        test_case{10.000000000000002, 0.24901542420695394, 5e-15}, test_case{100.0, -0.020372312002759792, 5e-15},
+        test_case{1e4, 0.007096342752536495, 5e-15}, test_case{1e8, -3.2060294975092524e-05, 5e-15},
+        test_case{1e12, -1.016712505008025e-07, 5e-15}, test_case{1e13, -1.1926484739666765e-07, 5e-15},
+        test_case{1e15, -6.15663864688501e-09, 5e-15}, test_case{1e20, -6.698009040703424e-12, 5e-15}
+    );
+    const double w = xsf::cephes::y1(x);
+    const double rel_error = xsf::extended_relative_error(w, ref);
+
+    CAPTURE(x, w, ref, rtol, rel_error);
+    REQUIRE(rel_error <= rtol);
+}
