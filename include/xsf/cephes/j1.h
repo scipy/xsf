@@ -199,9 +199,13 @@ namespace cephes {
         z = w * w;
         p = polevl(z, detail::j1_PP, 6) / polevl(z, detail::j1_PQ, 6);
         q = polevl(z, detail::j1_QP, 7) / p1evl(z, detail::j1_QQ, 7);
-        xn = x - detail::THPIO4;
-        p = p * std::sin(xn) + w * q * std::cos(xn);
-        return (p * detail::SQRT2OPI / std::sqrt(x));
+        if (x < 10.0) {
+            xn = x - detail::THPIO4;
+            p = p * std::sin(xn) + w * q * std::cos(xn);
+            return (p * detail::SQRT2OPI / std::sqrt(x));
+        }
+        p = (w * q - p) * std::sin(x) - (p + w * q) * std::cos(x);
+        return (p * detail::SQRT1OPI / std::sqrt(x));
     }
 } // namespace cephes
 } // namespace xsf
