@@ -46,13 +46,18 @@ namespace detail {
         x4 = x2 * x2;
 
         if (fabs(x) < 10.0) {
-            // x / 2 is exact for every argument except the smallest subnormal,
-            // where it underflows to zero and makes log(x / 2) -inf. The series
-            // terms it multiplies below have underflowed to zero by then, so
-            // that -inf becomes inf * 0 = NaN and kei(5e-324) is returned as
-            // NaN while kei(1e-320) is correct. log(x) - log(2) stays finite
-            // there and agrees with log(x / 2) elsewhere.
-            xlog = (x / 2.0 == 0.0) ? log(x) - log(2.0) : log(x / 2.0);
+            // x / 2 is exact while x is normal. Once x is subnormal it is not:
+            // halving shifts the mantissa into a field that has already lost bits,
+            // so an odd multiple of 2^-1074 rounds onto the neighbouring even one,
+            // and at 2^-1074 itself the quotient underflows to zero and makes
+            // log(x / 2) equal -inf. The series terms it multiplies have
+            // underflowed to zero by then, so that -inf becomes inf * 0 = NaN.
+            //
+            // log(x) - log(2) is the same quantity and never forms x / 2. It is
+            // used only below DBL_MIN, because ker and kei are built by cancelling
+            // exponentially large terms and a one-ulp change here is amplified by
+            // |ber|/|ker|, which is 1.07e6 at x = 10.
+            xlog = (fabs(x) >= std::numeric_limits<T>::min()) ? log(x / 2.0) : log(x) - log(2.0);
 
             *ber = 1.0;
             r = 1.0;
