@@ -25,7 +25,7 @@ namespace detail {
 
         int k, km, m;
         T gs, r, x2, x4, pp1, pn1, qp1, qn1, r1, pp0, pn0, qp0, qn0, r0, fac, xt, cs, ss, xd, xe1, xe2, xc1, xc2, cp0,
-            cn0, sp0, sn0, rc, rs;
+            cn0, sp0, sn0, rc, rs, xlog;
         const T pi = 3.141592653589793;
         const T el = 0.5772156649015329;
         const T eps = 1.0e-15;
@@ -46,6 +46,14 @@ namespace detail {
         x4 = x2 * x2;
 
         if (fabs(x) < 10.0) {
+            // x / 2 is exact for every argument except the smallest subnormal,
+            // where it underflows to zero and makes log(x / 2) -inf. The series
+            // terms it multiplies below have underflowed to zero by then, so
+            // that -inf becomes inf * 0 = NaN and kei(5e-324) is returned as
+            // NaN while kei(1e-320) is correct. log(x) - log(2) stays finite
+            // there and agrees with log(x / 2) elsewhere.
+            xlog = (x / 2.0 == 0.0) ? log(x) - log(2.0) : log(x / 2.0);
+
             *ber = 1.0;
             r = 1.0;
             for (m = 1; m <= 60; m++) {
@@ -66,7 +74,7 @@ namespace detail {
                 }
             }
 
-            *ger = -(log(x / 2.0) + el) * (*ber) + 0.25 * pi * (*bei);
+            *ger = -(xlog + el) * (*ber) + 0.25 * pi * (*bei);
 
             r = 1.0;
             gs = 0.0;
@@ -79,7 +87,7 @@ namespace detail {
                 }
             }
 
-            *gei = x2 - (log(x / 2.0) + el) * (*bei) - 0.25 * pi * (*ber);
+            *gei = x2 - (xlog + el) * (*bei) - 0.25 * pi * (*ber);
 
             r = x2;
             gs = 1.0;
@@ -114,7 +122,7 @@ namespace detail {
 
             r = -0.25 * x * x2;
             gs = 1.5;
-            *her = 1.5 * r - (*ber) / x - (log(x / 2.0) + el) * (*der) + 0.25 * pi * (*dei);
+            *her = 1.5 * r - (*ber) / x - (xlog + el) * (*der) + 0.25 * pi * (*dei);
             for (m = 1; m <= 60; m++) {
                 r = -0.25 * r / m / (m + 1.0) / pow((2.0 * m + 1.0), 2) * x4;
                 gs = gs + 1.0 / (2.0 * m + 1.0) + 1.0 / (2 * m + 2.0);
@@ -126,7 +134,7 @@ namespace detail {
 
             r = 0.5 * x;
             gs = 1.0;
-            *hei = 0.5 * x - (*bei) / x - (log(x / 2.0) + el) * (*dei) - 0.25 * pi * (*der);
+            *hei = 0.5 * x - (*bei) / x - (xlog + el) * (*dei) - 0.25 * pi * (*der);
             for (m = 1; m <= 60; m++) {
                 r = -0.25 * r / (m * m) / (2 * m - 1.0) / (2 * m + 1.0) * x4;
                 gs = gs + 1.0 / (2.0 * m) + 1.0 / (2 * m + 1.0);
