@@ -7,6 +7,8 @@ permissions:
 
 env:
   CCACHE_DIR: "${{ github.workspace }}/.ccache"
+  # Needed because Pixi doesn't set mtime for compilers
+  CCACHE_COMPILERCHECK: "content"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -18,7 +20,7 @@ jobs:
     runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64-gpu:24.04
     steps:
       - name: Checkout xsf repo
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
 
@@ -38,9 +40,9 @@ jobs:
       - name: run nvidia-smi --query
         run: nvidia-smi --query
 
-      - uses: prefix-dev/setup-pixi@ba3bb36eb2066252b2363392b7739741bb777659 # v0.8.1
+      - uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
         with:
-          pixi-version: v0.70.1
+          pixi-version: v0.75.0
           manifest-path: pixi.toml
           cache: false
 

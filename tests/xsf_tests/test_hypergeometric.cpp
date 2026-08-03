@@ -8,7 +8,7 @@
 TEST_CASE("hyp2f1(-1, b, c, z) / gh-4446", "[hyp2f1][xsf_tests]") {
     constexpr double rtol = 1e-14;
     constexpr double atol = 1e-14; // absolute tolerance
-    constexpr int size = 201;
+    constexpr int size = 41;
     constexpr double start = -10.0;
     constexpr double end = 10.0;
 

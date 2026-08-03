@@ -482,8 +482,9 @@ XSF_HOST_DEVICE inline std::complex<double> lambertw(std::complex<double> z, lon
     if (k == 0) {
         if (std::abs(z + EXPN1) < 0.3) {
             w = detail::lambertw_branchpt(z);
-        } else if (-1.0 < z.real() && z.real() < 1.5 && std::abs(z.imag()) < 1.0 &&
-                   -2.5 * std::abs(z.imag()) - 0.2 < z.real()) {
+        } else if (
+            -1.0 < z.real() && z.real() < 1.5 && std::abs(z.imag()) < 1.0 && -2.5 * std::abs(z.imag()) - 0.2 < z.real()
+        ) {
             /* Empirically determined decision boundary where the Pade
              * approximation is more accurate. */
             w = detail::lambertw_pade0(z);
@@ -530,7 +531,8 @@ XSF_HOST_DEVICE inline std::complex<double> lambertw(std::complex<double> z, lon
 }
 
 XSF_HOST_DEVICE inline std::complex<float> lambertw(std::complex<float> z, long k, float tol) {
-    return static_cast<std::complex<float>>(lambertw(static_cast<std::complex<double>>(z), k, static_cast<double>(tol))
+    return static_cast<std::complex<float>>(
+        lambertw(static_cast<std::complex<double>>(z), k, static_cast<double>(tol))
     );
 }
 

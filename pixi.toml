@@ -2,6 +2,9 @@
 authors = [
   "Albert Steppi <albert.steppi@gmail.com>",
   "Irwin Zaid <irwin.zaid@gmail.com>",
+  "Florian Bourgey <bourgeyflorian@gmail.com>",
+  "Lucas Colley <lucas.colley8@gmail.com>",
+  "Daniel Schmitz <danielschmitzsiegen@googlemail.com>",
 ]
 channels = ["https://prefix.dev/conda-forge"]
 description = "Special function implementations."
@@ -9,6 +12,7 @@ name = "xsf"
 platforms = ["win-64", "linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
 version = "0.2.2"
 requires-pixi = ">=0.68.0"
+preview = ["pixi-build"]
 
 
 # environments
@@ -17,12 +21,13 @@ requires-pixi = ">=0.68.0"
 features = ["build", "tests", "tests-debug"]
 solve-group = "default"
 
-[environments.tests-ci]
-features = ["build", "tests", "tests-ci", "tests-debug", "tests-debug-ci", "coverage"]
+[environments.coverage]
+features = ["build", "tests", "cov"]
 solve-group = "default"
 
 [environments.lint]
 features = ["clang-format"]
+no-default-feature = true
 solve-group = "default"
 
 [environments.cupy-tests]
@@ -30,21 +35,25 @@ features = ["cupy-tests"]
 solve-group = "default"
 
 
-# features
+# default feature
+
+[dependencies]
+python = "*"
+xsref = { git = "https://github.com/scipy/xsref", rev = "1a5bb3d39efe4e9f26dc4da9c04ebf5d9d518331" }
+
+
+# non-default features
 
 [feature.build.dependencies]
 cmake = "*"
-make = ">=4.4.1,<5"
+ninja = "*"
+ccache = "*"
 
 [feature.build.target.unix.dependencies]
-cxx-compiler = ">=1.8.0,<2"
+cxx-compiler = "*"
 
 [feature.build.target.win-64.dependencies]
 vs2026_win-64 = "*"
-
-[feature.build.target.win-64.activation.env]
-# TODO: remove once https://github.com/conda-forge/vc-feedstock/issues/125 is resolved
-CMAKE_GENERATOR = "Visual Studio 18 2026"
 
 [feature.build.tasks.configure]
 description = "Configure CMake in the build directory for a release build."
@@ -54,31 +63,24 @@ cmd = [
   "-S .",
   # We want to build in the build directory
   "-B build",
+  # use ninja
+  "-G Ninja",
+  # release build
+  "-DCMAKE_BUILD_TYPE=Release",
 ]
 
 [feature.build.tasks.build-only]
-description = "Build the existing CMake configuration in the build directory."
-# Just build without configure
-cmd = ["cmake", "--build", "build", "--config", "Release"]
+description = "Build the release CMake configuration in the build directory."
+cmd = ["cmake", "--build", "build"]
 
 [feature.build.tasks.build]
 description = "Run configure, then build the project with default settings."
-# Build with default configuration
 depends-on = ["configure", "build-only"]
 
 
 [feature.tests.dependencies]
-catch2 = ">=3.8.0,<4"
-libarrow-all = ">=19.0.1,<20"
-
-[feature.tests.tasks.clean-xsref]
-description = "Remove the local xsref."
-cmd = "rm -rf xsref"
-
-[feature.tests.tasks.clone-xsref]
-description = "Clone xsref after cleaning old checkout."
-depends-on = ["clean-xsref"]
-cmd = "git clone https://github.com/scipy/xsref.git && git -C xsref checkout 4e9b2343813136e355f0262754a3929d98bc5bff"
+catch2 = "*"
+libarrow-all = "*"
 
 [feature.tests.tasks.configure-tests]
 description = "Configure CMake with BUILD_TESTS enabled in build/."
@@ -90,16 +92,28 @@ cmd = [
   "-S .",
   # We want to build in the build directory
   "-B build",
+  # use ninja
+  "-G Ninja",
+  # release build
+  "-DCMAKE_BUILD_TYPE=Release",
 ]
 
 [feature.tests.tasks.build-tests]
 description = "Configure and build the project for test execution."
 depends-on = ["configure-tests", "build-only"]
 
-[feature.tests.tasks.tests]
+[feature.tests.tasks.tests-only]
 description = "Run CTest test suite from build/tests with verbose failures."
-depends-on = ["clone-xsref", "build-tests"]
-cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests"]
+args = [{ arg = "parallel", default = "2" }]
+cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests", "-j{{ parallel }}"]
+
+[feature.tests.tasks.tests]
+description = "Build and run CTest test suite from build/tests with verbose failures."
+args = [{ arg = "parallel", default = "2" }]
+depends-on = [
+  "build-tests",
+  { task = "tests-only", args = ["{{ parallel }}"] },
+]
 
 
 [feature.tests-debug.tasks.configure-tests-debug]
@@ -114,17 +128,25 @@ cmd = [
   "-S .",
   # use build-debug directory to avoid overwriting build directory.
   "-B build-debug",
+  # use ninja
+  "-G Ninja",
+  # debug build
+  "-DCMAKE_BUILD_TYPE=Debug",
 ]
 
-[feature.tests-debug.tasks.build-tests-debug]
-description = "Build the debug test configuration in build-debug/."
-depends-on = ["configure-tests-debug"]
-cmd = ["cmake", "--build", "build-debug", "--config", "Debug"]
+[feature.tests-debug.tasks.build-debug-only]
+description = "Build the debug CMake configuration in build-debug/."
+cmd = ["cmake", "--build", "build-debug"]
+
+[feature.tests.tasks.build-tests-debug]
+description = "Configure and build the project for test execution in Debug mode."
+depends-on = ["configure-tests-debug", "build-debug-only"]
 
 [feature.tests-debug.tasks.tests-debug]
 description = "Run debug-mode CTest suite from build-debug/tests."
-depends-on = ["clone-xsref", "build-tests-debug"]
-cmd = ["ctest", "--output-on-failure", "--test-dir", "build-debug/tests"]
+args = [{ arg = "parallel", default = "2" }]
+depends-on = ["build-tests-debug"]
+cmd = ["ctest", "--output-on-failure", "--test-dir", "build-debug/tests", "-j{{ parallel }}"]
 
 
 [feature.clang-format.dependencies]
@@ -140,10 +162,13 @@ description = "Check C++ formatting and fail if any file needs changes."
 cmd = "git ls-files '*.cpp' '*.h' | xargs clang-format --style=file --Werror --dry-run"
 
 
-[feature.coverage.dependencies]
-lcov = ">=1.16,<2"
+[feature.cov]
+platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
 
-[feature.coverage.tasks.configure-coverage]
+[feature.cov.dependencies]
+lcov = "*"
+
+[feature.cov.tasks.configure-coverage]
 description = "Configure CMake for coverage instrumentation and tests."
 cmd = [
   "cmake",
@@ -155,62 +180,38 @@ cmd = [
   "-S .",
   # We want to build in the build directory
   "-B build",
+  # use ninja
+  "-G Ninja",
 ]
-env.XSREF_TABLES_PATH = "$PWD/xsref/tables"
-env.CC = "ccache $CC"
-env.CXX = "ccache $CXX"
 
-[feature.coverage.tasks.open-coverage]
+[feature.cov.tasks.open-coverage]
 description = "Open the generated HTML coverage report index page."
 cwd = "build/coverage_report"
 cmd = ["open", "index.html"]
 
 
-[feature.tests-ci.dependencies]
-ccache = ">=4.11.2,<5"
+[feature.cov.tasks.build-tests-cov]
+description = "Build release test binaries with coverage enabled."
+depends-on = ["configure-coverage", "build-only"]
 
-# TODO: use a task arg for parallelism https://github.com/prefix-dev/pixi/pull/3433
-[feature.tests-ci.tasks.build-tests-ci]
-description = "Build release test binaries for CI with coverage enabled."
-depends-on = ["clone-xsref", "configure-coverage"]
-cmd = ["cmake", "--build", "build", "-j3", "--config", "Release"]
+[feature.cov.tasks.tests-cov]
+description = "Run release CTest suite configured for coverage."
+args = [{ arg = "parallel", default = "2" }]
+depends-on = [
+  "build-tests-cov",
+  { task = "tests-only", args = ["{{ parallel }}"] },
+]
 
-[feature.tests-ci.tasks.tests-ci]
-description = "Run release CTest suite for CI."
-depends-on = ["build-tests-ci"]
-cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests", "-j3"]
-
-[feature.tests-ci.tasks.coverage]
+[feature.cov.tasks.coverage]
 description = "Build and generate the HTML coverage report target."
-depends-on = ["tests-ci"]
+args = [{ arg = "parallel", default = "2" }]
+depends-on = [{ task = "tests-cov", args = ["{{ parallel }}"] }]
 cmd = [
   "cmake",
   "--build",
   "build",
   "--target",
   "coverage_html",
-  "-j3",
-  "--config",
-  "Release",
-]
-
-
-[feature.tests-debug-ci.tasks.build-tests-debug-ci]
-description = "Build debug test binaries for CI."
-depends-on = ["clone-xsref", "configure-tests-debug"]
-cmd = ["cmake", "--build", "build-debug", "-j3", "--config", "Debug"]
-
-[feature.tests-debug-ci.tasks.tests-debug-ci]
-description = "Run debug CTest suite for CI."
-depends-on = ["clone-xsref", "build-tests-debug-ci"]
-cmd = [
-  "ctest",
-  "--output-on-failure",
-  "--test-dir",
-  "build-debug/tests",
-  "-j3",
-  "--build-config",
-  "Debug",
 ]
 
 
@@ -218,37 +219,10 @@ cmd = [
 platforms = ["linux-64"]
 
 [feature.cupy-tests.dependencies]
-python = ">=3.12.0,<3.13"
-pip = "*"
-setuptools = "*"
-cupy = ">=14.0.0"
+cupy = "*"
 pytest = "*"
 pytest-forked = "*"
 
-[feature.cupy-tests.tasks.clone-xsref-test-cupy]
-description = "Ensure xsref is present locally for CuPy tests."
-# Since CuPy tests are only available on Linux, we can use bash like
-# this to only clone xsref if it isn't already there and checked out
-# at the proper commit.
-cmd = """
-bash -c '
-if [ -d xsref ]; then
-  commit=$(git -C xsref rev-parse HEAD 2>/dev/null || true)
-fi
-if [ \"$commit\" != 4e9b2343813136e355f0262754a3929d98bc5bff ]; then
-  rm -rf xsref
-  git clone https://github.com/scipy/xsref.git && git -C xsref checkout 4e9b2343813136e355f0262754a3929d98bc5bff
-fi
-'
-"""
-
-[feature.cupy-tests.tasks.install-xsref-test-cupy]
-description = "Install the local xsref package needed by CuPy tests."
-depends-on = ["clone-xsref-test-cupy"]
-cwd = "xsref"
-cmd = "pip install ."
-
 [feature.cupy-tests.tasks.test-cupy]
 description = "Run CuPy integration tests."
-depends-on = ["install-xsref-test-cupy"]
 cmd = "pytest --forked python_tests/test_cupy.py"

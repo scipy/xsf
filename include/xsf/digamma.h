@@ -38,9 +38,8 @@ namespace detail {
     // Precondition: !std::isfinite(z.real()) || !std::isfinite(z.imag()).
     template <typename T>
     XSF_HOST_DEVICE std::complex<T> digamma_nonfinite_limit(std::complex<T> z) {
-        constexpr T qnan = std::numeric_limits<T>::quiet_NaN();
         if (std::isnan(z.real()) || !std::isfinite(z.imag()) || z.real() <= T{0})
-            return {qnan, qnan};
+            return {std::numeric_limits<T>::quiet_NaN(), std::numeric_limits<T>::quiet_NaN()};
         return {std::numeric_limits<T>::infinity(), T{0}};
     }
 

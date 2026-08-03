@@ -16,12 +16,11 @@ import pytest
 import shutil
 import tempfile
 
-from glob import glob
 from packaging.version import Version
 from pathlib import Path
 
 from xsref.float_tools import extended_relative_error
-from xsref.tables import get_input_rows, get_output_rows, get_in_out_types
+from xsref.tables import get_input_rows, get_output_rows, get_tables_path
 
 
 #------------------------------------------------------------------------------
@@ -108,10 +107,7 @@ HERE = Path(__file__)
 
 
 def get_tables_for_func(func_name):
-    tables_path = (
-        HERE.parent.parent.resolve() / "xsref" / "tables" / "scipy_special_tests"
-    )
-    tables_path /= func_name
+    tables_path = get_tables_path() / "scipy_special_tests" / func_name
     input_tables = list(tables_path.glob("In_*.parquet"))
     output_tables = [
         path.parent / path.name.replace("In_", "Out_") for path in input_tables
