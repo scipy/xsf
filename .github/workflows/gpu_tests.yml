@@ -20,7 +20,7 @@ jobs:
     runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64-gpu:24.04
     steps:
       - name: Checkout xsf repo
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
 
@@ -40,7 +40,7 @@ jobs:
       - name: run nvidia-smi --query
         run: nvidia-smi --query
 
-      - uses: prefix-dev/setup-pixi@v0.10.0
+      - uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
         with:
           pixi-version: v0.75.0
           manifest-path: pixi.toml
