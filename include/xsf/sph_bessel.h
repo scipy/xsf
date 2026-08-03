@@ -362,6 +362,14 @@ T sph_bessel_k(long n, T z) {
         return std::numeric_limits<T>::infinity();
     }
 
+    if (z < 0) {
+        // https://dlmf.nist.gov/10.47#E17
+        // and
+        // https://dlmf.nist.gov/10.47.E11
+        int sign = (std::abs(n) % 2 == 0) ? 1 : -1;
+        return -(M_PI * sph_bessel_i(n, -z) + sign * sph_bessel_k(n, -z));
+    }
+
     if (std::isinf(z)) {
         // https://dlmf.nist.gov/10.52.E6
         if (z == std::numeric_limits<T>::infinity()) {
