@@ -245,3 +245,35 @@ TEST_CASE("spherical_i tiny inputs", "[spherical_bessel][xsf_tests]") {
     CAPTURE(n, z, result, ref, rel_err, rtol);
     REQUIRE(rel_err <= rtol);
 }
+
+TEST_CASE("spherical_k real reflection", "[spherical_bessel][xsf_tests]") {
+    using test_case = std::tuple<long, double, double, double>;
+
+    // Reference values computed with mpmath.
+    auto [n, z, ref_spherical_k, rtol] = GENERATE(
+        test_case{10, 5., 11.162178171949055, 1e-14}, test_case{10, -5., -11.165977657150502, 1e-14},
+        test_case{7, 5., 0.22221361309239493, 1e-14}, test_case{7, -5., -0.023872188945034639, 1e-14}
+    );
+
+    double result_spherical_k = xsf::sph_bessel_k(n, z);
+    double rel_err_spherical_k = xsf::extended_relative_error(result_spherical_k, ref_spherical_k);
+
+    CAPTURE(n, z, result_spherical_k, ref_spherical_k, rel_err_spherical_k, rtol);
+    REQUIRE(rel_err_spherical_k <= rtol);
+}
+
+TEST_CASE("spherical_k_jac reflection derivative", "[spherical_bessel][xsf_tests]") {
+    using test_case = std::tuple<long, double, double, double>;
+
+    // Reference values computed with mpmath.
+    auto [n, z, ref_spherical_k_jac, rtol] = GENERATE(
+        test_case{10, 5., -27.299149693641313, 1e-14}, test_case{10, -5., -27.290758018530437, 1e-14},
+        test_case{7, 5., -0.43011979527682201, 1e-14}, test_case{7, -5., 0.84209146503609691, 1e-14}
+    );
+
+    double result_spherical_k_jac = xsf::sph_bessel_k_jac(n, z);
+    double rel_err_spherical_k_jac = xsf::extended_relative_error(result_spherical_k_jac, ref_spherical_k_jac);
+
+    CAPTURE(n, z, result_spherical_k_jac, ref_spherical_k_jac, rel_err_spherical_k_jac, rtol);
+    REQUIRE(rel_err_spherical_k_jac <= rtol);
+}
