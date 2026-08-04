@@ -26,8 +26,7 @@ TEST_CASE("kelvin wronskian", "[ber][bei][ker][kei][kelvin][xsf_tests]") {
     const double atol = 1e-9;
 
     const auto x = GENERATE(
-        0.001, 0.01, 0.1, 0.5, 1.0, 2.0, 3.0, 5.0, 7.0, 9.0, 9.5, 9.9,
-        10.0, 10.1, 10.5, 11.0, 15.0, 20.0, 30.0, 50.0
+        0.001, 0.01, 0.1, 0.5, 1.0, 2.0, 3.0, 5.0, 7.0, 9.0, 9.5, 9.9, 10.0, 10.1, 10.5, 11.0, 15.0, 20.0, 30.0, 50.0
     );
 
     std::complex<double> Be, Ke, Bep, Kep;
