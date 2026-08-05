@@ -22,7 +22,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
-*/
+ */
 
 #pragma once
 
@@ -41,7 +41,7 @@ template <typename T>
 XSF_HOST_DEVICE inline T trigamma(T z) {
     double x = std::real(z);
     if (x <= 0) { // reflection formula
-        T s = xsf::sinpi(z);
+        T s = sinpi(z);
         T c = M_PI / s;
         return c * c - trigamma(T(1) - z);
     }
@@ -65,9 +65,9 @@ XSF_HOST_DEVICE inline T trigamma(T z) {
                        -0.03333333333333333, 0.023809523809523808, -0.03333333333333333, 0.16666666666666666};
     using base_t = std::remove_cv_t<T>;
     if constexpr (std::is_same_v<base_t, std::complex<double>> || std::is_same_v<base_t, std::complex<float>>) {
-        psi += t * w * xsf::cevalpoly(coeffs, 7, w);
+        psi += t * w * cevalpoly(coeffs, 7, w);
     } else {
-        psi += t * w * xsf::cephes::polevl(w, coeffs, 7);
+        psi += t * w * cephes::polevl(w, coeffs, 7);
     }
     return psi;
 }
