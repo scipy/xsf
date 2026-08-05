@@ -16,7 +16,7 @@ TEST_CASE("trigamma real", "[trigamma][xsf_tests]") {
         test_case{3.0, M_PI*M_PI/6 - 5.0/4, 1e-14},
         test_case{4.0, M_PI*M_PI/6 - 49.0/36, 1e-14},
         test_case{5.0, M_PI*M_PI/6 - 205.0/144, 1e-14},
-        test_case{10.0, M_PI*M_PI/6 - 1225.0/576, 1e-14}
+        test_case{10.0, 0.10516633568168565, 1e-14}
     );
 
     double result_trigamma = xsf::trigamma(z);
@@ -24,4 +24,11 @@ TEST_CASE("trigamma real", "[trigamma][xsf_tests]") {
 
     CAPTURE(z, result_trigamma, ref_trigamma, rel_err_trigamma, rtol);
     REQUIRE(rel_err_trigamma <= rtol);
+}
+
+TEST_CASE("trigamma real poles", "[trigamma][xsf_tests]") {
+    auto z = GENERATE(-1.0, 0.0);
+    double result_trigamma = xsf::trigamma(z);
+    CAPTURE(z, result_trigamma);
+    REQUIRE(std::isinf(result_trigamma));
 }
