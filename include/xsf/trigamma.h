@@ -46,4 +46,14 @@ XSF_HOST_DEVICE inline T trigamma(T z) {
     return psi;
 }
 
+template <>
+XSF_HOST_DEVICE inline float trigamma(float z) {
+    return static_cast<float>(trigamma(static_cast<double>(z)));
+}
+
+template <>
+XSF_HOST_DEVICE inline std::complex<float> trigamma(std::complex<float> z) {
+    return static_cast<std::complex<float>>(trigamma(static_cast<std::complex<double>>(z)));
+}
+
 } // namespace xsf
