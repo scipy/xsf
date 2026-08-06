@@ -29,6 +29,7 @@ Translated to C++ by SciPy developers in 2024.
 #pragma once
 
 #include "amos.h"
+#include "bessel.h"
 #include "error.h"
 
 namespace xsf {

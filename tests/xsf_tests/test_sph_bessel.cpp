@@ -1,7 +1,6 @@
 #include "../testing_utils.h"
 #include <complex>
 #include <tuple>
-#include <xsf/bessel.h>
 #include <xsf/sph_bessel.h>
 
 TEST_CASE("spherical_j reflection complex", "[spherical_bessel][xsf_tests]") {
