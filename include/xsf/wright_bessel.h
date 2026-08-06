@@ -118,11 +118,13 @@ namespace detail {
          * the fewer polygamma functions have to be computed.
          *
          * Call: python _precompute/wright_bessel.py 1
+         * Source: https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/_precompute/wright_bessel.py
          *
          * For small b, i.e. b <= 1e-3, cancellation of poles of digamma(b)/Gamma(b)
          * and polygamma needs to be carried out => series expansion in a=0 to order 5
          * and in b=0 to order 4.
          * Call: python _precompute/wright_bessel.py 2
+         * Source: https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/_precompute/wright_bessel.py
          */
         double A[6]; // coefficients of a^k  (1, -x * Psi(b), ...)
         double B[6]; // powers of b^k/k! or terms in polygamma functions
@@ -233,6 +235,7 @@ namespace detail {
          *
          * with Z = (a*x)^(1/(1+a)).
          * Call: python _precompute/wright_bessel.py 3
+         * Source: https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/_precompute/wright_bessel.py
          */
         double A[15];  // powers of a
         double B[17];  // powers of b
@@ -547,7 +550,8 @@ namespace detail {
         0.01811556071348939,  0.01438082276148557,  0.01059054838365097, 0.006759799195745401, 0.002908622553155141
     };
     /* Fitted parameters for optimal choice of eps
-     * Call: python _precompute/wright_bessel.py 4 */
+     * Call: python _precompute/wright_bessel.py 4
+     * Source: https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/_precompute/wright_bessel.py */
     constexpr double wb_A[] = {0.41037, 0.30833, 6.9952, 18.382, -2.8566, 2.1122};
 
     template <bool log_wb>
