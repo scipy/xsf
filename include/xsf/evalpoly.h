@@ -19,11 +19,12 @@
 
 #pragma once
 
+#include "cephes/polevl.h"
 #include "config.h"
 
 namespace xsf {
 
-XSF_HOST_DEVICE inline std::complex<double> cevalpoly(const double *coeffs, int degree, std::complex<double> z) {
+XSF_HOST_DEVICE inline std::complex<double> evalpoly(const double *coeffs, int degree, std::complex<double> z) {
     /* Evaluate a polynomial with real coefficients at a complex point.
      *
      * Uses equation (3) in section 4.6.4 of [1]. Note that it is more
@@ -42,6 +43,10 @@ XSF_HOST_DEVICE inline std::complex<double> cevalpoly(const double *coeffs, int 
     }
 
     return z * a + b;
+}
+
+XSF_HOST_DEVICE inline double evalpoly(const double *coeffs, int degree, double x) {
+    return cephes::polevl(x, coeffs, degree);
 }
 
 } // namespace xsf
