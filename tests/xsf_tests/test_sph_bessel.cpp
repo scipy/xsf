@@ -276,3 +276,38 @@ TEST_CASE("spherical_k_jac reflection derivative", "[spherical_bessel][xsf_tests
     CAPTURE(n, z, result_spherical_k_jac, ref_spherical_k_jac, rel_err_spherical_k_jac, rtol);
     REQUIRE(rel_err_spherical_k_jac <= rtol);
 }
+
+TEST_CASE("spherical_k reflection complex", "[spherical_bessel][xsf_tests]") {
+    using test_case = std::tuple<long, std::complex<double>, std::complex<double>, double>;
+
+    // Reference values computed with mpmath.
+    auto [n, z, ref_spherical_k, rtol] = GENERATE(
+        test_case{10, {5., 0}, {11.162178171949055, 0}, 1e-14},
+        test_case{10, {-5., 0}, {-11.165977657150502, 0}, 1e-14},
+        test_case{7, {5., 0}, {0.22221361309239493, 0}, 1e-14},
+        test_case{7, {-5., 0}, {-0.023872188945034639, 0}, 1e-14}
+    );
+
+    std::complex<double> result_spherical_k = xsf::sph_bessel_k(n, z);
+    double rel_err_spherical_k = xsf::extended_relative_error(result_spherical_k, ref_spherical_k);
+
+    CAPTURE(n, z, result_spherical_k, ref_spherical_k, rel_err_spherical_k, rtol);
+    REQUIRE(rel_err_spherical_k <= rtol);
+}
+
+TEST_CASE("spherical_k_jac reflection derivative complex", "[spherical_bessel][xsf_tests]") {
+    using test_case = std::tuple<long, std::complex<double>, std::complex<double>, double>;
+
+    // Reference values computed with mpmath.
+    auto [n, z, ref_spherical_k_jac, rtol] = GENERATE(
+        test_case{10, {5., 0}, {-27.299149693641313, 0}, 1e-14},
+        test_case{10, {-5., 0}, {-27.290758018530437, 0}, 1e-14},
+        test_case{7, {5., 0}, {-0.43011979527682201, 0}, 1e-14}, test_case{7, {-5., 0}, {0.84209146503609691, 0}, 1e-14}
+    );
+
+    std::complex<double> result_spherical_k_jac = xsf::sph_bessel_k_jac(n, z);
+    double rel_err_spherical_k_jac = xsf::extended_relative_error(result_spherical_k_jac, ref_spherical_k_jac);
+
+    CAPTURE(n, z, result_spherical_k_jac, ref_spherical_k_jac, rel_err_spherical_k_jac, rtol);
+    REQUIRE(rel_err_spherical_k_jac <= rtol);
+}
