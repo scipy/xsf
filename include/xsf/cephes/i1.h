@@ -80,6 +80,7 @@
 
 #include "../config.h"
 #include "chbevl.h"
+#include "const.h"
 
 namespace xsf {
 namespace cephes {
@@ -131,6 +132,11 @@ namespace cephes {
         if (z <= 8.0) {
             y = (z / 2.0) - 2.0;
             z = chbevl(y, detail::i1_A, 29) * z * std::exp(z);
+        } else if (z > detail::MAXLOG) {
+            /* exp(z) overflows here even though i1(z) is still finite up to z ~ 713.99,
+             * so evaluate the exponential in two halves. */
+            double e = std::exp(z / 2.0);
+            z = e * chbevl(32.0 / z - 2.0, detail::i1_B, 25) / std::sqrt(z) * e;
         } else {
             z = std::exp(z) * chbevl(32.0 / z - 2.0, detail::i1_B, 25) / std::sqrt(z);
         }

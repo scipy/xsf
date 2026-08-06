@@ -1,4 +1,6 @@
 #include "../testing_utils.h"
+#include <xsf/cephes/i0.h>
+#include <xsf/cephes/i1.h>
 #include <xsf/cephes/j0.h>
 #include <xsf/cephes/j1.h>
 
@@ -128,4 +130,69 @@ TEST_CASE("y1 right tail gh-large-input", "[y1][xsf_tests]") {
 
     CAPTURE(x, w, ref, rtol, rel_error);
     REQUIRE(rel_error <= rtol);
+}
+
+/* i0 and i1 used to compute exp(x) before dividing by sqrt(x), so they returned inf for
+ * every x above log(DBL_MAX) ~ 709.78 even though the result stays representable up to
+ * x ~ 713.99. Reported as scipy/scipy#25823 and scipy/scipy#25824. */
+
+TEST_CASE("i0 near the overflow threshold scipy-gh-25823", "[i0][xsf_tests]") {
+    using test_case = std::tuple<double, double, double>;
+    // Reference values computed with mpmath with 1000 digits of precision:
+    //
+    // import mpmath as mp
+    // mp.mp.dps = 1000
+    // xs = [
+    //     709.0, 709.7827128933839, 709.7827128933841, 710.0, 711.0,
+    //     712.0, 713.0, 713.5, 713.9, 713.98,
+    // ]
+    // for x in xs:
+    //     print(x, mp.nstr(mp.besseli(0, x), 18))
+    auto [x, ref, rtol] = GENERATE(
+        test_case{709.0, 1.231547706701654e+306, 5e-15}, test_case{709.7827128933839, 2.6923992106264072e+306, 5e-15},
+        test_case{709.7827128933841, 2.692399210627019e+306, 5e-15}, test_case{710.0, 3.345334558619656e+306, 5e-15},
+        test_case{711.0, 9.087162727263793e+306, 5e-15}, test_case{712.0, 2.4684110577627523e+307, 5e-15},
+        test_case{713.0, 6.705128263670996e+307, 5e-15}, test_case{713.5, 1.1051012081178279e+308, 5e-15},
+        test_case{713.9, 1.6481551866951379e+308, 5e-15}, test_case{713.98, 1.785325134768229e+308, 5e-15}
+    );
+    const double w = xsf::cephes::i0(x);
+    const double rel_error = xsf::extended_relative_error(w, ref);
+
+    CAPTURE(x, w, ref, rtol, rel_error);
+    REQUIRE(rel_error <= rtol);
+}
+
+TEST_CASE("i1 near the overflow threshold scipy-gh-25824", "[i1][xsf_tests]") {
+    using test_case = std::tuple<double, double, double>;
+    // Reference values computed with mpmath with 1000 digits of precision:
+    //
+    // import mpmath as mp
+    // mp.mp.dps = 1000
+    // xs = [
+    //     709.0, 709.7827128933839, 709.7827128933841, 710.0, 711.0,
+    //     712.0, 713.0, 713.5, 713.9, 713.98,
+    // ]
+    // for x in xs:
+    //     print(x, mp.nstr(mp.besseli(1, x), 18))
+    auto [x, ref, rtol] = GENERATE(
+        test_case{709.0, 1.2306788896524786e+306, 5e-15}, test_case{709.7827128933839, 2.690501905423821e+306, 5e-15},
+        test_case{709.7827128933841, 2.6905019054244322e+306, 5e-15}, test_case{710.0, 3.3429778585097626e+306, 5e-15},
+        test_case{711.0, 9.080770067322847e+306, 5e-15}, test_case{712.0, 2.4666770135246153e+307, 5e-15},
+        test_case{713.0, 6.700424559186402e+307, 5e-15}, test_case{713.5, 1.1043265136795952e+308, 5e-15},
+        test_case{713.9, 1.6470004499232343e+308, 5e-15}, test_case{713.98, 1.7840744336676367e+308, 5e-15}
+    );
+    const double w = xsf::cephes::i1(x);
+    const double rel_error = xsf::extended_relative_error(w, ref);
+
+    CAPTURE(x, w, ref, rtol, rel_error);
+    REQUIRE(rel_error <= rtol);
+}
+
+// i0(x) exceeds DBL_MAX just above 713.9869, so these must still overflow.
+TEST_CASE("i0 and i1 still overflow beyond the representable range", "[i0][i1][xsf_tests]") {
+    const double x = GENERATE(714.0, 715.0, 1e5, 1e300);
+    CAPTURE(x);
+    REQUIRE(std::isinf(xsf::cephes::i0(x)));
+    REQUIRE(std::isinf(xsf::cephes::i1(x)));
+    REQUIRE(std::isinf(xsf::cephes::i1(-x)));
 }
