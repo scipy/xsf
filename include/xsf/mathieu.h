@@ -190,7 +190,7 @@ namespace mathieu {
      * AngleUnits = AngleUnitPolicy::Radians or AngleUnitPolicy::Degrees.
      *
      * Inputs:
-     * X = A 1d mdspan view of the Fourier coefficients.
+     * X = A 1d mdspan view of an array of Fourier coefficients with signs correctly determined.
      * v = Angular argument, in either radians or degrees depending on the
      * value of the AngleUnits template argument.
      *
@@ -240,29 +240,8 @@ namespace mathieu {
             }
         } // for (k=(N-1) ...
 
-        /* This makes sure the fcn has the right overall sign.
-         * The eigenvector solver that found the coefficients may have
-         * given the correct vector of coefficients, but with the sign
-         * flipped.
-         * These functions satisfy cem(m, q, 0) > 0 and sem'(m, q, 0) > 0
-         * (follows from https://dlmf.nist.gov/28.2#E29).
-         * Use these to fix the sign if needed.
-         * Someday combine this with the above sums into the same for loop. */
-        double x = 0.0;
-        for (decltype(N) l = 0; l < N; l++) {
-            if constexpr (FuncParity == Parity::Even) {
-                // sum of coefficients A_k equals cem(m, q, 0)
-                x += X(l);
-            } else {
-                // sum of k * B_k equals sem'(m, q, 0)
-                double r = sqrt_di<Parity::Odd, OrderParity>(l);
-                x += r * X(l);
-            }
-        }
-
-        auto sgn = std::copysign(1.0, x);
-        out = sgn * (xep + xem);
-        out_diff = sgn * (xedp + xedm);
+        out = xep + xem;
+        out_diff = xedp + xedm;
     }
 
 } // namespace mathieu
