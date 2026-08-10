@@ -11,13 +11,6 @@
 // (ber*kerp - berp*ker) - (bei*keip - beip*kei) and its imaginary part is
 // (ber*keip - berp*kei) + (bei*kerp - beip*ker), so one check covers all eight
 // functions at once.
-//
-// Verified against mpmath at 50 digits for x in [0.05, 25]: the largest deviation
-// is 1.4e-51, i.e. mpmath's own rounding.
-//
-// This needs no reference table -- the eight functions are checked against each
-// other -- so it stays valid whatever is decided about the |x| < 10 branch point
-// discussed in gh-232.
 
 TEST_CASE("kelvin wronskian", "[ber][bei][ker][kei][kelvin][xsf_tests]") {
     // Loose enough to pass today. The worst residual measured on the current
