@@ -65,6 +65,12 @@ inline std::complex<double> hyp1f1(double a, double b, std::complex<double> z) {
     return outz;
 }
 
+inline std::complex<float> hyp1f1(float a, float b, std::complex<float> z) {
+    return static_cast<std::complex<float>>(
+        hyp1f1(static_cast<double>(a), static_cast<double>(b), static_cast<std::complex<double>>(z))
+    );
+}
+
 inline double hypu(double a, double b, double x) {
     double out;
     int md; /* method code --- not returned */
