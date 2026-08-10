@@ -40,9 +40,10 @@ jobs:
 
       - uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
         with:
-          pixi-version: v0.75.0
+          pixi-version: v0.76.1
           manifest-path: pixi.toml
           cache: false
+          environments: cupy-tests
 
       - name: Run CuPy tests
         run: pixi run test-cupy

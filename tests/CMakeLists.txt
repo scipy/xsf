@@ -31,14 +31,15 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     endif()
 endif()
 
-add_library(xsf INTERFACE)
-target_include_directories(xsf INTERFACE ${CMAKE_SOURCE_DIR}/include)
-
 set(TEST_BASE_DIR "${CMAKE_SOURCE_DIR}/tests")
+set(INSTALLED_CTEST_FILE "${CMAKE_CURRENT_BINARY_DIR}/xsf-installed-CTestTestfile.cmake")
+file(WRITE "${INSTALLED_CTEST_FILE}" "")
+
+set(TEST_INSTALL_DIR share/xsf/tests)
 
 include(${CMAKE_SOURCE_DIR}/tests/Coverage.cmake)
 
-file(GLOB TEST_SOURCES "*/test_*.cpp")
+file(GLOB_RECURSE TEST_SOURCES "${TEST_BASE_DIR}/*/test_*.cpp")
 foreach(test_file ${TEST_SOURCES})
   # Families of tests go in subfolders of xsf/tests. Test files in different
   # folders can have the same name. Try to generate a unique target name based
@@ -54,7 +55,12 @@ foreach(test_file ${TEST_SOURCES})
   target_link_libraries(${target_name} PRIVATE Catch2::Catch2WithMain Arrow::arrow_shared Parquet::parquet_shared xsf)
 
   target_compile_definitions(${target_name} PRIVATE XSREF_TABLES_PATH="${XSREF_TABLES_PATH}")
+  install(TARGETS ${target_name} RUNTIME DESTINATION ${TEST_INSTALL_DIR})
+  file(APPEND "${INSTALLED_CTEST_FILE}"
+       "add_test(${target_name} \"\${CMAKE_CURRENT_LIST_DIR}/${target_name}\")\n")
   include(CTest)
   include(Catch)
   catch_discover_tests(${target_name})
 endforeach()
+
+install(FILES "${INSTALLED_CTEST_FILE}" DESTINATION ${TEST_INSTALL_DIR} RENAME CTestTestfile.cmake)

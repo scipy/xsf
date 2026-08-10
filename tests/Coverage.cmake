@@ -1,30 +1,25 @@
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
+  set(COVERAGE_DIR share/xsf/cov)
 
-# Enable coverage compilation option
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+  # Enable coverage compilation option
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage")
-endif()
-if(MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /coverage")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /coverage")
-endif()
+  endif()
 
-# Add custom targets for generating coverage reports
-add_custom_target(coverage
-    COMMAND lcov --capture --directory . --output-file coverage.info
-    COMMAND lcov --output-file coverage.info --extract coverage.info '*/include/xsf/*'
-    COMMAND lcov --list coverage.info
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    COMMENT "Generating coverage report"
-)
+  # Number of path components in the build dir, needed for GCOV_PREFIX_STRIP
+  # at test time so .gcda files land in share/xsf/cov/ mirroring the .gcno layout
+  string(REGEX MATCHALL "/" _slashes "${CMAKE_BINARY_DIR}")
+  list(LENGTH _slashes GCOV_PREFIX_STRIP_COUNT)
 
-# Generate coverage reports in HTML format
-add_custom_target(coverage_html
-    COMMAND genhtml --demangle-cpp --legend coverage.info --output-directory coverage_report
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    COMMENT "Generating HTML coverage report"
-)
-add_dependencies(coverage_html coverage)
+  # Install .gcno files (compile-time output) into the package, preserving
+  # their relative layout so they line up with the .gcda files written later
+  install(DIRECTORY ${CMAKE_BINARY_DIR}/
+    DESTINATION ${COVERAGE_DIR}/
+    FILES_MATCHING PATTERN "*.gcno"
+  )
 
+  # Drop a small file recording the strip count
+  file(WRITE ${CMAKE_BINARY_DIR}/gcov_prefix_strip.txt "${GCOV_PREFIX_STRIP_COUNT}")
+  install(FILES ${CMAKE_BINARY_DIR}/gcov_prefix_strip.txt DESTINATION ${COVERAGE_DIR}/)
 endif() # CMAKE_BUILD_TYPE=Coverage
