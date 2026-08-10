@@ -10,7 +10,7 @@ build = {
 build-dependencies = {
   xsref = {
     git = "https://github.com/lucascolley/xsref",
-    rev = "6b5fd6c23abadb3a60fafd14c7c3f0fdf2c1b743",
+    rev = "6d4891c435c8525d535bf5038142414603edbd27",
   },
 }
 host-dependencies = {
