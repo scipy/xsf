@@ -126,7 +126,7 @@ jobs:
         with:
           pixi-version: v0.76.1
           cache: true
-          cache-key: tests-debug-v1-
+          cache-key: tests-debug-v2-
           environments: ${{ matrix.environment }}
           log-level: vvv
       # - name:  Prepare compiler cache
