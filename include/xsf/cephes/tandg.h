@@ -35,7 +35,7 @@
  * ERROR MESSAGES:
  *
  *   message         condition          value returned
- * tandg total loss   x > 1.0e14 (IEEE)     0.0
+ * tandg no result    x = +-INFINITY        0.0
  * tandg singularity  x = 180 k  +  90     INFINITY
  */
 /*							cotdg.c
@@ -64,7 +64,7 @@
  * ERROR MESSAGES:
  *
  *   message         condition          value returned
- * cotdg total loss   x > 1.0e14 (IEEE)     0.0
+ * cotdg no result    x = +-INFINITY        0.0
  * cotdg singularity  x = 180 k            INFINITY
  */
 
@@ -82,7 +82,6 @@ namespace xsf {
 namespace cephes {
 
     namespace detail {
-        constexpr double tandg_lossth = 1.0e14;
 
         XSF_HOST_DEVICE inline double tancot(double xx, int cotflg) {
             double x;
@@ -97,10 +96,20 @@ namespace cephes {
                 sign = 1;
             }
 
-            if (x > detail::tandg_lossth) {
-                set_error("tandg", SF_ERROR_NO_RESULT, NULL);
+            if (std::isinf(x)) {
+                set_error((cotflg ? "cotdg" : "tandg"), SF_ERROR_NO_RESULT, NULL);
                 return 0.0;
             }
+
+            /* Reduce x modulo one full turn.
+             *
+             * 360 is exactly representable and std::fmod is exact, so this
+             * introduces no error of its own no matter how large x is, and it
+             * puts x in [0, 360), where the reduction modulo 180 below is
+             * accurate. A full turn is an even number of half turns, so the
+             * parity of k, which is all that is used below, is unchanged.
+             */
+            x = std::fmod(x, 360.0);
 
             /* modulo 180 */
             double k = std::floor(x / 180.0);

@@ -37,7 +37,7 @@
  * ERROR MESSAGES:
  *
  *   message           condition        value returned
- * sindg total loss   x > 1.0e14 (IEEE)     0.0
+ * sindg no result     x = +-INFINITY        0.0
  *
  */
 /*							cosdg.c
@@ -98,8 +98,6 @@ namespace cephes {
                                      -2.48015872936186303776E-5, 1.38888888888806666760E-3,  -4.16666666666666348141E-2,
                                      4.99999999999999999798E-1};
 
-        constexpr double sindg_lossth = 1.0e14;
-
     } // namespace detail
 
     XSF_HOST_DEVICE inline double sindg(double x) {
@@ -113,10 +111,20 @@ namespace cephes {
             sign = -1;
         }
 
-        if (x > detail::sindg_lossth) {
+        if (std::isinf(x)) {
             set_error("sindg", SF_ERROR_NO_RESULT, NULL);
             return (0.0);
         }
+
+        /* Reduce x modulo one full turn.
+         *
+         * 360 is exactly representable and std::fmod is exact, so this
+         * introduces no error of its own no matter how large x is, and it puts
+         * x in [0, 360), where the reduction below is accurate. A full turn is
+         * 8 octants and the octant index j is taken modulo 8 below, so removing
+         * whole turns leaves the result unchanged.
+         */
+        x = std::fmod(x, 360.0);
 
         y = std::floor(x / 45.0); /* integer part of x/M_PI_4 */
 
@@ -163,10 +171,20 @@ namespace cephes {
         if (x < 0)
             x = -x;
 
-        if (x > detail::sindg_lossth) {
+        if (std::isinf(x)) {
             set_error("cosdg", SF_ERROR_NO_RESULT, NULL);
             return (0.0);
         }
+
+        /* Reduce x modulo one full turn.
+         *
+         * 360 is exactly representable and std::fmod is exact, so this
+         * introduces no error of its own no matter how large x is, and it puts
+         * x in [0, 360), where the reduction below is accurate. A full turn is
+         * 8 octants and the octant index j is taken modulo 8 below, so removing
+         * whole turns leaves the result unchanged.
+         */
+        x = std::fmod(x, 360.0);
 
         y = std::floor(x / 45.0);
         z = std::ldexp(y, -4);
