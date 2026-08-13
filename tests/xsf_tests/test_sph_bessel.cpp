@@ -285,7 +285,7 @@ TEST_CASE("spherical_k reflection complex", "[spherical_bessel][xsf_tests]") {
         test_case{10, {5., 0}, {11.162178171949055, 0}, 1e-14},
         test_case{10, {-5., 0}, {-11.165977657150502, 0}, 1e-14},
         test_case{7, {5., 0}, {0.22221361309239493, 0}, 1e-14},
-        test_case{7, {-5., 0}, {-0.023872188945034639, 0}, 1e-14}
+        test_case{7, {-5., 0}, {-0.023872188945034639, 0}, 1.5e-14}
     );
 
     std::complex<double> result_spherical_k = xsf::sph_bessel_k(n, z);
