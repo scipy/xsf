@@ -411,7 +411,7 @@ std::complex<T> sph_bessel_k(long n, std::complex<T> z) {
         return std::numeric_limits<T>::quiet_NaN();
     }
 
-    if (std::imag(z)) {
+    if (std::imag(z) == 0) {
         return {sph_bessel_k(n, std::real(z)), 0};
     }
 
