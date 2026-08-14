@@ -100,15 +100,11 @@ TEST_CASE("cotdg IEEE infinity sign scipy/20731", "[cotdg][xsf_tests]") {
     }
 }
 
-/* The degree trig functions used to give up and return 0.0 for |x| > 1e14,
- * because their range reduction was `x - 45 * floor(x / 45)`, which is
- * inaccurate for large x. Reducing modulo 360 with std::fmod first is exact,
- * so arguments of any finite magnitude can be handled. scipy/scipy#20723
+/* These returned 0.0 for |x| > 1e14 because `x - 45 * floor(x / 45)` loses
+ * accuracy there. An exact fmod by 360 first removes the limit. scipy/scipy#20723
  */
 TEST_CASE("degree trig large arguments scipy/20723", "[sindg][cosdg][tandg][cotdg][xsf_tests]") {
-    /* {x, x reduced modulo 360}. std::fmod is exact and 360 is exactly
-     * representable, so the reduced argument is the exact remainder of the
-     * double x, and the reduced and unreduced results must agree exactly. */
+    /* {x, x mod 360}. The reduction is exact, so the two must agree exactly. */
     std::vector<std::pair<double, double>> cases{
         {1e14 + 1.0, 281.0}, /* just past the old 1e14 cutoff */
         {2e14, 200.0},       /* the example in the issue */

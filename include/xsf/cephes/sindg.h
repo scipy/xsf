@@ -116,14 +116,9 @@ namespace cephes {
             return (0.0);
         }
 
-        /* Reduce x modulo one full turn.
-         *
-         * 360 is exactly representable and std::fmod is exact, so this
-         * introduces no error of its own no matter how large x is, and it puts
-         * x in [0, 360), where the reduction below is accurate. A full turn is
-         * 8 octants and the octant index j is taken modulo 8 below, so removing
-         * whole turns leaves the result unchanged.
-         */
+        /* Reduce modulo a full turn. Exact: 360 is representable and fmod is
+         * exact. The octant index below is taken modulo 8, so dropping whole
+         * turns does not change the result. */
         x = std::fmod(x, 360.0);
 
         y = std::floor(x / 45.0); /* integer part of x/M_PI_4 */
@@ -176,14 +171,9 @@ namespace cephes {
             return (0.0);
         }
 
-        /* Reduce x modulo one full turn.
-         *
-         * 360 is exactly representable and std::fmod is exact, so this
-         * introduces no error of its own no matter how large x is, and it puts
-         * x in [0, 360), where the reduction below is accurate. A full turn is
-         * 8 octants and the octant index j is taken modulo 8 below, so removing
-         * whole turns leaves the result unchanged.
-         */
+        /* Reduce modulo a full turn. Exact: 360 is representable and fmod is
+         * exact. The octant index below is taken modulo 8, so dropping whole
+         * turns does not change the result. */
         x = std::fmod(x, 360.0);
 
         y = std::floor(x / 45.0);

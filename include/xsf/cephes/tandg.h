@@ -101,14 +101,9 @@ namespace cephes {
                 return 0.0;
             }
 
-            /* Reduce x modulo one full turn.
-             *
-             * 360 is exactly representable and std::fmod is exact, so this
-             * introduces no error of its own no matter how large x is, and it
-             * puts x in [0, 360), where the reduction modulo 180 below is
-             * accurate. A full turn is an even number of half turns, so the
-             * parity of k, which is all that is used below, is unchanged.
-             */
+            /* Reduce modulo a full turn. Exact: 360 is representable and fmod
+             * is exact. A turn is an even number of half turns, so the parity
+             * of k below is unchanged. */
             x = std::fmod(x, 360.0);
 
             /* modulo 180 */
