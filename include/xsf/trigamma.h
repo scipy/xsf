@@ -64,11 +64,7 @@ XSF_HOST_DEVICE inline T trigamma(T z) {
     double coeffs[] = {-7.092156862745098,   1.1666666666666667,   -0.2531135531135531,  0.07575757575757576,
                        -0.03333333333333333, 0.023809523809523808, -0.03333333333333333, 0.16666666666666666};
     using base_t = std::remove_cv_t<T>;
-    if constexpr (std::is_same_v<base_t, std::complex<double>> || std::is_same_v<base_t, std::complex<float>>) {
-        psi += t * w * cevalpoly(coeffs, 7, w);
-    } else {
-        psi += t * w * cephes::polevl(w, coeffs, 7);
-    }
+    psi += t * w * evalpoly(coeffs, 7, w);
     return psi;
 }
 
