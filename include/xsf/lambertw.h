@@ -51,7 +51,7 @@ namespace detail {
         double coeffs[] = {-1.0 / 3.0, 1.0, -1.0};
         std::complex<double> p = std::sqrt(2.0 * (M_E * z + 1.0));
 
-        return cevalpoly(coeffs, 2, p);
+        return evalpoly(coeffs, 2, p);
     }
 
     XSF_HOST_DEVICE inline std::complex<double> lambertw_pade0(std::complex<double> z) {
@@ -62,7 +62,7 @@ namespace detail {
         /* This only gets evaluated close to 0, so we don't need a more
          * careful algorithm that avoids overflow in the numerator for
          * large z. */
-        return z * cevalpoly(num, 2, z) / cevalpoly(denom, 2, z);
+        return z * evalpoly(num, 2, z) / evalpoly(denom, 2, z);
     }
 
     XSF_HOST_DEVICE inline std::complex<double> lambertw_asy(std::complex<double> z, long k) {

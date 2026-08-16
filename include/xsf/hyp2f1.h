@@ -56,7 +56,8 @@ namespace detail {
     /* The original implementation in SciPy from Zhang and Jin used 1500 for the
      * maximum number of series iterations in some cases and 500 in others.
      * Through the empirical results on the test cases in
-     * scipy/special/_precompute/hyp2f1_data.py, it was determined that these values
+     * https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/_precompute/hyp2f1_data.py,
+     * it was determined that these values
      * can lead to early termination of series which would have eventually converged
      * at a reasonable level of accuracy. We've bumped the iteration limit to 3000,
      * and may adjust it again based on further analysis. */
@@ -205,7 +206,7 @@ namespace detail {
         }
         /* Direct ratio tends to be more accurate for arguments in this range. Range
          * chosen empirically based on the relevant benchmarks in
-         * scipy/special/_precompute/hyp2f1_data.py */
+         * https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/_precompute/hyp2f1_data.py */
         if (std::abs(u) <= 100 && std::abs(v) <= 100 && std::abs(w) <= 100 && std::abs(x) <= 100) {
             result = cephes::Gamma(u) * cephes::Gamma(v) * (cephes::rgamma(w) * cephes::rgamma(x));
             if (std::isfinite(result) && result != 0.0) {

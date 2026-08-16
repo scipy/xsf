@@ -7,8 +7,6 @@ permissions:
 
 env:
   CCACHE_DIR: "${{ github.workspace }}/.ccache"
-  # Needed because Pixi doesn't set mtime for compilers
-  CCACHE_COMPILERCHECK: "content"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -23,8 +21,8 @@ jobs:
       matrix:
         runs-on: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: prefix-dev/setup-pixi@v0.10.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
         with:
           pixi-version: v0.75.0
           cache: true
@@ -38,7 +36,7 @@ jobs:
           NOW=$(date -u +"%F-%T")
           echo "timestamp=${NOW}" >> $GITHUB_OUTPUT
       - name: Setup compiler cache
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id:   cache-ccache
         with:
           path: ${{ steps.prep-ccache.outputs.dir }}
@@ -63,7 +61,7 @@ jobs:
         run: pixi run --skip-deps coverage $NUM_WORKERS
       - name: Upload HTML coverage report
         if: runner.os != 'Windows'
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882  # v4.4.3
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: cov-html-${{ matrix.runs-on }}
           path: build/coverage_report/**
@@ -80,8 +78,8 @@ jobs:
       matrix:
         runs-on: [windows-latest]
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: prefix-dev/setup-pixi@v0.10.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
         with:
           pixi-version: v0.75.0
           cache: true
@@ -95,7 +93,7 @@ jobs:
           NOW=$(date -u +"%F-%T")
           echo "timestamp=${NOW}" >> $GITHUB_OUTPUT
       - name: Setup compiler cache
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id:   cache-ccache
         with:
           path: ${{ steps.prep-ccache.outputs.dir }}
@@ -127,8 +125,8 @@ jobs:
       matrix:
         runs-on: [ubuntu-latest, ubuntu-24.04-arm]
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: prefix-dev/setup-pixi@v0.10.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
         with:
           pixi-version: v0.75.0
           cache: true
@@ -142,7 +140,7 @@ jobs:
           NOW=$(date -u +"%F-%T")
           echo "timestamp=${NOW}" >> $GITHUB_OUTPUT
       - name: Setup compiler cache
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id:   cache-ccache
         with:
           path: ${{ steps.prep-ccache.outputs.dir }}

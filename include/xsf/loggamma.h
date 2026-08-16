@@ -50,7 +50,7 @@ namespace detail {
         std::complex<double> rz = 1.0 / z;
         std::complex<double> rzz = rz / z;
 
-        return (z - 0.5) * std::log(z) - z + loggamma_HLOG2PI + rz * cevalpoly(coeffs, 7, rzz);
+        return (z - 0.5) * std::log(z) - z + loggamma_HLOG2PI + rz * evalpoly(coeffs, 7, rzz);
     }
 
     XSF_HOST_DEVICE std::complex<double> loggamma_recurrence(std::complex<double> z) {
@@ -95,7 +95,7 @@ namespace detail {
                            8.2246703342411321824E-1,  -5.7721566490153286061E-1};
 
         z -= 1.0;
-        return z * cevalpoly(coeffs, 22, z);
+        return z * evalpoly(coeffs, 22, z);
     }
 } // namespace detail
 

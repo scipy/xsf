@@ -29,6 +29,7 @@ Translated to C++ by SciPy developers in 2024.
 #pragma once
 
 #include "amos.h"
+#include "bessel.h"
 #include "error.h"
 
 namespace xsf {
@@ -362,6 +363,14 @@ T sph_bessel_k(long n, T z) {
         return std::numeric_limits<T>::infinity();
     }
 
+    if (z < 0) {
+        // https://dlmf.nist.gov/10.47#E17
+        // and
+        // https://dlmf.nist.gov/10.47.E11
+        int sign = (std::abs(n) % 2 == 0) ? 1 : -1;
+        return -(M_PI * sph_bessel_i(n, -z) + sign * sph_bessel_k(n, -z));
+    }
+
     if (std::isinf(z)) {
         // https://dlmf.nist.gov/10.52.E6
         if (z == std::numeric_limits<T>::infinity()) {
@@ -400,6 +409,10 @@ std::complex<T> sph_bessel_k(long n, std::complex<T> z) {
         }
 
         return std::numeric_limits<T>::quiet_NaN();
+    }
+
+    if (std::imag(z) == 0) {
+        return {sph_bessel_k(n, std::real(z)), 0};
     }
 
     return std::sqrt(static_cast<T>(M_PI_2) / z) * cyl_bessel_k(n + 1 / static_cast<T>(2), z);

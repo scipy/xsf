@@ -5,11 +5,6 @@ on: [ push, pull_request ]
 permissions:
    contents: read  # to fetch code (actions/checkout)
 
-env:
-  CCACHE_DIR: "${{ github.workspace }}/.ccache"
-  # Needed because Pixi doesn't set mtime for compilers
-  CCACHE_COMPILERCHECK: "content"
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
@@ -17,22 +12,12 @@ concurrency:
 jobs:
   cupy_tests:
     name: CuPy GPU
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64-gpu:24.04
+    runs-on: "cirun-scipy-onprem-gpu--${{ github.run_id }}"
     steps:
       - name: Checkout xsf repo
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
-
-      - name: Setup compiler cache
-        uses: cirruslabs/cache@v4  #caa3ad0624c6c2acd8ba50ad452d1f44bba078bb # v4
-        with:
-          path: ${{ env.CCACHE_DIR }}
-          # Make primary key unique by using `run_id`, this ensures the cache
-          # is always saved at the end.
-          key: ${{ runner.os }}-gpu-ccache-${{ github.run_id }}
-          restore-keys: |
-            ${{ runner.os }}-gpu-ccache
 
       - name: run nvidia-smi
         run: nvidia-smi
@@ -40,11 +25,12 @@ jobs:
       - name: run nvidia-smi --query
         run: nvidia-smi --query
 
-      - uses: prefix-dev/setup-pixi@v0.10.0
+      - uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
         with:
           pixi-version: v0.75.0
           manifest-path: pixi.toml
-          cache: false
+          cache: true
+          cache-key: gpu-pixi-
 
       - name: Run CuPy tests
         run: pixi run test-cupy
