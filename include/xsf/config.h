@@ -339,3 +339,10 @@ using complex = complex_type_t<T>;
 } // namespace xsf
 
 #endif
+
+namespace xsf {
+
+template <typename T>
+inline constexpr bool is_float_or_double_v = std::is_same_v<T, float> || std::is_same_v<T, double>;
+
+} // namespace xsf
