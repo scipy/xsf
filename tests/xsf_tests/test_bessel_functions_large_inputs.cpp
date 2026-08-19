@@ -1,6 +1,5 @@
 #include "../testing_utils.h"
-#include <xsf/cephes/i0.h>
-#include <xsf/cephes/i1.h>
+#include <xsf/bessel.h>
 #include <xsf/cephes/j0.h>
 #include <xsf/cephes/j1.h>
 
@@ -155,7 +154,7 @@ TEST_CASE("i0 near the overflow threshold scipy-gh-25823", "[i0][xsf_tests]") {
         test_case{713.0, 6.705128263670996e+307, 5e-15}, test_case{713.5, 1.1051012081178279e+308, 5e-15},
         test_case{713.9, 1.6481551866951379e+308, 5e-15}, test_case{713.98, 1.785325134768229e+308, 5e-15}
     );
-    const double w = xsf::cephes::i0(x);
+    const double w = xsf::cyl_bessel_i0(x);
     const double rel_error = xsf::extended_relative_error(w, ref);
 
     CAPTURE(x, w, ref, rtol, rel_error);
@@ -181,7 +180,7 @@ TEST_CASE("i1 near the overflow threshold scipy-gh-25824", "[i1][xsf_tests]") {
         test_case{713.0, 6.700424559186402e+307, 5e-15}, test_case{713.5, 1.1043265136795952e+308, 5e-15},
         test_case{713.9, 1.6470004499232343e+308, 5e-15}, test_case{713.98, 1.7840744336676367e+308, 5e-15}
     );
-    const double w = xsf::cephes::i1(x);
+    const double w = xsf::cyl_bessel_i1(x);
     const double rel_error = xsf::extended_relative_error(w, ref);
 
     CAPTURE(x, w, ref, rtol, rel_error);
@@ -192,7 +191,7 @@ TEST_CASE("i1 near the overflow threshold scipy-gh-25824", "[i1][xsf_tests]") {
 TEST_CASE("i0 and i1 still overflow beyond the representable range", "[i0][i1][xsf_tests]") {
     const double x = GENERATE(714.0, 715.0, 1e5, 1e300);
     CAPTURE(x);
-    REQUIRE(std::isinf(xsf::cephes::i0(x)));
-    REQUIRE(std::isinf(xsf::cephes::i1(x)));
-    REQUIRE(std::isinf(xsf::cephes::i1(-x)));
+    REQUIRE(std::isinf(xsf::cyl_bessel_i0(x)));
+    REQUIRE(std::isinf(xsf::cyl_bessel_i1(x)));
+    REQUIRE(std::isinf(xsf::cyl_bessel_i1(-x)));
 }
