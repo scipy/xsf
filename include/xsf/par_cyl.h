@@ -638,6 +638,7 @@ void pbdv(T v, T x, T &pdf, T &pdd) {
             detail::pbdv(x, v, dv, dp, &pdf, &pdd);
             T nearest = nearbyint(v);
             T distance = fabs(v - nearest);
+            // The forward recurrence is unstable within a few ulps of positive integer orders.
             if ((x < -5.8) && (v > 0.0) && (distance > 0.0) &&
                 (distance <= 8.0 * std::numeric_limits<T>::epsilon() * fabs(v))) {
                 T pvf, pvd;
