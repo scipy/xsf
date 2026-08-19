@@ -1,7 +1,9 @@
 #pragma once
 
+#include "cephes/gamma.h"
 #include "error.h"
 #include "specfun/specfun.h"
+#include "trig.h"
 
 namespace xsf {
 namespace detail {
@@ -97,8 +99,8 @@ namespace detail {
         if (x < 0.0) {
             x1 = -x;
             vl = vvla(x1, va);
-            gl = specfun::gamma2(-va);
-            pd = pi * vl / gl + cos(pi * va) * pd;
+            gl = cephes::Gamma(-va);
+            pd = pi * vl / gl + cospi(va) * pd;
         }
         return pd;
     }
@@ -220,7 +222,7 @@ namespace detail {
         // ====================================================
 
         int ja, k, l, m, nk, nv, na;
-        T xa, vh, ep, f, f0, f1, v0, v1, v2, pd, pd0, pd1, s0;
+        T xa, vh, ep, f, f0, f1, v0, v1, v2, pd, pd0, pd1;
 
         xa = fabs(x);
         vh = v;
@@ -313,9 +315,8 @@ namespace detail {
                     f1 = f0;
                     f0 = f;
                 }
-                s0 = pd0 / f;
                 for (k = 0; k <= na; k++) {
-                    dv[k] *= s0;
+                    dv[k] = pd0 * (dv[k] / f);
                 }
             }
         }
@@ -635,6 +636,18 @@ void pbdv(T v, T x, T &pdf, T &pdd) {
         } else {
             dp = dv + num;
             detail::pbdv(x, v, dv, dp, &pdf, &pdd);
+            T nearest = nearbyint(v);
+            T distance = fabs(v - nearest);
+            if ((x < -5.8) && (v > 0.0) && (distance > 0.0) &&
+                (distance <= 8.0 * std::numeric_limits<T>::epsilon() * fabs(v))) {
+                T pvf, pvd;
+                T positive_pdf, positive_pdd;
+                detail::pbdv(-x, v, dv, dp, &positive_pdf, &positive_pdd);
+                detail::pbvv(-x, v, dv, dp, &pvf, &pvd);
+                T coefficient = M_PI / cephes::Gamma(-v);
+                pdf = coefficient * pvf + cospi(v) * positive_pdf;
+                pdd = -coefficient * pvd - cospi(v) * positive_pdd;
+            }
             free(dv);
         }
     }
