@@ -170,11 +170,16 @@ XSF_HOST_DEVICE inline double iv_ratioinv(double v, double r) {
     if (std::isnan(v) || std::isnan(r)) {
         return std::numeric_limits<double>::quiet_NaN();
     }
-    if (v < 0.5 || r <= 0. || r >= 1) {
+   if (!std::isfinite(v) || v < 0.5 || r < 0.0 || r > 1.0) {
         // iv_ratioinv is only defined for v >= 0.5
-        // for r=0 or r=1, the inverse is not unique (x=0 and x=inf respectively)
         set_error("iv_ratioinv", SF_ERROR_DOMAIN, NULL);
         return std::numeric_limits<double>::quiet_NaN();
+    }
+    if (r == 0.0) {
+        return 0.0;
+    }
+    if (r == 1.0) {
+        return std::numeric_limits<double>::infinity();
     }
     // Algorithm description: use Chandrupatla's method to find the root of
     // f(x) = iv_ratio(v, x) - r (or f(x) = 1 - iv_ratio_c(v, x) - r if r > 0.5).
