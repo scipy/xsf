@@ -386,14 +386,14 @@ void assoc_legendre_p_pm1(NormPolicy norm, int n, int m, dual<T, Order> z, int b
 /**
  * Compute the associated Legendre polynomial of degree n and order m.
  *
+ * @param norm normalization policy
  * @param n degree of the polynomial
  * @param m order of the polynomial
- * @param type specifies the branch cut of the polynomial, either 1, 2, or 3
  * @param z argument of the polynomial, either real or complex
- * @param callback a function to be called as callback(j, m, type, z, p, p_prev, args...) for 0 <= j <= n
- * @param args arguments to forward to the callback
- *
- * @return value of the polynomial
+ * @param branch_cut specifies the branch cut of the polynomial, either 1, 2, or 3
+ * @param res_m_abs_m polynomial value at degree abs(m) and order m
+ * @param res recurrence buffer
+ * @param f a function to be called as f(j, res) for 0 <= j <= n
  */
 template <typename NormPolicy, typename T, typename Func>
 void assoc_legendre_p_for_each_n(
@@ -463,10 +463,11 @@ void assoc_legendre_p_for_each_n_m(NormPolicy norm, int n, int m, T z, int branc
 /**
  * Compute the associated Legendre polynomial of degree n and order m.
  *
+ * @param norm normalization policy
  * @param n degree of the polynomial
  * @param m order of the polynomial
- * @param type specifies the branch cut of the polynomial, either 1, 2, or 3
  * @param z argument of the polynomial, either real or complex
+ * @param branch_cut specifies the branch cut of the polynomial, either 1, 2, or 3
  *
  * @return value of the polynomial
  */
@@ -481,11 +482,10 @@ T assoc_legendre_p(NormPolicy norm, int n, int m, T z, int branch_cut) {
 /**
  * Compute all associated Legendre polynomials of degree j and order i, where 0 <= j <= n and -m <= i <= m.
  *
- * @param type specifies the branch cut of the polynomial, either 1, 2, or 3
+ * @param norm normalization policy
  * @param z argument of the polynomial, either real or complex
- * @param res a view into the output with element type T and extents (2 * m + 1, n + 1)
- *
- * @return value of the polynomial
+ * @param branch_cut specifies the branch cut of the polynomial, either 1, 2, or 3
+ * @param res a view into the output with element type T and extents (n + 1, 2 * m + 1)
  */
 template <typename NormPolicy, typename T, typename OutputMat>
 void assoc_legendre_p_all(NormPolicy norm, T z, int branch_cut, OutputMat res) {
@@ -601,11 +601,10 @@ struct sph_legendre_p_recurrence_n {
  *
  * @param n degree of the polynomial
  * @param m order of the polynomial
- * @param theta z = cos(theta) argument of the polynomial, either real or complex
- * @param callback a function to be called as callback(j, m, type, z, p, p_prev, args...) for 0 <= j <= n
- * @param args arguments to forward to the callback
- *
- * @return value of the polynomial
+ * @param theta polar angle, either real or complex
+ * @param res_m_abs_m polynomial value at degree abs(m) and order m
+ * @param res recurrence buffer
+ * @param f a function to be called as f(j, res) for 0 <= j <= n
  */
 template <typename T, typename Func>
 void sph_legendre_p_for_each_n(int n, int m, T theta, const T &res_m_abs_m, T (&res)[2], Func f) {
