@@ -69,9 +69,36 @@ TEST_CASE("iv_ratioinv nan propagation", "[iv_ratioinv][xsf_tests]") {
 
 TEST_CASE("iv_ratioinv domain error", "[iv_ratioinv][xsf_tests]") {
     const double inf = std::numeric_limits<double>::infinity();
-    REQUIRE(std::isnan(xsf::iv_ratioinv(0.4, 0.5))); // v < 0.5
-    REQUIRE(std::isnan(xsf::iv_ratioinv(1.0, 0.0))); // y <= 0
-    REQUIRE(std::isnan(xsf::iv_ratioinv(1.0, 1.0))); // y >= 1
-    REQUIRE(std::isnan(xsf::iv_ratioinv(inf, 0.5))); // v = inf
-    REQUIRE(std::isnan(xsf::iv_ratioinv(1.0, inf))); // y = inf
+    REQUIRE(std::isnan(xsf::iv_ratioinv(0.4, 0.5)));  // v < 0.5
+    REQUIRE(std::isnan(xsf::iv_ratioinv(1.0, -1.0))); // y < 0
+    REQUIRE(std::isnan(xsf::iv_ratioinv(1.0, 2.0)));  // y > 1
+    REQUIRE(std::isnan(xsf::iv_ratioinv(inf, 0.5)));  // v = inf
+}
+
+TEST_CASE("iv_ratioinv domain boundary", "[iv_ratioinv][xsf_tests]") {
+    const double inf = std::numeric_limits<double>::infinity();
+    REQUIRE(xsf::iv_ratioinv(1.0, 0.0) == 0.0); // y = 0
+    REQUIRE(xsf::iv_ratioinv(1.0, 1.0) == inf); // y = 1
+}
+
+TEST_CASE("iv_ratioinv v = 0.5 roundtrip", "[iv_ratioinv][xsf_tests]") {
+    const std::vector<double> xs = logspace<double>(-50, 20, 500);
+    // we do not test in the extreme right tail, that much precision is not available
+    // in double precision arithmetic.
+    double threshold = 1.0;
+    for (int i = 0; i < 1000; ++i) {
+        threshold = std::nextafter(threshold, 0.0);
+    }
+    for (double x : xs) {
+        const double y_forward = xsf::iv_ratio(0.5, x);
+        const double y = (y_forward < 0.5) ? y_forward : (1.0 - xsf::iv_ratio_c(0.5, x));
+        if ((y == 0.) || (y > threshold)) {
+            continue;
+        }
+        const double x_result = xsf::iv_ratioinv(0.5, y);
+        const auto relative_error = xsf::extended_relative_error(x_result, x);
+        double rtol = 1e-7;
+        CAPTURE(x, y, x_result, rtol, relative_error);
+        REQUIRE(relative_error <= rtol);
+    }
 }

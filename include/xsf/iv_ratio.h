@@ -170,7 +170,7 @@ XSF_HOST_DEVICE inline double iv_ratioinv(double v, double r) {
     if (std::isnan(v) || std::isnan(r)) {
         return std::numeric_limits<double>::quiet_NaN();
     }
-   if (!std::isfinite(v) || v < 0.5 || r < 0.0 || r > 1.0) {
+    if (!std::isfinite(v) || v < 0.5 || r < 0.0 || r > 1.0) {
         // iv_ratioinv is only defined for v >= 0.5
         set_error("iv_ratioinv", SF_ERROR_DOMAIN, NULL);
         return std::numeric_limits<double>::quiet_NaN();
@@ -180,6 +180,10 @@ XSF_HOST_DEVICE inline double iv_ratioinv(double v, double r) {
     }
     if (r == 1.0) {
         return std::numeric_limits<double>::infinity();
+    }
+    if (v == 0.5) {
+        // Closed-form solution for v = 0.5: iv_ratio(0.5, x) = 1 - tanh(x)
+        return std::atanh(r);
     }
     // Algorithm description: use Chandrupatla's method to find the root of
     // f(x) = iv_ratio(v, x) - r (or f(x) = 1 - iv_ratio_c(v, x) - r if r > 0.5).
