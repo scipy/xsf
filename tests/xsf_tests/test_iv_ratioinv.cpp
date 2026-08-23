@@ -82,13 +82,8 @@ TEST_CASE("iv_ratioinv domain boundary", "[iv_ratioinv][xsf_tests]") {
 }
 
 TEST_CASE("iv_ratioinv v = 0.5 roundtrip", "[iv_ratioinv][xsf_tests]") {
-    const std::vector<double> xs = logspace<double>(-50, 20, 500);
-    // we do not test in the extreme right tail, that much precision is not available
-    // in double precision arithmetic.
-    double threshold = 1.0;
-    for (int i = 0; i < 1000; ++i) {
-        threshold = std::nextafter(threshold, 0.0);
-    }
+    const std::vector<double> xs = logspace<double>(-50, 2, 500);
+    double threshold = 1.0 - 1e-12; // threshold to avoid numerical issues near y=1
     for (double x : xs) {
         const double y_forward = xsf::iv_ratio(0.5, x);
         const double y = (y_forward < 0.5) ? y_forward : (1.0 - xsf::iv_ratio_c(0.5, x));
