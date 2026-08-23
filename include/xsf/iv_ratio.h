@@ -5,6 +5,7 @@
 #include "cephes/dd_real.h"
 #include "config.h"
 #include "error.h"
+#include "log_exp.h"
 #include "tools.h"
 
 namespace xsf {
@@ -98,7 +99,10 @@ XSF_HOST_DEVICE inline double iv_ratio(double v, double x) {
     if (std::isinf(x)) {
         return 1.0;
     }
-
+    if (v == 0.5) {
+        // Closed-form solution for v = 0.5: iv_ratio(0.5, x) = tanh(x)
+        return std::tanh(x);
+    }
     auto [ret, terms] = _iv_ratio_cf<double>(v, x, false);
     if (terms == 0) { // failed to converge; should not happen
         set_error("iv_ratio", SF_ERROR_NO_RESULT, NULL);
@@ -157,8 +161,8 @@ XSF_HOST_DEVICE inline double iv_ratio_c(double v, double x) {
     } else {
         // The previous branch (v > 0.5) also works for v == 0.5, but
         // the closed-form formula "1 - tanh(x)" is more efficient.
-        double t = std::exp(-2 * x);
-        return (2 * t) / (1 + t);
+        // Equivalently: iv_ratio_c(0.5, x) = 1 - tanh(x) = 2 * expit(-2*x)
+        return 2 * expit(-2 * x);
     }
 }
 
