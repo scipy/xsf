@@ -8,20 +8,17 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name:  Prepare compiler cache
-      id:    prep-ccache
+    - name: Prepare compiler cache
       shell: bash
       run: |
         mkdir -p "${CCACHE_DIR}"
-        echo "dir=$CCACHE_DIR" >> $GITHUB_OUTPUT
-        NOW=$(date -u +"%F-%T")
-        echo "timestamp=${NOW}" >> $GITHUB_OUTPUT
+        echo "CCACHE_TIMESTAMP=$(date -u +"%F-%T")" >> $GITHUB_ENV
     - name: Setup compiler cache
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       id:   cache-ccache
       with:
-        path: ${{ steps.prep-ccache.outputs.dir }}
-        key:  ccache-v0-${{ inputs.key_segment }}-${{ steps.prep-ccache.outputs.timestamp }}
+        path: ${{ env.CCACHE_DIR }}
+        key:  ccache-v0-${{ inputs.key_segment }}-${{ env.CCACHE_TIMESTAMP }}
         restore-keys: ccache-v0-${{ inputs.key_segment }}
     - name: Install Pixi
       uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
