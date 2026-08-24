@@ -19,7 +19,7 @@ runs:
       with:
         pixi-version: ${{ env.PIXI_VERSION }}
         cache: true
-        cache-key: pixi-v0-${{ github.job }}
+        cache-key: pixi-v1-${{ github.job }}
         environments: ${{ inputs.environment }}
     - name: Ccache performance
       shell: bash

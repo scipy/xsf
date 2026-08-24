@@ -82,7 +82,10 @@ cupy-tests = {
   solve-group = "xsf-release",
   platforms = ["linux-64"],
   dependencies = {
-    xsf.path = "packages/tests-release",
+    xsref = {
+      git = "https://github.com/scipy/xsref",
+      rev = "b511621d228fdc660f3471f2855fd9955652f34d",
+    },
     cupy = "*",
     pytest-forked = "*",
     polars = "*",
