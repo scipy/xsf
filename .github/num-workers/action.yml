@@ -1,0 +1,16 @@
+name: Determine Number of Workers
+description: Set NUM_WORKERS to the runner's core count
+
+runs:
+  using: "composite"
+  steps:
+    - name: Determine number of workers
+      shell: bash
+      run: |
+        if [[ "$RUNNER_OS" == "Linux" ]]; then
+          echo "NUM_WORKERS=$(nproc)" >> $GITHUB_ENV
+        elif [[ "$RUNNER_OS" == "macOS" ]]; then
+          echo "NUM_WORKERS=$(sysctl -n hw.ncpu)" >> $GITHUB_ENV
+        elif [[ "$RUNNER_OS" == "Windows" ]]; then
+          echo "NUM_WORKERS=$NUMBER_OF_PROCESSORS" >> "$GITHUB_ENV"
+        fi
