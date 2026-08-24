@@ -21,6 +21,7 @@ runs:
         cache: true
         cache-key: pixi-v2-${{ github.job }}
         environments: ${{ inputs.environment }}
+        log-level: vvv
     - name: Ccache performance
       shell: bash
       run: pixi exec ccache -s
