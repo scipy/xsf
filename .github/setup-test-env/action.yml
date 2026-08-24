@@ -17,9 +17,9 @@ runs:
     - name: Setup ${{ inputs.environment }} environment
       uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
       with:
-        pixi-version: ${{ env.PIXI_VERSION }}
+        # pixi-version is deliberately omitted, as Pixi is already installed in the `ccache` action
         cache: true
-        cache-key: pixi-v1-${{ github.job }}
+        cache-key: pixi-v2-${{ github.job }}
         environments: ${{ inputs.environment }}
     - name: Ccache performance
       shell: bash

@@ -17,7 +17,7 @@ platforms = [
   "osx-64",
 ]
 channels = ["https://prefix.dev/conda-forge"]
-requires-pixi = ">=0.76.2"
+requires-pixi = ">=0.77.1"  # this fixes caching of the xsf packages
 preview = ["pixi-build"]
 
 [workspace.target.win.build-variants]

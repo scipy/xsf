@@ -23,7 +23,7 @@ runs:
     - name: Install Pixi
       uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
       with:
-        pixi-version: ${{ env.PIXI_VERSION }}
+        pixi-version: v0.77.1
         run-install: false
         cache: false
     - name: Reset ccache stats
@@ -31,6 +31,3 @@ runs:
       run: |
         # Restoring the cache also restored the stats from the previous run
         pixi exec ccache --zero-stats
-        # Invoking `setup-pixi` again expects `pixi` to not already be there
-        # ref. https://github.com/prefix-dev/setup-pixi/issues/281
-        rm $HOME/.pixi/bin/pixi
