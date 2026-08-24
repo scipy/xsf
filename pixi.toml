@@ -17,18 +17,16 @@ platforms = [
   "osx-64",
 ]
 channels = ["https://prefix.dev/conda-forge"]
-requires-pixi = ">=0.74.0"
+requires-pixi = ">=0.76.2"
 preview = ["pixi-build"]
 
 [workspace.target.win.build-variants]
 cxx_compiler = ["vs2026"]
 
-# this currently hits https://github.com/prefix-dev/pixi/issues/6727,
-# uncomment when that is resolved
-# [package]
-# name = { workspace = true }
-# version = { workspace = true }
-# build.backend.name = "pixi-build-cmake"
+[package]
+name = { workspace = true }
+version = { workspace = true }
+build.backend.name = "pixi-build-cmake"
 
 [target.unix.activation]
 env.SHARE_PREFIX = "$CONDA_PREFIX/share"
@@ -84,6 +82,7 @@ cupy-tests = {
   solve-group = "xsf-release",
   platforms = ["linux-64"],
   dependencies = {
+    xsf.path = "packages/tests-release",
     cupy = "*",
     pytest-forked = "*",
     polars = "*",
