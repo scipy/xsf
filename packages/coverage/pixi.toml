@@ -4,17 +4,29 @@ version = { workspace = true }
 build = {
   backend.name = "pixi-build-cmake",
   config.extra-args = [
+    "-DCMAKE_CXX_COMPILER_LAUNCHER=ccache",
     "-DBUILD_TESTS=ON",
     "-DCMAKE_BUILD_TYPE=Coverage",
   ],
   flags = ["tests", "coverage"],
   source.path = "../..",
+  # RECIPE_DIR references the current working directory,
+  # enabling ccache specific to this build variant.
+  target.unix.config.env = {
+    CCACHE_DIR = "$RECIPE_DIR/.ccache",
+    CCACHE_BASEDIR = "$RECIPE_DIR",
+  },
+  target.win.config.env = {
+    CCACHE_DIR = "%RECIPE_DIR%\\.ccache",
+    CCACHE_BASEDIR = "%RECIPE_DIR%.",
+  },
 }
 build-dependencies = {
   xsref = {
     git = "https://github.com/lucascolley/xsref",
     rev = "6d4891c435c8525d535bf5038142414603edbd27",
   },
+  ccache = "*",
 }
 host-dependencies = {
   catch2 = "*",

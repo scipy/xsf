@@ -27,7 +27,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
         add_compile_definitions(_GLIBCXX_ASSERTIONS)
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        add_compile_definitions(_LIBCPP_ENABLE_ASSERTIONS=1)
+        add_compile_definitions(_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_DEBUG)
     endif()
 endif()
 

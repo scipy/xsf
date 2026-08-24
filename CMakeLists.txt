@@ -30,12 +30,6 @@ install(
     DESTINATION lib/cmake/xsf
 )
 
-find_program(CCACHE_PROGRAM ccache)
-if(CCACHE_PROGRAM)
-  set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}" CACHE STRING "")
-  set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}" CACHE STRING "")
-endif()
-
 # Tests
 option(BUILD_TESTS "Build the tests" OFF)
 
