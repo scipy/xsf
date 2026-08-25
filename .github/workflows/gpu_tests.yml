@@ -19,6 +19,18 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Define default CuPy cache path
+        run: |
+          # We don't want to change the directory, and $HOME isn't available for `env:`
+          echo "CUPY_CACHE_DIR=$HOME/.cupy/kernel_cache" >> $GITHUB_ENV
+
+      - name: Cache CuPy kernels
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.CUPY_CACHE_DIR }}
+          key: cupy-v0-${{ github.run_id }}
+          restore-keys: cupy-v0
+
       - name: run nvidia-smi
         run: nvidia-smi
 

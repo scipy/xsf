@@ -51,23 +51,6 @@ except (ImportError, AttributeError):
     cupy = MissingModule('cupy')
 
 
-@pytest.fixture(scope="function", autouse=True)
-def manage_cupy_cache():
-    # Temporarily change cupy kernel cache location so kernel cache will not be polluted
-    # by these tests. Remove temporary cache in teardown.
-    temp_cache_dir = tempfile.mkdtemp()
-    original_cache_dir = os.environ.get('CUPY_CACHE_DIR', None)
-    os.environ['CUPY_CACHE_DIR'] = temp_cache_dir
-
-    yield
-
-    if original_cache_dir is not None:
-        os.environ['CUPY_CACHE_DIR'] = original_cache_dir
-    else:
-        del os.environ['CUPY_CACHE_DIR']
-    shutil.rmtree(temp_cache_dir)
-
-
 def _get_cols_helper(table_path, xp):
     # This is more complicated than need be due to an oversight in xsref
     # functions for getting tables. The table metadata for input, output,
@@ -125,7 +108,6 @@ def get_preamble(header):
     return f'#include "{header_path}"'
 
 
-@pytest.mark.usefixtures("manage_cupy_cache")
 @check_version(cupy, "13.0.0")
 class TestCuPy:
     def _adjust_tol(self, tol, *, wiggle=16):
