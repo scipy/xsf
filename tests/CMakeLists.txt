@@ -40,6 +40,7 @@ set(TEST_INSTALL_DIR share/xsf/tests)
 include(${CMAKE_SOURCE_DIR}/tests/Coverage.cmake)
 
 file(GLOB_RECURSE TEST_SOURCES "${TEST_BASE_DIR}/*/test_*.cpp")
+set(ALL_TEST_TARGETS "")
 foreach(test_file ${TEST_SOURCES})
   # Families of tests go in subfolders of xsf/tests. Test files in different
   # folders can have the same name. Try to generate a unique target name based
@@ -49,6 +50,7 @@ foreach(test_file ${TEST_SOURCES})
   file(RELATIVE_PATH test_dir ${TEST_BASE_DIR} ${test_dir})
   string(REPLACE "/" "-" test_dir ${test_dir})
   set(target_name ${test_dir}_${test_name})
+  list(APPEND ALL_TEST_TARGETS ${target_name})
 
   add_executable(${target_name} ${test_file})
 
@@ -60,7 +62,20 @@ foreach(test_file ${TEST_SOURCES})
        "add_test(${target_name} \"\${CMAKE_CURRENT_LIST_DIR}/${target_name}\")\n")
   include(CTest)
   include(Catch)
-  catch_discover_tests(${target_name})
+  catch_discover_tests(${target_name} ADD_TAGS_AS_LABELS)
 endforeach()
+
+# catch_discover_tests(... ADD_TAGS_AS_LABELS) discovers tests by running each
+# just-built executable and writes per-target "<target>-<hash>_tests.cmake" files
+# with the resulting set_tests_properties(... LABELS ...) calls, but only wires
+# them into the build tree's CTestTestfile.cmake, not the installed one above.
+# Once all targets are built, pull the LABELS back out of those generated files
+# and attach them to the corresponding installed test.
+install(CODE "
+  set(BUILD_DIR \"${CMAKE_CURRENT_BINARY_DIR}\")
+  set(INSTALLED_CTEST_FILE \"${INSTALLED_CTEST_FILE}\")
+  set(ALL_TEST_TARGETS \"${ALL_TEST_TARGETS}\")
+  include(\"${TEST_BASE_DIR}/InstallCatchLabels.cmake\")
+")
 
 install(FILES "${INSTALLED_CTEST_FILE}" DESTINATION ${TEST_INSTALL_DIR} RENAME CTestTestfile.cmake)

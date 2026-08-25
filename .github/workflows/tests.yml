@@ -28,7 +28,7 @@ jobs:
       - name: Determine number of workers
         uses: ./.github/num-workers
       - name: Run tests
-        run: pixi run --environment=${{ matrix.environment }} tests $NUM_WORKERS
+        run: pixi run --environment=${{ matrix.environment }} tests -j $NUM_WORKERS
       - name: Generate coverage report
         run: pixi run --skip-deps coverage
       - name: Upload HTML coverage report
@@ -56,7 +56,7 @@ jobs:
       - name: Determine number of workers
         uses: ./.github/num-workers
       - name: Run tests
-        run: pixi run --environment=${{ matrix.environment }} tests $NUM_WORKERS
+        run: pixi run --environment=${{ matrix.environment }} tests -j $NUM_WORKERS
 
   tests-debug:
     name: Debug ${{ matrix.runs-on }}
@@ -76,4 +76,4 @@ jobs:
       - name: Determine number of workers
         uses: ./.github/num-workers
       - name: Run tests
-        run: pixi run --environment=${{ matrix.environment }} tests $NUM_WORKERS
+        run: pixi run --environment=${{ matrix.environment }} tests -j $NUM_WORKERS

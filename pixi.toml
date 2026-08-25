@@ -36,8 +36,7 @@ env.SHARE_PREFIX = "%CONDA_PREFIX%/Library/share"
 
 [tasks.tests]
 description = "Run test suite."
-args = [{ arg = "parallel", default = "2" }]
-cmd = ["ctest", "--output-on-failure", "--test-dir", "$SHARE_PREFIX/xsf/tests", "-j{{ parallel }}"]
+cmd = ["ctest", "--output-on-failure", "--test-dir", "$SHARE_PREFIX/xsf/tests"]
 default-environment = "tests-release"
 
 [environments]
