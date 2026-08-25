@@ -19,7 +19,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
     FILES_MATCHING PATTERN "*.gcno"
   )
 
-  # Drop a small file recording the strip count
+  # write the strip count to a file, which is converted into an environment variable
+  # at activation time by `scripts/coverage_activation.sh`
   file(WRITE ${CMAKE_BINARY_DIR}/gcov_prefix_strip.txt "${GCOV_PREFIX_STRIP_COUNT}")
   install(FILES ${CMAKE_BINARY_DIR}/gcov_prefix_strip.txt DESTINATION ${COVERAGE_DIR}/)
 endif() # CMAKE_BUILD_TYPE=Coverage
