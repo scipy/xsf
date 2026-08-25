@@ -40,13 +40,8 @@ cmd = ["ctest", "--output-on-failure", "--test-dir", "$SHARE_PREFIX/xsf/tests"]
 default-environment = "tests-release"
 
 [environments]
-tests-release = {
-  solve-group = "xsf-release",
-  dependencies.xsf.path = "packages/tests-release",
-}
-tests-debug = {
-  dependencies.xsf.path = "packages/tests-debug",
-}
+tests-release.dependencies.xsf.path = "packages/tests-release"
+tests-debug.dependencies.xsf.path = "packages/tests-debug"
 
 coverage = {
   platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64"],
@@ -78,9 +73,9 @@ coverage = {
 }
 
 cupy-tests = {
-  solve-group = "xsf-release",
   platforms = ["linux-64"],
   dependencies = {
+    xsf.path = ".",
     xsref = {
       git = "https://github.com/scipy/xsref",
       rev = "b511621d228fdc660f3471f2855fd9955652f34d",
