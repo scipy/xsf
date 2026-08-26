@@ -40,6 +40,7 @@ jobs:
           s3-access-key-id: ${{ secrets.S3_ACCESS_KEY_ID }}
           s3-secret-access-key: ${{ secrets.S3_SECRET_ACCESS_KEY }}
           s3-prefix: xsf
+          s3-ttl-days: 0  # expiry is a lifecycle rule on the bucket itself
 
       # Replaces setup-pixi's built-in cache (which is hardwired to the GitHub
       # cache backend). setup-pixi caches the `.pixi` directory next to
@@ -58,6 +59,7 @@ jobs:
           s3-access-key-id: ${{ secrets.S3_ACCESS_KEY_ID }}
           s3-secret-access-key: ${{ secrets.S3_SECRET_ACCESS_KEY }}
           s3-prefix: xsf
+          s3-ttl-days: 0  # expiry is a lifecycle rule on the bucket itself
 
       - name: run nvidia-smi
         run: nvidia-smi
