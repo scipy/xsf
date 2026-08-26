@@ -24,12 +24,40 @@ jobs:
           # We don't want to change the directory, and $HOME isn't available for `env:`
           echo "CUPY_CACHE_DIR=$HOME/.cupy/kernel_cache" >> $GITHUB_ENV
 
+      # The on-prem GPU runner has no fast path to the GitHub-hosted cache
+      # backend (restores ran at ~14 MB/s), so caches live in a Cloudflare R2
+      # bucket instead. Same interface as actions/cache; see
+      # https://docs.cirun.io/caching/s3-compatible
       - name: Cache CuPy kernels
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        uses: cirunlabs/cache/s3@0d5005be5be8cb3f20e624125e3fca0dc68eb384 # v5.0.5-cirun.1
         with:
           path: ${{ env.CUPY_CACHE_DIR }}
           key: cupy-v0-${{ github.run_id }}
           restore-keys: cupy-v0
+          s3-bucket: scipy-cirun-github-actions-cache
+          s3-endpoint: ${{ secrets.S3_ENDPOINT }}
+          s3-region: auto
+          s3-access-key-id: ${{ secrets.S3_ACCESS_KEY_ID }}
+          s3-secret-access-key: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          s3-prefix: xsf
+
+      # Replaces setup-pixi's built-in cache (which is hardwired to the GitHub
+      # cache backend). setup-pixi caches the `.pixi` directory next to
+      # pixi.lock; the key hashes the lockfile plus this workflow file, since
+      # the pixi version and environment selection live here and change what
+      # ends up in `.pixi`.
+      - name: Cache pixi environment
+        uses: cirunlabs/cache/s3@0d5005be5be8cb3f20e624125e3fca0dc68eb384 # v5.0.5-cirun.1
+        with:
+          path: .pixi
+          key: gpu-pixi-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pixi.lock', '.github/workflows/gpu_tests.yml') }}
+          restore-keys: gpu-pixi-${{ runner.os }}-${{ runner.arch }}-
+          s3-bucket: scipy-cirun-github-actions-cache
+          s3-endpoint: ${{ secrets.S3_ENDPOINT }}
+          s3-region: auto
+          s3-access-key-id: ${{ secrets.S3_ACCESS_KEY_ID }}
+          s3-secret-access-key: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          s3-prefix: xsf
 
       - name: run nvidia-smi
         run: nvidia-smi
@@ -41,8 +69,7 @@ jobs:
         with:
           pixi-version: v0.75.0
           manifest-path: pixi.toml
-          cache: true
-          cache-key: gpu-pixi-
+          cache: false
 
       - name: Run CuPy tests
         run: pixi run test-cupy
