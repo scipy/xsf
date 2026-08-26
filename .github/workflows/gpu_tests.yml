@@ -87,7 +87,7 @@ jobs:
           manifest-path: pixi.toml
           # Built-in (GitHub-backed) cache only when the R2 cache is unavailable.
           cache: ${{ env.S3_CACHE != 'true' }}
-          cache-key: gpu-pixi-
+          cache-key: ${{ env.S3_CACHE != 'true' && 'gpu-pixi-' || '' }}
 
       - name: Run CuPy tests
         run: pixi run test-cupy
