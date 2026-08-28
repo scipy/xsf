@@ -47,12 +47,13 @@ TEST_CASE("iv_ratioinv arbitrary precision", "[iv_ratioinv][xsf_tests]") {
     //     return float(result)
 
     using test_case = std::tuple<double, double, double>;
-
     auto [v, x, iv_ratio_ref] = GENERATE(
         test_case{10, 100000, 0.9999050040375403}, test_case{1, 0.1, 0.04993760398793892},
         test_case{0.5, 0.001, 0.0009999996666668}, test_case{1000, 500, 0.23607911616885813},
         test_case{100, 1e-15, 5e-18}, test_case{1e5, 5, 2.4999999984375157e-05},
-        test_case{1e5, 1e5, 0.41421399130458997}, test_case{1e5, 1e10, 0.999990000099999}
+        test_case{1e5, 1e5, 0.41421399130458997}, test_case{1e5, 1e10, 0.999990000099999},
+        test_case{0.5, 18.714973875118524, std::nextafter(1.0, 0.0)},
+        test_case{0.5, std::numeric_limits<double>::min(), std::numeric_limits<double>::min()}
     );
     double x_result = xsf::iv_ratioinv(v, iv_ratio_ref);
     const auto rel_error = xsf::extended_relative_error(x_result, x);

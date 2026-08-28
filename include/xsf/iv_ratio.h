@@ -186,8 +186,7 @@ XSF_HOST_DEVICE inline double iv_ratioinv(double v, double r) {
         return std::numeric_limits<double>::infinity();
     }
     if (v == 0.5) {
-      return std::atanh(r);
-    }
+        return std::atanh(r);
     }
     // Algorithm description: use Chandrupatla's method to find the root of
     // f(x) = iv_ratio(v, x) - r (or f(x) = 1 - iv_ratio_c(v, x) - r if r > 0.5).
