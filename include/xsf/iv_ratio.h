@@ -186,15 +186,8 @@ XSF_HOST_DEVICE inline double iv_ratioinv(double v, double r) {
         return std::numeric_limits<double>::infinity();
     }
     if (v == 0.5) {
-        // Closed-form solution for v = 0.5: iv_ratio(0.5, x) = tanh(x)
-        // Since tanh(x) = 2*expit(2*x) - 1 = r, we have expit(2*x) = (1+r)/2
-        // For r > 0.5, use logit((1+r)/2) for better stability near r=1
-        // For r <= 0.5, atanh is sufficiently stable
-        if (r > 0.5) {
-            return 0.5 * logit((1.0 + r) * 0.5);
-        } else {
-            return std::atanh(r);
-        }
+      return std::atanh(r);
+    }
     }
     // Algorithm description: use Chandrupatla's method to find the root of
     // f(x) = iv_ratio(v, x) - r (or f(x) = 1 - iv_ratio_c(v, x) - r if r > 0.5).
