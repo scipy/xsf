@@ -170,6 +170,7 @@ XSF_HOST_DEVICE inline float iv_ratio_c(float v, float x) {
     return iv_ratio_c(static_cast<double>(v), static_cast<double>(x));
 }
 
+// Compute x such that I_v(x) / I_{v-1}(x) = r for v >= 0.5 and 0 <= r <= 1.
 XSF_HOST_DEVICE inline double iv_ratioinv(double v, double r) {
     if (std::isnan(v) || std::isnan(r)) {
         return std::numeric_limits<double>::quiet_NaN();
@@ -190,9 +191,9 @@ XSF_HOST_DEVICE inline double iv_ratioinv(double v, double r) {
     }
     // Algorithm description: use Chandrupatla's method to find the root of
     // f(x) = iv_ratio(v, x) - r (or f(x) = 1 - iv_ratio_c(v, x) - r if r > 0.5).
-    // Bounds from Amos, 1973. "Computation of Modified Bessel Function And Their Ratios".
+    // Bounds from Amos (1974), "Computation of Modified Bessel Functions and Their Ratios".
     // That paper defines the ratio as iv(v+1, x)/iv(v, x), but we define it as iv(v, x)/iv(v-1, x).
-    // Substitute v -> v-1 in eq. (9) and eq. (16) yields the following bounds for x:
+    // Substituting v -> v-1 in eq. (9) and eq. (16) yields the following bounds for x:
     //   x/(v-1/2 + sqrt(x^2 + (v+1/2)^2)) <= r <= x/(v-1 + sqrt(x^2 + (v+1)^2))
     //
     // Inverting (inequality direction flips):

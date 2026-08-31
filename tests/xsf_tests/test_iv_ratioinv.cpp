@@ -2,7 +2,7 @@
 #include "xsf/config.h"
 #include <xsf/iv_ratio.h>
 
-TEST_CASE("iv_ratioinv round-trip single-double", "[iv_ratioinv][xsf_tests]") {
+TEST_CASE("iv_ratioinv round trip in single and double precision", "[iv_ratioinv][xsf_tests]") {
     const std::vector<double> xs = logspace<double>(-10, 7, 100);
     const std::vector<double> vs = logspace<double>(0, 6, 100);
     for (double x : xs) {
@@ -71,15 +71,15 @@ TEST_CASE("iv_ratioinv nan propagation", "[iv_ratioinv][xsf_tests]") {
 TEST_CASE("iv_ratioinv domain error", "[iv_ratioinv][xsf_tests]") {
     const double inf = std::numeric_limits<double>::infinity();
     REQUIRE(std::isnan(xsf::iv_ratioinv(0.4, 0.5)));  // v < 0.5
-    REQUIRE(std::isnan(xsf::iv_ratioinv(1.0, -1.0))); // y < 0
-    REQUIRE(std::isnan(xsf::iv_ratioinv(1.0, 2.0)));  // y > 1
+    REQUIRE(std::isnan(xsf::iv_ratioinv(1.0, -1.0))); // r < 0
+    REQUIRE(std::isnan(xsf::iv_ratioinv(1.0, 2.0)));  // r > 1
     REQUIRE(std::isnan(xsf::iv_ratioinv(inf, 0.5)));  // v = inf
 }
 
 TEST_CASE("iv_ratioinv domain boundary", "[iv_ratioinv][xsf_tests]") {
     const double inf = std::numeric_limits<double>::infinity();
-    REQUIRE(xsf::iv_ratioinv(1.0, 0.0) == 0.0); // y = 0
-    REQUIRE(xsf::iv_ratioinv(1.0, 1.0) == inf); // y = 1
+    REQUIRE(xsf::iv_ratioinv(1.0, 0.0) == 0.0); // r = 0
+    REQUIRE(xsf::iv_ratioinv(1.0, 1.0) == inf); // r = 1
 }
 
 TEST_CASE("iv_ratioinv v = 0.5 roundtrip", "[iv_ratioinv][xsf_tests]") {
