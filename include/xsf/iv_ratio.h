@@ -76,6 +76,7 @@ XSF_HOST_DEVICE inline std::pair<double, std::uint64_t> _iv_ratio_cf(double v, d
     return {static_cast<double>(ret), terms};
 }
 
+// Compute I_v(x) / I_{v-1}(x) for v >= 0.5 and x >= 0.
 XSF_HOST_DEVICE inline double iv_ratio(double v, double x) {
 
     if (std::isnan(v) || std::isnan(x)) {
@@ -86,7 +87,7 @@ XSF_HOST_DEVICE inline double iv_ratio(double v, double x) {
         return std::numeric_limits<double>::quiet_NaN();
     }
     if (std::isinf(v) && std::isinf(x)) {
-        // There is not a unique limit as both v and x tends to infinity.
+        // There is no unique limit as both v and x tend to infinity.
         set_error("iv_ratio", SF_ERROR_DOMAIN, NULL);
         return std::numeric_limits<double>::quiet_NaN();
     }
@@ -115,6 +116,7 @@ XSF_HOST_DEVICE inline float iv_ratio(float v, float x) {
     return iv_ratio(static_cast<double>(v), static_cast<double>(x));
 }
 
+// Compute 1 - I_v(x) / I_{v-1}(x) directly to preserve accuracy near 1.
 XSF_HOST_DEVICE inline double iv_ratio_c(double v, double x) {
 
     if (std::isnan(v) || std::isnan(x)) {
@@ -125,7 +127,7 @@ XSF_HOST_DEVICE inline double iv_ratio_c(double v, double x) {
         return std::numeric_limits<double>::quiet_NaN();
     }
     if (std::isinf(v) && std::isinf(x)) {
-        // There is not a unique limit as both v and x tends to infinity.
+        // There is no unique limit as both v and x tend to infinity.
         set_error("iv_ratio_c", SF_ERROR_DOMAIN, NULL);
         return std::numeric_limits<double>::quiet_NaN();
     }
