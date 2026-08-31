@@ -222,6 +222,24 @@ XSF_HOST_DEVICE complex<T> pow(const complex<T> &x, const T &y) {
 template <typename T>
 using is_floating_point = cuda::std::is_floating_point<T>;
 
+template <typename T>
+using is_integral = cuda::std::is_integral<T>;
+
+template <typename T>
+inline constexpr bool is_integral_v = cuda::std::is_integral_v<T>;
+
+template <typename T>
+using is_signed = cuda::std::is_signed<T>;
+
+template <typename T>
+inline constexpr bool is_signed_v = cuda::std::is_signed_v<T>;
+
+template <typename T>
+using make_unsigned = cuda::std::make_unsigned<T>;
+
+template <typename T>
+using make_unsigned_t = cuda::std::make_unsigned_t<T>;
+
 template <bool Cond, typename T = void>
 using enable_if = cuda::std::enable_if<Cond, T>;
 
