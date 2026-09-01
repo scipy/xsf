@@ -52,6 +52,20 @@ XSF_HOST_DEVICE void set_error_and_nan(const char *name, sf_error_t code, std::c
     }
 }
 
+template <typename T, typename OutputVec>
+XSF_HOST_DEVICE void set_error_and_nan(const char *name, sf_error_t code, OutputVec &cy) {
+    if (code != SF_ERROR_OK) {
+        set_error(name, code, nullptr);
+
+        if (code == SF_ERROR_DOMAIN || code == SF_ERROR_OVERFLOW || code == SF_ERROR_NO_RESULT) {
+            for (int i = 0; i < cy.extent(0); ++i) {
+                cy(i).real(std::numeric_limits<T>::quiet_NaN());
+                cy(i).imag(std::numeric_limits<T>::quiet_NaN());
+            }
+        }
+    }
+}
+
 } // namespace xsf
 
 #endif
