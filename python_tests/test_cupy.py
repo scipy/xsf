@@ -4,9 +4,6 @@ Beyond cupy and pytest, also requires xsref package to be installed.
 Should be run with pytest-isolate or pytest-forked to isolate tests
 in separate processes since memory corruption on GPU can cause
 failures to occur in unrelated tests.
-
-TODO:
-Set this up to run through pixi, and to run in CI.
 """
 
 import os
@@ -86,7 +83,7 @@ def get_cols_as_numpy(table_path):
     return _get_cols_helper(table_path, np)
 
 
-HERE = Path(__file__)
+XSF_INCLUDE_DIR = Path(os.environ["CONDA_PREFIX"]) / "include"
 
 
 def get_tables_for_func(func_name):
@@ -104,7 +101,7 @@ def get_tables_for_func(func_name):
 
 
 def get_preamble(header):
-    header_path = (HERE.parent.parent / "include" / Path(header)).resolve()
+    header_path = (XSF_INCLUDE_DIR / Path(header)).resolve()
     return f'#include "{header_path}"'
 
 
