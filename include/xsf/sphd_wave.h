@@ -130,7 +130,7 @@ void oblate_aswfa_nocv(T m, T n, T c, T x, T &s1f, T &s1d) {
 
 template <typename T>
 void prolate_aswfa(T m, T n, T c, T cv, T x, T &s1f, T &s1d) {
-    if ((x >= 1) || (x <= -1) || (m < 0) || (n < m) || (m != floor(m)) || (n != floor(n))) {
+    if ((x >= 1) || (x <= -1) || (m < 0) || (n < m) || (m != floor(m)) || (n != floor(n)) || ((n - m) > 198)) {
         set_error("pro_ang1_cv", SF_ERROR_DOMAIN, NULL);
         s1f = std::numeric_limits<T>::quiet_NaN();
         s1d = std::numeric_limits<T>::quiet_NaN();
@@ -147,7 +147,7 @@ void prolate_aswfa(T m, T n, T c, T cv, T x, T &s1f, T &s1d) {
 
 template <typename T>
 void oblate_aswfa(T m, T n, T c, T cv, T x, T &s1f, T &s1d) {
-    if ((x >= 1) || (x <= -1) || (m < 0) || (n < m) || (m != floor(m)) || (n != floor(n))) {
+    if ((x >= 1) || (x <= -1) || (m < 0) || (n < m) || (m != floor(m)) || (n != floor(n)) || ((n - m) > 198)) {
         set_error("obl_ang1_cv", SF_ERROR_DOMAIN, NULL);
         s1f = std::numeric_limits<T>::quiet_NaN();
         s1d = std::numeric_limits<T>::quiet_NaN();
@@ -240,7 +240,7 @@ void prolate_radial1(T m, T n, T c, T cv, T x, T &r1f, T &r1d) {
     T r2f = 0.0, r2d = 0.0;
     int int_m, int_n;
 
-    if ((x <= 1.0) || (m < 0) || (n < m) || (m != floor(m)) || (n != floor(n))) {
+    if ((x <= 1.0) || (m < 0) || (n < m) || (m != floor(m)) || (n != floor(n)) || ((n - m) > 198)) {
         set_error("pro_rad1_cv", SF_ERROR_DOMAIN, NULL);
         r1f = std::numeric_limits<T>::quiet_NaN();
         r1d = std::numeric_limits<T>::quiet_NaN();
@@ -261,7 +261,7 @@ void prolate_radial2(T m, T n, T c, T cv, T x, T &r2f, T &r2d) {
     T r1f = 0.0, r1d = 0.0;
     int int_m, int_n;
 
-    if ((x <= 1.0) || (m < 0) || (n < m) || (m != floor(m)) || (n != floor(n))) {
+    if ((x <= 1.0) || (m < 0) || (n < m) || (m != floor(m)) || (n != floor(n)) || ((n - m) > 198)) {
         set_error("pro_rad2_cv", SF_ERROR_DOMAIN, NULL);
         r2f = std::numeric_limits<double>::quiet_NaN();
         r2d = std::numeric_limits<double>::quiet_NaN();
@@ -355,7 +355,7 @@ void oblate_radial1(T m, T n, T c, T cv, T x, T &r1f, T &r1d) {
     int kf = 1;
     T r2f = 0.0, r2d = 0.0;
 
-    if ((x < 0.0) || (m < 0) || (n < m) || (m != floor(m)) || (n != floor(n))) {
+    if ((x < 0.0) || (m < 0) || (n < m) || (m != floor(m)) || (n != floor(n)) || ((n - m) > 198)) {
         set_error("obl_rad1_cv", SF_ERROR_DOMAIN, NULL);
         r1f = std::numeric_limits<T>::quiet_NaN();
         r1d = std::numeric_limits<T>::quiet_NaN();
@@ -375,7 +375,7 @@ void oblate_radial2(T m, T n, T c, T cv, T x, T &r2f, T &r2d) {
     int kf = 2;
     T r1f = 0.0, r1d = 0.0;
 
-    if ((x < 0.0) || (m < 0) || (n < m) || (m != floor(m)) || (n != floor(n))) {
+    if ((x < 0.0) || (m < 0) || (n < m) || (m != floor(m)) || (n != floor(n)) || ((n - m) > 198)) {
         set_error("obl_rad2_cv", SF_ERROR_DOMAIN, NULL);
         r2f = std::numeric_limits<T>::quiet_NaN();
         r2d = std::numeric_limits<T>::quiet_NaN();
