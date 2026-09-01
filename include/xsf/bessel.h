@@ -66,6 +66,17 @@ namespace detail {
         return i + s * k;
     }
 
+    // Handle exact z = 0 values before the AMOS range checks.
+    // Negative noninteger orders are left to AMOS.
+    inline bool zero_argument_ji(std::complex<double> *cy, double v, std::complex<double> z) {
+        if (z.real() != 0 || z.imag() != 0 || !std::isfinite(v) || (v < 0 && v != std::floor(v))) {
+            return false;
+        }
+
+        *cy = v == 0 ? std::complex<double>{1, 0} : std::complex<double>{0, 0};
+        return true;
+    }
+
     template <typename T>
     void itika(T x, T *ti, T *tk) {
 
@@ -608,6 +619,12 @@ inline std::complex<double> cyl_bessel_je(double v, std::complex<double> z) {
     if (std::isnan(v) || std::isnan(z.real()) || std::isnan(z.imag())) {
         return cy_j;
     }
+    if (detail::zero_argument_ji(&cy_j, v, z)) {
+        if (v < 0) {
+            detail::reflect_jy(&cy_j, -v);
+        }
+        return cy_j;
+    }
     if (v < 0) {
         v = -v;
         sign = -1;
@@ -714,6 +731,9 @@ inline std::complex<double> cyl_bessel_ie(double v, std::complex<double> z) {
     cy_k.imag(NAN);
 
     if (std::isnan(v) || std::isnan(z.real()) || std::isnan(z.imag())) {
+        return cy;
+    }
+    if (detail::zero_argument_ji(&cy, v, z)) {
         return cy;
     }
     if (v < 0) {
@@ -886,6 +906,12 @@ inline std::complex<double> cyl_bessel_j(double v, std::complex<double> z) {
     if (std::isnan(v) || std::isnan(z.real()) || std::isnan(z.imag())) {
         return cy_j;
     }
+    if (detail::zero_argument_ji(&cy_j, v, z)) {
+        if (v < 0) {
+            detail::reflect_jy(&cy_j, -v);
+        }
+        return cy_j;
+    }
     if (v < 0) {
         v = -v;
         sign = -1;
@@ -1029,6 +1055,9 @@ inline std::complex<double> cyl_bessel_i(double v, std::complex<double> z) {
     cy_k.imag(NAN);
 
     if (std::isnan(v) || std::isnan(z.real()) || std::isnan(z.imag())) {
+        return cy;
+    }
+    if (detail::zero_argument_ji(&cy, v, z)) {
         return cy;
     }
     if (v < 0) {
