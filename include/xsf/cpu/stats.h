@@ -6,9 +6,10 @@
 namespace xsf {
 namespace cpu {
 
-    inline double kolmogorov(double x) { return cephes::kolmogorov(x); }
-
-    inline float kolmogorov(float x) { return static_cast<float>(kolmogorov(static_cast<double>(x))); }
+    template <typename T>
+    inline typename std::enable_if<is_float_or_double_v<T>, T>::type kolmogorov(T x) {
+        return static_cast<T>(cephes::kolmogorov(static_cast<double>(x)));
+    }
 
     inline double kolmogc(double x) { return cephes::kolmogc(x); }
 
