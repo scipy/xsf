@@ -17,6 +17,7 @@
 #include "config.h"
 #include "erf.h"
 #include "gamma.h"
+#include "tools.h"
 
 namespace xsf {
 
@@ -336,24 +337,24 @@ XSF_HOST_DEVICE inline void poisson_binom_cdf_all(InputMat p, OutputMat res) {
     res(n) = T(1);
 }
 
-template <typename InputMat>
-XSF_HOST_DEVICE inline typename InputMat::value_type take_from_pmf(InputMat pmf, long long int k) {
+template <typename InputMat, typename Int>
+XSF_HOST_DEVICE inline typename InputMat::value_type take_from_pmf(InputMat pmf, Int k) {
     using T = typename InputMat::value_type;
     auto size = pmf.extent(0);
-    if ((k < 0) || (k >= static_cast<long long int>(size))) {
+    if (detail::cmp_less(k, 0) || !detail::cmp_less(k, size)) {
         return T(0);
     }
     return pmf(k);
 }
 
-template <typename InputMat>
-XSF_HOST_DEVICE inline typename InputMat::value_type take_from_discrete_cdf(InputMat cdf, long long int k) {
+template <typename InputMat, typename Int>
+XSF_HOST_DEVICE inline typename InputMat::value_type take_from_discrete_cdf(InputMat cdf, Int k) {
     using T = typename InputMat::value_type;
     auto size = cdf.extent(0);
-    if (k < 0) {
+    if (detail::cmp_less(k, 0)) {
         return T(0);
     }
-    if (k >= static_cast<long long int>(size) - 1) {
+    if (!detail::cmp_less(k, size - 1)) {
         return T(1);
     }
     return cdf(k);

@@ -474,5 +474,18 @@ namespace detail {
         return {x, NewtonRootFinderStatus::MAX_ITERATIONS_EXCEEDED};
     }
 
+    template <typename T, typename U>
+    XSF_HOST_DEVICE constexpr bool cmp_less(T t, U u) {
+        static_assert(std::is_integral_v<T> && std::is_integral_v<U>);
+
+        if constexpr (std::is_signed_v<T> == std::is_signed_v<U>) {
+            return t < u;
+        } else if constexpr (std::is_signed_v<T>) {
+            return t < 0 || static_cast<std::make_unsigned_t<T>>(t) < u;
+        } else {
+            return u >= 0 && t < static_cast<std::make_unsigned_t<U>>(u);
+        }
+    }
+
 } // namespace detail
 } // namespace xsf
