@@ -226,7 +226,7 @@ class TestCuPy:
         input_path, output_path, tol_path = tables_paths
         expn = cupy._core.create_ufunc(
             'cupyx_scipy_special_expn',
-            ('ld->d', 'ff->f', 'dd->d'),
+            ('ff->f', 'dd->d'),
             'out0 = xsf::cephes::expn(in0, in1)',
             preamble=get_preamble("xsf/cephes/expn.h"),
         )
@@ -295,7 +295,7 @@ class TestCuPy:
         input_path, output_path, tol_path = tables_paths
         _lambertw_scalar = cupy._core.create_ufunc(
             "cupyx_scipy_lambertw_scalar",
-            ("Dld->D", "Flf->F"),
+            ("Dld->D", "Fif->f"),
             "out0 = xsf::lambertw(in0, in1, in2)",
             preamble=get_preamble("xsf/lambertw.h"),
         )
