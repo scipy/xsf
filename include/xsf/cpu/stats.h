@@ -159,5 +159,81 @@ namespace cpu {
         return std::min(std::max(cdf, 0.0), 1.0);
     }
 
+    // Logarithm of the generalized inverse Gaussian probability density function.
+    inline double geninvgauss_logpdf(double x, double p, double b) {
+        if (x <= 0) {
+            return -std::numeric_limits<double>::infinity();
+        }
+
+        double z = cyl_bessel_ke(p, b);
+        if (std::isinf(z)) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+
+        return -std::log(2.0) - std::log(z) + b + (p - 1.0) * std::log(x) - b * (x + 1.0 / x) / 2.0;
+    }
+
+    inline float geninvgauss_logpdf(float x, float p, float b) {
+        return static_cast<float>(
+            geninvgauss_logpdf(static_cast<double>(x), static_cast<double>(p), static_cast<double>(b))
+        );
+    }
+
+    // Generalized inverse Gaussian probability density function.
+    inline double geninvgauss_pdf(double x, double p, double b) { return std::exp(geninvgauss_logpdf(x, p, b)); }
+
+    inline float geninvgauss_pdf(float x, float p, float b) {
+        return static_cast<float>(
+            geninvgauss_pdf(static_cast<double>(x), static_cast<double>(p), static_cast<double>(b))
+        );
+    }
+
+    namespace detail {
+
+        inline double genhyperbolic_log_norming_constant(double p, double a, double b) {
+            double t1, t2, t3, t4, t5, t6;
+
+            t1 = (a + b) * (a - b);
+            t2 = p * 0.5 * std::log(t1);
+            t3 = 0.5 * std::log(2 * M_PI);
+            t4 = (p - 0.5) * std::log(a);
+            t5 = std::sqrt(t1);
+            t6 = std::log(cyl_bessel_ke(p, t5)) - t5;
+
+            return t2 - t3 - t4 - t6;
+        }
+
+    } // namespace detail
+
+    // Logarithm of the generalized hyperbolic probability density function.
+    inline double genhyperbolic_logpdf(double x, double p, double a, double b) {
+        double t1, t2, t3, t4, t5;
+
+        t1 = detail::genhyperbolic_log_norming_constant(p, a, b);
+        t2 = std::sqrt(1.0 + x * x);
+        t3 = (p - 0.5) * std::log(t2);
+        t4 = std::log(cyl_bessel_ke(p - 0.5, a * t2)) - a * t2;
+        t5 = b * x;
+
+        return t1 + t3 + t4 + t5;
+    }
+
+    inline float genhyperbolic_logpdf(float x, float p, float a, float b) {
+        return static_cast<float>(genhyperbolic_logpdf(
+            static_cast<double>(x), static_cast<double>(p), static_cast<double>(a), static_cast<double>(b)
+        ));
+    }
+
+    // Generalized hyperbolic probability density function.
+    inline double genhyperbolic_pdf(double x, double p, double a, double b) {
+        return std::exp(genhyperbolic_logpdf(x, p, a, b));
+    }
+
+    inline float genhyperbolic_pdf(float x, float p, float a, float b) {
+        return static_cast<float>(genhyperbolic_pdf(
+            static_cast<double>(x), static_cast<double>(p), static_cast<double>(a), static_cast<double>(b)
+        ));
+    }
+
 } // namespace cpu
 } // namespace xsf
