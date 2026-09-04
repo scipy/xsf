@@ -82,11 +82,12 @@ cupy-tests = {
     },
     cupy = "*",
     pytest-forked = "*",
+    pytest-xdist = "*",
     polars = "*",
   },
   tasks.test-cupy = {
     description = "Run CuPy integration tests.",
-    cmd = "pytest --forked python_tests/test_cupy.py",
+    cmd = "pytest -n auto --forked python_tests/test_cupy.py",
   },
 }
 
