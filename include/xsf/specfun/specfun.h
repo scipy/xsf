@@ -1197,23 +1197,47 @@ namespace specfun {
         b1 = b - a - 1.0;
         c = 12.0 / x;
         hu0 = 0.0;
+        // The integrand carries t^(a-1), an algebraic endpoint singularity at
+        // t = 0 for non-integer a: continuous, unbounded derivatives, and
+        // Gauss-Legendre converges only algebraically against it.
+        //
+        // The substitution t = s^(1/a) maps t^(a-1) dt to (1/a) ds exactly, but
+        // it is not free: it puts s^(1/a) inside the exponential, which is
+        // itself singular at s = 0 when a > 1. It therefore pays only when the
+        // induced singularity is weaker than the original, i.e. 1/a > a - 1,
+        // which is a < golden ratio; 1.4 is used, inside that with margin.
+        // Outside it the substitution makes matters sharply
+        // worse (measured: applying it unconditionally regressed 2965 of 4608
+        // grid points, one of them from 2.5e-18 to 3.5e-02).
+        const bool use_sub = (a1 != floor(a1)) && (a < 1.4) && (a > 0.0);
+        const double hi = use_sub ? pow(c, a) : c;
         for (m = 10; m <= 100; m += 5) {
             hu1 = 0.0;
-            g = 0.5 * c / m;
+            g = 0.5 * hi / m;
             d = g;
             for (j = 1; j < (m + 1); j++) {
                 s = 0.0;
                 for (k = 1; k <= 30; k++) {
-                    t1 = d + g * t[k - 1];
-                    t2 = d - g * t[k - 1];
-                    f1 = exp(-x * t1) * pow(t1, a1) * pow(1.0 + t1, b1);
-                    f2 = exp(-x * t2) * pow(t2, a1) * pow(1.0 + t2, b1);
+                    double u1 = d + g * t[k - 1];
+                    double u2 = d - g * t[k - 1];
+                    if (use_sub) {
+                        t1 = pow(u1, 1.0 / a);
+                        t2 = pow(u2, 1.0 / a);
+                        f1 = exp(-x * t1) * pow(1.0 + t1, b1);
+                        f2 = exp(-x * t2) * pow(1.0 + t2, b1);
+                    } else {
+                        t1 = u1;
+                        t2 = u2;
+                        f1 = exp(-x * t1) * pow(t1, a1) * pow(1.0 + t1, b1);
+                        f2 = exp(-x * t2) * pow(t2, a1) * pow(1.0 + t2, b1);
+                    }
                     s += w[k - 1] * (f1 + f2);
                 }
                 hu1 += s * g;
                 d += 2.0 * g;
             }
-            if (fabs(1.0 - hu0 / hu1) < 1.0e-9) {
+            if (use_sub) { hu1 /= a; }
+            if (fabs(1.0 - hu0 / hu1) < (use_sub ? 1.0e-14 : 1.0e-9)) {
                 break;
             }
             hu0 = hu1;
