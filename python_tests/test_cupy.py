@@ -295,7 +295,7 @@ class TestCuPy:
         input_path, output_path, tol_path = tables_paths
         _lambertw_scalar = cupy._core.create_ufunc(
             "cupyx_scipy_lambertw_scalar",
-            ("Dld->D", "Fif->f"),
+            ("Dld->D", "Flf->F"),
             "out0 = xsf::lambertw(in0, in1, in2)",
             preamble=get_preamble("xsf/lambertw.h"),
         )
