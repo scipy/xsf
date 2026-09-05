@@ -210,7 +210,7 @@ namespace cpu {
         double t1, t2, t3, t4, t5;
 
         t1 = detail::genhyperbolic_log_norming_constant(p, a, b);
-        t2 = std::sqrt(1.0 + x * x);
+        t2 = std::hypot(1, x);
         t3 = (p - 0.5) * std::log(t2);
         t4 = std::log(cyl_bessel_ke(p - 0.5, a * t2)) - a * t2;
         t5 = b * x;
