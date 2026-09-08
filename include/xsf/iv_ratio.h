@@ -1,10 +1,11 @@
-// Numerically stable computation of iv(v+1, x) / iv(v, x)
+// Numerically stable computation of iv(v, x) / iv(v - 1, x) and its inverse
 
 #pragma once
 
 #include "cephes/dd_real.h"
 #include "config.h"
 #include "error.h"
+#include "log_exp.h"
 #include "tools.h"
 
 namespace xsf {
@@ -75,6 +76,7 @@ XSF_HOST_DEVICE inline std::pair<double, std::uint64_t> _iv_ratio_cf(double v, d
     return {static_cast<double>(ret), terms};
 }
 
+// Compute I_v(x) / I_{v-1}(x) for v >= 0.5 and x >= 0.
 XSF_HOST_DEVICE inline double iv_ratio(double v, double x) {
 
     if (std::isnan(v) || std::isnan(x)) {
@@ -85,7 +87,7 @@ XSF_HOST_DEVICE inline double iv_ratio(double v, double x) {
         return std::numeric_limits<double>::quiet_NaN();
     }
     if (std::isinf(v) && std::isinf(x)) {
-        // There is not a unique limit as both v and x tends to infinity.
+        // There is no unique limit as both v and x tend to infinity.
         set_error("iv_ratio", SF_ERROR_DOMAIN, NULL);
         return std::numeric_limits<double>::quiet_NaN();
     }
@@ -98,7 +100,10 @@ XSF_HOST_DEVICE inline double iv_ratio(double v, double x) {
     if (std::isinf(x)) {
         return 1.0;
     }
-
+    if (v == 0.5) {
+        // Closed-form solution for v = 0.5: iv_ratio(0.5, x) = tanh(x)
+        return std::tanh(x);
+    }
     auto [ret, terms] = _iv_ratio_cf<double>(v, x, false);
     if (terms == 0) { // failed to converge; should not happen
         set_error("iv_ratio", SF_ERROR_NO_RESULT, NULL);
@@ -111,6 +116,7 @@ XSF_HOST_DEVICE inline float iv_ratio(float v, float x) {
     return iv_ratio(static_cast<double>(v), static_cast<double>(x));
 }
 
+// Compute 1 - I_v(x) / I_{v-1}(x) directly to preserve accuracy near 1.
 XSF_HOST_DEVICE inline double iv_ratio_c(double v, double x) {
 
     if (std::isnan(v) || std::isnan(x)) {
@@ -121,7 +127,7 @@ XSF_HOST_DEVICE inline double iv_ratio_c(double v, double x) {
         return std::numeric_limits<double>::quiet_NaN();
     }
     if (std::isinf(v) && std::isinf(x)) {
-        // There is not a unique limit as both v and x tends to infinity.
+        // There is no unique limit as both v and x tend to infinity.
         set_error("iv_ratio_c", SF_ERROR_DOMAIN, NULL);
         return std::numeric_limits<double>::quiet_NaN();
     }
@@ -157,13 +163,110 @@ XSF_HOST_DEVICE inline double iv_ratio_c(double v, double x) {
     } else {
         // The previous branch (v > 0.5) also works for v == 0.5, but
         // the closed-form formula "1 - tanh(x)" is more efficient.
-        double t = std::exp(-2 * x);
-        return (2 * t) / (1 + t);
+        // Equivalently: iv_ratio_c(0.5, x) = 1 - tanh(x) = 2 * expit(-2*x)
+        return 2 * expit(-2 * x);
     }
 }
 
 XSF_HOST_DEVICE inline float iv_ratio_c(float v, float x) {
     return iv_ratio_c(static_cast<double>(v), static_cast<double>(x));
+}
+
+// Compute x such that I_v(x) / I_{v-1}(x) = r for v >= 0.5 and 0 <= r <= 1.
+XSF_HOST_DEVICE inline double iv_ratioinv(double v, double r) {
+    if (std::isnan(v) || std::isnan(r)) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    if (!std::isfinite(v) || v < 0.5 || r < 0.0 || r > 1.0) {
+        // iv_ratioinv is only defined for v >= 0.5
+        set_error("iv_ratioinv", SF_ERROR_DOMAIN, NULL);
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    if (r == 0.0) {
+        return 0.0;
+    }
+    if (r == 1.0) {
+        return std::numeric_limits<double>::infinity();
+    }
+    if (v == 0.5) {
+        return std::atanh(r);
+    }
+    // Algorithm description: use Chandrupatla's method to find the root of
+    // f(x) = iv_ratio(v, x) - r (or f(x) = 1 - iv_ratio_c(v, x) - r if r > 0.5).
+    // Bounds from Amos (1974), "Computation of Modified Bessel Functions and Their Ratios".
+    // That paper defines the ratio as iv(v+1, x)/iv(v, x), but we define it as iv(v, x)/iv(v-1, x).
+    // Substituting v -> v-1 in eq. (9) and eq. (16) yields the following bounds for x:
+    //   x/(v-1/2 + sqrt(x^2 + (v+1/2)^2)) <= r <= x/(v-1 + sqrt(x^2 + (v+1)^2))
+    //
+    // Inverting (inequality direction flips):
+    //   lower x (from upper r-bound): r*[(v-1) + sqrt((v-1)^2 + 4v*(1-r^2))] / (1-r^2)
+    //   upper x (from lower r-bound): r*[(v-0.5) + sqrt((v-0.5)^2 + 2v*(1-r^2))] / (1-r^2)
+
+    double r_c = 1.0 - r;
+    double one_minus_r_sq = r_c * (1.0 + r); // 1 - r^2
+
+    double vm1 = v - 1.0;
+    double lower_bound = r * (vm1 + std::sqrt(vm1 * vm1 + 4.0 * v * one_minus_r_sq)) / one_minus_r_sq;
+
+    double vm05 = v - 0.5;
+    double upper_bound = r * (vm05 + std::sqrt(vm05 * vm05 + 2.0 * v * one_minus_r_sq)) / one_minus_r_sq;
+
+    // For small r both bounds converge to 2v*r (== true x). Ensure bracket has width.
+    if (upper_bound <= lower_bound) {
+        upper_bound = 2.0 * lower_bound;
+    }
+
+    auto func = [v, r, r_c](double x) {
+        if (r <= 0.5) {
+            return iv_ratio(v, x) - r;
+        }
+        return r_c - iv_ratio_c(v, x);
+    };
+
+    double xl = lower_bound;
+    double xr = upper_bound;
+    double f_xl = func(xl);
+    double f_xr = func(xr);
+
+    if (f_xl * f_xr > 0) {
+        // The Amos bounds are theoretically correct but may yield an invalid bracket
+        // due to precision issues in iv_ratio or iv_ratio_c. This happens especially for very small or large r.
+        // Fallback: use bracket_root_for_cdf_inversion to find a valid bracket.
+        // Bracketing parameters taken from gdtrib, only difference: our function is increasing
+        auto [b_xl, b_xr, b_f_xl, b_f_xr, bracket_status] = detail::bracket_root_for_cdf_inversion(
+            func, 1.0, std::numeric_limits<double>::min(), std::numeric_limits<double>::max(), -0.875, 7.0, 0.125, 8,
+            true, 342
+        );
+        if (bracket_status == 1) {
+            set_error("iv_ratioinv", SF_ERROR_UNDERFLOW, NULL);
+            return 0.0;
+        }
+        if (bracket_status == 2) {
+            set_error("iv_ratioinv", SF_ERROR_OVERFLOW, NULL);
+            return std::numeric_limits<double>::infinity();
+        }
+        if (bracket_status >= 3) {
+            set_error("iv_ratioinv", SF_ERROR_OTHER, "Computational Error");
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        xl = b_xl;
+        xr = b_xr;
+        f_xl = b_f_xl;
+        f_xr = b_f_xr;
+    }
+
+    auto [result, root_status] =
+        detail::find_root_chandrupatla(func, xl, xr, f_xl, f_xr, std::numeric_limits<double>::epsilon(), 1e-308, 1000);
+    if (root_status) {
+        // Root finding failed. This should never happen.
+        set_error("iv_ratioinv", SF_ERROR_OTHER, "Computational Error");
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    return result;
+}
+
+XSF_HOST_DEVICE inline float iv_ratioinv(float v, float r) {
+    return static_cast<float>(iv_ratioinv(static_cast<double>(v), static_cast<double>(r)));
 }
 
 } // namespace xsf

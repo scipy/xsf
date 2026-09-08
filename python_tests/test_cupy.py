@@ -4,17 +4,12 @@ Beyond cupy and pytest, also requires xsref package to be installed.
 Should be run with pytest-isolate or pytest-forked to isolate tests
 in separate processes since memory corruption on GPU can cause
 failures to occur in unrelated tests.
-
-TODO:
-Set this up to run through pixi, and to run in CI.
 """
 
 import os
 import numpy as np
 import polars as pl
 import pytest
-import shutil
-import tempfile
 
 from packaging.version import Version
 from pathlib import Path
@@ -49,23 +44,6 @@ try:
     import cupy  # type: ignore
 except (ImportError, AttributeError):
     cupy = MissingModule('cupy')
-
-
-@pytest.fixture(scope="function", autouse=True)
-def manage_cupy_cache():
-    # Temporarily change cupy kernel cache location so kernel cache will not be polluted
-    # by these tests. Remove temporary cache in teardown.
-    temp_cache_dir = tempfile.mkdtemp()
-    original_cache_dir = os.environ.get('CUPY_CACHE_DIR', None)
-    os.environ['CUPY_CACHE_DIR'] = temp_cache_dir
-
-    yield
-
-    if original_cache_dir is not None:
-        os.environ['CUPY_CACHE_DIR'] = original_cache_dir
-    else:
-        del os.environ['CUPY_CACHE_DIR']
-    shutil.rmtree(temp_cache_dir)
 
 
 def _get_cols_helper(table_path, xp):
@@ -103,7 +81,7 @@ def get_cols_as_numpy(table_path):
     return _get_cols_helper(table_path, np)
 
 
-HERE = Path(__file__)
+XSF_INCLUDE_DIR = Path(os.environ["CONDA_PREFIX"]) / "include"
 
 
 def get_tables_for_func(func_name):
@@ -121,11 +99,10 @@ def get_tables_for_func(func_name):
 
 
 def get_preamble(header):
-    header_path = (HERE.parent.parent / "include" / Path(header)).resolve()
+    header_path = (XSF_INCLUDE_DIR / Path(header)).resolve()
     return f'#include "{header_path}"'
 
 
-@pytest.mark.usefixtures("manage_cupy_cache")
 @check_version(cupy, "13.0.0")
 class TestCuPy:
     def _adjust_tol(self, tol, *, wiggle=16):
@@ -254,8 +231,8 @@ class TestCuPy:
             preamble=get_preamble("xsf/cephes/expn.h"),
         )
 
-        x, n = get_cols_as_cupy(input_path)
-        out = cupy.asnumpy(expn(x, n))
+        n, x = get_cols_as_cupy(input_path)
+        out = cupy.asnumpy(expn(n, x))
 
         desired = get_cols_as_numpy(output_path)
         rtol = get_cols_as_numpy(tol_path)
@@ -318,7 +295,7 @@ class TestCuPy:
         input_path, output_path, tol_path = tables_paths
         _lambertw_scalar = cupy._core.create_ufunc(
             "cupyx_scipy_lambertw_scalar",
-            ("Dld->D", "Fif->f"),
+            ("Dld->D", "Flf->F"),
             "out0 = xsf::lambertw(in0, in1, in2)",
             preamble=get_preamble("xsf/lambertw.h"),
         )
@@ -377,7 +354,7 @@ class TestCuPy:
             ),
             preamble=get_preamble("xsf/sici.h"),
         )
-            
+
         x = get_cols_as_cupy(input_path)
         if cupy.iscomplexobj(x):
             pytest.xfail("Known bug, returning nan instead of a complex infinity.")
@@ -385,8 +362,6 @@ class TestCuPy:
 
         desired0, desired1 = get_cols_as_numpy(output_path)
         rtol0, rtol1 = get_cols_as_numpy(tol_path)
-        error = extended_relative_error(out0, desired0)
-        tol = self._adjust_tol(rtol0)
         assert np.all(
             extended_relative_error(out0, desired0) <= self._adjust_tol(rtol0)
         )
@@ -437,7 +412,7 @@ class TestCuPy:
             ),
             preamble=get_preamble("xsf/sici.h"),
         )
-            
+
         x = get_cols_as_cupy(input_path)
         if cupy.iscomplexobj(x):
             pytest.xfail("Known bug, returning nan instead of a complex infinity.")
@@ -496,7 +471,6 @@ class TestCuPy:
         skip = x.get() == (-21092.63667768141-7.794025022440267e+201j)
         out, desired, rtol = out[~skip], desired[~skip], rtol[~skip]
 
-        r = extended_relative_error(out, desired)
         assert np.all(
             extended_relative_error(out, desired) <= self._adjust_tol(rtol)
         )
@@ -571,7 +545,7 @@ class TestCuPy:
         input_path, output_path, tol_path = tables_paths
         wofz = cupy._core.create_ufunc(
             'cupyx_scipy_special_wofz',
-            ('f->f', 'd->d', 'F->F', 'D->D'),
+            ('F->F', 'D->D'),
             'out0 = xsf::wofz(in0)',
             preamble=get_preamble("xsf/erf.h"),
         )

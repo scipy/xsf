@@ -1,0 +1,36 @@
+[package]
+name = { workspace = true }
+version = { workspace = true }
+build = {
+  backend.name = "pixi-build-cmake",
+  config.extra-args = [
+    "-DBUILD_TESTS=ON",
+    "-DCMAKE_BUILD_TYPE=Debug",
+  ],
+  flags = ["tests", "debug"],
+  source.path = "../..",
+  # RECIPE_DIR references the current working directory,
+  # enabling ccache specific to this build variant.
+  target.unix.config.env = {
+    CCACHE_DIR = "$RECIPE_DIR/.ccache",
+    CCACHE_BASEDIR = "$RECIPE_DIR",
+  },
+  target.win.config.env = {
+    CCACHE_DIR = "%RECIPE_DIR%\\.ccache",
+    CCACHE_BASEDIR = "%RECIPE_DIR%.",
+  },
+}
+build-dependencies = {
+  xsref = {
+    git = "https://github.com/scipy/xsref",
+    rev = "b511621d228fdc660f3471f2855fd9955652f34d",
+  },
+  ccache = "*",
+}
+host-dependencies = {
+  catch2 = "*",
+  libarrow-all = "*",
+}
+run-dependencies = {
+  cmake = "*",
+}

@@ -1,4 +1,5 @@
 #include "../testing_utils.h"
+#include <xsf/multivariate_normal.h>
 #include <xsf/stats.h>
 
 TEST_CASE("bivariate normal SF test", "[bivariate_normal_sf][xsf_tests]") {
