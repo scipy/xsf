@@ -1,6 +1,5 @@
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include "../testing_utils.h"
+
 #include <cmath>
 #include <complex>
 #include <xsf/sici.h>
@@ -17,8 +16,8 @@ TEST_CASE("sici imaginary-axis branches", "[sici][xsf_tests]") {
     double shi, chi;
     xsf::shichi(std::abs(imag), shi, chi);
     CAPTURE(real, imag, si, ci);
-    REQUIRE_THAT(si.real(), Catch::Matchers::WithinAbs(0.0, 1e-13));
-    REQUIRE_THAT(si.imag(), Catch::Matchers::WithinRel(std::copysign(shi, imag), 1e-13));
-    REQUIRE_THAT(ci.real(), Catch::Matchers::WithinRel(chi, 1e-13));
-    REQUIRE_THAT(ci.imag(), Catch::Matchers::WithinAbs(std::copysign(M_PI_2, imag), 1e-13));
+    REQUIRE(std::abs(si.real()) <= 1e-13);
+    REQUIRE(xsf::extended_relative_error(si.imag(), std::copysign(shi, imag)) <= 1e-13);
+    REQUIRE(xsf::extended_relative_error(ci.real(), chi) <= 1e-13);
+    REQUIRE(std::abs(ci.imag() - std::copysign(M_PI_2, imag)) <= 1e-13);
 }
