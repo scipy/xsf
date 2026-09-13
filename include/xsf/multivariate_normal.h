@@ -62,8 +62,8 @@ XSF_HOST_DEVICE inline double bivariate_normal_cdf(double dh, double dk, double 
     // dh, dk are the upper limits of the lower tail, and r must satisfy
     // -1 <= r <= 1.
     //
-    // Adapted from the MATLAB original implementation by Dr. Alan Genz;
-    // see license information in _qmvnt.py
+    // Adapted from the original MATLAB survival function implementation by Dr. Alan Genz;
+    // see license information in https://github.com/scipy/scipy/blob/v1.18.0/scipy/stats/_qmvnt.py
     // In the comments, phid is the CDF of the standard normal distribution.
 
     // By symmetry, the CDF at (dh, dk) is the upper-tail probability at (-dh, -dk).
