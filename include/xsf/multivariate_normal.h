@@ -53,19 +53,22 @@ namespace detail {
 
 } // namespace detail
 
-XSF_HOST_DEVICE inline double bivariate_normal_sf(double dh, double dk, double r) {
-    // Survival function of the standard bivariate normal distribution.
+XSF_HOST_DEVICE inline double bivariate_normal_cdf(double dh, double dk, double r) {
+    // Cumulative distribution function of the standard bivariate normal distribution.
     //
-    // Return P(X > dh, Y > dk) for a standard bivariate normal vector
+    // Return P(X <= dh, Y <= dk) for a standard bivariate normal vector
     // (X, Y) with correlation r.
     //
-    // dh, dk are the lower limits of the upper tail, and r must satisfy
+    // dh, dk are the upper limits of the lower tail, and r must satisfy
     // -1 <= r <= 1.
     //
-    // Adapted from the MATLAB original implementation by Dr. Alan Genz;
-    // see license information in _qmvnt.py
+    // Adapted from the original MATLAB survival function implementation by Dr. Alan Genz;
+    // see license information in https://github.com/scipy/scipy/blob/v1.18.0/scipy/stats/_qmvnt.py
     // In the comments, phid is the CDF of the standard normal distribution.
 
+    // By symmetry, the CDF at (dh, dk) is the upper-tail probability at (-dh, -dk).
+    dh = -dh;
+    dk = -dk;
     double p;
     if (detail::bivariate_normal_sf_boundary(dh, dk, r, p)) {
         return p;
@@ -182,8 +185,8 @@ XSF_HOST_DEVICE inline double bivariate_normal_sf(double dh, double dk, double r
     return bvn < 0.0 ? 0.0 : (bvn > 1.0 ? 1.0 : bvn);
 }
 
-XSF_HOST_DEVICE inline float bivariate_normal_sf(float dh, float dk, float r) {
-    return bivariate_normal_sf(static_cast<double>(dh), static_cast<double>(dk), static_cast<double>(r));
+XSF_HOST_DEVICE inline float bivariate_normal_cdf(float dh, float dk, float r) {
+    return bivariate_normal_cdf(static_cast<double>(dh), static_cast<double>(dk), static_cast<double>(r));
 }
 
 } // namespace xsf
