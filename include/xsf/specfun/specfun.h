@@ -83,7 +83,6 @@ namespace specfun {
 
     enum class Status { OK = 0, NoMemory, Other };
 
-    void airyb(double, double *, double *, double *, double *);
     void bjndd(double, int, double *, double *, double *);
 
     void cerzo(int, std::complex<double> *);
