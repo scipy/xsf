@@ -50,7 +50,7 @@ namespace detail {
         std::complex<double> rz = 1.0 / z;
         std::complex<double> rzz = rz / z;
 
-        return (z - 0.5) * std::log(z) - z + loggamma_HLOG2PI + rz * cevalpoly(coeffs, 7, rzz);
+        return (z - 0.5) * std::log(z) - z + loggamma_HLOG2PI + rz * evalpoly(coeffs, 7, rzz);
     }
 
     XSF_HOST_DEVICE std::complex<double> loggamma_recurrence(std::complex<double> z) {
@@ -95,7 +95,7 @@ namespace detail {
                            8.2246703342411321824E-1,  -5.7721566490153286061E-1};
 
         z -= 1.0;
-        return z * cevalpoly(coeffs, 22, z);
+        return z * evalpoly(coeffs, 22, z);
     }
 } // namespace detail
 
@@ -149,12 +149,22 @@ XSF_HOST_DEVICE inline double rgamma(double z) { return cephes::rgamma(z); }
 XSF_HOST_DEVICE inline float rgamma(float z) { return rgamma(static_cast<double>(z)); }
 
 XSF_HOST_DEVICE inline std::complex<double> rgamma(std::complex<double> z) {
+    // Guard against NaN/Inf inputs: std::exp(complex) is implemented in
+    // libstdc++ as std::polar(std::exp(re), im), and std::polar asserts
+    // __rho >= 0 under _GLIBCXX_ASSERTIONS -- which is false for NaN.
+    if (!std::isfinite(z.real()) || !std::isfinite(z.imag())) {
+        return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+    }
     // Compute 1/Gamma(z) using loggamma.
     if (z.real() <= 0 && z == std::floor(z.real())) {
         // Zeros at 0, -1, -2, ...
         return 0.0;
     }
-    return std::exp(-loggamma(z));
+    std::complex<double> lg = loggamma(z);
+    if (lg.real() == std::numeric_limits<double>::infinity()) {
+        return {0.0, std::copysign(0.0, z.imag())};
+    }
+    return std::exp(-lg);
 }
 
 XSF_HOST_DEVICE inline std::complex<float> rgamma(std::complex<float> z) {

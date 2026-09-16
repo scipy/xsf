@@ -43,7 +43,7 @@
 namespace xsf {
 namespace cephes {
 
-    double round(double x) {
+    XSF_HOST_DEVICE inline double round(double x) {
         double y, r;
 
         /* Largest integer <= x */
@@ -69,6 +69,8 @@ namespace cephes {
         /* Else round down. */
         return (y);
     }
+
+    XSF_HOST_DEVICE inline float round(float x) { return static_cast<float>(round(static_cast<double>(x))); }
 
 } // namespace cephes
 } // namespace xsf

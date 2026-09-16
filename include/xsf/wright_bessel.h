@@ -118,11 +118,13 @@ namespace detail {
          * the fewer polygamma functions have to be computed.
          *
          * Call: python _precompute/wright_bessel.py 1
+         * Source: https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/_precompute/wright_bessel.py
          *
          * For small b, i.e. b <= 1e-3, cancellation of poles of digamma(b)/Gamma(b)
          * and polygamma needs to be carried out => series expansion in a=0 to order 5
          * and in b=0 to order 4.
          * Call: python _precompute/wright_bessel.py 2
+         * Source: https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/_precompute/wright_bessel.py
          */
         double A[6]; // coefficients of a^k  (1, -x * Psi(b), ...)
         double B[6]; // powers of b^k/k! or terms in polygamma functions
@@ -233,6 +235,7 @@ namespace detail {
          *
          * with Z = (a*x)^(1/(1+a)).
          * Call: python _precompute/wright_bessel.py 3
+         * Source: https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/_precompute/wright_bessel.py
          */
         double A[15];  // powers of a
         double B[17];  // powers of b
@@ -312,8 +315,8 @@ namespace detail {
              23950080 * B[8] * (27404 * A[4] - 98228 * A[3] + 78663 * A[2] - 10868 * a - 1012) -
              13685760 * B[7] * (105612 * A[5] - 599196 * A[4] + 791843 * A[3] - 224913 * A[2] - 27612 * a + 4540) +
              2661120 * B[6] *
-                 (693680 * A[6] - 6473532 * A[5] + 13736424 * A[4] - 7047469 * A[3] - 723840 * A[2] + 471588 * a + 7376
-                 ) -
+                 (693680 * A[6] - 6473532 * A[5] + 13736424 * A[4] - 7047469 * A[3] - 723840 * A[2] + 471588 * a +
+                  7376) -
              2661120 * B[5] *
                  (432536 * A[7] - 7850804 * A[6] + 27531114 * A[5] - 24234457 * A[4] - 703001 * A[3] + 3633474 * A[2] -
                   36244 * a - 45128) +
@@ -547,7 +550,8 @@ namespace detail {
         0.01811556071348939,  0.01438082276148557,  0.01059054838365097, 0.006759799195745401, 0.002908622553155141
     };
     /* Fitted parameters for optimal choice of eps
-     * Call: python _precompute/wright_bessel.py 4 */
+     * Call: python _precompute/wright_bessel.py 4
+     * Source: https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/_precompute/wright_bessel.py */
     constexpr double wb_A[] = {0.41037, 0.30833, 6.9952, 18.382, -2.8566, 2.1122};
 
     template <bool log_wb>

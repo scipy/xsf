@@ -29,6 +29,7 @@ Translated to C++ by SciPy developers in 2024.
 #pragma once
 
 #include "amos.h"
+#include "bessel.h"
 #include "error.h"
 
 namespace xsf {
@@ -42,6 +43,15 @@ T sph_bessel_j(long n, T x) {
     if (n < 0) {
         set_error("spherical_jn", SF_ERROR_DOMAIN, nullptr);
         return std::numeric_limits<T>::quiet_NaN();
+    }
+
+    // For real negative x, the principal-branch product
+    // sqrt(M_PI_2/x) * J_{n+1/2}(x) introduces a spurious sign relative
+    // to the (entire) function j_n. Use the reflection identity
+    // j_n(-x) = (-1)^n * j_n(x) explicitly (DLMF 10.47.14).
+    if (x < 0) {
+        T r = sph_bessel_j(n, -x);
+        return (n % 2 == 0) ? r : -r;
     }
 
     if ((x == std::numeric_limits<T>::infinity()) || (x == -std::numeric_limits<T>::infinity())) {
@@ -112,6 +122,15 @@ std::complex<T> sph_bessel_j(long n, std::complex<T> z) {
         return 0;
     }
 
+    // For purely real negative z, the principal-branch product
+    // sqrt(M_PI_2/z) * J_{n+1/2}(z) introduces a spurious sign relative
+    // to the (entire) function j_n. Use the reflection identity
+    // j_n(-z) = (-1)^n * j_n(z) explicitly (DLMF 10.47.14).
+    if (std::imag(z) == 0 && std::real(z) < 0) {
+        std::complex<T> r = sph_bessel_j(n, std::complex<T>{-std::real(z), static_cast<T>(0)});
+        return (n % 2 == 0) ? r : -r;
+    }
+
     std::complex<T> out = std::sqrt(static_cast<T>(M_PI_2) / z) * cyl_bessel_j(n + 1 / static_cast<T>(2), z);
     if (std::imag(z) == 0) {
         return std::real(out); // Small imaginary part is spurious
@@ -154,7 +173,8 @@ T sph_bessel_y(long n, T x) {
     }
 
     if (x < 0) {
-        return std::pow(-1, n + 1) * sph_bessel_y(n, -x);
+        T r = sph_bessel_y(n, -x);
+        return (n % 2 == 1) ? r : -r;
     }
 
     if (x == std::numeric_limits<T>::infinity() || x == -std::numeric_limits<T>::infinity()) {
@@ -215,6 +235,12 @@ std::complex<T> sph_bessel_y(long n, std::complex<T> z) {
         return std::complex<T>(1, 1) * std::numeric_limits<T>::infinity();
     }
 
+    // y_n(-z) = (-1)^(n+1) * y_n(z); see sph_bessel_j note above.
+    if (std::imag(z) == 0 && std::real(z) < 0) {
+        std::complex<T> r = sph_bessel_y(n, std::complex<T>{-std::real(z), static_cast<T>(0)});
+        return (n % 2 == 0) ? -r : r;
+    }
+
     return std::sqrt(static_cast<T>(M_PI_2) / z) * cyl_bessel_y(n + 1 / static_cast<T>(2), z);
 }
 
@@ -236,6 +262,11 @@ T sph_bessel_i(long n, T x) {
     if (n < 0) {
         set_error("spherical_in", SF_ERROR_DOMAIN, nullptr);
         return std::numeric_limits<T>::quiet_NaN();
+    }
+
+    if (x < 0) {
+        T r = sph_bessel_i(n, -x);
+        return (n % 2 == 0) ? r : -r;
     }
 
     if (x == 0) {
@@ -291,6 +322,12 @@ std::complex<T> sph_bessel_i(long n, std::complex<T> z) {
         return std::numeric_limits<T>::quiet_NaN();
     }
 
+    // i_n(-z) = (-1)^n * i_n(z); see sph_bessel_j note above.
+    if (std::imag(z) == 0 && std::real(z) < 0) {
+        std::complex<T> r = sph_bessel_i(n, std::complex<T>{-std::real(z), static_cast<T>(0)});
+        return (n % 2 == 0) ? r : -r;
+    }
+
     return std::sqrt(static_cast<T>(M_PI_2) / z) * cyl_bessel_i(n + 1 / static_cast<T>(2), z);
 }
 
@@ -324,6 +361,14 @@ T sph_bessel_k(long n, T z) {
 
     if (z == 0) {
         return std::numeric_limits<T>::infinity();
+    }
+
+    if (z < 0) {
+        // https://dlmf.nist.gov/10.47#E17
+        // and
+        // https://dlmf.nist.gov/10.47.E11
+        int sign = (std::abs(n) % 2 == 0) ? 1 : -1;
+        return -(M_PI * sph_bessel_i(n, -z) + sign * sph_bessel_k(n, -z));
     }
 
     if (std::isinf(z)) {
@@ -364,6 +409,10 @@ std::complex<T> sph_bessel_k(long n, std::complex<T> z) {
         }
 
         return std::numeric_limits<T>::quiet_NaN();
+    }
+
+    if (std::imag(z) == 0) {
+        return {sph_bessel_k(n, std::real(z)), 0};
     }
 
     return std::sqrt(static_cast<T>(M_PI_2) / z) * cyl_bessel_k(n + 1 / static_cast<T>(2), z);

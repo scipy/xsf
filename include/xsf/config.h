@@ -56,6 +56,7 @@
 #ifdef __CUDACC__
 #define XSF_HOST_DEVICE __host__ __device__
 
+#include <cuda/std/array>
 #include <cuda/std/cmath>
 #include <cuda/std/cstddef>
 #include <cuda/std/cstdint>
@@ -95,6 +96,8 @@ XSF_HOST_DEVICE inline double tan(double x) { return cuda::std::tan(x); }
 
 XSF_HOST_DEVICE inline double atan(double x) { return cuda::std::atan(x); }
 
+XSF_HOST_DEVICE inline double asin(double x) { return cuda::std::asin(x); }
+
 XSF_HOST_DEVICE inline double acos(double x) { return cuda::std::acos(x); }
 
 XSF_HOST_DEVICE inline double sinh(double x) { return cuda::std::sinh(x); }
@@ -106,6 +109,8 @@ XSF_HOST_DEVICE inline double asinh(double x) { return cuda::std::asinh(x); }
 XSF_HOST_DEVICE inline bool signbit(double x) { return cuda::std::signbit(x); }
 
 XSF_HOST_DEVICE inline double hypot(double x, double y) { return cuda::std::hypot(x, y); }
+
+XSF_HOST_DEVICE inline double atan2(double y, double x) { return cuda::std::atan2(y, x); }
 
 // Fallback to global namespace for functions unsupported on NVRTC
 #ifndef __CUDACC_RTC__
@@ -142,15 +147,28 @@ XSF_HOST_DEVICE inline double fmod(double x, double y) { return ::fmod(x, y); }
 XSF_HOST_DEVICE inline double nextafter(double from, double to) { return ::nextafter(from, to); }
 #endif
 
+template <typename T, size_t N>
+using array = cuda::std::array<T, N>;
+
 template <typename T>
 XSF_HOST_DEVICE void swap(T &a, T &b) {
     cuda::std::swap(a, b);
 }
 
-// Reimplement std::clamp until it's available in CuPy
+// Reimplement std::min, std::max, std::clamp until they are available in CuPy
 template <typename T>
-XSF_HOST_DEVICE constexpr T clamp(T &v, T &lo, T &hi) {
-    return v < lo ? lo : (v > hi ? lo : v);
+XSF_HOST_DEVICE constexpr const T &min(const T &a, const T &b) {
+    return a < b ? a : b;
+}
+
+template <typename T>
+XSF_HOST_DEVICE constexpr const T &max(const T &a, const T &b) {
+    return a < b ? b : a;
+}
+
+template <typename T>
+XSF_HOST_DEVICE constexpr const T &clamp(const T &v, const T &lo, const T &hi) {
+    return v < lo ? lo : (v > hi ? hi : v);
 }
 
 template <typename T>
@@ -204,6 +222,24 @@ XSF_HOST_DEVICE complex<T> pow(const complex<T> &x, const T &y) {
 template <typename T>
 using is_floating_point = cuda::std::is_floating_point<T>;
 
+template <typename T>
+using is_integral = cuda::std::is_integral<T>;
+
+template <typename T>
+inline constexpr bool is_integral_v = cuda::std::is_integral_v<T>;
+
+template <typename T>
+using is_signed = cuda::std::is_signed<T>;
+
+template <typename T>
+inline constexpr bool is_signed_v = cuda::std::is_signed_v<T>;
+
+template <typename T>
+using make_unsigned = cuda::std::make_unsigned<T>;
+
+template <typename T>
+using make_unsigned_t = cuda::std::make_unsigned_t<T>;
+
 template <bool Cond, typename T = void>
 using enable_if = cuda::std::enable_if<Cond, T>;
 
@@ -224,6 +260,12 @@ using pair = cuda::std::pair<T1, T2>;
 template <typename... Types>
 using tuple = cuda::std::tuple<Types...>;
 
+template <typename T1, typename T2>
+using is_same = cuda::std::is_same<T1, T2>;
+
+template <typename T1, typename T2>
+inline constexpr bool is_same_v = cuda::std::is_same_v<T1, T2>;
+
 using cuda::std::ptrdiff_t;
 using cuda::std::size_t;
 using cuda::std::uint64_t;
@@ -233,10 +275,16 @@ using cuda::std::uint64_t;
 } // namespace std
 
 #else
+#if defined(__HIPCC__) || defined(__HIP__)
+// HIP-clang strictly enforces host/device call boundaries.
+#define XSF_HOST_DEVICE __host__ __device__
+#else
 #define XSF_HOST_DEVICE
+#endif
 
 #include <algorithm>
 #include <cassert>
+#include <cinttypes>
 #include <cmath>
 #include <complex>
 #include <cstddef>

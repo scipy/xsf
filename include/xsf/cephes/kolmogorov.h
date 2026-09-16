@@ -345,12 +345,16 @@ namespace cephes {
         return detail::_kolmogorov(x).sf;
     }
 
+    XSF_HOST_DEVICE inline float kolmogorov(float x) { return static_cast<float>(kolmogorov(static_cast<double>(x))); }
+
     XSF_HOST_DEVICE inline double kolmogc(double x) {
         if (std::isnan(x)) {
             return std::numeric_limits<double>::quiet_NaN();
         }
         return detail::_kolmogorov(x).cdf;
     }
+
+    XSF_HOST_DEVICE inline float kolmogc(float x) { return static_cast<float>(kolmogc(static_cast<double>(x))); }
 
     XSF_HOST_DEVICE inline double kolmogp(double x) {
         if (std::isnan(x)) {
@@ -362,6 +366,8 @@ namespace cephes {
         return -detail::_kolmogorov(x).pdf;
     }
 
+    XSF_HOST_DEVICE inline float kolmogp(float x) { return static_cast<float>(kolmogp(static_cast<double>(x))); }
+
     /* Functional inverse of Kolmogorov survival statistic for two-sided test.
      * Finds x such that kolmogorov(x) = p.
      */
@@ -372,6 +378,8 @@ namespace cephes {
         return detail::_kolmogi(p, 1 - p);
     }
 
+    XSF_HOST_DEVICE inline float kolmogi(float p) { return static_cast<float>(kolmogi(static_cast<double>(p))); }
+
     /* Functional inverse of Kolmogorov cumulative statistic for two-sided test.
      * Finds x such that kolmogc(x) = p = (or kolmogorov(x) = 1-p).
      */
@@ -381,6 +389,8 @@ namespace cephes {
         }
         return detail::_kolmogi(1 - p, p);
     }
+
+    XSF_HOST_DEVICE inline float kolmogci(float p) { return static_cast<float>(kolmogci(static_cast<double>(p))); }
 
     namespace detail {
 

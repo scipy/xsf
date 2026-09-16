@@ -56,7 +56,8 @@ namespace detail {
     /* The original implementation in SciPy from Zhang and Jin used 1500 for the
      * maximum number of series iterations in some cases and 500 in others.
      * Through the empirical results on the test cases in
-     * scipy/special/_precompute/hyp2f1_data.py, it was determined that these values
+     * https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/_precompute/hyp2f1_data.py,
+     * it was determined that these values
      * can lead to early termination of series which would have eventually converged
      * at a reasonable level of accuracy. We've bumped the iteration limit to 3000,
      * and may adjust it again based on further analysis. */
@@ -205,7 +206,7 @@ namespace detail {
         }
         /* Direct ratio tends to be more accurate for arguments in this range. Range
          * chosen empirically based on the relevant benchmarks in
-         * scipy/special/_precompute/hyp2f1_data.py */
+         * https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/_precompute/hyp2f1_data.py */
         if (std::abs(u) <= 100 && std::abs(v) <= 100 && std::abs(w) <= 100 && std::abs(x) <= 100) {
             result = cephes::Gamma(u) * cephes::Gamma(v) * (cephes::rgamma(w) * cephes::rgamma(x));
             if (std::isfinite(result) && result != 0.0) {
@@ -521,8 +522,12 @@ namespace detail {
 
 XSF_HOST_DEVICE inline std::complex<double> hyp2f1(double a, double b, double c, std::complex<double> z) {
     /* Special Cases
-     * -----------------------------------------------------------------------
-     * Takes constant value 1 when a = 0 or b = 0, even if c is a non-positive
+     * nan input */
+    if (std::isnan(a) || std::isnan(b) || std::isnan(c) || std::isnan(z.real()) || std::isnan(z.imag())) {
+        return std::complex<double>{std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+    }
+
+    /* Takes constant value 1 when a = 0 or b = 0, even if c is a non-positive
      * integer. This follows mpmath. */
     if (a == 0 || b == 0) {
         return 1.0;

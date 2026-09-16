@@ -190,6 +190,7 @@ namespace numpy {
     using D_DDDD = void (*)(cdouble, cdouble &, cdouble &, cdouble &, cdouble &);
 
     // 2 inputs, 1 output
+    using pd_d = double (*)(std::ptrdiff_t, double);
     using qf_f = float (*)(long long int, float);
     using qd_d = double (*)(long long int, double);
     using ff_f = float (*)(float, float);
@@ -236,8 +237,13 @@ namespace numpy {
     using dd_dddd = void (*)(double, double, double &, double &, double &, double &);
 
     // 3 inputs, 1 output
+    using pdd_d = double (*)(std::ptrdiff_t, double, double);
     using fff_f = float (*)(float, float, float);
     using ddd_d = double (*)(double, double, double);
+    using ffF_F = cfloat (*)(float, float, cfloat);
+    using ddD_D = cdouble (*)(double, double, cdouble);
+    using flf_f = double (*)(double, long, double);
+    using dld_d = double (*)(double, long, double);
     using Flf_F = cfloat (*)(cfloat, long int, float);
     using Dld_D = cdouble (*)(cdouble, long int, double);
 
@@ -266,6 +272,7 @@ namespace numpy {
     using qqd_ddd = void (*)(long long int, long long int, double, double &, double &, double &);
 
     // 4 inputs, 1 output
+    using pddd_d = double (*)(std::ptrdiff_t, double, double, double);
     using llld_d = double (*)(long int, long int, long int, double);
     using qqqd_d = double (*)(long long int, long long int, long long int, double);
     using qqqF_F = cfloat (*)(long long int, long long int, long long int, cfloat);
@@ -369,6 +376,14 @@ namespace numpy {
     // 2 inputs, 4 outputs
     using ff_F2F3F4 = void (*)(float, float, cfloat_2d, cfloat_3d, cfloat_4d);
     using dd_D2D3D4 = void (*)(double, double, cdouble_2d, cdouble_3d, cdouble_4d);
+
+    // 1 array input, 1 array output
+    using f1_f1 = void (*)(float_1d, float_1d);
+    using d1_d1 = void (*)(double_1d, double_1d);
+
+    // 1 array + an integer input, 1 output
+    using f1q_f = float (*)(float_1d, long long int);
+    using d1q_d = double (*)(double_1d, long long int);
 
     template <typename Func>
     struct signature_of {
@@ -793,17 +808,21 @@ namespace numpy {
             map_dims_type map_dims = static_cast<ufunc_data<Func> *>(data)->map_dims;
             map_dims(dims + 1, new_dims.data());
 
+            char *local_args[sizeof...(Args) + 1];
+            for (npy_uintp j = 0; j <= sizeof...(Args); ++j) {
+                local_args[j] = args[j];
+            }
+
             Func func = static_cast<ufunc_data<Func> *>(data)->func;
             for (npy_intp i = 0; i < dims[0]; ++i) {
                 Res res = func(
                     npy_traits<Args>::get(
-                        args[I], new_dims.data() + ranks_scan[I], steps + ranks_scan[I] + sizeof...(Args) + 1
+                        local_args[I], new_dims.data() + ranks_scan[I], steps + ranks_scan[I] + sizeof...(Args) + 1
                     )...
                 );
-                npy_traits<Res>::set(args[sizeof...(Args)], res); // assign to the output pointer
-
+                npy_traits<Res>::set(local_args[sizeof...(Args)], res); // assign to the output pointer
                 for (npy_uintp j = 0; j <= sizeof...(Args); ++j) {
-                    args[j] += steps[j];
+                    local_args[j] += steps[j];
                 }
             }
 
@@ -829,16 +848,20 @@ namespace numpy {
             map_dims_type map_dims = static_cast<ufunc_data<Func> *>(data)->map_dims;
             map_dims(dims + 1, new_dims.data());
 
+            char *local_args[sizeof...(Args)];
+            for (npy_uintp j = 0; j < sizeof...(Args); ++j) {
+                local_args[j] = args[j];
+            }
             Func func = static_cast<ufunc_data<Func> *>(data)->func;
             for (npy_intp i = 0; i < dims[0]; ++i) {
                 func(
                     npy_traits<Args>::get(
-                        args[I], new_dims.data() + ranks_scan[I], steps + ranks_scan[I] + sizeof...(Args)
+                        local_args[I], new_dims.data() + ranks_scan[I], steps + ranks_scan[I] + sizeof...(Args)
                     )...
                 );
 
                 for (npy_uintp j = 0; j < sizeof...(Args); ++j) {
-                    args[j] += steps[j];
+                    local_args[j] += steps[j];
                 }
             }
 

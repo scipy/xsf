@@ -171,6 +171,13 @@ namespace cephes {
             return sum;
         }
 
+        XSF_HOST_DEVICE inline float struve_asymp_large_z(float v, float z, int is_h, float *err) {
+            double err_d;
+            double out = struve_asymp_large_z(static_cast<double>(v), static_cast<double>(z), is_h, &err_d);
+            *err = static_cast<float>(err_d);
+            return static_cast<float>(out);
+        }
+
         /*
          * Power series for Struve H and L
          * https://dlmf.nist.gov/11.2.1
@@ -247,6 +254,13 @@ namespace cephes {
             return sum;
         }
 
+        XSF_HOST_DEVICE inline float struve_power_series(float v, float z, int is_h, float *err) {
+            double err_d;
+            double out = struve_power_series(static_cast<double>(v), static_cast<double>(z), is_h, &err_d);
+            *err = static_cast<float>(err_d);
+            return static_cast<float>(out);
+        }
+
         /*
          * Bessel series
          * https://dlmf.nist.gov/11.4.19
@@ -289,6 +303,13 @@ namespace cephes {
             *err += 1e-300 * std::abs(cterm);
 
             return sum;
+        }
+
+        XSF_HOST_DEVICE inline float struve_bessel_series(float v, float z, int is_h, float *err) {
+            double err_d;
+            double out = struve_bessel_series(static_cast<double>(v), static_cast<double>(z), is_h, &err_d);
+            *err = static_cast<float>(err_d);
+            return static_cast<float>(out);
         }
 
         XSF_HOST_DEVICE inline double struve_hl(double v, double z, int is_h) {

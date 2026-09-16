@@ -21,7 +21,7 @@ namespace cephes {
     XSF_HOST_DEVICE T sinpi(T x) {
         T s = 1.0;
 
-        if (x < 0.0) {
+        if (std::signbit(x)) {
             x = -x;
             s = -1.0;
         }

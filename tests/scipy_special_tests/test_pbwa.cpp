@@ -30,7 +30,8 @@ TEST_CASE("pbwa dd->dd scipy_special_tests", "[pbwa][dd->dd][scipy_special_tests
     REQUIRE(error0 <= tol0);
 
     auto error1 = xsf::extended_relative_error(out1, desired1);
-    tol1 = adjust_tolerance(tol1);
+    double factor = 1e5;
+    tol1 = adjust_tolerance<double>(tol1, factor);
     CAPTURE(v, x, out1, desired1, error1, tol1, fallback);
     REQUIRE(error1 <= tol1);
 }

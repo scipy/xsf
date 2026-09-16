@@ -1,6 +1,6 @@
 #include "../testing_utils.h"
 
-#include <xsf/stats.h>
+#include <xsf/cpu/stats.h>
 
 namespace fs = std::filesystem;
 
@@ -17,7 +17,7 @@ TEST_CASE("kolmogi d->d scipy_special_tests", "[kolmogi][d->d][scipy_special_tes
 
     auto x = input;
     auto [desired, fallback] = output;
-    auto out = xsf::kolmogi(x);
+    auto out = xsf::cpu::kolmogi(x);
     auto error = xsf::extended_relative_error(out, desired);
     tol = adjust_tolerance(tol);
     CAPTURE(x, out, desired, error, tol, fallback);

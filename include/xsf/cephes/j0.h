@@ -160,17 +160,22 @@ namespace cephes {
     } // namespace detail
 
     XSF_HOST_DEVICE inline double j0(double x) {
-        double w, z, p, q, xn;
+        double w, z, p, q;
 
         if (x < 0) {
             x = -x;
         }
 
         if (x <= 5.0) {
-            z = x * x;
+            if (x < 3e-8) {
+                /* x^2/4 is below machine epsilon — 1 - x^2/4 rounds to 1.0. */
+                return (1.0);
+            }
             if (x < 1.0e-5) {
+                z = x * x;
                 return (1.0 - z / 4.0);
             }
+            z = x * x;
 
             p = (z - detail::j0_DR1) * (z - detail::j0_DR2);
             p = p * polevl(z, detail::j0_RP, 3) / p1evl(z, detail::j0_RQ, 8);
@@ -181,9 +186,13 @@ namespace cephes {
         q = 25.0 / (x * x);
         p = polevl(q, detail::j0_PP, 6) / polevl(q, detail::j0_PQ, 6);
         q = polevl(q, detail::j0_QP, 7) / p1evl(q, detail::j0_QQ, 7);
-        xn = x - M_PI_4;
-        p = p * std::cos(xn) - w * q * std::sin(xn);
-        return (p * detail::SQRT2OPI / std::sqrt(x));
+        if (x < 10.0) {
+            double xn = x - M_PI_4;
+            p = p * std::cos(xn) - w * q * std::sin(xn);
+            return (p * detail::SQRT2OPI / std::sqrt(x));
+        }
+        p = (p + w * q) * std::cos(x) + (p - w * q) * std::sin(x);
+        return (p * detail::SQRT1OPI / std::sqrt(x));
     }
 
     /*                                                     y0() 2  */
@@ -196,7 +205,7 @@ namespace cephes {
      */
 
     XSF_HOST_DEVICE inline double y0(double x) {
-        double w, z, p, q, xn;
+        double w, z, p, q;
 
         if (x <= 5.0) {
             if (x == 0.0) {
@@ -205,6 +214,12 @@ namespace cephes {
             } else if (x < 0.0) {
                 set_error("y0", SF_ERROR_DOMAIN, NULL);
                 return std::numeric_limits<double>::quiet_NaN();
+            }
+            if (x < 3e-8) {
+                /* x*x/4 below machine epsilon — use limiting form directly. */
+                w = detail::j0_YP[7] / detail::j0_YQ[6];
+                w += M_2_PI * std::log(x);
+                return (w);
             }
             z = x * x;
             w = polevl(z, detail::j0_YP, 7) / p1evl(z, detail::j0_YQ, 7);
@@ -216,9 +231,13 @@ namespace cephes {
         z = 25.0 / (x * x);
         p = polevl(z, detail::j0_PP, 6) / polevl(z, detail::j0_PQ, 6);
         q = polevl(z, detail::j0_QP, 7) / p1evl(z, detail::j0_QQ, 7);
-        xn = x - M_PI_4;
-        p = p * std::sin(xn) + w * q * std::cos(xn);
-        return (p * detail::SQRT2OPI / std::sqrt(x));
+        if (x < 10.0) {
+            double xn = x - M_PI_4;
+            p = p * std::sin(xn) + w * q * std::cos(xn);
+            return (p * detail::SQRT2OPI / std::sqrt(x));
+        }
+        p = (w * q - p) * std::cos(x) + (p + w * q) * std::sin(x);
+        return (p * detail::SQRT1OPI / std::sqrt(x));
     }
 
 } // namespace cephes

@@ -1,173 +1,109 @@
 [workspace]
+name = "xsf"
+version = "0.2.2"
+description = "Special function implementations."
 authors = [
   "Albert Steppi <albert.steppi@gmail.com>",
   "Irwin Zaid <irwin.zaid@gmail.com>",
+  "Florian Bourgey <bourgeyflorian@gmail.com>",
+  "Lucas Colley <lucas.colley8@gmail.com>",
+  "Daniel Schmitz <danielschmitzsiegen@googlemail.com>",
+]
+platforms = [
+  "linux-64",
+  "linux-aarch64",
+  "osx-arm64",
+  "win-64",
+  "osx-64",
 ]
 channels = ["https://prefix.dev/conda-forge"]
-description = "Special function implementations."
-name = "xsf"
-platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
-version = "0.1.5"
+requires-pixi = ">=0.77.1"  # this fixes caching of the xsf packages
+preview = ["pixi-build"]
 
-## Build
+[workspace.target.win.build-variants]
+cxx_compiler = ["vs2026"]
 
-[feature.build.dependencies]
-cmake = ">=3.30.5,<4"
-cxx-compiler = ">=1.8.0,<2"
-make = ">=4.4.1,<5"
+[package]
+name = { workspace = true }
+version = { workspace = true }
+build.backend.name = "pixi-build-cmake"
 
-[feature.build.tasks.configure]
-cmd = [
-  "cmake",
-  # The source is in the root directory
-  "-S .",
-  # We want to build in the build directory
-  "-B build",
-]
-cwd = "."
+[target.unix.activation]
+env.SHARE_PREFIX = "$CONDA_PREFIX/share"
 
-[feature.build.tasks.build-only]
-# Just build without configure
-cmd = ["cmake", "--build", "build", "--config", "Release"]
-cwd = "."
+[target.win.activation]
+env.SHARE_PREFIX = "%CONDA_PREFIX%/Library/share"
 
-[feature.build.tasks.build]
-# Build with default configuration
-depends-on = ["configure", "build-only"]
-
-## Tests
-
-[feature.tests.dependencies]
-catch2 = ">=3.8.0,<4"
-libarrow-all = ">=19.0.1,<20"
-
-[feature.tests.tasks]
-# clean xsref dir
-clean-xsref = { cwd = ".", cmd = "rm -rf xsref" }
-# clone xsref
-clone-xsref.cmd = "git clone --depth 1 --branch v0.0.0 https://github.com/scipy/xsref.git"
-clone-xsref.cwd = "."
-clone-xsref.depends-on = ["clean-xsref"]
-# configure cmake for tests
-configure-tests.cmd = [
-  "cmake",
-  # Enable building tests
-  "-DBUILD_TESTS=ON",
-  # The source is in the root directory
-  "-S .",
-  # We want to build in the build directory
-  "-B build",
-]
-configure-tests.cwd = "."
-# build for tests
-build-tests.depends-on = ["configure-tests", "build-only"]
-# run tests
-tests.cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests"]
-tests.depends-on = ["clone-xsref", "build-tests"]
-tests.cwd = "."
-
-## clang-format
-
-[feature.clang-format.dependencies]
-git = "*"
-clang-format = "*"
-
-[feature.clang-format.tasks]
-format = "git ls-files '*.cpp' '*.h' | xargs clang-format -i --style=file"
-format-dry-error = "git ls-files '*.cpp' '*.h' | xargs clang-format --style=file --Werror --dry-run"
-
-## Coverage
-
-[feature.coverage.dependencies]
-lcov = ">=1.16,<2"
-
-[feature.coverage.tasks]
-# Configure with tests and coverage
-configure-coverage.cmd = [
-  "cmake",
-  # Enable building tests
-  "-DBUILD_TESTS=ON",
-  # Enable Coverage
-  "-DCMAKE_BUILD_TYPE=Coverage",
-  # The source is in the root directory
-  "-S .",
-  # We want to build in the build directory
-  "-B build",
-]
-configure-coverage.cwd = "."
-configure-coverage.env.XSREF_TABLES_PATH = "$PWD/xsref/tables"
-configure-coverage.env.CC = "ccache $CC"
-configure-coverage.env.CXX = "ccache $CXX"
-# Open coverage report
-open-coverage.cmd = ["open", "index.html"]
-open-coverage.cwd = "build/coverage_report"
-
-## Tests CI
-
-[feature.tests-ci.dependencies]
-ccache = ">=4.11.2,<5"
-
-[feature.tests-ci.tasks]
-# Build and generate coverage report
-# TODO: use a task arg for parallelism https://github.com/prefix-dev/pixi/pull/3433
-build-tests-ci.cmd = ["cmake", "--build", "build", "-j3", "--config", "Release"]
-build-tests-ci.depends-on = ["clone-xsref", "configure-coverage"]
-build-tests-ci.cwd = "."
-# Run tests
-tests-ci.cmd = ["ctest", "--output-on-failure", "--test-dir", "build/tests", "-j3"]
-tests-ci.depends-on = ["build-tests-ci"]
-tests-ci.cwd = "."
-# Coverage
-coverage.cmd = [
-  "cmake",
-  "--build",
-  "build",
-  "--target",
-  "coverage_html",
-  "-j3",
-  "--config",
-  "Release",
-]
-coverage.depends-on = ["tests-ci"]
-coverage.cwd = "."
-
-# CuPy tests
-[feature.cupy-tests]
-platforms = ["linux-64"]
-
-[feature.cupy-tests.dependencies]
-python = ">=3.12.0,<3.13"
-pip = "*"
-setuptools = "*"
-cupy = "*"
-pytest = "*"
-pytest-forked = "*"
-
-[feature.cupy-tests.tasks]
-# Since CuPy tests are only available on Linux, we can use bash like
-# this to only clone xsref if it isn't already there and checked out
-# at the proper tag.
-clone-xsref-test-cupy.cmd = """
-bash -c '
-if [ -d xsref ]; then
-  tag=$(git -C xsref describe --tags --exact-match 2>/dev/null || true)
-fi
-if [ \"$tag\" != v0.0.0 ]; then
-  rm -rf xsref
-  git clone --branch v0.0.0 --depth 1 https://github.com/scipy/xsref.git
-fi
-'
-"""
-clone-xsref-test-cupy.cwd = "."
-install-xsref-test-cupy.cmd = "pip install ."
-install-xsref-test-cupy.cwd = "xsref"
-install-xsref-test-cupy.depends-on = ["clone-xsref-test-cupy"]
-test-cupy.cmd = "pytest --forked python_tests/test_cupy.py"
-test-cupy.cwd = "."
-test-cupy.depends-on = ["install-xsref-test-cupy"]
+[tasks.tests]
+description = "Run test suite."
+cmd = ["ctest", "--output-on-failure", "--test-dir", "$SHARE_PREFIX/xsf/tests"]
+default-environment = "tests-release"
 
 [environments]
-default = { features = ["build", "tests"], solve-group = "default" }
-tests-ci = { features = ["build", "tests", "tests-ci", "coverage"], solve-group = "default" }
-lint = { features = ["clang-format"], solve-group = "default" }
-cupy-tests = { features = ["cupy-tests"], solve-group = "default" }
+tests-release.dependencies.xsf.path = "packages/tests-release"
+tests-debug.dependencies.xsf.path = "packages/tests-debug"
+
+coverage = {
+  platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64"],
+  dependencies = {
+    xsf.path = "packages/coverage",
+  },
+  activation = {
+    env = {
+      COVERAGE_DIR = "$CONDA_PREFIX/share/xsf/cov",
+      GCOV_PREFIX = "$CONDA_PREFIX/share/xsf/cov",
+    },
+    scripts = ["scripts/coverage_activation.sh"],
+  },
+  tasks = {
+    coverage = {
+      description = "Generate HTML coverage report.",
+      depends-on = [{
+        task = "tests",
+        environment = "coverage",
+      }],
+      cmd = "scripts/coverage.sh",
+    },
+    open-coverage = {
+      description = "Open HTML coverage report.",
+      depends-on = "coverage",
+      cmd = ["open", "$SHARE_PREFIX/xsf/cov/coverage_report/index.html"],
+    },
+  }
+}
+
+cupy-tests = {
+  platforms = ["linux-64"],
+  dependencies = {
+    xsf.path = ".",
+    xsref = {
+      git = "https://github.com/scipy/xsref",
+      rev = "b511621d228fdc660f3471f2855fd9955652f34d",
+    },
+    cupy = "*",
+    pytest-forked = "*",
+    pytest-xdist = "*",
+    polars = "*",
+  },
+  tasks.test-cupy = {
+    description = "Run CuPy integration tests.",
+    cmd = "pytest -n auto --forked python_tests/test_cupy.py",
+  },
+}
+
+lint = {
+  dependencies = {
+    git = "*",
+    clang-format = "*",
+  },
+  tasks = {
+    format = {
+      description = "Format tracked C++ source and header files in place.",
+      cmd = "git ls-files '*.cpp' '*.h' | xargs clang-format --style=file -i",
+    },
+    format-dry-error = {
+      description = "Check C++ formatting and fail if any file needs changes.",
+      cmd = "git ls-files '*.cpp' '*.h' | xargs clang-format --style=file --Werror --dry-run",
+    },
+  },
+}

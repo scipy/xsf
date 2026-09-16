@@ -5,7 +5,7 @@ namespace xsf {
 template <typename T>
 XSF_HOST_DEVICE typename std::enable_if<std::is_floating_point<T>::value, T>::type
 extended_absolute_error(T actual, T desired) {
-    if (actual == desired || std::isnan(actual) && std::isnan(desired)) {
+    if (actual == desired || (std::isnan(actual) && std::isnan(desired))) {
         return T(0);
     }
     if (std::isnan(desired) || std::isnan(actual)) {

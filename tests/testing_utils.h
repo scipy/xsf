@@ -143,16 +143,53 @@ std::string get_platform_str() {
      * (Boost isn't a dependency yet but this is planned)
      * and we should have tolerance files for a wider variety of
      * compiler/os/architecture combos, including for specific compiler
-     * versions. For now, there are these two platforms with tolerance
-     * files and we use the former with Clang on Mac and the later
-     * otherwise. */
+     * versions. For now, there are three known platforms with tolerance
+     * files and we use "other" otherwise. */
 #if defined(__clang__) && defined(__APPLE__) && defined(__aarch64__)
     return "clang-darwin-aarch64";
 #elif defined(__GNUG__) && !defined(__clang__) && defined(__linux__) && defined(__x86_64__)
     return "gcc-linux-x86_64";
+#elif (defined(_MSC_VER) || (defined(__clang__) && defined(_WIN32))) && defined(_M_X64)
+    return "msvc-windows-x86_64";
 #else
     return "other";
 #endif
+}
+
+template <typename T = double>
+std::vector<T> linspace(T start, T end, std::size_t n) {
+    // Generate n evenly spaced points in [start, end].
+    // Same as np.linspace(start, end, n) in Python.
+    std::vector<T> xs(n);
+
+    if (n == 0) {
+        return xs;
+    }
+
+    if (n == 1) {
+        xs[0] = start;
+        return xs;
+    }
+
+    T step = (end - start) / static_cast<T>(n - 1);
+
+    for (std::size_t i = 0; i < n - 1; ++i) {
+        xs[i] = start + step * i;
+    }
+
+    xs[n - 1] = end;
+
+    return xs;
+}
+
+template <typename T = double>
+std::vector<T> logspace(T start, T end, std::size_t n, T base = 10) {
+    std::vector<T> exponents = linspace(start, end, n);
+    std::vector<T> xs(n);
+    for (std::size_t i = 0; i < n; ++i) {
+        xs[i] = std::pow(base, exponents[i]);
+    }
+    return xs;
 }
 
 } // namespace

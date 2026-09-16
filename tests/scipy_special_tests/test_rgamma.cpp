@@ -24,6 +24,17 @@ TEST_CASE("rgamma D->D scipy_special_tests", "[rgamma][D->D][scipy_special_tests
     REQUIRE(error <= tol);
 }
 
+TEST_CASE("rgamma D->D huge inputs underflow to zero", "[rgamma][D->D][scipy_special_tests]") {
+    SET_FP_FORMAT()
+    auto z = GENERATE(std::complex<double>{8.98847e307, 8.98847e307}, std::complex<double>{8.98847e307, -8.98847e307});
+
+    auto out = xsf::rgamma(z);
+    CAPTURE(z, out);
+    REQUIRE(out.real() == 0.0);
+    REQUIRE(out.imag() == 0.0);
+    REQUIRE(std::signbit(out.imag()) == std::signbit(z.imag()));
+}
+
 TEST_CASE("rgamma d->d scipy_special_tests", "[rgamma][d->d][scipy_special_tests]") {
     SET_FP_FORMAT()
     auto [input, output, tol] = GENERATE(

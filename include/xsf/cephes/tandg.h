@@ -89,7 +89,7 @@ namespace cephes {
             int sign;
 
             /* make argument positive but save the sign */
-            if (xx < 0) {
+            if (std::signbit(xx)) {
                 x = -xx;
                 sign = -1;
             } else {
@@ -103,7 +103,8 @@ namespace cephes {
             }
 
             /* modulo 180 */
-            x = x - 180.0 * std::floor(x / 180.0);
+            double k = std::floor(x / 180.0);
+            x = x - 180.0 * k;
             if (cotflg) {
                 if (x <= 90.0) {
                     x = 90.0 - x;
@@ -118,12 +119,18 @@ namespace cephes {
                 }
             }
             if (x == 0.0) {
-                return 0.0;
+                if (static_cast<long long>(k) & 1) {
+                    sign *= -1;
+                }
+                return sign * 0.0;
             } else if (x == 45.0) {
                 return sign * 1.0;
             } else if (x == 90.0) {
                 set_error((cotflg ? "cotdg" : "tandg"), SF_ERROR_SINGULAR, NULL);
-                return std::numeric_limits<double>::infinity();
+                if (static_cast<long long>(k) & 1) {
+                    sign *= -1;
+                }
+                return sign * std::numeric_limits<double>::infinity();
             }
             /* x is now transformed into [0, 90) */
             return sign * std::tan(x * detail::PI180);

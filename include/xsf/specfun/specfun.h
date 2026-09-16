@@ -83,7 +83,6 @@ namespace specfun {
 
     enum class Status { OK = 0, NoMemory, Other };
 
-    void airyb(double, double *, double *, double *, double *);
     void bjndd(double, int, double *, double *, double *);
 
     void cerzo(int, std::complex<double> *);
@@ -204,7 +203,7 @@ namespace specfun {
             d1 = -2.0 * a0 * pow(x, ip + 1.0);
             su2 = ck[1];
             for (k = 2; k <= nm2; k++) {
-                r = k * ck[k] * pow(x1, (k - 1.0));
+                r = static_cast<T>(k) * ck[k] * pow(x1, (k - 1.0));
                 su2 += r;
                 if ((k >= 10) && (fabs(r / su2) < eps)) {
                     break;
@@ -698,19 +697,8 @@ namespace specfun {
                     }
                     x = z.real();
                     y = z.imag();
-                    if ((x == 0.0) && (y >= 0.0)) {
-                        phi = 0.5 * pi;
-                    } else if ((x == 0.0) && (y <= 0.0)) {
-                        phi = -0.5 * pi;
-                    } else {
-                        phi = atan(y / x);
-                    }
-                    if ((phi > -0.5 * pi) && (phi < 1.5 * pi)) {
-                        ns = 1;
-                    }
-                    if ((phi > -1.5 * pi) && (phi <= -0.5 * pi)) {
-                        ns = -1;
-                    }
+                    phi = std::atan2(y, x);
+                    ns = (phi > -0.5 * pi) ? 1 : -1;
                     cfac = std::exp(static_cast<double>(ns) * ci * pi * a);
                     if (y == 0.0) {
                         cfac = cos(pi * a);
@@ -782,7 +770,7 @@ namespace specfun {
             x0 = xx + na;
         }
         az0 = std::abs(std::complex<double>(x0, yy));
-        th = atan(yy / x0);
+        th = atan2(yy, x0);
         gr = (x0 - 0.5) * log(az0) - th * yy - x0 + 0.5 * log(2.0 * pi);
         gi = th * (x0 - 0.5) + yy * log(az0) - yy;
         for (k = 1; k < 11; k++) {
@@ -795,21 +783,18 @@ namespace specfun {
             gi1 = 0.0;
             for (j = 0; j < na; j++) {
                 gr1 += 0.5 * log(pow(xx + j, 2) + yy * yy);
-                gi1 += atan(yy / (xx + j));
+                gi1 += atan2(yy, (xx + j));
             }
             gr -= gr1;
             gi -= gi1;
         }
         if (z1.real() < 0.0) {
             az0 = std::abs(z);
-            th1 = atan(yy / xx);
+            th1 = atan2(yy, xx);
             sr = -sin(pi * xx) * cosh(pi * yy);
             si = -cos(pi * xx) * sinh(pi * yy);
             az1 = std::abs(std::complex<double>(sr, si));
-            th2 = atan(si / sr);
-            if (sr < 0.0) {
-                th2 += pi;
-            }
+            th2 = atan2(si, sr);
             gr = log(pi / (az0 * az1)) - gr;
             gi = -th1 - th2 - gi;
             z = z1;
@@ -2827,7 +2812,7 @@ namespace specfun {
             gw = gf0;
         }
 
-        *gf = xm * gf0 * pow(x, 1 - ip);
+        *gf = xm * gf0 * pow(x, static_cast<T>(1) - static_cast<T>(ip));
         gd1 = -m * x / (1.0 + x * x) * (*gf);
         gd0 = 0.0;
 
@@ -3634,7 +3619,7 @@ namespace specfun {
         }
         if (L <= (n + 10)) {
             jyndd(n, x, &bjn, &djn, &fjn, &byn, &dyn, &fyn);
-            h = atan(fabs(djn) / sqrt(fabs(fjn * bjn)));
+            h = atan2(fabs(djn), sqrt(fabs(fjn * bjn)));
             b = -djn / (bjn * atan(h));
             x -= (h - pi / 2) / b;
         }
@@ -3699,7 +3684,7 @@ namespace specfun {
         }
         if (L <= n + 10) {
             jyndd(n, x, &bjn, &djn, &fjn, &byn, &dyn, &fyn);
-            h = atan(fabs(dyn) / sqrt(fabs(fyn * byn)));
+            h = atan2(fabs(dyn), sqrt(fabs(fyn * byn)));
             b = -dyn / (byn * tan(h));
             x -= (h - pi / 2) / b;
         }
@@ -4760,7 +4745,7 @@ namespace specfun {
 
         T eps = 1.0e-14;
         T a, qm, c1, c2, u1, u2, w1, w2;
-        int kd, km, ic, k, nm = 0;
+        int kd = 0, km, ic, k, nm = 0;
 
         if ((kf == 1) && (m % 2 == 0)) {
             kd = 1;
@@ -4828,15 +4813,18 @@ namespace specfun {
         w1 = 0.0;
         w2 = 0.0;
 
+        T sign_kd = (kd % 2 == 0) ? static_cast<T>(1) : static_cast<T>(-1);
         if (kc != 2) {
             *f1r = 0.0;
             for (k = 1; k <= km; k++) {
                 if (kd == 1) {
-                    *f1r += pow(-1, ic + k) * fg[k - 1] * bj1[k - 1] * bj2[k - 1];
+                    *f1r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] * bj1[k - 1] * bj2[k - 1];
                 } else if (kd == 2 || kd == 3) {
-                    *f1r += pow(-1, ic + k) * fg[k - 1] * (bj1[k - 1] * bj2[k] + pow(-1, kd) * bj1[k] * bj2[k - 1]);
+                    *f1r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] *
+                            (bj1[k - 1] * bj2[k] + sign_kd * bj1[k] * bj2[k - 1]);
                 } else {
-                    *f1r += pow(-1, ic + k) * fg[k - 1] * (bj1[k - 1] * bj2[k + 1] - bj1[k + 1] * bj2[k - 1]);
+                    *f1r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] *
+                            (bj1[k - 1] * bj2[k + 1] - bj1[k + 1] * bj2[k - 1]);
                 }
 
                 if (k >= 5 && fabs(*f1r - w1) < fabs(*f1r) * eps) {
@@ -4850,13 +4838,14 @@ namespace specfun {
             *d1r = 0.0;
             for (k = 1; k <= km; k++) {
                 if (kd == 1) {
-                    *d1r += pow(-1, ic + k) * fg[k - 1] * (c2 * bj1[k - 1] * dj2[k - 1] - c1 * dj1[k - 1] * bj2[k - 1]);
+                    *d1r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] *
+                            (c2 * bj1[k - 1] * dj2[k - 1] - c1 * dj1[k - 1] * bj2[k - 1]);
                 } else if (kd == 2 || kd == 3) {
-                    *d1r += pow(-1, ic + k) * fg[k - 1] *
-                            (c2 * (bj1[k - 1] * dj2[k] + pow(-1, kd) * bj1[k] * dj2[k - 1]) -
-                             c1 * (dj1[k - 1] * bj2[k] + pow(-1, kd) * dj1[k] * bj2[k - 1]));
+                    *d1r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] *
+                            (c2 * (bj1[k - 1] * dj2[k] + sign_kd * bj1[k] * dj2[k - 1]) -
+                             c1 * (dj1[k - 1] * bj2[k] + sign_kd * dj1[k] * bj2[k - 1]));
                 } else {
-                    *d1r += pow(-1, ic + k) * fg[k - 1] *
+                    *d1r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] *
                             (c2 * (bj1[k - 1] * dj2[k + 1] - bj1[k + 1] * dj2[k - 1]) -
                              c1 * (dj1[k - 1] * bj2[k + 1] - dj1[k + 1] * bj2[k - 1]));
                 }
@@ -4875,11 +4864,13 @@ namespace specfun {
         *f2r = 0.0;
         for (k = 1; k <= km; k++) {
             if (kd == 1) {
-                *f2r += pow(-1, ic + k) * fg[k - 1] * bj1[k - 1] * by2[k - 1];
+                *f2r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] * bj1[k - 1] * by2[k - 1];
             } else if (kd == 2 || kd == 3) {
-                *f2r += pow(-1, ic + k) * fg[k - 1] * (bj1[k - 1] * by2[k] + pow(-1, kd) * bj1[k] * by2[k - 1]);
+                *f2r +=
+                    pow(static_cast<T>(-1), ic + k) * fg[k - 1] * (bj1[k - 1] * by2[k] + sign_kd * bj1[k] * by2[k - 1]);
             } else {
-                *f2r += pow(-1, ic + k) * fg[k - 1] * (bj1[k - 1] * by2[k + 1] - bj1[k + 1] * by2[k - 1]);
+                *f2r +=
+                    pow(static_cast<T>(-1), ic + k) * fg[k - 1] * (bj1[k - 1] * by2[k + 1] - bj1[k + 1] * by2[k - 1]);
             }
 
             if (k >= 5 && fabs(*f2r - w1) < fabs(*f2r) * eps) {
@@ -4892,13 +4883,14 @@ namespace specfun {
         *d2r = 0.0;
         for (k = 1; k <= km; k++) {
             if (kd == 1) {
-                *d2r += pow(-1, ic + k) * fg[k - 1] * (c2 * bj1[k - 1] * dy2[k - 1] - c1 * dj1[k - 1] * by2[k - 1]);
+                *d2r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] *
+                        (c2 * bj1[k - 1] * dy2[k - 1] - c1 * dj1[k - 1] * by2[k - 1]);
             } else if (kd == 2 || kd == 3) {
-                *d2r += pow(-1, ic + k) * fg[k - 1] *
-                        (c2 * (bj1[k - 1] * dy2[k] + pow(-1, kd) * bj1[k] * dy2[k - 1]) -
-                         c1 * (dj1[k - 1] * by2[k] + pow(-1, kd) * dj1[k] * by2[k - 1]));
+                *d2r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] *
+                        (c2 * (bj1[k - 1] * dy2[k] + sign_kd * bj1[k] * dy2[k - 1]) -
+                         c1 * (dj1[k - 1] * by2[k] + sign_kd * dj1[k] * by2[k - 1]));
             } else {
-                *d2r += pow(-1, ic + k) * fg[k - 1] *
+                *d2r += pow(static_cast<T>(-1), ic + k) * fg[k - 1] *
                         (c2 * (bj1[k - 1] * dy2[k + 1] - bj1[k + 1] * dy2[k - 1]) -
                          c1 * (dj1[k - 1] * by2[k + 1] - dj1[k + 1] * by2[k - 1]));
             }
