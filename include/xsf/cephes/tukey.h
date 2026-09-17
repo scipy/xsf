@@ -44,7 +44,7 @@ namespace cephes {
             }
         }
 
-        if (x > 1e9){
+        if (x > 1e9) {
             detail::tukey_EPS = 1.0e-18;
         }
 
