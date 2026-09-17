@@ -8,6 +8,7 @@
 #include <cstring>
 #include <iostream>
 #include <memory>
+#include <new>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -908,9 +909,13 @@ namespace numpy {
         template <typename Func>
         ufunc_wraps(Func func)
             : has_return(has_return_v<Func>), nin_and_nout(arity_of_v<Func> + has_return),
-              func(ufunc_traits<Func>::loop), data(new ufunc_data<Func>{{nullptr}, func}),
+              func(ufunc_traits<Func>::loop), data(new (std::nothrow) ufunc_data<Func>{{nullptr}, func}),
               data_deleter([](void *ptr) { delete static_cast<ufunc_data<Func> *>(ptr); }),
-              types(ufunc_traits<Func>::types) {}
+              types(ufunc_traits<Func>::types) {
+            if (data == nullptr) {
+                PyErr_NoMemory();
+            }
+        }
     };
 
     class ufunc_overloads {
@@ -931,9 +936,16 @@ namespace numpy {
         template <typename Func0, typename... Funcs>
         ufunc_overloads(Func0 func0, Funcs... funcs)
             : m_ntypes(sizeof...(Funcs) + 1), m_has_return(has_return_v<Func0>),
-              m_nin_and_nout(arity_of_v<Func0> + m_has_return), m_func(new PyUFuncGenericFunction[m_ntypes]),
-              m_data(new data_handle_type[m_ntypes]), m_data_deleters(new data_deleter_type[m_ntypes]),
-              m_types(new char[m_ntypes * m_nin_and_nout]) {
+              m_nin_and_nout(arity_of_v<Func0> + m_has_return),
+              m_func(new (std::nothrow) PyUFuncGenericFunction[m_ntypes]),
+              m_data(new (std::nothrow) data_handle_type[m_ntypes]),
+              m_data_deleters(new (std::nothrow) data_deleter_type[m_ntypes]),
+              m_types(new (std::nothrow) char[m_ntypes * m_nin_and_nout]) {
+            if (m_func == nullptr || m_data == nullptr || m_data_deleters == nullptr || m_types == nullptr) {
+                PyErr_NoMemory();
+                return;
+            }
+
             ufunc_wraps func[sizeof...(Funcs) + 1] = {func0, funcs...};
             for (auto it = std::begin(func); it != std::end(func); ++it) {
                 if (it->nin_and_nout != m_nin_and_nout) {
