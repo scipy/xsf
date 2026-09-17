@@ -12,11 +12,10 @@ TEST_CASE("Tukey lambda cdf goes to 1 for large x", "[tukey][xsf_tests]") {
     REQUIRE(cdf == 1.0);
 
     double cdf_prev;
-    for (unsigned i=1; i < xs.size(); i++)
-    {
+    for (unsigned i = 1; i < xs.size(); i++) {
         // Check that the cdf is always increasing
         cdf = xsf::tukeylambdacdf(xs[i], lambda);
-        cdf_prev = xsf::tukeylambdacdf(xs[i-1], lambda);
+        cdf_prev = xsf::tukeylambdacdf(xs[i - 1], lambda);
         REQUIRE(cdf - cdf_prev >= 0);
     }
 }
