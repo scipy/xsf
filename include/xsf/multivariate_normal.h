@@ -191,7 +191,7 @@ XSF_HOST_DEVICE inline float bivariate_normal_cdf(float dh, float dk, float r) {
 
 namespace detail {
 
-    XSF_HOST_DEVICE inline void sincs(double x, double &sx, double &cs) {
+    XSF_HOST_DEVICE inline void sin_cos2(double x, double &sx, double &cs) {
         // Computes sin(x) and cos(x)^2 with series approximation for |x| near pi/2
         double ee = (M_PI_2 - std::abs(x)) * (M_PI_2 - std::abs(x));
         if (ee < 5e-5) {
@@ -204,7 +204,8 @@ namespace detail {
         }
     }
 
-    XSF_HOST_DEVICE inline double pntgnd(double ba, double bb, double bc, double ra, double rb, double r, double rr) {
+    XSF_HOST_DEVICE inline double
+    plackett_term(double ba, double bb, double bc, double ra, double rb, double r, double rr) {
         // Evaluate one Plackett formula integrand term.
         double f = 0.0;
         double dt = rr * (rr - (ra - rb) * (ra - rb) - 2.0 * ra * rb * (1.0 - r));
@@ -221,22 +222,23 @@ namespace detail {
         return f;
     }
 
-    XSF_HOST_DEVICE inline double tvnf(double x, double h1, double h2, double h3, double r23, double a12, double a13) {
+    XSF_HOST_DEVICE inline double
+    tvn_integrand(double x, double h1, double h2, double h3, double r23, double a12, double a13) {
         // Combine the two Plackett integrand terms at integration point x.
         double f = 0.0;
         double r12, rr2, r13, rr3;
-        sincs(a12 * x, r12, rr2);
-        sincs(a13 * x, r13, rr3);
+        sin_cos2(a12 * x, r12, rr2);
+        sin_cos2(a13 * x, r13, rr3);
         if (std::abs(a12) > 0.0) {
-            f += a12 * pntgnd(h1, h2, h3, r13, r23, r12, rr2);
+            f += a12 * plackett_term(h1, h2, h3, r13, r23, r12, rr2);
         }
         if (std::abs(a13) > 0.0) {
-            f += a13 * pntgnd(h1, h3, h2, r12, r23, r13, rr3);
+            f += a13 * plackett_term(h1, h3, h2, r12, r23, r13, rr3);
         }
         return f;
     }
 
-    XSF_HOST_DEVICE inline void krnrdt(
+    XSF_HOST_DEVICE inline void tvn_gauss_kronrod(
         double a, double b, double h1, double h2, double h3, double r23, double a12, double a13, double &resk,
         double &err
     ) {
@@ -255,29 +257,29 @@ namespace detail {
 
         double wid = (b - a) / 2.0;
         double cen = (b + a) / 2.0;
-        double fc = tvnf(cen, h1, h2, h3, r23, a12, a13);
+        double fc = tvn_integrand(cen, h1, h2, h3, r23, a12, a13);
         double resg = fc * wg0;
         resk = fc * wgk0;
 
         for (int j = 0; j < 5; ++j) {
             double t = wid * xgk[2 * j];
-            fc = tvnf(cen - t, h1, h2, h3, r23, a12, a13) + tvnf(cen + t, h1, h2, h3, r23, a12, a13);
+            fc = tvn_integrand(cen - t, h1, h2, h3, r23, a12, a13) + tvn_integrand(cen + t, h1, h2, h3, r23, a12, a13);
             resk += wgk[2 * j] * fc;
 
             t = wid * xgk[2 * j + 1];
-            fc = tvnf(cen - t, h1, h2, h3, r23, a12, a13) + tvnf(cen + t, h1, h2, h3, r23, a12, a13);
+            fc = tvn_integrand(cen - t, h1, h2, h3, r23, a12, a13) + tvn_integrand(cen + t, h1, h2, h3, r23, a12, a13);
             resk += wgk[2 * j + 1] * fc;
             resg += wg[j] * fc;
         }
 
         double t = wid * xgk[10];
-        fc = tvnf(cen - t, h1, h2, h3, r23, a12, a13) + tvnf(cen + t, h1, h2, h3, r23, a12, a13);
+        fc = tvn_integrand(cen - t, h1, h2, h3, r23, a12, a13) + tvn_integrand(cen + t, h1, h2, h3, r23, a12, a13);
         resk = wid * (resk + wgk[10] * fc);
         err = std::abs(resk - wid * resg);
     }
 
     XSF_HOST_DEVICE inline double
-    adonet(double h1, double h2, double h3, double r23, double a12, double a13, double tol) {
+    tvn_adaptive_integral(double h1, double h2, double h3, double r23, double a12, double a13, double tol) {
         // Adaptively integrate the Plackett integrand over [0, 1].
         constexpr int nl = 100;
         double ai[nl];
@@ -298,8 +300,8 @@ namespace detail {
             bi[im] = bi[ip];
             ai[im] = (ai[ip] + bi[ip]) / 2.0;
             bi[ip] = ai[im];
-            krnrdt(ai[ip], bi[ip], h1, h2, h3, r23, a12, a13, fi[ip], ei[ip]);
-            krnrdt(ai[im], bi[im], h1, h2, h3, r23, a12, a13, fi[im], ei[im]);
+            tvn_gauss_kronrod(ai[ip], bi[ip], h1, h2, h3, r23, a12, a13, fi[ip], ei[ip]);
+            tvn_gauss_kronrod(ai[im], bi[im], h1, h2, h3, r23, a12, a13, fi[im], ei[im]);
 
             fin = 0.0;
             double err2 = 0.0;
@@ -413,7 +415,7 @@ trivariate_normal_cdf(double h1, double h2, double h3, double r12, double r13, d
         // singular values from the Plackett formula.
         double a12 = std::asin(r12);
         double a13 = std::asin(r13);
-        tvn = detail::adonet(h1, h2, h3, r23, a12, a13, epst) / (2.0 * M_PI);
+        tvn = detail::tvn_adaptive_integral(h1, h2, h3, r23, a12, a13, epst) / (2.0 * M_PI);
         tvn += bivariate_normal_cdf(h2, h3, r23) * cephes::ndtr(h1);
     }
 
