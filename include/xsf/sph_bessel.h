@@ -286,6 +286,18 @@ T sph_bessel_i(long n, T x) {
         return std::numeric_limits<T>::infinity();
     }
 
+    // Computing i_n through I_{n + 1/2} can underflow before multiplication
+    // by the spherical normalization.  In the tiny-x region, use the leading
+    // term of the power series i_n(x) = x^n / (2n + 1)!! * (1 + O(x^2)).
+    // The cutoff bounds the omitted first correction by roughly eps / 4.
+    if (x * x < (static_cast<T>(n) + static_cast<T>(1.5)) * std::numeric_limits<T>::epsilon()) {
+        T res = 1;
+        for (long k = 1; k <= n && res != 0; ++k) {
+            res *= x / (2 * static_cast<T>(k) + 1);
+        }
+        return res;
+    }
+
     return sqrt(static_cast<T>(M_PI_2) / x) * cyl_bessel_i(n + 1 / static_cast<T>(2), x);
 }
 
