@@ -81,9 +81,6 @@ def get_cols_as_numpy(table_path):
     return _get_cols_helper(table_path, np)
 
 
-XSF_INCLUDE_DIR = Path(os.environ["CONDA_PREFIX"]) / "include"
-
-
 def get_tables_for_func(func_name):
     tables_path = get_tables_path() / "scipy_special_tests" / func_name
     input_tables = list(tables_path.glob("In_*.parquet"))
@@ -98,8 +95,17 @@ def get_tables_for_func(func_name):
     return list(zip(input_tables, output_tables, err_tables))
 
 
+# TODO: Figure out how to use
+# XSF_INCLUDE_DIR = Path(os.environ["CONDA_PREFIX"]) / "include"
+# which is installed by pixi, since this also gives a test that the
+# Conda package works correctly. Pixi should be tracking changes in
+# these headers but isn't for some reason, so the Conda package
+# can become stale.
+# See https://github.com/scipy/xsf/issues/278.
+HERE = Path(__file__)
+
 def get_preamble(header):
-    header_path = (XSF_INCLUDE_DIR / Path(header)).resolve()
+    header_path = (HERE.parent.parent / "include" / Path(header)).resolve()
     return f'#include "{header_path}"'
 
 
