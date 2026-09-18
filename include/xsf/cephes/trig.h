@@ -4,14 +4,15 @@
  */
 
 /*
- * Implement sin(pi * x) and cos(pi * x) for real x. Since the periods
+ * Implement half-turn trig functions for real x. Since the periods
  * of these functions are integral (and thus representable in double
- * precision), it's possible to compute them with greater accuracy
- * than sin(x) and cos(x).
+ * precision), it's possible to compute e.g., sinpi(x) them with
+ * greater accuracy than sin(pi * x).
  */
 #pragma once
 
 #include "../config.h"
+#include "../numbers.h"
 
 namespace xsf {
 namespace cephes {
@@ -19,39 +20,39 @@ namespace cephes {
     /* Compute sin(pi * x). */
     template <typename T>
     XSF_HOST_DEVICE T sinpi(T x) {
-        T s = 1.0;
+        T s = T(1.0);
 
         if (std::signbit(x)) {
             x = -x;
-            s = -1.0;
+            s = -T(1.0);
         }
 
-        T r = std::fmod(x, 2.0);
-        if (r < 0.5) {
-            return s * std::sin(M_PI * r);
-        } else if (r > 1.5) {
-            return s * std::sin(M_PI * (r - 2.0));
+        T r = std::fmod(x, T(2.0));
+        if (r < T(0.5)) {
+            return s * std::sin(numbers::pi_v<T> * r);
+        } else if (r > T(1.5)) {
+            return s * std::sin(numbers::pi_v<T> * (r - T(2.0)));
         } else {
-            return -s * std::sin(M_PI * (r - 1.0));
+            return -s * std::sin(numbers::pi_v<T> * (r - T(1.0)));
         }
     }
 
     /* Compute cos(pi * x) */
     template <typename T>
     XSF_HOST_DEVICE T cospi(T x) {
-        if (x < 0.0) {
+        if (x < T(0.0)) {
             x = -x;
         }
 
-        T r = std::fmod(x, 2.0);
-        if (r == 0.5) {
+        T r = std::fmod(x, T(2.0));
+        if (r == T(0.5)) {
             // We don't want to return -0.0
-            return 0.0;
+            return T(0.0);
         }
-        if (r < 1.0) {
-            return -std::sin(M_PI * (r - 0.5));
+        if (r < T(1.0)) {
+            return -std::sin(numbers::pi_v<T> * (r - T(0.5)));
         } else {
-            return std::sin(M_PI * (r - 1.5));
+            return std::sin(numbers::pi_v<T> * (r - T(1.5)));
         }
     }
 } // namespace cephes

@@ -17,6 +17,7 @@
 #include "cephes/unity.h"
 #include "config.h"
 #include "evalpoly.h"
+#include "numbers.h"
 
 namespace xsf {
 
@@ -28,7 +29,7 @@ XSF_HOST_DEVICE T sinpi(T x) {
 template <typename T>
 XSF_HOST_DEVICE std::complex<T> sinpi(std::complex<T> z) {
     T x = z.real();
-    T piy = M_PI * z.imag();
+    T piy = numbers::pi_v<T> * z.imag();
     T abspiy = std::abs(piy);
     T sinpix = cephes::sinpi(x);
     T cospix = cephes::cospi(x);
@@ -64,8 +65,8 @@ XSF_HOST_DEVICE std::complex<T> sinpi(std::complex<T> z) {
         return {coshfac, sinhfac};
     }
 
-    coshfac = 0.5 * sinpix * exphpiy;
-    sinhfac = 0.5 * cospix * exphpiy;
+    coshfac = T(0.5) * sinpix * exphpiy;
+    sinhfac = T(0.5) * cospix * exphpiy;
     return {coshfac * exphpiy, sinhfac * exphpiy};
 }
 
@@ -77,7 +78,7 @@ XSF_HOST_DEVICE T cospi(T x) {
 template <typename T>
 XSF_HOST_DEVICE std::complex<T> cospi(std::complex<T> z) {
     T x = z.real();
-    T piy = M_PI * z.imag();
+    T piy = numbers::pi_v<T> * z.imag();
     T abspiy = std::abs(piy);
     T sinpix = cephes::sinpi(x);
     T cospix = cephes::cospi(x);
@@ -106,8 +107,8 @@ XSF_HOST_DEVICE std::complex<T> cospi(std::complex<T> z) {
         return {coshfac, sinhfac};
     }
 
-    coshfac = 0.5 * cospix * exphpiy;
-    sinhfac = 0.5 * sinpix * exphpiy;
+    coshfac = T(0.5) * cospix * exphpiy;
+    sinhfac = T(0.5) * sinpix * exphpiy;
     return {coshfac * exphpiy, sinhfac * exphpiy};
 }
 
