@@ -85,3 +85,33 @@ TEST_CASE("hyperu gh-15650 sanity", "[hyperu][xsf_tests]") {
         }
     }
 }
+
+/* gh-2287: chguit integrates exp(-x t) t^(a-1) (1+t)^(b-a-1) by composite
+ * Gauss-Legendre. For non-integer a the factor t^(a-1) is an algebraic endpoint
+ * singularity at t = 0, against which Gauss-Legendre converges only
+ * algebraically, so refining the panel count does not recover the lost digits.
+ * Reference values from mpmath at 50 decimal digits.
+ *
+ * Before the t = s^(1/a) substitution these inputs lost up to 7 digits; the
+ * first entry below returned 0.05412514120003843 against a true
+ * 0.054125064626921962.
+ */
+TEST_CASE("hyperu gh-2287 endpoint singularity mpmath reference values", "[hyperu][xsf_tests]") {
+    using test_case = std::tuple<double, double, double, double>;
+
+    auto [a, b, x, expected] = GENERATE(
+        test_case{1.094823, 0.503515, 12.863076, 0.054125064626921962},
+        test_case{0.77, 0.7, 21.3, 0.091484136843193521},
+        test_case{1.0057, 1.1009, 17.8632, 0.052523025175485847},
+        test_case{0.35, 0.15, 15.0, 0.37766112753745428},
+        test_case{1.2, 0.7, 9.5, 0.057080950328595002},
+        test_case{0.6, 2.35, 25.0, 0.14754510472505289},
+        test_case{1.3, 1.8, 30.0, 0.011768924460569544},
+        test_case{0.9, 0.25, 6.0, 0.16353060681990762}
+    );
+
+    const double result = xsf::hyperu(a, b, x);
+    const double error = xsf::extended_relative_error(result, expected);
+    CAPTURE(a, b, x, result, expected, error);
+    REQUIRE(error <= 1e-8);
+}
