@@ -128,18 +128,18 @@ namespace cephes {
                 maxiter = (int)m;
             }
             if (maxiter == 0) {
-                *err = std::numeric_limits<double>::infinity();
-                return std::numeric_limits<double>::quiet_NaN();
+                *err = cxx::numeric_limits<double>::infinity();
+                return cxx::numeric_limits<double>::quiet_NaN();
             }
 
             if (z < v) {
                 /* Exclude regions where our error estimation fails */
-                *err = std::numeric_limits<double>::infinity();
-                return std::numeric_limits<double>::quiet_NaN();
+                *err = cxx::numeric_limits<double>::infinity();
+                return cxx::numeric_limits<double>::quiet_NaN();
             }
 
             /* Evaluate sum */
-            term = -sgn / std::sqrt(M_PI) * std::exp(-xsf::cephes::lgam(v + 0.5) + (v - 1) * std::log(z / 2)) *
+            term = -sgn / cxx::sqrt(M_PI) * cxx::exp(-xsf::cephes::lgam(v + 0.5) + (v - 1) * cxx::log(z / 2)) *
                    xsf::cephes::gammasgn(v + 0.5);
             sum = term;
             maxterm = 0;
@@ -147,10 +147,10 @@ namespace cephes {
             for (n = 0; n < maxiter; ++n) {
                 term *= sgn * (1 + 2 * n) * (1 + 2 * n - 2 * v) / (z * z);
                 sum += term;
-                if (std::abs(term) > maxterm) {
-                    maxterm = std::abs(term);
+                if (cxx::abs(term) > maxterm) {
+                    maxterm = cxx::abs(term);
                 }
-                if (std::abs(term) < STRUVE_SUM_EPS * std::abs(sum) || term == 0 || !std::isfinite(sum)) {
+                if (cxx::abs(term) < STRUVE_SUM_EPS * cxx::abs(sum) || term == 0 || !cxx::isfinite(sum)) {
                     break;
                 }
             }
@@ -166,7 +166,7 @@ namespace cephes {
              * n > v - 0.5, but numerical results indicate that it works
              * reasonably.
              */
-            *err = std::abs(term) + std::abs(maxterm) * STRUVE_SUM_EPS;
+            *err = cxx::abs(term) + cxx::abs(maxterm) * STRUVE_SUM_EPS;
 
             return sum;
         }
@@ -195,7 +195,7 @@ namespace cephes {
                 sgn = 1;
             }
 
-            tmp = -xsf::cephes::lgam(v + 1.5) + (v + 1) * std::log(z / 2);
+            tmp = -xsf::cephes::lgam(v + 1.5) + (v + 1) * cxx::log(z / 2);
             if (tmp < -600 || tmp > 600) {
                 /* Scale exponent to postpone underflow/overflow */
                 scaleexp = tmp / 2;
@@ -204,7 +204,7 @@ namespace cephes {
                 scaleexp = 0;
             }
 
-            term = 2 / std::sqrt(M_PI) * std::exp(tmp) * xsf::cephes::gammasgn(v + 1.5);
+            term = 2 / cxx::sqrt(M_PI) * cxx::exp(tmp) * xsf::cephes::gammasgn(v + 1.5);
             sum = term;
             maxterm = 0;
 
@@ -229,25 +229,25 @@ namespace cephes {
                 term = static_cast<double>(cterm);
                 sum = static_cast<double>(csum);
 
-                if (std::abs(term) > maxterm) {
-                    maxterm = std::abs(term);
+                if (cxx::abs(term) > maxterm) {
+                    maxterm = cxx::abs(term);
                 }
-                if (std::abs(term) < STRUVE_SUM_TINY * std::abs(sum) || term == 0 || !std::isfinite(sum)) {
+                if (cxx::abs(term) < STRUVE_SUM_TINY * cxx::abs(sum) || term == 0 || !cxx::isfinite(sum)) {
                     break;
                 }
             }
 
-            *err = std::abs(term) + std::abs(maxterm) * 1e-22;
+            *err = cxx::abs(term) + cxx::abs(maxterm) * 1e-22;
 
             if (scaleexp != 0) {
-                sum *= std::exp(scaleexp);
-                *err *= std::exp(scaleexp);
+                sum *= cxx::exp(scaleexp);
+                *err *= cxx::exp(scaleexp);
             }
 
             if (sum == 0 && term == 0 && v < 0 && !is_h) {
                 /* Spurious underflow */
-                *err = std::numeric_limits<double>::infinity();
-                return std::numeric_limits<double>::quiet_NaN();
+                *err = cxx::numeric_limits<double>::infinity();
+                return cxx::numeric_limits<double>::quiet_NaN();
                 ;
             }
 
@@ -271,14 +271,14 @@ namespace cephes {
 
             if (is_h && v < 0) {
                 /* Works less reliably in this region */
-                *err = std::numeric_limits<double>::infinity();
-                return std::numeric_limits<double>::quiet_NaN();
+                *err = cxx::numeric_limits<double>::infinity();
+                return cxx::numeric_limits<double>::quiet_NaN();
             }
 
             sum = 0;
             maxterm = 0;
 
-            cterm = std::sqrt(z / (2 * M_PI));
+            cterm = cxx::sqrt(z / (2 * M_PI));
 
             for (n = 0; n < STRUVE_MAXITER; ++n) {
                 if (is_h) {
@@ -289,18 +289,18 @@ namespace cephes {
                     cterm *= -z / 2 / (n + 1);
                 }
                 sum += term;
-                if (std::abs(term) > maxterm) {
-                    maxterm = std::abs(term);
+                if (cxx::abs(term) > maxterm) {
+                    maxterm = cxx::abs(term);
                 }
-                if (std::abs(term) < STRUVE_SUM_EPS * std::abs(sum) || term == 0 || !std::isfinite(sum)) {
+                if (cxx::abs(term) < STRUVE_SUM_EPS * cxx::abs(sum) || term == 0 || !cxx::isfinite(sum)) {
                     break;
                 }
             }
 
-            *err = std::abs(term) + std::abs(maxterm) * 1e-16;
+            *err = cxx::abs(term) + cxx::abs(maxterm) * 1e-16;
 
             /* Account for potential underflow of the Bessel functions */
-            *err += 1e-300 * std::abs(cterm);
+            *err += 1e-300 * cxx::abs(cterm);
 
             return sum;
         }
@@ -322,13 +322,13 @@ namespace cephes {
                     tmp = (n % 2 == 0) ? -1 : 1;
                     return tmp * struve_hl(v, -z, is_h);
                 } else {
-                    return std::numeric_limits<double>::quiet_NaN();
+                    return cxx::numeric_limits<double>::quiet_NaN();
                 }
             } else if (z == 0) {
                 if (v < -1) {
-                    return xsf::cephes::gammasgn(v + 1.5) * std::numeric_limits<double>::infinity();
+                    return xsf::cephes::gammasgn(v + 1.5) * cxx::numeric_limits<double>::infinity();
                 } else if (v == -1) {
-                    return 2 / std::sqrt(M_PI) * xsf::cephes::rgamma(0.5);
+                    return 2 / cxx::sqrt(M_PI) * xsf::cephes::rgamma(0.5);
                 } else {
                     return 0;
                 }
@@ -346,27 +346,27 @@ namespace cephes {
             /* Try the asymptotic expansion */
             if (z >= 0.7 * v + 12) {
                 value[0] = struve_asymp_large_z(v, z, is_h, &err[0]);
-                if (err[0] < STRUVE_GOOD_EPS * std::abs(value[0])) {
+                if (err[0] < STRUVE_GOOD_EPS * cxx::abs(value[0])) {
                     return value[0];
                 }
             } else {
-                err[0] = std::numeric_limits<double>::infinity();
+                err[0] = cxx::numeric_limits<double>::infinity();
             }
 
             /* Try power series */
             value[1] = struve_power_series(v, z, is_h, &err[1]);
-            if (err[1] < STRUVE_GOOD_EPS * std::abs(value[1])) {
+            if (err[1] < STRUVE_GOOD_EPS * cxx::abs(value[1])) {
                 return value[1];
             }
 
             /* Try bessel series */
-            if (std::abs(z) < std::abs(v) + 20) {
+            if (cxx::abs(z) < cxx::abs(v) + 20) {
                 value[2] = struve_bessel_series(v, z, is_h, &err[2]);
-                if (err[2] < STRUVE_GOOD_EPS * std::abs(value[2])) {
+                if (err[2] < STRUVE_GOOD_EPS * cxx::abs(value[2])) {
                     return value[2];
                 }
             } else {
-                err[2] = std::numeric_limits<double>::infinity();
+                err[2] = cxx::numeric_limits<double>::infinity();
             }
 
             /* Return the best of the three, if it is acceptable */
@@ -375,23 +375,23 @@ namespace cephes {
                 n = 1;
             if (err[2] < err[n])
                 n = 2;
-            if (err[n] < STRUVE_ACCEPTABLE_EPS * std::abs(value[n]) || err[n] < STRUVE_ACCEPTABLE_ATOL) {
+            if (err[n] < STRUVE_ACCEPTABLE_EPS * cxx::abs(value[n]) || err[n] < STRUVE_ACCEPTABLE_ATOL) {
                 return value[n];
             }
 
             /* Maybe it really is an overflow? */
-            tmp = -xsf::cephes::lgam(v + 1.5) + (v + 1) * std::log(z / 2);
+            tmp = -xsf::cephes::lgam(v + 1.5) + (v + 1) * cxx::log(z / 2);
             if (!is_h) {
-                tmp = std::abs(tmp);
+                tmp = cxx::abs(tmp);
             }
             if (tmp > 700) {
                 set_error("struve", SF_ERROR_OVERFLOW, NULL);
-                return std::numeric_limits<double>::infinity() * xsf::cephes::gammasgn(v + 1.5);
+                return cxx::numeric_limits<double>::infinity() * xsf::cephes::gammasgn(v + 1.5);
             }
 
             /* Failure */
             set_error("struve", SF_ERROR_NO_RESULT, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
     } // namespace detail
 

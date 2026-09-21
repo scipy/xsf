@@ -11,7 +11,7 @@ namespace detail {
         // Handles degenerate cases for bivariate_normal_sf (infinite arguments or zero correlation).
         // Returns true and sets p if a boundary case applies, false otherwise.
 
-        const double math_inf = std::numeric_limits<double>::infinity();
+        const double math_inf = cxx::numeric_limits<double>::infinity();
         if (dh == math_inf || dk == math_inf) {
             // if dh ==  inf | dk ==  inf:p = 0;
             p = 0.0;
@@ -82,12 +82,12 @@ XSF_HOST_DEVICE inline double bivariate_normal_cdf(double dh, double dk, double 
     const double *w;
     const double *x;
     int n;
-    if (std::abs(r) < 0.3) {
+    if (cxx::abs(r) < 0.3) {
         // Gauss Legendre points and weights, n = 6
         w = detail::bvn_w6;
         x = detail::bvn_x6;
         n = 3;
-    } else if (std::abs(r) < 0.75) {
+    } else if (cxx::abs(r) < 0.75) {
         // Gauss Legendre points and weights, n = 12
         w = detail::bvn_w12;
         x = detail::bvn_x12;
@@ -100,15 +100,15 @@ XSF_HOST_DEVICE inline double bivariate_normal_cdf(double dh, double dk, double 
     }
 
     // if abs(r) < 0.925, hs = ( h*h + k*k )/2; asr = asin(r)/2;
-    if (std::abs(r) < 0.925) {
+    if (cxx::abs(r) < 0.925) {
         double hs = (h * h + k * k) / 2.0;
-        double asr = std::asin(r) / 2.0;
+        double asr = cxx::asin(r) / 2.0;
         // sn = sin(asr*x); bvn = exp((sn*hk-hs)./(1-sn.^2))*w';
         for (int i = 0; i < n; ++i) {
             const double x_i[2] = {1.0 - x[i], 1.0 + x[i]};
             for (int j = 0; j < 2; ++j) {
-                double sn = std::sin(asr * x_i[j]);
-                bvn += std::exp((sn * hk - hs) / (1.0 - sn * sn)) * w[i];
+                double sn = cxx::sin(asr * x_i[j]);
+                bvn += cxx::exp((sn * hk - hs) / (1.0 - sn * sn)) * w[i];
             }
         }
         // bvn = bvn*asr/tp + phid(-h)*phid(-k);
@@ -119,10 +119,10 @@ XSF_HOST_DEVICE inline double bivariate_normal_cdf(double dh, double dk, double 
             k = -k;
             hk = -hk;
         }
-        if (std::abs(r) < 1.0) {
+        if (cxx::abs(r) < 1.0) {
             // if abs(r) < 1, as = 1-r^2; a = sqrt(as); bs = (h-k)^2;
             double as_ = 1.0 - r * r;
-            double a = std::sqrt(as_);
+            double a = cxx::sqrt(as_);
             double bs = (h - k) * (h - k);
             // asr = -( bs/as + hk )/2; c = (4-hk)/8 ; d = (12-hk)/80;
             double asr = -(bs / as_ + hk) / 2.0;
@@ -130,13 +130,13 @@ XSF_HOST_DEVICE inline double bivariate_normal_cdf(double dh, double dk, double 
             double d = (12.0 - hk) / 80.0;
             if (asr > -100.0)
                 // if asr > -100, bvn = a*exp(asr)*(1-c*(bs-as)*(1-d*bs)/3+c*d*as^2); end
-                bvn = a * std::exp(asr) * (1.0 - c * (bs - as_) * (1.0 - d * bs) / 3.0 + c * d * as_ * as_);
+                bvn = a * cxx::exp(asr) * (1.0 - c * (bs - as_) * (1.0 - d * bs) / 3.0 + c * d * as_ * as_);
             if (hk > -100.0) {
                 // if hk  > -100, b = sqrt(bs); sp = sqrt(tp)*phid(-b/a);
-                double b = std::sqrt(bs);
-                double sp = std::sqrt(tp) * cephes::ndtr(-b / a);
+                double b = cxx::sqrt(bs);
+                double sp = cxx::sqrt(tp) * cephes::ndtr(-b / a);
                 // bvn = bvn - exp(-hk/2)*sp*b*( 1 - c*bs*(1-d*bs)/3 );
-                bvn = bvn - std::exp(-hk / 2.0) * sp * b * (1.0 - c * bs * (1.0 - d * bs) / 3.0);
+                bvn = bvn - cxx::exp(-hk / 2.0) * sp * b * (1.0 - c * bs * (1.0 - d * bs) / 3.0);
             }
             // end, a = a/2; xs = (a*x).^2; asr = -( bs./xs + hk )/2;
             a = a / 2.0;
@@ -153,9 +153,9 @@ XSF_HOST_DEVICE inline double bivariate_normal_cdf(double dh, double dk, double 
                     }
                     double sp = 1.0 + c * xs_i * (1.0 + 5.0 * d * xs_i);
                     // rs = sqrt(1-xs); ep = exp( -(hk/2)*xs./(1+rs).^2 )./rs;
-                    double rs = std::sqrt(1.0 - xs_i);
-                    double ep = std::exp(-(hk / 2.0) * xs_i / ((1.0 + rs) * (1.0 + rs))) / rs;
-                    tmp += w[i] * std::exp(asr_i) * (sp - ep);
+                    double rs = cxx::sqrt(1.0 - xs_i);
+                    double ep = cxx::exp(-(hk / 2.0) * xs_i / ((1.0 + rs) * (1.0 + rs))) / rs;
+                    tmp += w[i] * cxx::exp(asr_i) * (sp - ep);
                 }
             }
 
@@ -338,19 +338,19 @@ trivariate_normal_cdf(double h1, double h2, double h3, double r12, double r13, d
     // Port of tvnl in Alan Genz's MATLAB tvn.m. See LICENSES_bundled.txt for the license.
     // Original source:
     // https://web.archive.org/web/20200205123040/http://www.math.wsu.edu/faculty/genz/software/matlab/tvn.m
-    const double math_inf = std::numeric_limits<double>::infinity();
+    const double math_inf = cxx::numeric_limits<double>::infinity();
     double epst = epsi > 1e-14 ? epsi : 1e-14;
 
     if (std::isnan(h1) || std::isnan(h2) || std::isnan(h3) || std::isnan(r12) || std::isnan(r13) || std::isnan(r23) ||
         std::isnan(epsi)) {
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     double det = 1.0 + 2.0 * r12 * r13 * r23 - r12 * r12 - r13 * r13 - r23 * r23;
     // Tolerate tiny negative determinants caused by floating-point roundoff
     // when the correlation matrix is singular.
-    constexpr double det_tol = 8.0 * std::numeric_limits<double>::epsilon();
+    constexpr double det_tol = 8.0 * cxx::numeric_limits<double>::epsilon();
     if (std::abs(r12) > 1.0 || std::abs(r13) > 1.0 || std::abs(r23) > 1.0 || det < -det_tol) {
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     if (h1 == -math_inf || h2 == -math_inf || h3 == -math_inf) {
         return 0.0;

@@ -151,23 +151,23 @@ namespace cephes {
 
         if (x == 0.0) {
             si = 0.0;
-            ci = -std::numeric_limits<double>::infinity();
+            ci = -cxx::numeric_limits<double>::infinity();
             return (0);
         }
 
         if (x > 1.0e9) {
-            if (std::isinf(x)) {
+            if (cxx::isinf(x)) {
                 if (sign == -1) {
                     si = -M_PI_2;
-                    ci = std::numeric_limits<double>::quiet_NaN();
+                    ci = cxx::numeric_limits<double>::quiet_NaN();
                 } else {
                     si = M_PI_2;
                     ci = 0;
                 }
                 return 0;
             }
-            si = M_PI_2 - std::cos(x) / x;
-            ci = std::sin(x) / x;
+            si = M_PI_2 - cxx::cos(x) / x;
+            ci = cxx::sin(x) / x;
         }
 
         if (x > 4.0) {
@@ -182,7 +182,7 @@ namespace cephes {
             s = -s;
         }
         si = s;
-        ci = detail::SCIPY_EULER + std::log(x) + c; /* real part if x < 0 */
+        ci = detail::SCIPY_EULER + cxx::log(x) + c; /* real part if x < 0 */
         return (0);
 
         /* The auxiliary functions are:
@@ -201,8 +201,8 @@ namespace cephes {
 
     asympt:
 
-        s = std::sin(x);
-        c = std::cos(x);
+        s = cxx::sin(x);
+        c = cxx::cos(x);
         z = 1.0 / (x * x);
         if (x < 8.0) {
             f = polevl(z, detail::sici_FN4, 6) / (x * p1evl(z, detail::sici_FD4, 7));

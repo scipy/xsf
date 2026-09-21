@@ -135,13 +135,13 @@ namespace cephes {
         double f, g, cc, ss, c, s, t, u;
         double x, x2;
 
-        if (std::isinf(xxa)) {
+        if (cxx::isinf(xxa)) {
             cc = 0.5;
             ss = 0.5;
             goto done;
         }
 
-        x = std::abs(xxa);
+        x = cxx::abs(xxa);
         x2 = x * x;
         if (x2 < 2.5625) {
             t = x2 * x2;

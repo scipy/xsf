@@ -30,8 +30,8 @@ namespace cephes {
         double pmin, pmid, pmax, plow, phigh, xeval;
         int count;
 
-        if (std::isnan(x) || std::isnan(lmbda)) {
-            return std::numeric_limits<double>::quiet_NaN();
+        if (cxx::isnan(x) || cxx::isnan(lmbda)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         xeval = 1.0 / lmbda;
@@ -46,7 +46,7 @@ namespace cephes {
 
         if ((-detail::tukey_SMALLVAL < lmbda) && (lmbda < detail::tukey_SMALLVAL)) {
             if (x >= 0) {
-                return 1.0 / (1.0 + std::exp(-x));
+                return 1.0 / (1.0 + cxx::exp(-x));
             } else {
                 return exp(x) / (1.0 + exp(x));
             }
@@ -59,8 +59,8 @@ namespace cephes {
         phigh = pmax;
         count = 0;
 
-        while ((count < detail::tukey_MAXCOUNT) && (std::abs(pmid - plow) > detail::tukey_EPS)) {
-            xeval = (std::pow(pmid, lmbda) - std::pow(1.0 - pmid, lmbda)) / lmbda;
+        while ((count < detail::tukey_MAXCOUNT) && (cxx::abs(pmid - plow) > detail::tukey_EPS)) {
+            xeval = (cxx::pow(pmid, lmbda) - cxx::pow(1.0 - pmid, lmbda)) / lmbda;
             if (xeval == x) {
                 return pmid;
             }

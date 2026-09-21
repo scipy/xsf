@@ -44,45 +44,45 @@ XSF_HOST_DEVICE inline double gammasgn(double x) { return cephes::gammasgn(x); }
 
 XSF_HOST_DEVICE inline float gammasgn(float x) { return gammasgn(static_cast<double>(x)); }
 
-XSF_HOST_DEVICE inline std::complex<double> gamma(std::complex<double> z) {
+XSF_HOST_DEVICE inline cxx::complex<double> gamma(cxx::complex<double> z) {
     // Guard against NaN/Inf inputs: std::exp(complex) is implemented in
     // libstdc++ as std::polar(std::exp(re), im), and std::polar asserts
     // __rho >= 0 under _GLIBCXX_ASSERTIONS -- which is false for NaN.
-    if (!std::isfinite(z.real()) || !std::isfinite(z.imag())) {
-        return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+    if (!cxx::isfinite(z.real()) || !cxx::isfinite(z.imag())) {
+        return {cxx::numeric_limits<double>::quiet_NaN(), cxx::numeric_limits<double>::quiet_NaN()};
     }
     // Compute Gamma(z) using loggamma.
-    if (z.real() <= 0 && z == std::floor(z.real())) {
+    if (z.real() <= 0 && z == cxx::floor(z.real())) {
         // Gamma poles at non-positive integers.
         set_error("gamma", SF_ERROR_SINGULAR, NULL);
-        return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+        return {cxx::numeric_limits<double>::quiet_NaN(), cxx::numeric_limits<double>::quiet_NaN()};
     }
 
-    if (z.real() <= -std::ldexp(1.0, std::numeric_limits<double>::digits)) {
+    if (z.real() <= -cxx::ldexp(1.0, cxx::numeric_limits<double>::digits)) {
         // For real(z) <= -2**53, every representable real part has even-integer
         // parity, and Gamma(z) underflows to signed zero.
-        return {0.0, std::copysign(0.0, z.imag())};
+        return {0.0, cxx::copysign(0.0, z.imag())};
     }
 
-    std::complex<double> lg = loggamma(z);
-    if (lg.real() == -std::numeric_limits<double>::infinity()) {
-        return {0.0, std::copysign(0.0, z.imag())};
+    cxx::complex<double> lg = loggamma(z);
+    if (lg.real() == -cxx::numeric_limits<double>::infinity()) {
+        return {0.0, cxx::copysign(0.0, z.imag())};
     }
-    const double max = std::numeric_limits<double>::max();
-    if (lg.real() > std::log(max) && z.imag() == 0.0) {
-        return {std::numeric_limits<double>::infinity(), std::copysign(0.0, z.imag())};
+    const double max = cxx::numeric_limits<double>::max();
+    if (lg.real() > cxx::log(max) && z.imag() == 0.0) {
+        return {cxx::numeric_limits<double>::infinity(), cxx::copysign(0.0, z.imag())};
     }
-    if (lg.real() > std::log(max) && z.real() > std::sqrt(max) && std::abs(z.imag()) > std::sqrt(max)) {
+    if (lg.real() > cxx::log(max) && z.real() > cxx::sqrt(max) && cxx::abs(z.imag()) > cxx::sqrt(max)) {
         // Avoid std::exp(complex) overflow; the quadrant follows sign(imag(z)).
         return {
-            -std::numeric_limits<double>::infinity(), std::copysign(std::numeric_limits<double>::infinity(), z.imag())
+            -cxx::numeric_limits<double>::infinity(), cxx::copysign(cxx::numeric_limits<double>::infinity(), z.imag())
         };
     }
-    return std::exp(lg);
+    return cxx::exp(lg);
 }
 
-XSF_HOST_DEVICE inline std::complex<float> gamma(std::complex<float> z) {
-    return static_cast<std::complex<float>>(gamma(static_cast<std::complex<double>>(z)));
+XSF_HOST_DEVICE inline cxx::complex<float> gamma(cxx::complex<float> z) {
+    return static_cast<cxx::complex<float>>(gamma(static_cast<cxx::complex<double>>(z)));
 }
 
 template <typename T>

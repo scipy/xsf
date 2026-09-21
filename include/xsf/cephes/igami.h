@@ -37,9 +37,9 @@ namespace cephes {
             constexpr double b[5] = {0.3611708101884203e-1, 1.27364489782223, 6.40691597760039, 6.61053765625462, 1};
 
             if (p < 0.5) {
-                t = std::sqrt(-2 * std::log(p));
+                t = cxx::sqrt(-2 * cxx::log(p));
             } else {
-                t = std::sqrt(-2 * std::log(q));
+                t = cxx::sqrt(-2 * cxx::log(q));
             }
             s = t - polevl(t, a, 3) / polevl(t, b, 4);
             if (p < 0.5)
@@ -88,9 +88,9 @@ namespace cephes {
 
             if (a == 1) {
                 if (q > 0.9) {
-                    result = -std::log1p(-p);
+                    result = -cxx::log1p(-p);
                 } else {
-                    result = -std::log(q);
+                    result = -cxx::log(q);
                 }
             } else if (a < 1) {
                 double g = xsf::cephes::Gamma(a);
@@ -106,31 +106,31 @@ namespace cephes {
                      */
                     double u;
                     if ((b * q > 1e-8) && (q > 1e-5)) {
-                        u = std::pow(p * g * a, 1 / a);
+                        u = cxx::pow(p * g * a, 1 / a);
                     } else {
-                        u = std::exp((-q / a) - SCIPY_EULER);
+                        u = cxx::exp((-q / a) - SCIPY_EULER);
                     }
                     result = u / (1 - (u / (a + 1)));
                 } else if ((a < 0.3) && (b >= 0.35)) {
                     /* DiDonato & Morris Eq 22: */
-                    double t = std::exp(-SCIPY_EULER - b);
-                    double u = t * std::exp(t);
-                    result = t * std::exp(u);
+                    double t = cxx::exp(-SCIPY_EULER - b);
+                    double u = t * cxx::exp(t);
+                    result = t * cxx::exp(u);
                 } else if ((b > 0.15) || (a >= 0.3)) {
                     /* DiDonato & Morris Eq 23: */
-                    double y = -std::log(b);
-                    double u = y - (1 - a) * std::log(y);
-                    result = y - (1 - a) * std::log(u) - std::log(1 + (1 - a) / (1 + u));
+                    double y = -cxx::log(b);
+                    double u = y - (1 - a) * cxx::log(y);
+                    result = y - (1 - a) * cxx::log(u) - cxx::log(1 + (1 - a) / (1 + u));
                 } else if (b > 0.1) {
                     /* DiDonato & Morris Eq 24: */
-                    double y = -std::log(b);
-                    double u = y - (1 - a) * std::log(y);
-                    result = y - (1 - a) * std::log(u) -
-                             std::log((u * u + 2 * (3 - a) * u + (2 - a) * (3 - a)) / (u * u + (5 - a) * u + 2));
+                    double y = -cxx::log(b);
+                    double u = y - (1 - a) * cxx::log(y);
+                    result = y - (1 - a) * cxx::log(u) -
+                             cxx::log((u * u + 2 * (3 - a) * u + (2 - a) * (3 - a)) / (u * u + (5 - a) * u + 2));
                 } else {
                     /* DiDonato & Morris Eq 25: */
-                    double y = -std::log(b);
-                    double c1 = (a - 1) * std::log(y);
+                    double y = -cxx::log(b);
+                    double c1 = (a - 1) * cxx::log(y);
                     double c1_2 = c1 * c1;
                     double c1_3 = c1_2 * c1;
                     double c1_4 = c1_2 * c1_2;
@@ -158,26 +158,26 @@ namespace cephes {
                 double s_3 = s_2 * s;
                 double s_4 = s_2 * s_2;
                 double s_5 = s_4 * s;
-                double ra = std::sqrt(a);
+                double ra = cxx::sqrt(a);
 
                 double w = a + s * ra + (s_2 - 1) / 3;
                 w += (s_3 - 7 * s) / (36 * ra);
                 w -= (3 * s_4 + 7 * s_2 - 16) / (810 * a);
                 w += (9 * s_5 + 256 * s_3 - 433 * s) / (38880 * a * ra);
 
-                if ((a >= 500) && (std::abs(1 - w / a) < 1e-6)) {
+                if ((a >= 500) && (cxx::abs(1 - w / a) < 1e-6)) {
                     result = w;
                 } else if (p > 0.5) {
                     if (w < 3 * a) {
                         result = w;
                     } else {
-                        double D = std::fmax(2, a * (a - 1));
+                        double D = cxx::fmax(2, a * (a - 1));
                         double lg = xsf::cephes::lgam(a);
-                        double lb = std::log(q) + lg;
+                        double lb = cxx::log(q) + lg;
                         if (lb < -D * 2.3) {
                             /* DiDonato and Morris Eq 25: */
                             double y = -lb;
-                            double c1 = (a - 1) * std::log(y);
+                            double c1 = (a - 1) * cxx::log(y);
                             double c1_2 = c1 * c1;
                             double c1_3 = c1_2 * c1;
                             double c1_4 = c1_2 * c1_2;
@@ -199,8 +199,8 @@ namespace cephes {
                             result = y + c1 + (c2 / y) + (c3 / y_2) + (c4 / y_3) + (c5 / y_4);
                         } else {
                             /* DiDonato and Morris Eq 33: */
-                            double u = -lb + (a - 1) * std::log(w) - std::log(1 + (1 - a) / (1 + w));
-                            result = -lb + (a - 1) * std::log(u) - std::log(1 + (1 - a) / (1 + u));
+                            double u = -lb + (a - 1) * cxx::log(w) - cxx::log(1 + (1 - a) / (1 + w));
+                            result = -lb + (a - 1) * cxx::log(u) - cxx::log(1 + (1 - a) / (1 + u));
                         }
                     }
                 } else {
@@ -209,24 +209,24 @@ namespace cephes {
                     double ap2 = a + 2;
                     if (w < 0.15 * ap1) {
                         /* DiDonato and Morris Eq 35: */
-                        double v = std::log(p) + xsf::cephes::lgam(ap1);
-                        z = std::exp((v + w) / a);
-                        s = std::log1p(z / ap1 * (1 + z / ap2));
-                        z = std::exp((v + z - s) / a);
-                        s = std::log1p(z / ap1 * (1 + z / ap2));
-                        z = std::exp((v + z - s) / a);
-                        s = std::log1p(z / ap1 * (1 + z / ap2 * (1 + z / (a + 3))));
-                        z = std::exp((v + z - s) / a);
+                        double v = cxx::log(p) + xsf::cephes::lgam(ap1);
+                        z = cxx::exp((v + w) / a);
+                        s = cxx::log1p(z / ap1 * (1 + z / ap2));
+                        z = cxx::exp((v + z - s) / a);
+                        s = cxx::log1p(z / ap1 * (1 + z / ap2));
+                        z = cxx::exp((v + z - s) / a);
+                        s = cxx::log1p(z / ap1 * (1 + z / ap2 * (1 + z / (a + 3))));
+                        z = cxx::exp((v + z - s) / a);
                     }
 
                     if ((z <= 0.01 * ap1) || (z > 0.7 * ap1)) {
                         result = z;
                     } else {
                         /* DiDonato and Morris Eq 36: */
-                        double ls = std::log(didonato_SN(a, z, 100, 1e-4));
-                        double v = std::log(p) + xsf::cephes::lgam(ap1);
-                        z = std::exp((v + z - ls) / a);
-                        result = z * (1 - (a * std::log(z) - z - v + ls) / (a - z));
+                        double ls = cxx::log(didonato_SN(a, z, 100, 1e-4));
+                        double v = cxx::log(p) + xsf::cephes::lgam(ap1);
+                        z = cxx::exp((v + z - ls) / a);
+                        result = z * (1 - (a * cxx::log(z) - z - v + ls) / (a - z));
                     }
                 }
             }
@@ -241,15 +241,15 @@ namespace cephes {
         int i;
         double x, fac, f_fp, fpp_fp;
 
-        if (std::isnan(a) || std::isnan(p)) {
-            return std::numeric_limits<double>::quiet_NaN();
+        if (cxx::isnan(a) || cxx::isnan(p)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
             ;
         } else if ((a < 0) || (p < 0) || (p > 1)) {
             set_error("gammaincinv", SF_ERROR_DOMAIN, NULL);
         } else if (p == 0.0) {
             return 0.0;
         } else if (p == 1.0) {
-            return std::numeric_limits<double>::infinity();
+            return cxx::numeric_limits<double>::infinity();
         } else if (p > 0.9) {
             return igamci(a, 1 - p);
         }
@@ -264,7 +264,7 @@ namespace cephes {
             f_fp = (igam(a, x) - p) * x / fac;
             /* The ratio of the first and second derivatives simplifies */
             fpp_fp = -1.0 + (a - 1) / x;
-            if (std::isinf(fpp_fp)) {
+            if (cxx::isinf(fpp_fp)) {
                 /* Resort to Newton's method in the case of overflow */
                 x = x - f_fp;
             } else {
@@ -279,12 +279,12 @@ namespace cephes {
         int i;
         double x, fac, f_fp, fpp_fp;
 
-        if (std::isnan(a) || std::isnan(q)) {
-            return std::numeric_limits<double>::quiet_NaN();
+        if (cxx::isnan(a) || cxx::isnan(q)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         } else if ((a < 0.0) || (q < 0.0) || (q > 1.0)) {
             set_error("gammainccinv", SF_ERROR_DOMAIN, NULL);
         } else if (q == 0.0) {
-            return std::numeric_limits<double>::infinity();
+            return cxx::numeric_limits<double>::infinity();
         } else if (q == 1.0) {
             return 0.0;
         } else if (q > 0.9) {
@@ -299,7 +299,7 @@ namespace cephes {
             }
             f_fp = (igamc(a, x) - q) * x / (-fac);
             fpp_fp = -1.0 + (a - 1) / x;
-            if (std::isinf(fpp_fp)) {
+            if (cxx::isinf(fpp_fp)) {
                 x = x - f_fp;
             } else {
                 x = x - f_fp / (1.0 - 0.5 * f_fp * fpp_fp);

@@ -35,19 +35,19 @@ XSF_HOST_DEVICE void set_error_and_nan(const char *name, sf_error_t code, T &val
         set_error(name, code, nullptr);
 
         if (code == SF_ERROR_DOMAIN || code == SF_ERROR_OVERFLOW || code == SF_ERROR_NO_RESULT) {
-            value = std::numeric_limits<T>::quiet_NaN();
+            value = cxx::numeric_limits<T>::quiet_NaN();
         }
     }
 }
 
 template <typename T>
-XSF_HOST_DEVICE void set_error_and_nan(const char *name, sf_error_t code, std::complex<T> &value) {
+XSF_HOST_DEVICE void set_error_and_nan(const char *name, sf_error_t code, cxx::complex<T> &value) {
     if (code != SF_ERROR_OK) {
         set_error(name, code, nullptr);
 
         if (code == SF_ERROR_DOMAIN || code == SF_ERROR_OVERFLOW || code == SF_ERROR_NO_RESULT) {
-            value.real(std::numeric_limits<T>::quiet_NaN());
-            value.imag(std::numeric_limits<T>::quiet_NaN());
+            value.real(cxx::numeric_limits<T>::quiet_NaN());
+            value.imag(cxx::numeric_limits<T>::quiet_NaN());
         }
     }
 }

@@ -61,7 +61,7 @@
 namespace xsf {
 namespace cephes {
     namespace detail {
-        constexpr std::uint64_t MAXITER = 500;
+        constexpr cxx::uint64_t MAXITER = 500;
         constexpr double MACHEP = 1.1102230246251565404236316680908203125E-16;      // 2**-53
         constexpr double MAXLOG = 7.097827128933839730962063185871E2;               // log(DBL_MAX)
         constexpr double MINLOG = -7.451332191019412076235245305675398106812E2;     // log(2**(-1075))

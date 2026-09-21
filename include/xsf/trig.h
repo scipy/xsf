@@ -26,15 +26,15 @@ XSF_HOST_DEVICE T sinpi(T x) {
 }
 
 template <typename T>
-XSF_HOST_DEVICE std::complex<T> sinpi(std::complex<T> z) {
+XSF_HOST_DEVICE cxx::complex<T> sinpi(cxx::complex<T> z) {
     T x = z.real();
     T piy = M_PI * z.imag();
-    T abspiy = std::abs(piy);
+    T abspiy = cxx::abs(piy);
     T sinpix = cephes::sinpi(x);
     T cospix = cephes::cospi(x);
 
     if (abspiy < 700) {
-        return {sinpix * std::cosh(piy), cospix * std::sinh(piy)};
+        return {sinpix * cxx::cosh(piy), cospix * cxx::sinh(piy)};
     }
 
     /* Have to be careful--sinh/cosh could overflow while cos/sin are small.
@@ -45,21 +45,21 @@ XSF_HOST_DEVICE std::complex<T> sinpi(std::complex<T> z) {
      *
      * so we can compute exp(y/2), scale by the right factor of sin/cos
      * and then multiply by exp(y/2) to avoid overflow. */
-    T exphpiy = std::exp(abspiy / 2);
+    T exphpiy = cxx::exp(abspiy / 2);
     T coshfac;
     T sinhfac;
-    if (exphpiy == std::numeric_limits<T>::infinity()) {
+    if (exphpiy == cxx::numeric_limits<T>::infinity()) {
         if (sinpix == 0.0) {
             // Preserve the sign of zero.
-            coshfac = std::copysign(0.0, sinpix);
+            coshfac = cxx::copysign(0.0, sinpix);
         } else {
-            coshfac = std::copysign(std::numeric_limits<T>::infinity(), sinpix);
+            coshfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), sinpix);
         }
         if (cospix == 0.0) {
             // Preserve the sign of zero.
-            sinhfac = std::copysign(0.0, cospix);
+            sinhfac = cxx::copysign(0.0, cospix);
         } else {
-            sinhfac = std::copysign(std::numeric_limits<T>::infinity(), cospix);
+            sinhfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), cospix);
         }
         return {coshfac, sinhfac};
     }
@@ -75,33 +75,33 @@ XSF_HOST_DEVICE T cospi(T x) {
 }
 
 template <typename T>
-XSF_HOST_DEVICE std::complex<T> cospi(std::complex<T> z) {
+XSF_HOST_DEVICE cxx::complex<T> cospi(cxx::complex<T> z) {
     T x = z.real();
     T piy = M_PI * z.imag();
-    T abspiy = std::abs(piy);
+    T abspiy = cxx::abs(piy);
     T sinpix = cephes::sinpi(x);
     T cospix = cephes::cospi(x);
 
     if (abspiy < 700) {
-        return {cospix * std::cosh(piy), -sinpix * std::sinh(piy)};
+        return {cospix * cxx::cosh(piy), -sinpix * cxx::sinh(piy)};
     }
 
     // See csinpi(z) for an idea of what's going on here.
-    T exphpiy = std::exp(abspiy / 2);
+    T exphpiy = cxx::exp(abspiy / 2);
     T coshfac;
     T sinhfac;
-    if (exphpiy == std::numeric_limits<T>::infinity()) {
+    if (exphpiy == cxx::numeric_limits<T>::infinity()) {
         if (sinpix == 0.0) {
             // Preserve the sign of zero.
-            coshfac = std::copysign(0.0, cospix);
+            coshfac = cxx::copysign(0.0, cospix);
         } else {
-            coshfac = std::copysign(std::numeric_limits<T>::infinity(), cospix);
+            coshfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), cospix);
         }
         if (cospix == 0.0) {
             // Preserve the sign of zero.
-            sinhfac = std::copysign(0.0, sinpix);
+            sinhfac = cxx::copysign(0.0, sinpix);
         } else {
-            sinhfac = std::copysign(std::numeric_limits<T>::infinity(), sinpix);
+            sinhfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), sinpix);
         }
         return {coshfac, sinhfac};
     }

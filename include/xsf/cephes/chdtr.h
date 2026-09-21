@@ -164,7 +164,7 @@ namespace cephes {
     XSF_HOST_DEVICE inline double chdtrc(double df, double x) {
         if (x < 0.0) {
             set_error("chdtr", SF_ERROR_DOMAIN, NULL);
-            return (std::numeric_limits<double>::quiet_NaN());
+            return (cxx::numeric_limits<double>::quiet_NaN());
         }
         return (igamc(df / 2.0, x / 2.0));
     }
@@ -173,7 +173,7 @@ namespace cephes {
 
         if ((x < 0.0)) { /* || (df < 1.0) ) */
             set_error("chdtr", SF_ERROR_DOMAIN, NULL);
-            return (std::numeric_limits<double>::quiet_NaN());
+            return (cxx::numeric_limits<double>::quiet_NaN());
         }
         return (igam(df / 2.0, x / 2.0));
     }
@@ -183,7 +183,7 @@ namespace cephes {
 
         if ((y < 0.0) || (y > 1.0)) { /* || (df < 1.0) ) */
             set_error("chdtri", SF_ERROR_DOMAIN, NULL);
-            return (std::numeric_limits<double>::quiet_NaN());
+            return (cxx::numeric_limits<double>::quiet_NaN());
         }
 
         x = igamci(0.5 * df, y);

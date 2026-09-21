@@ -11,11 +11,11 @@ namespace xsf {
 XSF_HOST_DEVICE inline double gdtria(double p, double b, double x) {
 
     if (x == 0) {
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     if ((b == 0) && (p == 0)) {
-        if (std::isinf(x) && (x > 0)) {
-            return std::numeric_limits<double>::quiet_NaN();
+        if (cxx::isinf(x) && (x > 0)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
         return 0.0;
     }
@@ -27,25 +27,25 @@ XSF_HOST_DEVICE inline float gdtria(float p, float b, float x) {
 }
 
 XSF_HOST_DEVICE inline double gdtrib(double a, double p, double x) {
-    if (std::isnan(p) || std::isnan(a) || std::isnan(x)) {
-        return std::numeric_limits<double>::quiet_NaN();
+    if (cxx::isnan(p) || cxx::isnan(a) || cxx::isnan(x)) {
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     if (!((0 <= p) && (p <= 1))) {
         set_error("gdtrib", SF_ERROR_DOMAIN, "Input parameter p is out of range");
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
-    if (!(a > 0) || std::isinf(a)) {
+    if (!(a > 0) || cxx::isinf(a)) {
         set_error("gdtrib", SF_ERROR_DOMAIN, "Input parameter a is out of range");
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
-    if (!(x >= 0) || std::isinf(x)) {
+    if (!(x >= 0) || cxx::isinf(x)) {
         set_error("gdtrib", SF_ERROR_DOMAIN, "Input parameter x is out of range");
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     if (x == 0.0) {
         if (p == 0.0) {
             set_error("gdtrib", SF_ERROR_DOMAIN, "Indeterminate result for (x, p) == (0, 0).");
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
         /* gdtrib(a, p, x) tends to 0 as x -> 0 when p > 0 */
         return 0.0;
@@ -53,7 +53,7 @@ XSF_HOST_DEVICE inline double gdtrib(double a, double p, double x) {
     if (p == 0.0) {
         /* gdtrib(a, p, x) tends to infinity as p -> 0 from the right when x > 0. */
         set_error("gdtrib", SF_ERROR_SINGULAR, NULL);
-        return std::numeric_limits<double>::infinity();
+        return cxx::numeric_limits<double>::infinity();
     }
     if (p == 1.0) {
         /* gdtrib(a, p, x) tends to 0 as p -> 1.0 from the left when x > 0. */
@@ -66,8 +66,8 @@ XSF_HOST_DEVICE inline double gdtrib(double a, double p, double x) {
         }
         return q - cephes::igamc(b, a * x);
     };
-    double lower_bound = std::numeric_limits<double>::min();
-    double upper_bound = std::numeric_limits<double>::max();
+    double lower_bound = cxx::numeric_limits<double>::min();
+    double upper_bound = cxx::numeric_limits<double>::max();
     /* To explain the magic constants used below:
      * 1.0 is the initial guess for the root. -0.875 is the initial step size
      * for the leading bracket endpoint if the bracket search will proceed to the
@@ -97,18 +97,18 @@ XSF_HOST_DEVICE inline double gdtrib(double a, double p, double x) {
     }
     if (bracket_status == 2) {
         set_error("gdtrib", SF_ERROR_OVERFLOW, NULL);
-        return std::numeric_limits<double>::infinity();
+        return cxx::numeric_limits<double>::infinity();
     }
     if (bracket_status >= 3) {
         set_error("gdtrib", SF_ERROR_OTHER, "Computational Error");
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     auto [result, root_status] =
-        detail::find_root_chandrupatla(func, xl, xr, f_xl, f_xr, std::numeric_limits<double>::epsilon(), 1e-100, 100);
+        detail::find_root_chandrupatla(func, xl, xr, f_xl, f_xr, cxx::numeric_limits<double>::epsilon(), 1e-100, 100);
     if (root_status) {
         /* The root finding return should only fail if there's a bug in our code. */
         set_error("gdtrib", SF_ERROR_OTHER, "Computational Error, (%.17g, %.17g, %.17g)", a, p, x);
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     return result;
 }
@@ -120,11 +120,11 @@ XSF_HOST_DEVICE inline float gdtrib(float a, float p, float x) {
 XSF_HOST_DEVICE inline double gdtrix(double a, double b, double p) {
 
     if ((a == 0) && (b == 0)) {
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     // if a or b is positive infinite, return NaN
-    if ((std::isinf(a) || std::isinf(b)) && (a >= 0 && b >= 0)) {
-        return std::numeric_limits<double>::quiet_NaN();
+    if ((cxx::isinf(a) || cxx::isinf(b)) && (a >= 0 && b >= 0)) {
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     return gammaincinv(b, p) / a;
 }

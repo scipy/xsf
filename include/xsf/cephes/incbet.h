@@ -104,7 +104,7 @@ namespace cephes {
             n = 2.0;
             s = 0.0;
             z = MACHEP * ai;
-            while (std::abs(v) > z) {
+            while (cxx::abs(v) > z) {
                 u = (n - b) * x / n;
                 t *= u;
                 v = t / (a + n);
@@ -114,16 +114,16 @@ namespace cephes {
             s += t1;
             s += ai;
 
-            u = a * std::log(x);
-            if ((a + b) < MAXGAM && std::abs(u) < MAXLOG) {
+            u = a * cxx::log(x);
+            if ((a + b) < MAXGAM && cxx::abs(u) < MAXLOG) {
                 t = 1.0 / beta(a, b);
-                s = triple_product(s, t, std::pow(x, a)); // (s * t) * std::pow(x, a)
+                s = triple_product(s, t, cxx::pow(x, a)); // (s * t) * cxx::pow(x, a)
             } else {
-                t = -lbeta(a, b) + u + std::log(s);
+                t = -lbeta(a, b) + u + cxx::log(s);
                 if (t < MINLOG) {
                     s = 0.0;
                 } else {
-                    s = std::exp(t);
+                    s = cxx::exp(t);
                 }
             }
             return (s);
@@ -175,7 +175,7 @@ namespace cephes {
                     r = pk / qk;
                 }
                 if (r != 0) {
-                    t = std::abs((ans - r) / r);
+                    t = cxx::abs((ans - r) / r);
                     ans = r;
                 } else {
                     t = 1.0;
@@ -193,13 +193,13 @@ namespace cephes {
                 k7 += 2.0;
                 k8 += 2.0;
 
-                if ((std::abs(qk) + std::abs(pk)) > incbet_big) {
+                if ((cxx::abs(qk) + cxx::abs(pk)) > incbet_big) {
                     pkm2 *= incbet_biginv;
                     pkm1 *= incbet_biginv;
                     qkm2 *= incbet_biginv;
                     qkm1 *= incbet_biginv;
                 }
-                if ((std::abs(qk) < incbet_biginv) || (fabs(pk) < incbet_biginv)) {
+                if ((cxx::abs(qk) < incbet_biginv) || (fabs(pk) < incbet_biginv)) {
                     pkm2 *= incbet_big;
                     pkm1 *= incbet_big;
                     qkm2 *= incbet_big;
@@ -258,7 +258,7 @@ namespace cephes {
                 if (qk != 0)
                     r = pk / qk;
                 if (r != 0) {
-                    t = std::abs((ans - r) / r);
+                    t = cxx::abs((ans - r) / r);
                     ans = r;
                 } else {
                     t = 1.0;
@@ -276,13 +276,13 @@ namespace cephes {
                 k7 += 2.0;
                 k8 += 2.0;
 
-                if ((std::abs(qk) + std::abs(pk)) > incbet_big) {
+                if ((cxx::abs(qk) + cxx::abs(pk)) > incbet_big) {
                     pkm2 *= incbet_biginv;
                     pkm1 *= incbet_biginv;
                     qkm2 *= incbet_biginv;
                     qkm1 *= incbet_biginv;
                 }
-                if ((std::abs(qk) < incbet_biginv) || (std::abs(pk) < incbet_biginv)) {
+                if ((cxx::abs(qk) < incbet_biginv) || (cxx::abs(pk) < incbet_biginv)) {
                     pkm2 *= incbet_big;
                     pkm1 *= incbet_big;
                     qkm2 *= incbet_big;
@@ -309,7 +309,7 @@ namespace cephes {
                 return (1.0);
         domerr:
             set_error("incbet", SF_ERROR_DOMAIN, NULL);
-            return (std::numeric_limits<double>::quiet_NaN());
+            return (cxx::numeric_limits<double>::quiet_NaN());
         }
 
         flag = 0;
@@ -351,11 +351,11 @@ namespace cephes {
          * a      b   _             _     _
          * x  (1-x)   | (a+b) / ( a | (a) | (b) ) .   */
 
-        y = a * std::log(x);
-        t = b * std::log(xc);
-        if ((a + b) < detail::MAXGAM && std::abs(y) < detail::MAXLOG && std::abs(t) < detail::MAXLOG) {
-            t = std::pow(xc, b);
-            t *= std::pow(x, a);
+        y = a * cxx::log(x);
+        t = b * cxx::log(xc);
+        if ((a + b) < detail::MAXGAM && cxx::abs(y) < detail::MAXLOG && cxx::abs(t) < detail::MAXLOG) {
+            t = cxx::pow(xc, b);
+            t *= cxx::pow(x, a);
             t /= a;
             t *= w;
             t *= 1.0 / beta(a, b);
@@ -363,7 +363,7 @@ namespace cephes {
         }
         /* Resort to logarithms.  */
         y += t - lbeta(a, b);
-        y += std::log(w / a);
+        y += cxx::log(w / a);
         if (y < detail::MINLOG) {
             t = 0.0;
         } else {

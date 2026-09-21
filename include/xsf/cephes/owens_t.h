@@ -116,22 +116,22 @@ namespace cephes {
             return owens_t_SELECT_METHOD[iaint * 15 + ihint];
         }
 
-        XSF_HOST_DEVICE inline double owens_t_norm1(double x) { return xsf::cephes::erf(x / std::sqrt(2)) / 2; }
+        XSF_HOST_DEVICE inline double owens_t_norm1(double x) { return xsf::cephes::erf(x / cxx::sqrt(2)) / 2; }
 
-        XSF_HOST_DEVICE inline double owens_t_norm2(double x) { return xsf::cephes::erfc(x / std::sqrt(2)) / 2; }
+        XSF_HOST_DEVICE inline double owens_t_norm2(double x) { return xsf::cephes::erfc(x / cxx::sqrt(2)) / 2; }
 
         XSF_HOST_DEVICE inline double owensT1(double h, double a, double m) {
             int j = 1;
             int jj = 1;
 
             double hs = -0.5 * h * h;
-            double dhs = std::exp(hs);
+            double dhs = cxx::exp(hs);
             double as = a * a;
             double aj = a / (2 * M_PI);
             double dj = xsf::cephes::expm1(hs);
             double gj = hs * dhs;
 
-            double val = std::atan(a) / (2 * M_PI);
+            double val = cxx::atan(a) / (2 * M_PI);
 
             while (1) {
                 val += dj * aj / jj;
@@ -156,7 +156,7 @@ namespace cephes {
             double as = -a * a;
             double y = 1.0 / hs;
             double val = 0.0;
-            double vi = a * std::exp(-0.5 * ah * ah) / std::sqrt(2 * M_PI);
+            double vi = a * cxx::exp(-0.5 * ah * ah) / cxx::sqrt(2 * M_PI);
             double z = (xsf::cephes::ndtr(ah) - 0.5) / h;
 
             while (1) {
@@ -168,7 +168,7 @@ namespace cephes {
                 vi *= as;
                 i += 2;
             }
-            val *= std::exp(-0.5 * hs) / std::sqrt(2 * M_PI);
+            val *= cxx::exp(-0.5 * hs) / cxx::sqrt(2 * M_PI);
 
             return val;
         }
@@ -181,7 +181,7 @@ namespace cephes {
             hh = h * h;
             y = 1 / hh;
 
-            vi = a * std::exp(-ah * ah / 2) / std::sqrt(2 * M_PI);
+            vi = a * cxx::exp(-ah * ah / 2) / cxx::sqrt(2 * M_PI);
             zi = owens_t_norm1(ah) / h;
             result = 0;
 
@@ -191,7 +191,7 @@ namespace cephes {
                 vi *= aa;
             }
 
-            result *= std::exp(-hh / 2) / std::sqrt(2 * M_PI);
+            result *= cxx::exp(-hh / 2) / cxx::sqrt(2 * M_PI);
 
             return result;
         }
@@ -205,7 +205,7 @@ namespace cephes {
             naa = -a * a;
 
             i = 1;
-            ai = a * std::exp(-hh * (1 - naa) / 2) / (2 * M_PI);
+            ai = a * cxx::exp(-hh * (1 - naa) / 2) / (2 * M_PI);
             yi = 1;
             result = 0;
 
@@ -235,7 +235,7 @@ namespace cephes {
 
             for (i = 1; i < 14; i++) {
                 r = 1 + aa * owens_t_PTS[i - 1];
-                result += owens_t_WTS[i - 1] * std::exp(nhh * r) / r;
+                result += owens_t_WTS[i - 1] * cxx::exp(nhh * r) / r;
             }
 
             result *= a;
@@ -248,11 +248,11 @@ namespace cephes {
 
             normh = owens_t_norm2(h);
             y = 1 - a;
-            r = std::atan2(y, (1 + a));
+            r = cxx::atan2(y, (1 + a));
             result = normh * (1 - normh) / 2;
 
             if (r != 0) {
-                result -= r * std::exp(-y * h * h / (2 * r)) / (2 * M_PI);
+                result -= r * cxx::exp(-y * h * h / (2 * r)) / (2 * M_PI);
             }
 
             return result;
@@ -263,7 +263,7 @@ namespace cephes {
             double m, result;
 
             if (h == 0) {
-                return std::atan(a) / (2 * M_PI);
+                return cxx::atan(a) / (2 * M_PI);
             }
             if (a == 0) {
                 return 0;
@@ -296,7 +296,7 @@ namespace cephes {
                 result = owensT6(h, a);
                 break;
             default:
-                result = std::numeric_limits<double>::quiet_NaN();
+                result = cxx::numeric_limits<double>::quiet_NaN();
             }
 
             return result;
@@ -307,25 +307,25 @@ namespace cephes {
     XSF_HOST_DEVICE inline double owens_t(double h, double a) {
         double result, fabs_a, fabs_ah, normh, normah;
 
-        if (std::isnan(h) || std::isnan(a)) {
-            return std::numeric_limits<double>::quiet_NaN();
+        if (cxx::isnan(h) || cxx::isnan(a)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         /* exploit that T(-h,a) == T(h,a) */
-        h = std::abs(h);
+        h = cxx::abs(h);
 
         /*
          * Use equation (2) in the paper to remap the arguments such that
          * h >= 0 and 0 <= a <= 1 for the call of the actual computation
          * routine.
          */
-        fabs_a = std::abs(a);
+        fabs_a = cxx::abs(a);
         fabs_ah = fabs_a * h;
 
-        if (fabs_a == std::numeric_limits<double>::infinity()) {
+        if (fabs_a == cxx::numeric_limits<double>::infinity()) {
             /* See page 13 in the paper */
             result = 0.5 * detail::owens_t_norm2(h);
-        } else if (h == std::numeric_limits<double>::infinity()) {
+        } else if (h == cxx::numeric_limits<double>::infinity()) {
             result = 0;
         } else if (fabs_a <= 1) {
             result = detail::owens_t_dispatch(h, fabs_a, fabs_ah);

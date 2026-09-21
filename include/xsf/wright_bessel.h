@@ -39,7 +39,7 @@ namespace detail {
          * This helper function avoids overflow by using the lanczos
          * approximation of the gamma function.
          */
-        return std::exp(x + (1 - std::log(y + cephes::lanczos_g - 0.5)) * (y - 0.5)) /
+        return cxx::exp(x + (1 - cxx::log(y + cephes::lanczos_g - 0.5)) * (y - 0.5)) /
                cephes::lanczos_sum_expg_scaled(y);
     }
 
@@ -51,12 +51,12 @@ namespace detail {
          * Note that every term, and therefore also Phi(a, b, x) is
          * monotone decreasing with increasing a or b.
          */
-        double xk_k = std::pow(x, nstart) * cephes::rgamma(nstart + 1); // x^k/k!
+        double xk_k = cxx::pow(x, nstart) * cephes::rgamma(nstart + 1); // x^k/k!
         double res = xk_k * cephes::rgamma(nstart * a + b);
         // term k=nstart+1, +2, +3, ...
         if (nstop > nstart) {
             // series expansion until term k such that a*k+b <= rgamma_zero
-            unsigned int k_max = std::floor((rgamma_zero - b) / a);
+            unsigned int k_max = cxx::floor((rgamma_zero - b) / a);
             if (nstop > k_max) {
                 nstop = k_max;
             }
@@ -77,7 +77,7 @@ namespace detail {
          * Use Stirling's formula to find k=k_max, the maximum term.
          * Then use n terms of Taylor series around k_max.
          */
-        int k_max = static_cast<int>(std::pow(std::pow(a, -a) * x, 1.0 / (1 + a)));
+        int k_max = static_cast<int>(cxx::pow(cxx::pow(a, -a) * x, 1.0 / (1 + a)));
 
         int nstart = k_max - n / 2;
         if (nstart < 0) {
@@ -85,19 +85,19 @@ namespace detail {
         }
 
         double res = 0;
-        double lnx = std::log(x);
+        double lnx = cxx::log(x);
         // For numerical stability, we factor out the maximum term exp(..) with k=k_max
         // but only if it is larger than 0.
-        double max_exponent = std::fmax(0, k_max * lnx - cephes::lgam(k_max + 1) - cephes::lgam(a * k_max + b));
+        double max_exponent = cxx::fmax(0, k_max * lnx - cephes::lgam(k_max + 1) - cephes::lgam(a * k_max + b));
         for (int k = nstart; k < nstart + n; k++) {
-            res += std::exp(k * lnx - cephes::lgam(k + 1) - cephes::lgam(a * k + b) - max_exponent);
+            res += cxx::exp(k * lnx - cephes::lgam(k + 1) - cephes::lgam(a * k + b) - max_exponent);
         }
 
         if (!log_wb) {
-            res *= std::exp(max_exponent);
+            res *= cxx::exp(max_exponent);
         } else {
             // logarithm of Wright's function
-            res = max_exponent + std::log(res);
+            res = max_exponent + cxx::log(res);
         }
         return res;
     }
@@ -174,7 +174,7 @@ namespace detail {
                 res = exp(x) * cephes::polevl(a, A, 5);
             } else {
                 // logarithm of Wright's function
-                res = x + std::log(cephes::polevl(a, A, 5));
+                res = x + cxx::log(cephes::polevl(a, A, 5));
             }
         } else {
             /* Phi(a, b, x) = exp(x)/gamma(b) * sum(A[i] * X[i] * B[i], i=0..5)
@@ -221,7 +221,7 @@ namespace detail {
                 res *= exp_rgamma(x, b);
             } else {
                 // logarithm of Wright's function
-                res = x - cephes::lgam(b) + std::log(res);
+                res = x - cephes::lgam(b) + cxx::log(res);
             }
         }
         return res;
@@ -255,7 +255,7 @@ namespace detail {
             Ap1[k] = Ap1[k - 1] * (1 + a);
         }
 
-        C[0] = 1. / std::sqrt(2. * M_PI * Ap1[1]);
+        C[0] = 1. / cxx::sqrt(2. * M_PI * Ap1[1]);
 
         C[1] = C[0] / (24 * Ap1[1]);
         C[1] *= (2 * a + 1) * (2 + a) - 12 * b * (1 + a - b);
@@ -442,7 +442,7 @@ namespace detail {
                   111492707520083828. * A[5] + 32874204024803560. * A[4] + 8622589006459984. * A[3] -
                   898376974770592. * A[2] - 156998277198784. * a + 573840801152.));
 
-        double Z = std::pow(a * x, 1 / Ap1[1]);
+        double Z = cxx::pow(a * x, 1 / Ap1[1]);
         double Zp = 1.;
         double res = C[0];
         for (int k = 1; k < 9; k++) {
@@ -450,10 +450,10 @@ namespace detail {
             res += (k % 2 == 0 ? 1 : -1) * C[k] * Zp;
         }
         if (!log_wb) {
-            res *= std::pow(Z, 0.5 - b) * std::exp(Ap1[1] / a * Z);
+            res *= cxx::pow(Z, 0.5 - b) * cxx::exp(Ap1[1] / a * Z);
         } else {
             // logarithm of Wright's function
-            res = std::log(Z) * (0.5 - b) + Ap1[1] / a * Z + std::log(res);
+            res = cxx::log(Z) * (0.5 - b) + Ap1[1] / a * Z + cxx::log(res);
         }
         return res;
     }
@@ -469,9 +469,9 @@ namespace detail {
          * Note that we additionally factor out exp(exp_term) which helps with large
          * terms in the exponent of exp(...)
          */
-        double x_r_a = x * std::pow(r + eps, -a);
-        return std::exp(x_r_a * cephes::cospi(a) + exp_term) * std::pow(r + eps, -b) *
-               std::sin(x_r_a * cephes::sinpi(a) + M_PI * b);
+        double x_r_a = x * cxx::pow(r + eps, -a);
+        return cxx::exp(x_r_a * cephes::cospi(a) + exp_term) * cxx::pow(r + eps, -b) *
+               cxx::sin(x_r_a * cephes::sinpi(a) + M_PI * b);
     }
 
     XSF_HOST_DEVICE inline double wb_P(double exp_term, double eps, double a, double b, double x, double phi) {
@@ -484,9 +484,9 @@ namespace detail {
          * Note that we additionally factor out exp(exp_term) which helps with large
          * terms in the exponent of exp(...)
          */
-        double x_eps_a = x * std::pow(eps, -a);
-        return std::exp(eps * std::cos(phi) + x_eps_a * std::cos(a * phi) + exp_term) *
-               std::cos(eps * std::sin(phi) - x_eps_a * std::sin(a * phi) + (1 - b) * phi);
+        double x_eps_a = x * cxx::pow(eps, -a);
+        return cxx::exp(eps * cxx::cos(phi) + x_eps_a * cxx::cos(a * phi) + exp_term) *
+               cxx::cos(eps * cxx::sin(phi) - x_eps_a * cxx::sin(a * phi) + (1 - b) * phi);
     }
 
     /* roots of laguerre polynomial of order 50
@@ -603,10 +603,10 @@ namespace detail {
 
         // Minimize oscillatory behavoir of P
         double eps =
-            (wb_A[0] * b * std::exp(-0.5 * a) +
-             std::exp(
-                 wb_A[1] + 1 / (1 + a) * std::log(x) - wb_A[2] * std::exp(-wb_A[3] * a) +
-                 wb_A[4] / (1 + std::exp(wb_A[5] * a))
+            (wb_A[0] * b * cxx::exp(-0.5 * a) +
+             cxx::exp(
+                 wb_A[1] + 1 / (1 + a) * cxx::log(x) - wb_A[2] * cxx::exp(-wb_A[3] * a) +
+                 wb_A[4] / (1 + cxx::exp(wb_A[5] * a))
              ));
 
         if (a >= 4 && x >= 100) {
@@ -617,26 +617,26 @@ namespace detail {
         if (b >= 8) {
             /* Make P small compared to K by setting eps large enough.
              * int K ~ exp(-eps) and int P ~ eps^(1-b) */
-            eps = std::fmax(eps, std::pow(b, -b / (1. - b)) + 0.1 * b);
+            eps = cxx::fmax(eps, cxx::pow(b, -b / (1. - b)) + 0.1 * b);
         }
 
         // safeguard, higher better for larger a, lower better for tiny a.
-        eps = std::fmin(eps, 150.);
-        eps = std::fmax(eps, 3.); // 3 seems to be a pretty good choice in general.
+        eps = cxx::fmin(eps, 150.);
+        eps = cxx::fmax(eps, 3.); // 3 seems to be a pretty good choice in general.
 
         // We factor out exp(-exp_term) from wb_Kmod and wb_P to avoid overflow of
         // exp(..).
         double exp_term = 0;
         // From the exponent of K:
         double r = wb_x_laguerre[50 - 1]; // largest value of x used in wb_Kmod
-        double x_r_a = x * std::pow(r + eps, -a);
-        exp_term = std::fmax(exp_term, x_r_a * cephes::cospi(a));
+        double x_r_a = x * cxx::pow(r + eps, -a);
+        exp_term = cxx::fmax(exp_term, x_r_a * cephes::cospi(a));
         // From the exponent of P:
-        double x_eps_a = x * std::pow(eps, -a);
+        double x_eps_a = x * cxx::pow(eps, -a);
         // phi = 0  =>  cos(phi) = cos(a * phi) = 1
-        exp_term = std::fmax(exp_term, eps + x_eps_a);
+        exp_term = cxx::fmax(exp_term, eps + x_eps_a);
         // phi = pi  => cos(phi) = -1
-        exp_term = std::fmax(exp_term, -eps + x_eps_a * cephes::cospi(a));
+        exp_term = cxx::fmax(exp_term, -eps + x_eps_a * cephes::cospi(a));
 
         double res1 = 0;
         double res2 = 0;
@@ -648,17 +648,17 @@ namespace detail {
             y = M_PI * (wb_x_legendre[k] + 1) / 2.0;
             res2 += wb_w_legendre[k] * wb_P(-exp_term, eps, a, b, x, y);
         }
-        res1 *= std::exp(-eps);
+        res1 *= cxx::exp(-eps);
         // (b-a)/2.0 * np.sum(w*func(y, *args), axis=-1)
         res2 *= M_PI / 2.0;
-        res2 *= std::pow(eps, 1 - b);
+        res2 *= cxx::pow(eps, 1 - b);
 
         if (!log_wb) {
             // Remember the factored out exp_term from wb_Kmod and wb_P
-            return std::exp(exp_term) / M_PI * (res1 + res2);
+            return cxx::exp(exp_term) / M_PI * (res1 + res2);
         } else {
             // logarithm of Wright's function
-            return exp_term + std::log((res1 + res2) / M_PI);
+            return exp_term + cxx::log((res1 + res2) / M_PI);
         }
     }
 } // namespace detail
@@ -697,25 +697,25 @@ XSF_HOST_DEVICE inline double wright_bessel_t(double a, double b, double x) {
      *     the Real Arguments' Values, Fractional Calculus and Applied Analysis 11(1)
      *     http://sci-gems.math.bas.bg/jspui/bitstream/10525/1298/1/fcaa-vol11-num1-2008-57p-75p.pdf
      */
-    if (std::isnan(a) || std::isnan(b) || std::isnan(x)) {
-        return std::numeric_limits<double>::quiet_NaN();
+    if (cxx::isnan(a) || cxx::isnan(b) || cxx::isnan(x)) {
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     if (a < 0 || b < 0 || x < 0) {
         set_error("wright_bessel", SF_ERROR_DOMAIN, NULL);
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
-    if (std::isinf(x)) {
-        if (std::isinf(a) || std::isinf(b)) {
-            return std::numeric_limits<double>::quiet_NaN();
+    if (cxx::isinf(x)) {
+        if (cxx::isinf(a) || cxx::isinf(b)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
-        return std::numeric_limits<double>::infinity();
+        return cxx::numeric_limits<double>::infinity();
     }
-    if (std::isinf(a) || std::isinf(b)) {
-        return std::numeric_limits<double>::quiet_NaN(); // or 0
+    if (cxx::isinf(a) || cxx::isinf(b)) {
+        return cxx::numeric_limits<double>::quiet_NaN(); // or 0
     }
     if (a >= detail::rgamma_zero || b >= detail::rgamma_zero) {
         set_error("wright_bessel", SF_ERROR_OVERFLOW, NULL);
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     if (x == 0) {
         // return rgamma(b)
@@ -782,14 +782,14 @@ XSF_HOST_DEVICE inline double wright_bessel_t(double a, double b, double x) {
         // 18 term Taylor Series => error mostly smaller 5e-14
         double res = detail::wb_series(a, b, x, 0, 18);
         if (log_wb)
-            res = std::log(res);
+            res = cxx::log(res);
         return res;
     }
     if (x <= 2) {
         // 20 term Taylor Series => error mostly smaller 1e-12 to 1e-13
         double res = detail::wb_series(a, b, x, 0, 20);
         if (log_wb)
-            res = std::log(res);
+            res = cxx::log(res);
         return res;
     }
     if (a >= 5) {
@@ -799,22 +799,22 @@ XSF_HOST_DEVICE inline double wright_bessel_t(double a, double b, double x) {
             if (x <= 1e11) {
                 order = 6;
             } else {
-                order = static_cast<int>(std::fmin(std::log10(x) - 5 + b / 10, 30));
+                order = static_cast<int>(cxx::fmin(cxx::log10(x) - 5 + b / 10, 30));
             }
         } else {
             if (x <= 1e4) {
                 order = 6;
             } else if (x <= 1e8) {
-                order = static_cast<int>(2 * std::log10(x));
+                order = static_cast<int>(2 * cxx::log10(x));
             } else if (x <= 1e10) {
-                order = static_cast<int>(4 * std::log10(x) - 16);
+                order = static_cast<int>(4 * cxx::log10(x) - 16);
             } else {
-                order = static_cast<int>(std::fmin(6 * std::log10(x) - 36, 100));
+                order = static_cast<int>(cxx::fmin(6 * cxx::log10(x) - 36, 100));
             }
         }
         return detail::wb_large_a<log_wb>(a, b, x, order);
     }
-    if (std::pow(a * x, 1 / (1. + a)) >= 14 + b * b / (2 * (1 + a))) {
+    if (cxx::pow(a * x, 1 / (1. + a)) >= 14 + b * b / (2 * (1 + a))) {
         /* Asymptotic expansion in Z = (a*x)^(1/(1+a)) up to 8th term 1/Z^8.
          * For 1/Z^k, the highest term in b is b^(2*k) * a0 / (2^k k! (1+a)^k).
          * As a0 is a common factor to all orders, this explains a bit the
@@ -826,7 +826,7 @@ XSF_HOST_DEVICE inline double wright_bessel_t(double a, double b, double x) {
     if (0.5 <= a && a <= 1.8 && 100 <= b && 1e5 <= x) {
         // This is a very hard domain. This condition is placed after wb_asymptotic.
         // TODO: Explore ways to cover this domain.
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     return detail::wright_bessel_integral<log_wb>(a, b, x);
 }

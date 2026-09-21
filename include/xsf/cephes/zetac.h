@@ -142,7 +142,7 @@ namespace cephes {
             double a, b, s, w;
 
             if (x == 1.0) {
-                return std::numeric_limits<double>::infinity();
+                return cxx::numeric_limits<double>::infinity();
             }
 
             if (x >= detail::zetac_MAXL2) {
@@ -151,7 +151,7 @@ namespace cephes {
             }
 
             /* Tabulated values for integer argument */
-            w = std::floor(x);
+            w = cxx::floor(x);
             if (w == x) {
                 i = x;
                 if (i < 31) {
@@ -166,16 +166,16 @@ namespace cephes {
             }
 
             if (x <= 10.0) {
-                b = std::pow(2.0, x) * (x - 1.0);
+                b = cxx::pow(2.0, x) * (x - 1.0);
                 w = 1.0 / x;
                 s = (x * xsf::cephes::polevl(w, zetac_P, 8)) / (b * xsf::cephes::p1evl(w, zetac_Q, 8));
                 return s;
             }
 
             if (x <= 50.0) {
-                b = std::pow(2.0, -x);
+                b = cxx::pow(2.0, -x);
                 w = xsf::cephes::polevl(x, zetac_A, 10) / xsf::cephes::p1evl(x, zetac_B, 10);
-                w = std::exp(w) + b;
+                w = cxx::exp(w) + b;
                 return w;
             }
 
@@ -184,11 +184,11 @@ namespace cephes {
             a = 1.0;
             do {
                 a += 2.0;
-                b = std::pow(a, -x);
+                b = cxx::pow(a, -x);
                 s += b;
             } while (b / s > MACHEP);
 
-            b = std::pow(2.0, -x);
+            b = cxx::pow(2.0, -x);
             s = (s + b) / (1.0 - b);
             return s;
         }
@@ -207,20 +207,20 @@ namespace cephes {
             double base, large_term, small_term, hx, x_shift;
 
             hx = x / 2;
-            if (hx == std::floor(hx)) {
+            if (hx == cxx::floor(hx)) {
                 /* Hit a zero of the sine factor */
                 return 0;
             }
 
             /* Reduce the argument to sine */
-            x_shift = std::fmod(x, 4);
+            x_shift = cxx::fmod(x, 4);
             small_term = -SQRT2OPI * sin(0.5 * M_PI * x_shift);
             small_term *= xsf::cephes::lanczos_sum_expg_scaled(x + 1) * xsf::cephes::zeta(x + 1, 1);
 
             /* Group large terms together to prevent overflow */
             base = (x + xsf::cephes::lanczos_g + 0.5) / (2 * M_PI * M_E);
-            large_term = std::pow(base, x + 0.5);
-            if (std::isfinite(large_term)) {
+            large_term = cxx::pow(base, x + 0.5);
+            if (cxx::isfinite(large_term)) {
                 return large_term * small_term;
             }
             /*
@@ -234,7 +234,7 @@ namespace cephes {
              * i.e. about machine epsilon. This means that if the above still
              * overflows, then there was truly no avoiding it.
              */
-            large_term = std::pow(base, 0.5 * x + 0.25);
+            large_term = cxx::pow(base, 0.5 * x + 0.25);
             return (large_term * small_term) * large_term;
         }
 
@@ -244,10 +244,10 @@ namespace cephes {
      * Riemann zeta function, minus one
      */
     XSF_HOST_DEVICE inline double zetac(double x) {
-        if (std::isnan(x)) {
+        if (cxx::isnan(x)) {
             return x;
-        } else if (x == -std::numeric_limits<double>::infinity()) {
-            return std::numeric_limits<double>::quiet_NaN();
+        } else if (x == -cxx::numeric_limits<double>::infinity()) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         } else if (x < 0.0 && x > -0.01) {
             return detail::zetac_smallneg(x);
         } else if (x < 0.0) {
@@ -261,10 +261,10 @@ namespace cephes {
      * Riemann zeta function
      */
     XSF_HOST_DEVICE inline double riemann_zeta(double x) {
-        if (std::isnan(x)) {
+        if (cxx::isnan(x)) {
             return x;
-        } else if (x == -std::numeric_limits<double>::infinity()) {
-            return std::numeric_limits<double>::quiet_NaN();
+        } else if (x == -cxx::numeric_limits<double>::infinity()) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         } else if (x < 0.0 && x > -0.01) {
             return 1 + detail::zetac_smallneg(x);
         } else if (x < 0.0) {
