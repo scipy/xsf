@@ -28,7 +28,12 @@ cxx_compiler = ["vs2026"]
 [package]
 name = { workspace = true }
 version = { workspace = true }
-build.backend.name = "pixi-build-cmake"
+build = {
+  backend.name = "pixi-build-cmake",
+  # for the header-only package, headers are not automatically input-tracked
+  # as they are not visible to `ninja`
+  config.extra-input-globs = ["include/xsf/**/*"],
+}
 
 [target.unix.activation]
 env.SHARE_PREFIX = "$CONDA_PREFIX/share"
