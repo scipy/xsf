@@ -359,15 +359,15 @@ void assoc_legendre_p_pm1(NormPolicy norm, int n, int m, dual<T, Order> z, int b
             if (abs(m) > n) {
                 res[2] = 0;
             } else if (m == 0) {
-                res[2] = T(n + 2) * T(n + 1) * T(n) * T(n - 1) / T(8);
+                res[2] = T(n + 2) * T(n + 1) * T(n) * T(n - 1) * std::pow(z[0], T(n)) / T(8);
             } else if (m == 1) {
                 res[2] = std::numeric_limits<remove_complex_t<T>>::infinity();
             } else if (m == 2) {
-                res[2] = -T((n + 1) * n - 3) * T(n + 2) * T(n + 1) * T(n) * T(n - 1) / T(12);
+                res[2] = -T((n + 1) * n - 3) * T(n + 2) * T(n + 1) * T(n) * T(n - 1) * std::pow(z[0], T(n)) / T(12);
             } else if (m == 3) {
                 res[2] = std::numeric_limits<remove_complex_t<T>>::infinity();
             } else if (m == 4) {
-                res[2] = T(n + 4) * T(n + 3) * T(n + 2) * T(n + 1) * T(n) * T(n - 1) * T(n - 2) * T(n - 3) / T(48);
+                res[2] = T(n + 4) * T(n + 3) * T(n + 2) * T(n + 1) * T(n) * T(n - 1) * T(n - 2) * T(n - 3) * std::pow(z[0], T(n)) / T(48);
             } else if (m == -4) {
                 res[2] = 0;
             } else if (m == -3) {
