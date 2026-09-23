@@ -20,10 +20,8 @@
 
 #include "cpu/dual.h"
 #include "error.h"
-// Force defining the parenthesis operator even when compiling with a compiler
-// defaulting to C++ >= 23.
-#define MDSPAN_USE_PAREN_OPERATOR 1
-#include "third_party/kokkos/mdspan.hpp"
+#include "mdspan.h"
+#include "relaxed_layout.h"
 
 /* PyUFunc_getfperr gets bits for current floating point error (fpe) status codes so we
  * can check for floating point errors and make proper calls to set_error in ufunc loops.
@@ -66,78 +64,78 @@ namespace numpy {
     using cfloat = std::complex<float>;
     using cdouble = std::complex<double>;
 
-    using float_1d = std::mdspan<float, std::dextents<ptrdiff_t, 1>, std::layout_stride>;
-    using float_2d = std::mdspan<float, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
-    using float_3d = std::mdspan<float, std::dextents<ptrdiff_t, 3>, std::layout_stride>;
-    using float_4d = std::mdspan<float, std::dextents<ptrdiff_t, 4>, std::layout_stride>;
-    using double_1d = std::mdspan<double, std::dextents<ptrdiff_t, 1>, std::layout_stride>;
-    using double_2d = std::mdspan<double, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
-    using double_3d = std::mdspan<double, std::dextents<ptrdiff_t, 3>, std::layout_stride>;
-    using double_4d = std::mdspan<double, std::dextents<ptrdiff_t, 4>, std::layout_stride>;
-    using cfloat_1d = std::mdspan<cfloat, std::dextents<ptrdiff_t, 1>, std::layout_stride>;
-    using cfloat_2d = std::mdspan<cfloat, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
-    using cfloat_3d = std::mdspan<cfloat, std::dextents<ptrdiff_t, 3>, std::layout_stride>;
-    using cfloat_4d = std::mdspan<cfloat, std::dextents<ptrdiff_t, 4>, std::layout_stride>;
-    using cdouble_1d = std::mdspan<cdouble, std::dextents<ptrdiff_t, 1>, std::layout_stride>;
-    using cdouble_2d = std::mdspan<cdouble, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
-    using cdouble_3d = std::mdspan<cdouble, std::dextents<ptrdiff_t, 3>, std::layout_stride>;
-    using cdouble_4d = std::mdspan<cdouble, std::dextents<ptrdiff_t, 4>, std::layout_stride>;
+    using float_1d = cxx::mdspan<float, cxx::dextents<ptrdiff_t, 1>, relaxed_layout>;
+    using float_2d = cxx::mdspan<float, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
+    using float_3d = cxx::mdspan<float, cxx::dextents<ptrdiff_t, 3>, relaxed_layout>;
+    using float_4d = cxx::mdspan<float, cxx::dextents<ptrdiff_t, 4>, relaxed_layout>;
+    using double_1d = cxx::mdspan<double, cxx::dextents<ptrdiff_t, 1>, relaxed_layout>;
+    using double_2d = cxx::mdspan<double, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
+    using double_3d = cxx::mdspan<double, cxx::dextents<ptrdiff_t, 3>, relaxed_layout>;
+    using double_4d = cxx::mdspan<double, cxx::dextents<ptrdiff_t, 4>, relaxed_layout>;
+    using cfloat_1d = cxx::mdspan<cfloat, cxx::dextents<ptrdiff_t, 1>, relaxed_layout>;
+    using cfloat_2d = cxx::mdspan<cfloat, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
+    using cfloat_3d = cxx::mdspan<cfloat, cxx::dextents<ptrdiff_t, 3>, relaxed_layout>;
+    using cfloat_4d = cxx::mdspan<cfloat, cxx::dextents<ptrdiff_t, 4>, relaxed_layout>;
+    using cdouble_1d = cxx::mdspan<cdouble, cxx::dextents<ptrdiff_t, 1>, relaxed_layout>;
+    using cdouble_2d = cxx::mdspan<cdouble, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
+    using cdouble_3d = cxx::mdspan<cdouble, cxx::dextents<ptrdiff_t, 3>, relaxed_layout>;
+    using cdouble_4d = cxx::mdspan<cdouble, cxx::dextents<ptrdiff_t, 4>, relaxed_layout>;
 
     using autodiff0_float = dual<float, 0>;
     using autodiff0_double = dual<double, 0>;
     using autodiff0_cfloat = dual<cfloat, 0>;
     using autodiff0_cdouble = dual<cdouble, 0>;
-    using autodiff0_float_1d = std::mdspan<autodiff0_float, std::dextents<ptrdiff_t, 1>, std::layout_stride>;
-    using autodiff0_double_1d = std::mdspan<autodiff0_double, std::dextents<ptrdiff_t, 1>, std::layout_stride>;
-    using autodiff0_cfloat_1d = std::mdspan<autodiff0_cfloat, std::dextents<ptrdiff_t, 1>, std::layout_stride>;
-    using autodiff0_cdouble_1d = std::mdspan<autodiff0_cdouble, std::dextents<ptrdiff_t, 1>, std::layout_stride>;
-    using autodiff0_float_2d = std::mdspan<autodiff0_float, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
-    using autodiff0_double_2d = std::mdspan<autodiff0_double, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
-    using autodiff0_cfloat_2d = std::mdspan<autodiff0_cfloat, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
-    using autodiff0_cdouble_2d = std::mdspan<autodiff0_cdouble, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
+    using autodiff0_float_1d = cxx::mdspan<autodiff0_float, cxx::dextents<ptrdiff_t, 1>, relaxed_layout>;
+    using autodiff0_double_1d = cxx::mdspan<autodiff0_double, cxx::dextents<ptrdiff_t, 1>, relaxed_layout>;
+    using autodiff0_cfloat_1d = cxx::mdspan<autodiff0_cfloat, cxx::dextents<ptrdiff_t, 1>, relaxed_layout>;
+    using autodiff0_cdouble_1d = cxx::mdspan<autodiff0_cdouble, cxx::dextents<ptrdiff_t, 1>, relaxed_layout>;
+    using autodiff0_float_2d = cxx::mdspan<autodiff0_float, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
+    using autodiff0_double_2d = cxx::mdspan<autodiff0_double, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
+    using autodiff0_cfloat_2d = cxx::mdspan<autodiff0_cfloat, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
+    using autodiff0_cdouble_2d = cxx::mdspan<autodiff0_cdouble, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
     using autodiff1_float = dual<float, 1>;
     using autodiff1_double = dual<double, 1>;
     using autodiff1_cfloat = dual<cfloat, 1>;
     using autodiff1_cdouble = dual<cdouble, 1>;
-    using autodiff1_float_1d = std::mdspan<autodiff1_float, std::dextents<ptrdiff_t, 1>, std::layout_stride>;
-    using autodiff1_double_1d = std::mdspan<autodiff1_double, std::dextents<ptrdiff_t, 1>, std::layout_stride>;
-    using autodiff1_cfloat_1d = std::mdspan<autodiff1_cfloat, std::dextents<ptrdiff_t, 1>, std::layout_stride>;
-    using autodiff1_cdouble_1d = std::mdspan<autodiff1_cdouble, std::dextents<ptrdiff_t, 1>, std::layout_stride>;
-    using autodiff1_float_2d = std::mdspan<autodiff1_float, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
-    using autodiff1_double_2d = std::mdspan<autodiff1_double, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
-    using autodiff1_cfloat_2d = std::mdspan<autodiff1_cfloat, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
-    using autodiff1_cdouble_2d = std::mdspan<autodiff1_cdouble, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
+    using autodiff1_float_1d = cxx::mdspan<autodiff1_float, cxx::dextents<ptrdiff_t, 1>, relaxed_layout>;
+    using autodiff1_double_1d = cxx::mdspan<autodiff1_double, cxx::dextents<ptrdiff_t, 1>, relaxed_layout>;
+    using autodiff1_cfloat_1d = cxx::mdspan<autodiff1_cfloat, cxx::dextents<ptrdiff_t, 1>, relaxed_layout>;
+    using autodiff1_cdouble_1d = cxx::mdspan<autodiff1_cdouble, cxx::dextents<ptrdiff_t, 1>, relaxed_layout>;
+    using autodiff1_float_2d = cxx::mdspan<autodiff1_float, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
+    using autodiff1_double_2d = cxx::mdspan<autodiff1_double, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
+    using autodiff1_cfloat_2d = cxx::mdspan<autodiff1_cfloat, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
+    using autodiff1_cdouble_2d = cxx::mdspan<autodiff1_cdouble, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
     using autodiff2_float = dual<float, 2>;
     using autodiff2_double = dual<double, 2>;
     using autodiff2_cfloat = dual<cfloat, 2>;
     using autodiff2_cdouble = dual<cdouble, 2>;
-    using autodiff2_float_1d = std::mdspan<autodiff2_float, std::dextents<ptrdiff_t, 1>, std::layout_stride>;
-    using autodiff2_double_1d = std::mdspan<autodiff2_double, std::dextents<ptrdiff_t, 1>, std::layout_stride>;
-    using autodiff2_cfloat_1d = std::mdspan<autodiff2_cfloat, std::dextents<ptrdiff_t, 1>, std::layout_stride>;
-    using autodiff2_cdouble_1d = std::mdspan<autodiff2_cdouble, std::dextents<ptrdiff_t, 1>, std::layout_stride>;
-    using autodiff2_float_2d = std::mdspan<autodiff2_float, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
-    using autodiff2_double_2d = std::mdspan<autodiff2_double, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
-    using autodiff2_cfloat_2d = std::mdspan<autodiff2_cfloat, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
-    using autodiff2_cdouble_2d = std::mdspan<autodiff2_cdouble, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
+    using autodiff2_float_1d = cxx::mdspan<autodiff2_float, cxx::dextents<ptrdiff_t, 1>, relaxed_layout>;
+    using autodiff2_double_1d = cxx::mdspan<autodiff2_double, cxx::dextents<ptrdiff_t, 1>, relaxed_layout>;
+    using autodiff2_cfloat_1d = cxx::mdspan<autodiff2_cfloat, cxx::dextents<ptrdiff_t, 1>, relaxed_layout>;
+    using autodiff2_cdouble_1d = cxx::mdspan<autodiff2_cdouble, cxx::dextents<ptrdiff_t, 1>, relaxed_layout>;
+    using autodiff2_float_2d = cxx::mdspan<autodiff2_float, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
+    using autodiff2_double_2d = cxx::mdspan<autodiff2_double, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
+    using autodiff2_cfloat_2d = cxx::mdspan<autodiff2_cfloat, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
+    using autodiff2_cdouble_2d = cxx::mdspan<autodiff2_cdouble, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
 
     using autodiff00_float = dual<float, 0, 0>;
     using autodiff00_double = dual<double, 0, 0>;
     using autodiff00_cfloat = dual<cfloat, 0, 0>;
     using autodiff00_cdouble = dual<cdouble, 0, 0>;
-    using autodiff00_cfloat_2d = std::mdspan<autodiff00_cfloat, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
-    using autodiff00_cdouble_2d = std::mdspan<autodiff00_cdouble, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
+    using autodiff00_cfloat_2d = cxx::mdspan<autodiff00_cfloat, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
+    using autodiff00_cdouble_2d = cxx::mdspan<autodiff00_cdouble, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
     using autodiff11_float = dual<float, 1, 1>;
     using autodiff11_double = dual<double, 1, 1>;
     using autodiff11_cfloat = dual<cfloat, 1, 1>;
     using autodiff11_cdouble = dual<cdouble, 1, 1>;
-    using autodiff11_cfloat_2d = std::mdspan<autodiff11_cfloat, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
-    using autodiff11_cdouble_2d = std::mdspan<autodiff11_cdouble, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
+    using autodiff11_cfloat_2d = cxx::mdspan<autodiff11_cfloat, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
+    using autodiff11_cdouble_2d = cxx::mdspan<autodiff11_cdouble, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
     using autodiff22_float = dual<float, 2, 2>;
     using autodiff22_double = dual<double, 2, 2>;
     using autodiff22_cfloat = dual<cfloat, 2, 2>;
     using autodiff22_cdouble = dual<cdouble, 2, 2>;
-    using autodiff22_cfloat_2d = std::mdspan<autodiff22_cfloat, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
-    using autodiff22_cdouble_2d = std::mdspan<autodiff22_cdouble, std::dextents<ptrdiff_t, 2>, std::layout_stride>;
+    using autodiff22_cfloat_2d = cxx::mdspan<autodiff22_cfloat, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
+    using autodiff22_cdouble_2d = cxx::mdspan<autodiff22_cdouble, cxx::dextents<ptrdiff_t, 2>, relaxed_layout>;
 
     // The following are based off NumPy's dtype type codes and functions like PyUFunc_dd_d
 
@@ -455,7 +453,7 @@ namespace numpy {
     };
 
     template <typename T, typename Extents, typename LayoutPolicy, typename AccessorPolicy>
-    struct rank_of<std::mdspan<T, Extents, LayoutPolicy, AccessorPolicy>> {
+    struct rank_of<cxx::mdspan<T, Extents, LayoutPolicy, AccessorPolicy>> {
         static constexpr size_t value = Extents::rank() + rank_of<T>::value;
     };
 
@@ -671,7 +669,7 @@ namespace numpy {
     };
 
     template <typename T, typename Extents, typename LayoutPolicy, typename AccessorPolicy>
-    struct npy_typenum<std::mdspan<T, Extents, LayoutPolicy, AccessorPolicy>> {
+    struct npy_typenum<cxx::mdspan<T, Extents, LayoutPolicy, AccessorPolicy>> {
         static constexpr NPY_TYPES value = npy_typenum<T>::value;
     };
 
@@ -745,15 +743,17 @@ namespace numpy {
     };
 
     template <typename T, typename Extents, typename AccessorPolicy>
-    struct npy_traits<std::mdspan<T, Extents, std::layout_stride, AccessorPolicy>> {
-        static std::mdspan<T, Extents, std::layout_stride, AccessorPolicy>
-        get(char *src, const npy_intp *dimensions, const npy_intp *steps) {
+    struct npy_traits<cxx::mdspan<T, Extents, relaxed_layout, AccessorPolicy>> {
+        using mdspan_type = cxx::mdspan<T, Extents, relaxed_layout, AccessorPolicy>;
+        using mapping_type = typename mdspan_type::mapping_type;
+
+        static mdspan_type get(char *src, const npy_intp *dimensions, const npy_intp *steps) {
             //            static_assert(sizeof(T) == sizeof(npy_type_t<T>), "NumPy type has different size than argument
             //            type");
 
             std::array<ptrdiff_t, Extents::rank()> strides;
             for (npy_uintp i = 0; i < strides.size(); ++i) {
-                strides[i] = steps[i] / sizeof(T);
+                strides[i] = steps[i] / static_cast<npy_intp>(sizeof(T));
             }
 
             std::array<ptrdiff_t, Extents::rank()> exts;
@@ -761,7 +761,9 @@ namespace numpy {
                 exts[i] = dimensions[i];
             }
 
-            return {reinterpret_cast<T *>(src), {exts, strides}};
+            mapping_type mapping{Extents{exts}, strides};
+
+            return {reinterpret_cast<T *>(src) - mapping.offset(), mapping};
         }
     };
 
