@@ -94,6 +94,12 @@ cupy-tests = {
     pytest-xdist = "*",
     polars = "*",
   },
+  # TODO: Right now, we restrict the cache to in memory to prevent
+  # kernels compiled against old versions of the xsf headers being used
+  # between test runs.
+  # We need to investigate how to fix the cache validation before enabling
+  # kernel caching on disk.
+  activation.env.CUPY_CACHE_IN_MEMORY = "1",
   tasks.test-cupy = {
     description = "Run CuPy integration tests.",
     cmd = "pytest -n auto --forked python_tests/test_cupy.py",
