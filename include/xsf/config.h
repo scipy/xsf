@@ -125,6 +125,9 @@ template <typename T>
 using is_floating_point = cuda::std::is_floating_point<T>;
 
 template <typename T>
+inline constexpr bool is_floating_point_v = cuda::std::is_floating_point_v<T>;
+
+template <typename T>
 using is_integral = cuda::std::is_integral<T>;
 
 template <typename T>
@@ -151,6 +154,9 @@ using make_unsigned_t = cuda::std::make_unsigned_t<T>;
 template <bool Cond, typename T = void>
 using enable_if = cuda::std::enable_if<Cond, T>;
 
+template <bool Cond, typename T = void>
+using enable_if_t = cuda::std::enable_if_t<Cond, T>;
+
 template <typename T>
 using decay = cuda::std::decay<T>;
 
@@ -161,6 +167,9 @@ struct invoke_result {
 
 template <typename F>
 using invoke_result_t = typename invoke_result<F>::type;
+
+template <typename T>
+using remove_cvref_t = cuda::std::remove_cvref_t<T>;
 
 #else
 
@@ -183,6 +192,9 @@ using tuple = std::tuple<Types...>;
 // Type traits
 template <typename T>
 using is_floating_point = std::is_floating_point<T>;
+
+template <typename T>
+inline constexpr bool is_floating_point_v = std::is_floating_point_v<T>;
 
 template <typename T>
 using is_integral = std::is_integral<T>;
@@ -211,6 +223,9 @@ using make_unsigned_t = std::make_unsigned_t<T>;
 template <bool Cond, typename T = void>
 using enable_if = std::enable_if<Cond, T>;
 
+template <bool Cond, typename T = void>
+using enable_if_t = std::enable_if_t<Cond, T>;
+
 template <typename T>
 using decay = std::decay<T>;
 
@@ -219,6 +234,9 @@ using invoke_result = std::invoke_result<F>;
 
 template <typename F>
 using invoke_result_t = std::invoke_result_t<F>;
+
+template <typename T>
+using remove_cvref_t = std::remove_cvref_t<T>;
 
 #endif
 
@@ -230,7 +248,19 @@ template <typename T>
 using numeric_limits = std::numeric_limits<T>;
 #endif
 
-XSF_HOST_DEVICE inline double abs(double num) {
+namespace detail {
+
+    template <typename T>
+    inline constexpr bool is_valid_float =
+        cxx::is_floating_point_v<cxx::remove_cvref_t<T>> && sizeof(cxx::remove_cvref_t<T>) <= sizeof(double);
+
+    template <typename T>
+    using valid_float_t = cxx::enable_if_t<is_valid_float<T>>;
+
+} // namespace detail
+
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto abs(T num) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::abs(num);
 #else
@@ -238,7 +268,8 @@ XSF_HOST_DEVICE inline double abs(double num) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double fabs(double num) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto fabs(T num) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::fabs(num);
 #else
@@ -246,7 +277,8 @@ XSF_HOST_DEVICE inline double fabs(double num) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double exp(double num) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto exp(T num) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::exp(num);
 #else
@@ -254,7 +286,8 @@ XSF_HOST_DEVICE inline double exp(double num) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double expm1(double num) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto expm1(T num) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::expm1(num);
 #else
@@ -262,7 +295,8 @@ XSF_HOST_DEVICE inline double expm1(double num) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double log(double num) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto log(T num) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::log(num);
 #else
@@ -270,7 +304,8 @@ XSF_HOST_DEVICE inline double log(double num) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double sqrt(double num) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto sqrt(T num) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::sqrt(num);
 #else
@@ -278,7 +313,8 @@ XSF_HOST_DEVICE inline double sqrt(double num) {
 #endif
 }
 
-XSF_HOST_DEVICE inline bool isinf(double num) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline bool isinf(T num) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::isinf(num);
 #else
@@ -286,7 +322,8 @@ XSF_HOST_DEVICE inline bool isinf(double num) {
 #endif
 }
 
-XSF_HOST_DEVICE inline bool isnan(double num) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline bool isnan(T num) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::isnan(num);
 #else
@@ -294,7 +331,8 @@ XSF_HOST_DEVICE inline bool isnan(double num) {
 #endif
 }
 
-XSF_HOST_DEVICE inline bool isfinite(double num) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline bool isfinite(T num) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::isfinite(num);
 #else
@@ -302,7 +340,8 @@ XSF_HOST_DEVICE inline bool isfinite(double num) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double pow(double x, double y) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto pow(T x, T y) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::pow(x, y);
 #else
@@ -310,7 +349,17 @@ XSF_HOST_DEVICE inline double pow(double x, double y) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double sin(double x) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline T pow(T x, int y) {
+#if defined(XSF_TARGET_CUDA)
+    return cuda::std::pow(x, static_cast<T>(y));
+#else
+    return std::pow(x, static_cast<T>(y));
+#endif
+}
+
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto sin(T x) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::sin(x);
 #else
@@ -318,7 +367,8 @@ XSF_HOST_DEVICE inline double sin(double x) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double cos(double x) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto cos(T x) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::cos(x);
 #else
@@ -326,7 +376,8 @@ XSF_HOST_DEVICE inline double cos(double x) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double tan(double x) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto tan(T x) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::tan(x);
 #else
@@ -334,7 +385,8 @@ XSF_HOST_DEVICE inline double tan(double x) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double atan(double x) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto atan(T x) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::atan(x);
 #else
@@ -342,7 +394,8 @@ XSF_HOST_DEVICE inline double atan(double x) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double asin(double x) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto asin(T x) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::asin(x);
 #else
@@ -350,7 +403,8 @@ XSF_HOST_DEVICE inline double asin(double x) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double acos(double x) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto acos(T x) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::acos(x);
 #else
@@ -358,7 +412,8 @@ XSF_HOST_DEVICE inline double acos(double x) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double sinh(double x) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto sinh(T x) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::sinh(x);
 #else
@@ -366,7 +421,8 @@ XSF_HOST_DEVICE inline double sinh(double x) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double cosh(double x) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto cosh(T x) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::cosh(x);
 #else
@@ -374,7 +430,8 @@ XSF_HOST_DEVICE inline double cosh(double x) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double asinh(double x) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto asinh(T x) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::asinh(x);
 #else
@@ -382,7 +439,8 @@ XSF_HOST_DEVICE inline double asinh(double x) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double tanh(double x) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto tanh(T x) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::tanh(x);
 #else
@@ -390,7 +448,8 @@ XSF_HOST_DEVICE inline double tanh(double x) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double atanh(double x) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto atanh(T x) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::atanh(x);
 #else
@@ -398,7 +457,8 @@ XSF_HOST_DEVICE inline double atanh(double x) {
 #endif
 }
 
-XSF_HOST_DEVICE inline bool signbit(double x) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline bool signbit(T x) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::signbit(x);
 #else
@@ -406,7 +466,8 @@ XSF_HOST_DEVICE inline bool signbit(double x) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double hypot(double x, double y) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto hypot(T x, T y) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::hypot(x, y);
 #else
@@ -414,7 +475,8 @@ XSF_HOST_DEVICE inline double hypot(double x, double y) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double atan2(double y, double x) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto atan2(T y, T x) {
 #if defined(XSF_TARGET_CUDA)
     return cuda::std::atan2(y, x);
 #else
@@ -423,7 +485,8 @@ XSF_HOST_DEVICE inline double atan2(double y, double x) {
 }
 
 // TODO: Check if separating for NVRTC compilation is necessary
-XSF_HOST_DEVICE inline double ceil(double x) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto ceil(T x) {
 #if defined(XSF_TARGET_CUDA)
 #if defined(__CUDACC_RTC__)
     return ::ceil(x);
@@ -435,7 +498,8 @@ XSF_HOST_DEVICE inline double ceil(double x) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double floor(double x) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto floor(T x) {
 #if defined(XSF_TARGET_CUDA)
 #if defined(__CUDACC_RTC__)
     return ::floor(x);
@@ -447,7 +511,8 @@ XSF_HOST_DEVICE inline double floor(double x) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double round(double x) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto round(T x) {
 #if defined(XSF_TARGET_CUDA)
 #if defined(__CUDACC_RTC__)
     return ::round(x);
@@ -459,7 +524,8 @@ XSF_HOST_DEVICE inline double round(double x) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double trunc(double x) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto trunc(T x) {
 #if defined(XSF_TARGET_CUDA)
 #if defined(__CUDACC_RTC__)
     return ::trunc(x);
@@ -471,7 +537,8 @@ XSF_HOST_DEVICE inline double trunc(double x) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double fma(double x, double y, double z) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto fma(T x, T y, T z) {
 #if defined(XSF_TARGET_CUDA)
 #if defined(__CUDACC_RTC__)
     return ::fma(x, y, z);
@@ -483,7 +550,8 @@ XSF_HOST_DEVICE inline double fma(double x, double y, double z) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double copysign(double x, double y) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto copysign(T x, T y) {
 #if defined(XSF_TARGET_CUDA)
 #if defined(__CUDACC_RTC__)
     return ::copysign(x, y);
@@ -495,7 +563,8 @@ XSF_HOST_DEVICE inline double copysign(double x, double y) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double modf(double value, double *iptr) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto modf(T value, T *iptr) {
 #if defined(XSF_TARGET_CUDA)
 #if defined(__CUDACC_RTC__)
     return ::modf(value, iptr);
@@ -507,7 +576,8 @@ XSF_HOST_DEVICE inline double modf(double value, double *iptr) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double fmax(double x, double y) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto fmax(T x, T y) {
 #if defined(XSF_TARGET_CUDA)
 #if defined(__CUDACC_RTC__)
     return ::fmax(x, y);
@@ -519,7 +589,8 @@ XSF_HOST_DEVICE inline double fmax(double x, double y) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double fmin(double x, double y) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto fmin(T x, T y) {
 #if defined(XSF_TARGET_CUDA)
 #if defined(__CUDACC_RTC__)
     return ::fmin(x, y);
@@ -531,7 +602,8 @@ XSF_HOST_DEVICE inline double fmin(double x, double y) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double log10(double num) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto log10(T num) {
 #if defined(XSF_TARGET_CUDA)
 #if defined(__CUDACC_RTC__)
     return ::log10(num);
@@ -543,7 +615,8 @@ XSF_HOST_DEVICE inline double log10(double num) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double log1p(double num) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto log1p(T num) {
 #if defined(XSF_TARGET_CUDA)
 #if defined(__CUDACC_RTC__)
     return ::log1p(num);
@@ -555,7 +628,8 @@ XSF_HOST_DEVICE inline double log1p(double num) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double frexp(double num, int *exp) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto frexp(T num, int *exp) {
 #if defined(XSF_TARGET_CUDA)
 #if defined(__CUDACC_RTC__)
     return ::frexp(num, exp);
@@ -567,7 +641,8 @@ XSF_HOST_DEVICE inline double frexp(double num, int *exp) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double ldexp(double num, int exp) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto ldexp(T num, int exp) {
 #if defined(XSF_TARGET_CUDA)
 #if defined(__CUDACC_RTC__)
     return ::ldexp(num, exp);
@@ -579,7 +654,8 @@ XSF_HOST_DEVICE inline double ldexp(double num, int exp) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double fmod(double x, double y) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto fmod(T x, T y) {
 #if defined(XSF_TARGET_CUDA)
 #if defined(__CUDACC_RTC__)
     return ::fmod(x, y);
@@ -591,7 +667,8 @@ XSF_HOST_DEVICE inline double fmod(double x, double y) {
 #endif
 }
 
-XSF_HOST_DEVICE inline double nextafter(double from, double to) {
+template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto nextafter(T from, T to) {
 #if defined(XSF_TARGET_CUDA)
 #if defined(__CUDACC_RTC__)
     return ::nextafter(from, to);
