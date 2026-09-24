@@ -42,11 +42,11 @@ namespace detail {
         double sum = 0.0;
         if (a >= 0) {
             for (T i = n; i >= m; --i) {
-                sum += std::pow(i, -a);
+                sum += cxx::pow(i, -a);
             }
         } else {
             for (T i = m; i <= n; ++i) {
-                sum += std::pow(i, -a);
+                sum += cxx::pow(i, -a);
             }
         }
         return sum;
@@ -69,7 +69,7 @@ namespace detail {
         double denom = 0.0;
         if (a >= 0) {
             for (T i = n; i >= 1; --i) {
-                double term = std::pow(i, -a);
+                double term = cxx::pow(i, -a);
                 denom += term;
                 if (i >= j && i <= k) {
                     numer += term;
@@ -77,7 +77,7 @@ namespace detail {
             }
         } else {
             for (T i = 1; i <= n; ++i) {
-                double term = std::pow(i, -a);
+                double term = cxx::pow(i, -a);
                 denom += term;
                 if (i >= j && i <= k) {
                     numer += term;
@@ -107,31 +107,31 @@ namespace detail {
 //
 template <typename T>
 XSF_HOST_DEVICE inline double gen_harmonic(T n, double a) {
-    if constexpr (std::is_same_v<T, double>) {
-        if (std::isnan(n)) {
-            return std::numeric_limits<double>::quiet_NaN();
+    if constexpr (cxx::is_same_v<T, double>) {
+        if (cxx::isnan(n)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
     }
     if (n < 1) {
         set_error(
             "_gen_harmonic", SF_ERROR_DOMAIN, "n >= 1 is required, but got n = %" PRId64, static_cast<int64_t>(n)
         );
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     if (n == 1) {
         // IEEE: pow(1.0, _) is 1.0.
         return 1.0;
     }
-    if (std::isnan(a)) {
-        return std::numeric_limits<double>::quiet_NaN();
+    if (cxx::isnan(a)) {
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
-    if (std::isinf(a)) {
+    if (cxx::isinf(a)) {
         if (a > 0) {
             // a = +inf
             return 1.0;
         } else {
             // a = -inf
-            return std::numeric_limits<double>::infinity();
+            return cxx::numeric_limits<double>::infinity();
         }
     }
     if (a == 0) {
@@ -176,9 +176,9 @@ XSF_HOST_DEVICE inline float gen_harmonic(T n, float a) {
 //
 template <typename T>
 XSF_HOST_DEVICE inline double normalized_gen_harmonic(T j, T k, T n, double a) {
-    if constexpr (std::is_same_v<T, double>) {
-        if (std::isnan(j) || std::isnan(k) || std::isnan(n)) {
-            return std::numeric_limits<double>::quiet_NaN();
+    if constexpr (cxx::is_same_v<T, double>) {
+        if (cxx::isnan(j) || cxx::isnan(k) || cxx::isnan(n)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
     }
     if (j < 1 || k < j || n < k) {
@@ -188,7 +188,7 @@ XSF_HOST_DEVICE inline double normalized_gen_harmonic(T j, T k, T n, double a) {
             "k = %" PRId64 ", and n = %" PRId64,
             static_cast<int64_t>(j), static_cast<int64_t>(k), static_cast<int64_t>(n)
         );
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     //
     // Now we know 1 <= j <= k <= n
@@ -198,10 +198,10 @@ XSF_HOST_DEVICE inline double normalized_gen_harmonic(T j, T k, T n, double a) {
         // n == 1 implies j == k == 1.
         return 1.0;
     }
-    if (std::isnan(a)) {
-        return std::numeric_limits<double>::quiet_NaN();
+    if (cxx::isnan(a)) {
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
-    if (std::isinf(a)) {
+    if (cxx::isinf(a)) {
         if (a > 0) {
             // a = +inf
             if (j == 1) {
@@ -218,7 +218,7 @@ XSF_HOST_DEVICE inline double normalized_gen_harmonic(T j, T k, T n, double a) {
                 return 0.0;
             } else {
                 // Numerator and denominator are both +inf.
-                return std::numeric_limits<double>::quiet_NaN();
+                return cxx::numeric_limits<double>::quiet_NaN();
             }
         }
     }

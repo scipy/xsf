@@ -25,12 +25,12 @@ namespace detail {
     constexpr double TOL = 2.220446092504131e-16;
     constexpr double PISQ_6 = 1.6449340668482264365;
 
-    XSF_HOST_DEVICE inline std::complex<double> cspence_series0(std::complex<double> z) {
+    XSF_HOST_DEVICE inline cxx::complex<double> cspence_series0(cxx::complex<double> z) {
         // A series centered at z = 0; see http://functions.wolfram.com/10.07.06.0005.02
-        std::complex<double> zfac = 1;
-        std::complex<double> sum1 = 0;
-        std::complex<double> sum2 = 0;
-        std::complex<double> term1, term2;
+        cxx::complex<double> zfac = 1;
+        cxx::complex<double> sum1 = 0;
+        cxx::complex<double> sum2 = 0;
+        cxx::complex<double> term1, term2;
 
         if (z == 0.) {
             return PISQ_6;
@@ -42,7 +42,7 @@ namespace detail {
             sum1 += term1;
             term2 = zfac / static_cast<double>(n);
             sum2 += term2;
-            if (std::abs(term1) <= TOL * std::abs(sum1) && std::abs(term2) <= TOL * std::abs(sum2)) {
+            if (cxx::abs(term1) <= TOL * cxx::abs(sum1) && cxx::abs(term2) <= TOL * cxx::abs(sum2)) {
                 break;
             }
         }
@@ -50,16 +50,16 @@ namespace detail {
         return (PISQ_6 - sum1 + detail::zlog1(z) * sum2);
     }
 
-    XSF_HOST_DEVICE inline std::complex<double> cspence_series1(std::complex<double> z) {
+    XSF_HOST_DEVICE inline cxx::complex<double> cspence_series1(cxx::complex<double> z) {
         /*
          * A series centered at z = 1 which enjoys faster convergence than
          * the Taylor series. See [3]. The number of terms used comes from
          * bounding the absolute tolerance at the edge of the radius of
          * convergence where the sum is O(1).
          */
-        std::complex<double> zfac = 1;
-        std::complex<double> res = 0;
-        std::complex<double> term, zz;
+        cxx::complex<double> zfac = 1;
+        cxx::complex<double> res = 0;
+        cxx::complex<double> term, zz;
 
         if (z == 1.) {
             return 0;
@@ -73,7 +73,7 @@ namespace detail {
             double dn = static_cast<double>(n);
             term = ((zfac / (dn * dn)) / ((dn + 1) * (dn + 1))) / ((dn + 2) * (dn + 2));
             res += term;
-            if (std::abs(term) <= TOL * std::abs(res)) {
+            if (cxx::abs(term) <= TOL * cxx::abs(res)) {
                 break;
             }
         }
@@ -85,7 +85,7 @@ namespace detail {
 
 } // namespace detail
 
-XSF_HOST_DEVICE inline std::complex<double> spence(std::complex<double> z) {
+XSF_HOST_DEVICE inline cxx::complex<double> spence(cxx::complex<double> z) {
     /*
      * Compute Spence's function for complex arguments. The strategy is:
      * - If z is close to 0, use a series centered at 0.
@@ -96,12 +96,12 @@ XSF_HOST_DEVICE inline std::complex<double> spence(std::complex<double> z) {
      * to move close to 1. See [1].
      * - If z is close to 1, use a series centered at 1.
      */
-    if (std::isnan(z.real()) || std::isnan(z.imag())) {
-        return std::complex<double>{std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
-    } else if (std::abs(z) < 0.5) {
+    if (cxx::isnan(z.real()) || cxx::isnan(z.imag())) {
+        return cxx::complex<double>{cxx::numeric_limits<double>::quiet_NaN(), cxx::numeric_limits<double>::quiet_NaN()};
+    } else if (cxx::abs(z) < 0.5) {
         // This step isn't necessary, but this series converges faster.
         return detail::cspence_series0(z);
-    } else if (std::abs(z - 1.) > 1.) {
+    } else if (cxx::abs(z - 1.) > 1.) {
         return -detail::cspence_series1(z / (z - 1.)) - detail::PISQ_6 -
                0.5 * detail::zlog1(z - 1.) * detail::zlog1(z - 1.);
     } else {
@@ -109,13 +109,13 @@ XSF_HOST_DEVICE inline std::complex<double> spence(std::complex<double> z) {
     }
 }
 
-XSF_HOST_DEVICE inline std::complex<float> spence(std::complex<float> z) {
-    return static_cast<std::complex<float>>(spence(static_cast<std::complex<double>>(z)));
+XSF_HOST_DEVICE inline cxx::complex<float> spence(cxx::complex<float> z) {
+    return static_cast<cxx::complex<float>>(spence(static_cast<cxx::complex<double>>(z)));
 }
 
 XSF_HOST_DEVICE inline double spence(double z) {
-    if (std::isnan(z)) {
-        return std::numeric_limits<double>::quiet_NaN();
+    if (cxx::isnan(z)) {
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     return xsf::cephes::spence(z);
 }

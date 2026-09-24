@@ -184,9 +184,9 @@ namespace cephes {
     XSF_HOST_DEVICE inline double erfc(double a) {
         double p, q, x, y, z;
 
-        if (std::isnan(a)) {
+        if (cxx::isnan(a)) {
             set_error("erfc", SF_ERROR_DOMAIN, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         if (a < 0.0) {
@@ -205,7 +205,7 @@ namespace cephes {
             goto under;
         }
 
-        z = std::exp(z);
+        z = cxx::exp(z);
 
         if (x < 8.0) {
             p = polevl(x, detail::ndtr_P, 8);
@@ -236,16 +236,16 @@ namespace cephes {
     XSF_HOST_DEVICE inline double erf(double x) {
         double y, z;
 
-        if (std::isnan(x)) {
+        if (cxx::isnan(x)) {
             set_error("erf", SF_ERROR_DOMAIN, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         if (x < 0.0) {
             return -erf(-x);
         }
 
-        if (std::abs(x) > 1.0) {
+        if (cxx::abs(x) > 1.0) {
             return (1.0 - erfc(x));
         }
         z = x * x;
@@ -257,13 +257,13 @@ namespace cephes {
     XSF_HOST_DEVICE inline double ndtr(double a) {
         double x, y, z;
 
-        if (std::isnan(a)) {
+        if (cxx::isnan(a)) {
             set_error("ndtr", SF_ERROR_DOMAIN, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         x = a * M_SQRT1_2;
-        z = std::abs(x);
+        z = cxx::abs(x);
 
         if (z < 1.0) {
             y = 0.5 + 0.5 * erf(x);

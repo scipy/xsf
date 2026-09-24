@@ -107,17 +107,17 @@ namespace cephes {
 
         lgm = (yp * yp - 3.0) / 6.0;
         x = 2.0 / (1.0 / (2.0 * a - 1.0) + 1.0 / (2.0 * b - 1.0));
-        d = yp * std::sqrt(x + lgm) / x -
+        d = yp * cxx::sqrt(x + lgm) / x -
             (1.0 / (2.0 * b - 1.0) - 1.0 / (2.0 * a - 1.0)) * (lgm + 5.0 / 6.0 - 2.0 / (3.0 * x));
         d = 2.0 * d;
         if (d < detail::MINLOG) {
             x = 1.0;
             goto under;
         }
-        x = a / (a + b * std::exp(d));
+        x = a / (a + b * cxx::exp(d));
         y = incbet(a, b, x);
         yp = (y - y0) / y0;
-        if (std::abs(yp) < 0.2) {
+        if (cxx::abs(yp) < 0.2) {
             goto newt;
         }
 
@@ -141,11 +141,11 @@ namespace cephes {
                 }
                 y = incbet(a, b, x);
                 yp = (x1 - x0) / (x1 + x0);
-                if (std::abs(yp) < dithresh) {
+                if (cxx::abs(yp) < dithresh) {
                     goto newt;
                 }
                 yp = (y - y0) / y0;
-                if (std::abs(yp) < dithresh) {
+                if (cxx::abs(yp) < dithresh) {
                     goto newt;
                 }
             }
@@ -244,14 +244,14 @@ namespace cephes {
                 break;
             }
             /* Compute the derivative of the function at this point. */
-            d = (a - 1.0) * std::log(x) + (b - 1.0) * std::log(1.0 - x) + lgm;
+            d = (a - 1.0) * cxx::log(x) + (b - 1.0) * cxx::log(1.0 - x) + lgm;
             if (d < detail::MINLOG) {
                 goto done;
             }
             if (d > detail::MAXLOG) {
                 break;
             }
-            d = std::exp(d);
+            d = cxx::exp(d);
             /* Compute the step to the next approximation of x. */
             d = (y - y0) / d;
             xt = x - d;
@@ -269,7 +269,7 @@ namespace cephes {
                     break;
             }
             x = xt;
-            if (std::abs(d / x) < 128.0 * detail::MACHEP) {
+            if (cxx::abs(d / x) < 128.0 * detail::MACHEP) {
                 goto done;
             }
         }

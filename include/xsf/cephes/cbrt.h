@@ -63,7 +63,7 @@ namespace cephes {
         int e, rem, sign;
         double z;
 
-        if (!std::isfinite(x)) {
+        if (!cxx::isfinite(x)) {
             return x;
         }
         if (x == 0) {
@@ -80,7 +80,7 @@ namespace cephes {
         /* extract power of 2, leaving
          * mantissa between 0.5 and 1
          */
-        x = std::frexp(x, &e);
+        x = cxx::frexp(x, &e);
 
         /* Approximate cube root of number between .5 and 1,
          * peak relative error = 9.2e-6
@@ -116,7 +116,7 @@ namespace cephes {
         }
 
         /* multiply by power of 2 */
-        x = std::ldexp(x, e);
+        x = cxx::ldexp(x, e);
 
         /* Newton iteration */
         x -= (x - (z / (x * x))) * 0.33333333333333333333;

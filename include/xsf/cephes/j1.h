@@ -170,12 +170,12 @@ namespace cephes {
         q = polevl(z, detail::j1_QP, 7) / p1evl(z, detail::j1_QQ, 7);
         if (x < 10.0) {
             xn = x - detail::THPIO4;
-            p = p * std::cos(xn) - w * q * std::sin(xn);
-            return (p * detail::SQRT2OPI / std::sqrt(x));
+            p = p * cxx::cos(xn) - w * q * cxx::sin(xn);
+            return (p * detail::SQRT2OPI / cxx::sqrt(x));
         }
         double a = M_SQRT1_2 * (w * q - p);
         double b = M_SQRT1_2 * (p + w * q);
-        return (a * std::cos(x) + b * std::sin(x)) * detail::SQRT2OPI / std::sqrt(x);
+        return (a * cxx::cos(x) + b * cxx::sin(x)) * detail::SQRT2OPI / cxx::sqrt(x);
     }
 
     XSF_HOST_DEVICE inline double y1(double x) {
@@ -184,14 +184,14 @@ namespace cephes {
         if (x <= 5.0) {
             if (x == 0.0) {
                 set_error("y1", SF_ERROR_SINGULAR, NULL);
-                return -std::numeric_limits<double>::infinity();
+                return -cxx::numeric_limits<double>::infinity();
             } else if (x <= 0.0) {
                 set_error("y1", SF_ERROR_DOMAIN, NULL);
-                return std::numeric_limits<double>::quiet_NaN();
+                return cxx::numeric_limits<double>::quiet_NaN();
             }
             z = x * x;
             w = x * (polevl(z, detail::j1_YP, 5) / p1evl(z, detail::j1_YQ, 8));
-            w += M_2_PI * (j1(x) * std::log(x) - 1.0 / x);
+            w += M_2_PI * (j1(x) * cxx::log(x) - 1.0 / x);
             return (w);
         }
 
@@ -201,11 +201,11 @@ namespace cephes {
         q = polevl(z, detail::j1_QP, 7) / p1evl(z, detail::j1_QQ, 7);
         if (x < 10.0) {
             xn = x - detail::THPIO4;
-            p = p * std::sin(xn) + w * q * std::cos(xn);
-            return (p * detail::SQRT2OPI / std::sqrt(x));
+            p = p * cxx::sin(xn) + w * q * cxx::cos(xn);
+            return (p * detail::SQRT2OPI / cxx::sqrt(x));
         }
-        p = (w * q - p) * std::sin(x) - (p + w * q) * std::cos(x);
-        return (p * detail::SQRT1OPI / std::sqrt(x));
+        p = (w * q - p) * cxx::sin(x) - (p + w * q) * cxx::cos(x);
+        return (p * detail::SQRT1OPI / cxx::sqrt(x));
     }
 } // namespace cephes
 } // namespace xsf

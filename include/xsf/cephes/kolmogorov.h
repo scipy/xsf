@@ -105,12 +105,12 @@ namespace cephes {
             double pdf;
         };
 
-        constexpr double _xtol = std::numeric_limits<double>::epsilon();
+        constexpr double _xtol = cxx::numeric_limits<double>::epsilon();
         constexpr double _rtol = 2 * _xtol;
 
         XSF_HOST_DEVICE inline bool _within_tol(double x, double y, double atol, double rtol) {
-            double diff = std::abs(x - y);
-            bool result = (diff <= (atol + rtol * std::abs(y)));
+            double diff = cxx::abs(x - y);
+            bool result = (diff <= (atol + rtol * cxx::abs(y)));
             return result;
         }
 
@@ -123,17 +123,17 @@ namespace cephes {
             double D = 0;
             double sf, cdf, pdf;
 
-            if (std::isnan(x)) {
+            if (cxx::isnan(x)) {
                 return {
-                    std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(),
-                    std::numeric_limits<double>::quiet_NaN()
+                    cxx::numeric_limits<double>::quiet_NaN(), cxx::numeric_limits<double>::quiet_NaN(),
+                    cxx::numeric_limits<double>::quiet_NaN()
                 };
             }
             if (x <= 0) {
                 return {1.0, 0.0, 0};
             }
             /* x <= 0.040611972203751713 */
-            if (x <= M_PI / std::sqrt(-MIN_EXPABLE * 8)) {
+            if (x <= M_PI / cxx::sqrt(-MIN_EXPABLE * 8)) {
                 return {1.0, 0.0, 0};
             }
 
@@ -144,20 +144,20 @@ namespace cephes {
                  *  w = sqrt(2pi)/x
                  *  P = w*u * (1 + u^8 + u^24 + u^48 + ...)
                  */
-                double w = std::sqrt(2 * M_PI) / x;
+                double w = cxx::sqrt(2 * M_PI) / x;
                 double logu8 = -M_PI * M_PI / (x * x); /* log(u^8) */
-                double u = std::exp(logu8 / 8);
+                double u = cxx::exp(logu8 / 8);
                 if (u == 0) {
                     /*
                      * P = w*u, but u < 1e-308, and w > 1,
                      * so compute as logs, then exponentiate
                      */
-                    double logP = logu8 / 8 + std::log(w);
-                    P = std::exp(logP);
+                    double logP = logu8 / 8 + cxx::log(w);
+                    P = cxx::exp(logP);
                 } else {
                     /* Just unroll the loop, 3 iterations */
-                    double u8 = std::exp(logu8);
-                    double u8cub = std::pow(u8, 3);
+                    double u8 = cxx::exp(logu8);
+                    double u8cub = cxx::pow(u8, 3);
                     P = 1 + u8cub * P;
                     D = 5 * 5 + u8cub * D;
                     P = 1 + u8 * u8 * P;
@@ -179,13 +179,13 @@ namespace cephes {
                  *    = 2v(1 - v^3*(1 - v^5*(1 - v^7*(1 - ...)))
                  */
                 double logv = -2 * x * x;
-                double v = std::exp(logv);
+                double v = cxx::exp(logv);
                 /*
                  * Want q^((2k-1)^2)(1-q^(4k-1)) / q(1-q^3) < epsilon to break out of loop.
                  * With KOLMOG_CUTOVER ~ 0.82, k <= 4.  Just unroll the loop, 4 iterations
                  */
                 double vsq = v * v;
-                double v3 = std::pow(v, 3);
+                double v3 = cxx::pow(v, 3);
                 double vpwr;
 
                 vpwr = v3 * v3 * v; /* v**7 */
@@ -206,9 +206,9 @@ namespace cephes {
                 cdf = 1 - sf;
                 pdf = D;
             }
-            pdf = std::fmax(0, pdf);
-            cdf = std::clamp(cdf, 0.0, 1.0);
-            sf = std::clamp(sf, 0.0, 1.0);
+            pdf = cxx::fmax(0, pdf);
+            cdf = cxx::clamp(cdf, 0.0, 1.0);
+            sf = cxx::clamp(sf, 0.0, 1.0);
             return {sf, cdf, pdf};
         }
 
@@ -216,34 +216,34 @@ namespace cephes {
         XSF_HOST_DEVICE inline double _kolmogi(double psf, double pcdf) {
             double x, t;
             double xmin = 0;
-            double xmax = std::numeric_limits<double>::infinity();
+            double xmax = cxx::numeric_limits<double>::infinity();
             int iterations;
             double a = xmin, b = xmax;
 
             if (!(psf >= 0.0 && pcdf >= 0.0 && pcdf <= 1.0 && psf <= 1.0)) {
                 set_error("kolmogi", SF_ERROR_DOMAIN, NULL);
-                return (std::numeric_limits<double>::quiet_NaN());
+                return (cxx::numeric_limits<double>::quiet_NaN());
             }
-            if (std::abs(1.0 - pcdf - psf) > 4 * std::numeric_limits<double>::epsilon()) {
+            if (cxx::abs(1.0 - pcdf - psf) > 4 * cxx::numeric_limits<double>::epsilon()) {
                 set_error("kolmogi", SF_ERROR_DOMAIN, NULL);
-                return (std::numeric_limits<double>::quiet_NaN());
+                return (cxx::numeric_limits<double>::quiet_NaN());
             }
             if (pcdf == 0.0) {
                 return 0.0;
             }
             if (psf == 0.0) {
-                return std::numeric_limits<double>::infinity();
+                return cxx::numeric_limits<double>::infinity();
             }
 
             if (pcdf <= 0.5) {
                 /* p ~ (sqrt(2pi)/x) *exp(-pi^2/8x^2).  Generate lower and upper bounds  */
-                double logpcdf = std::log(pcdf);
+                double logpcdf = cxx::log(pcdf);
                 /* Now that 1 >= x >= sqrt(p) */
                 /* Iterate twice: x <- pi/(sqrt(8) sqrt(log(sqrt(2pi)) - log(x) - log(pdf))) */
-                a = M_PI / (2 * M_SQRT2 * std::sqrt(-(logpcdf + logpcdf / 2 - LOGSQRT2PI)));
-                b = M_PI / (2 * M_SQRT2 * std::sqrt(-(logpcdf + 0 - LOGSQRT2PI)));
-                a = M_PI / (2 * M_SQRT2 * std::sqrt(-(logpcdf + std::log(a) - LOGSQRT2PI)));
-                b = M_PI / (2 * M_SQRT2 * std::sqrt(-(logpcdf + std::log(b) - LOGSQRT2PI)));
+                a = M_PI / (2 * M_SQRT2 * cxx::sqrt(-(logpcdf + logpcdf / 2 - LOGSQRT2PI)));
+                b = M_PI / (2 * M_SQRT2 * cxx::sqrt(-(logpcdf + 0 - LOGSQRT2PI)));
+                a = M_PI / (2 * M_SQRT2 * cxx::sqrt(-(logpcdf + cxx::log(a) - LOGSQRT2PI)));
+                b = M_PI / (2 * M_SQRT2 * cxx::sqrt(-(logpcdf + cxx::log(b) - LOGSQRT2PI)));
                 x = (a + b) / 2.0;
             } else {
                 /*
@@ -254,11 +254,11 @@ namespace cephes {
                  *  kolmogi(0.5) = 0.82757355518990772
                  *  so (1-q^(-(4-1)*2*x^2)) = (1-exp(-6*0.8275^2) ~ (1-exp(-4.1)
                  */
-                constexpr double jiggerb = 256 * std::numeric_limits<double>::epsilon();
-                double pba = psf / (1.0 - std::exp(-4)) / 2, pbb = psf * (1 - jiggerb) / 2;
+                constexpr double jiggerb = 256 * cxx::numeric_limits<double>::epsilon();
+                double pba = psf / (1.0 - cxx::exp(-4)) / 2, pbb = psf * (1 - jiggerb) / 2;
                 double q0;
-                a = std::sqrt(-0.5 * std::log(pba));
-                b = std::sqrt(-0.5 * std::log(pbb));
+                a = cxx::sqrt(-0.5 * cxx::log(pba));
+                b = cxx::sqrt(-0.5 * cxx::log(pbb));
                 /*
                  * Use inversion of
                  *   p = q - q^4 + q^9 - q^16 + ...:
@@ -271,7 +271,7 @@ namespace cephes {
                     q0 = 1 + p3 * (1 + p3 * (4 + p2 * (-1 + p * (22 + p2 * (-13 + 140 * p)))));
                     q0 *= p;
                 }
-                x = std::sqrt(-std::log(q0) / 2);
+                x = cxx::sqrt(-cxx::log(q0) / 2);
                 if (x < a || x > b) {
                     x = (a + b) / 2;
                 }
@@ -285,7 +285,7 @@ namespace cephes {
                 double df = ((pcdf < 0.5) ? (pcdf - probs.cdf) : (probs.sf - psf));
                 double dfdx;
 
-                if (std::abs(df) == 0) {
+                if (cxx::abs(df) == 0) {
                     break;
                 }
                 /* Update the bracketing interval */
@@ -296,7 +296,7 @@ namespace cephes {
                 }
 
                 dfdx = -probs.pdf;
-                if (std::abs(dfdx) <= 0.0) {
+                if (cxx::abs(dfdx) <= 0.0) {
                     x = (a + b) / 2;
                     t = x0 - x;
                 } else {
@@ -339,8 +339,8 @@ namespace cephes {
     } // namespace detail
 
     XSF_HOST_DEVICE inline double kolmogorov(double x) {
-        if (std::isnan(x)) {
-            return std::numeric_limits<double>::quiet_NaN();
+        if (cxx::isnan(x)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
         return detail::_kolmogorov(x).sf;
     }
@@ -348,8 +348,8 @@ namespace cephes {
     XSF_HOST_DEVICE inline float kolmogorov(float x) { return static_cast<float>(kolmogorov(static_cast<double>(x))); }
 
     XSF_HOST_DEVICE inline double kolmogc(double x) {
-        if (std::isnan(x)) {
-            return std::numeric_limits<double>::quiet_NaN();
+        if (cxx::isnan(x)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
         return detail::_kolmogorov(x).cdf;
     }
@@ -357,8 +357,8 @@ namespace cephes {
     XSF_HOST_DEVICE inline float kolmogc(float x) { return static_cast<float>(kolmogc(static_cast<double>(x))); }
 
     XSF_HOST_DEVICE inline double kolmogp(double x) {
-        if (std::isnan(x)) {
-            return std::numeric_limits<double>::quiet_NaN();
+        if (cxx::isnan(x)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
         if (x <= 0) {
             return -0.0;
@@ -372,8 +372,8 @@ namespace cephes {
      * Finds x such that kolmogorov(x) = p.
      */
     XSF_HOST_DEVICE inline double kolmogi(double p) {
-        if (std::isnan(p)) {
-            return std::numeric_limits<double>::quiet_NaN();
+        if (cxx::isnan(p)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
         return detail::_kolmogi(p, 1 - p);
     }
@@ -384,8 +384,8 @@ namespace cephes {
      * Finds x such that kolmogc(x) = p = (or kolmogorov(x) = 1-p).
      */
     XSF_HOST_DEVICE inline double kolmogci(double p) {
-        if (std::isnan(p)) {
-            return std::numeric_limits<double>::quiet_NaN();
+        if (cxx::isnan(p)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
         return detail::_kolmogi(1 - p, p);
     }
@@ -399,10 +399,10 @@ namespace cephes {
         /* ************************************************************************ */
 
         XSF_HOST_DEVICE inline double nextPowerOf2(double x) {
-            double q = std::ldexp(x, 1 - std::numeric_limits<double>::digits);
-            double L = std::abs(q + x);
+            double q = cxx::ldexp(x, 1 - cxx::numeric_limits<double>::digits);
+            double L = cxx::abs(q + x);
             if (L == 0) {
-                L = std::abs(x);
+                L = cxx::abs(x);
             } else {
                 int Lint = (int)(L);
                 if (Lint == L) {
@@ -415,7 +415,7 @@ namespace cephes {
         XSF_HOST_DEVICE inline double modNX(int n, double x, int *pNXFloor, double *pNX) {
             /*
              * Compute floor(n*x) and remainder *exactly*.
-             * If remainder is too close to 1 (E.g. (1, -std::numeric_limits<double>::epsilon()/2))
+             * If remainder is too close to 1 (E.g. (1, -cxx::numeric_limits<double>::epsilon()/2))
              *  round up and adjust   */
             double_double alphaD, nxD, nxfloorD;
             int nxfloor;
@@ -471,16 +471,16 @@ namespace cephes {
             if (a == 0.0) {
                 return double_double(0.0);
             }
-            ans = std::pow(a.hi, m);
+            ans = cxx::pow(a.hi, m);
             r = a.lo / a.hi;
             adj = m * r;
-            if (std::abs(adj) > 1e-8) {
-                if (std::abs(adj) < 1e-4) {
+            if (cxx::abs(adj) > 1e-8) {
+                if (cxx::abs(adj) < 1e-4) {
                     /* Take 1st two terms of Taylor Series for (1+r)^m */
                     adj += (m * r) * ((m - 1) / 2.0 * r);
                 } else {
                     /* Take exp of scaled log */
-                    adj = xsf::cephes::expm1(m * std::log1p(r));
+                    adj = xsf::cephes::expm1(m * cxx::log1p(r));
                 }
             }
             return double_double(ans) + ans * adj;
@@ -530,7 +530,7 @@ namespace cephes {
              */
             if (m * (y.hi - 1) / y.hi < -SM_MAX_EXPONENT * M_LN2) {
                 /* Now do it carefully, calling log() */
-                double lg2y = std::log(y.hi) / M_LN2;
+                double lg2y = cxx::log(y.hi) / M_LN2;
                 double lgAns = m * lg2y;
                 if (lgAns <= -SM_MAX_EXPONENT) {
                     maxExpt = static_cast<int>(nextPowerOf2(-SM_MAX_EXPONENT / lg2y + 1) / 2);
@@ -655,8 +655,8 @@ namespace cephes {
 
             if (!(n > 0 && x >= 0.0 && x <= 1.0)) {
                 return {
-                    std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(),
-                    std::numeric_limits<double>::quiet_NaN()
+                    cxx::numeric_limits<double>::quiet_NaN(), cxx::numeric_limits<double>::quiet_NaN(),
+                    cxx::numeric_limits<double>::quiet_NaN()
                 };
             }
             if (n == 1) {
@@ -708,10 +708,10 @@ namespace cephes {
             /* Special case:  n is so big, take too long to compute */
             if (n > SMIRNOV_MAX_COMPUTE_N) {
                 /* p ~ e^(-(6nx+1)^2 / 18n) */
-                double logp = -std::pow(6.0 * n * x + 1, 2) / 18.0 / n;
+                double logp = -cxx::pow(6.0 * n * x + 1, 2) / 18.0 / n;
                 /* Maximise precision for small p-value. */
                 if (logp < -M_LN2) {
-                    sf = std::exp(logp);
+                    sf = cxx::exp(logp);
                     cdf = 1 - sf;
                 } else {
                     cdf = -xsf::cephes::expm1(logp);
@@ -730,7 +730,7 @@ namespace cephes {
                 bUseUpperSum = (nUpperTerms <= 1 && x < 0.5);
                 bUseUpperSum =
                     (bUseUpperSum ||
-                     ((n >= SM_UPPERSUM_MIN_N) && (nUpperTerms <= SM_UPPER_MAX_TERMS) && (x <= 0.5 / std::sqrt(n))));
+                     ((n >= SM_UPPERSUM_MIN_N) && (nUpperTerms <= SM_UPPER_MAX_TERMS) && (x <= 0.5 / cxx::sqrt(n))));
             }
             {
                 int start = 0, step = 1, nTerms = n1mxfl + 1;
@@ -787,8 +787,8 @@ namespace cephes {
                     }
                     /* Safe to terminate early? */
                     if (Aj != 0.0) {
-                        if (((4 * (nTerms - j) * std::abs(static_cast<double>(Aj))) <
-                             (std::numeric_limits<double>::epsilon() * static_cast<double>(AjSum))) &&
+                        if (((4 * (nTerms - j) * cxx::abs(static_cast<double>(Aj))) <
+                             (cxx::numeric_limits<double>::epsilon() * static_cast<double>(AjSum))) &&
                             (j != nTerms - 1)) {
                             break;
                         }
@@ -818,9 +818,9 @@ namespace cephes {
                     }
                 }
             }
-            pdf = std::fmax(0, pdf);
-            cdf = std::clamp(cdf, 0.0, 1.0);
-            sf = std::clamp(sf, 0.0, 1.0);
+            pdf = cxx::fmax(0, pdf);
+            cdf = cxx::clamp(cdf, 0.0, 1.0);
+            sf = cxx::clamp(sf, 0.0, 1.0);
             return {sf, cdf, pdf};
         }
 
@@ -841,11 +841,11 @@ namespace cephes {
 
             if (!(n > 0 && psf >= 0.0 && pcdf >= 0.0 && pcdf <= 1.0 && psf <= 1.0)) {
                 set_error("smirnovi", SF_ERROR_DOMAIN, NULL);
-                return std::numeric_limits<double>::quiet_NaN();
+                return cxx::numeric_limits<double>::quiet_NaN();
             }
-            if (std::abs(1.0 - pcdf - psf) > 4 * std::numeric_limits<double>::epsilon()) {
+            if (cxx::abs(1.0 - pcdf - psf) > 4 * cxx::numeric_limits<double>::epsilon()) {
                 set_error("smirnovi", SF_ERROR_DOMAIN, NULL);
-                return (std::numeric_limits<double>::quiet_NaN());
+                return (cxx::numeric_limits<double>::quiet_NaN());
             }
             /* STEP 1: Handle psf==0, or pcdf == 0 */
             if (pcdf == 0.0) {
@@ -860,7 +860,7 @@ namespace cephes {
             }
 
             /* STEP 3 Handle psf *very* close to 0.  Correspond to (n-1)/n < x < 1  */
-            psfrootn = std::pow(psf, 1.0 / n);
+            psfrootn = cxx::pow(psf, 1.0 / n);
             /* xmin > 1 - 1.0 / n */
             if (n < 150 && n * psfrootn <= 1) {
                 /* Solve exactly. */
@@ -868,7 +868,7 @@ namespace cephes {
                 return x;
             }
 
-            logpcdf = (pcdf < 0.5 ? std::log(pcdf) : std::log1p(-psf));
+            logpcdf = (pcdf < 0.5 ? cxx::log(pcdf) : cxx::log1p(-psf));
 
             /*
              * STEP 4 Find bracket and initial estimate for use in N-R
@@ -895,26 +895,26 @@ namespace cephes {
                     x = R / n;
                     return x;
                 }
-                z0 = (z0 * z0 + R * std::exp(1 - z0)) / (1 + z0);
+                z0 = (z0 * z0 + R * cxx::exp(1 - z0)) / (1 + z0);
                 x = z0 / n;
-                a = xmin * (1 - 4 * std::numeric_limits<double>::epsilon());
-                a = std::fmax(a, 0);
-                b = xmax * (1 + 4 * std::numeric_limits<double>::epsilon());
-                b = std::fmin(b, 1.0 / n);
-                x = std::clamp(x, a, b);
+                a = xmin * (1 - 4 * cxx::numeric_limits<double>::epsilon());
+                a = cxx::fmax(a, 0);
+                b = xmax * (1 + 4 * cxx::numeric_limits<double>::epsilon());
+                b = cxx::fmin(b, 1.0 / n);
+                x = cxx::clamp(x, a, b);
             } else {
                 /* 4(b) : 1/n < x < (n-1)/n */
                 double xmin = 1 - psfrootn;
-                double logpsf = (psf < 0.5 ? std::log(psf) : std::log1p(-pcdf));
-                double xmax = std::sqrt(-logpsf / (2.0L * n));
+                double logpsf = (psf < 0.5 ? cxx::log(psf) : cxx::log1p(-pcdf));
+                double xmax = cxx::sqrt(-logpsf / (2.0L * n));
                 double xmax6 = xmax - 1.0L / (6 * n);
                 a = xmin;
                 b = xmax;
                 /* Allow for a little rounding error */
-                a *= 1 - 4 * std::numeric_limits<double>::epsilon();
-                b *= 1 + 4 * std::numeric_limits<double>::epsilon();
-                a = std::fmax(xmin, 1.0 / n);
-                b = std::fmin(xmax, 1 - 1.0 / n);
+                a *= 1 - 4 * cxx::numeric_limits<double>::epsilon();
+                b *= 1 + 4 * cxx::numeric_limits<double>::epsilon();
+                a = cxx::fmax(xmin, 1.0 / n);
+                b = cxx::fmin(xmax, 1 - 1.0 / n);
                 x = xmax6;
             }
             if (x < a || x > b) {
@@ -972,8 +972,8 @@ namespace cephes {
                  * Also check fast enough convergence.
                  */
                 if ((a <= x) && (x <= b) &&
-                    (std::abs(2 * deltax) <= std::abs(dxold) ||
-                     std::abs(dxold) < 256 * std::numeric_limits<double>::epsilon())) {
+                    (cxx::abs(2 * deltax) <= cxx::abs(dxold) ||
+                     cxx::abs(dxold) < 256 * cxx::numeric_limits<double>::epsilon())) {
                     dxold = dx;
                     dx = deltax;
                 } else {
@@ -984,8 +984,8 @@ namespace cephes {
                 }
                 /*
                  * Note that if psf is close to 1, f(x) -> 1, f'(x) -> -1.
-                 *  => abs difference |x-x0| is approx |f(x)-p| >= std::numeric_limits<double>::epsilon(),
-                 *  => |x-x0|/x >= std::numeric_limits<double>::epsilon()/x.
+                 *  => abs difference |x-x0| is approx |f(x)-p| >= cxx::numeric_limits<double>::epsilon(),
+                 *  => |x-x0|/x >= cxx::numeric_limits<double>::epsilon()/x.
                  *  => cannot use a purely relative criteria as it will fail for x close to 0.
                  */
                 if (_within_tol(x, x0, (psf < 0.5 ? 0 : _xtol), _rtol)) {
@@ -1002,14 +1002,14 @@ namespace cephes {
     } // namespace detail
 
     XSF_HOST_DEVICE inline double smirnov(int n, double d) {
-        if (std::isnan(d)) {
-            return std::numeric_limits<double>::quiet_NaN();
+        if (cxx::isnan(d)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
         return detail::_smirnov(n, d).sf;
     }
 
     XSF_HOST_DEVICE inline double smirnovc(int n, double d) {
-        if (std::isnan(d)) {
+        if (cxx::isnan(d)) {
             return NAN;
         }
         return detail::_smirnov(n, d).cdf;
@@ -1021,7 +1021,7 @@ namespace cephes {
      */
     XSF_HOST_DEVICE inline double smirnovp(int n, double d) {
         if (!(n > 0 && d >= 0.0 && d <= 1.0)) {
-            return (std::numeric_limits<double>::quiet_NaN());
+            return (cxx::numeric_limits<double>::quiet_NaN());
         }
         if (n == 1) {
             /* Slope is always -1 for n=1, even at d = 1.0 */
@@ -1041,15 +1041,15 @@ namespace cephes {
     }
 
     XSF_HOST_DEVICE inline double smirnovi(int n, double p) {
-        if (std::isnan(p)) {
-            return std::numeric_limits<double>::quiet_NaN();
+        if (cxx::isnan(p)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
         return detail::_smirnovi(n, p, 1 - p);
     }
 
     XSF_HOST_DEVICE inline double smirnovci(int n, double p) {
-        if (std::isnan(p)) {
-            return std::numeric_limits<double>::quiet_NaN();
+        if (cxx::isnan(p)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
         return detail::_smirnovi(n, 1 - p, p);
     }

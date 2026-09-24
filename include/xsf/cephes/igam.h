@@ -140,23 +140,23 @@ namespace cephes {
         XSF_HOST_DEVICE inline double igam_fac(double a, double x) {
             double ax, fac, res, num;
 
-            if (std::abs(a - x) > 0.4 * std::abs(a)) {
-                ax = a * std::log(x) - x - xsf::cephes::lgam(a);
+            if (cxx::abs(a - x) > 0.4 * cxx::abs(a)) {
+                ax = a * cxx::log(x) - x - xsf::cephes::lgam(a);
                 if (ax < -MAXLOG) {
                     set_error("igam", SF_ERROR_UNDERFLOW, NULL);
                     return 0.0;
                 }
-                return std::exp(ax);
+                return cxx::exp(ax);
             }
 
             fac = a + xsf::cephes::lanczos_g - 0.5;
-            res = std::sqrt(fac / std::exp(1)) / xsf::cephes::lanczos_sum_expg_scaled(a);
+            res = cxx::sqrt(fac / cxx::exp(1)) / xsf::cephes::lanczos_sum_expg_scaled(a);
 
             if ((a < 200) && (x < 200)) {
-                res *= std::exp(a - x) * std::pow(x / fac, a);
+                res *= cxx::exp(a - x) * cxx::pow(x / fac, a);
             } else {
                 num = x - a - xsf::cephes::lanczos_g + 0.5;
-                res *= std::exp(a * xsf::cephes::log1pmx(num / fac) + x * (0.5 - xsf::cephes::lanczos_g) / fac);
+                res *= cxx::exp(a * xsf::cephes::log1pmx(num / fac) + x * (0.5 - xsf::cephes::lanczos_g) / fac);
             }
 
             return res;
@@ -196,7 +196,7 @@ namespace cephes {
                 qk = qkm1 * z - qkm2 * yc;
                 if (qk != 0) {
                     r = pk / qk;
-                    t = std::abs((ans - r) / r);
+                    t = cxx::abs((ans - r) / r);
                     ans = r;
                 } else
                     t = 1.0;
@@ -204,7 +204,7 @@ namespace cephes {
                 pkm1 = pk;
                 qkm2 = qkm1;
                 qkm1 = qk;
-                if (std::abs(pk) > igam_big) {
+                if (cxx::abs(pk) > igam_big) {
                     pkm2 *= igam_biginv;
                     pkm1 *= igam_biginv;
                     qkm2 *= igam_biginv;
@@ -258,14 +258,14 @@ namespace cephes {
                 fac *= -x / n;
                 term = fac / (a + n);
                 sum += term;
-                if (std::abs(term) <= MACHEP * std::abs(sum)) {
+                if (cxx::abs(term) <= MACHEP * cxx::abs(sum)) {
                     break;
                 }
             }
 
-            logx = std::log(x);
+            logx = cxx::log(x);
             term = -xsf::cephes::expm1(a * logx - xsf::cephes::lgam1p(a));
-            return term - std::exp(a * logx - xsf::cephes::lgam(a)) * sum;
+            return term - cxx::exp(a * logx - xsf::cephes::lgam(a)) * sum;
         }
 
         /* Compute igam/igamc using DLMF 8.12.3/8.12.4. */
@@ -275,7 +275,7 @@ namespace cephes {
             double lambda = x / a;
             double sigma = (x - a) / a;
             double eta, res, ck, ckterm, term, absterm;
-            double absoldterm = std::numeric_limits<double>::infinity();
+            double absoldterm = cxx::numeric_limits<double>::infinity();
             double etapow[detail::igam_asymp_coeff_N] = {1};
             double sum = 0;
             double afac = 1;
@@ -287,13 +287,13 @@ namespace cephes {
             }
 
             if (lambda > 1) {
-                eta = std::sqrt(-2 * xsf::cephes::log1pmx(sigma));
+                eta = cxx::sqrt(-2 * xsf::cephes::log1pmx(sigma));
             } else if (lambda < 1) {
-                eta = -std::sqrt(-2 * xsf::cephes::log1pmx(sigma));
+                eta = -cxx::sqrt(-2 * xsf::cephes::log1pmx(sigma));
             } else {
                 eta = 0;
             }
-            res = 0.5 * xsf::cephes::erfc(sgn * eta * std::sqrt(a / 2));
+            res = 0.5 * xsf::cephes::erfc(sgn * eta * cxx::sqrt(a / 2));
 
             for (k = 0; k < igam_asymp_coeff_K; k++) {
                 ck = igam_asymp_coeff_d[k][0];
@@ -304,23 +304,23 @@ namespace cephes {
                     }
                     ckterm = igam_asymp_coeff_d[k][n] * etapow[n];
                     ck += ckterm;
-                    if (std::abs(ckterm) < MACHEP * std::abs(ck)) {
+                    if (cxx::abs(ckterm) < MACHEP * cxx::abs(ck)) {
                         break;
                     }
                 }
                 term = ck * afac;
-                absterm = std::abs(term);
+                absterm = cxx::abs(term);
                 if (absterm > absoldterm) {
                     break;
                 }
                 sum += term;
-                if (absterm < MACHEP * std::abs(sum)) {
+                if (absterm < MACHEP * cxx::abs(sum)) {
                     break;
                 }
                 absoldterm = absterm;
                 afac /= a;
             }
-            res += sgn * std::exp(-0.5 * a * eta * eta) * sum / std::sqrt(2 * M_PI * a);
+            res += sgn * cxx::exp(-0.5 * a * eta * eta) * sum / cxx::sqrt(2 * M_PI * a);
 
             return res;
         }
@@ -332,36 +332,36 @@ namespace cephes {
     XSF_HOST_DEVICE inline double igam(double a, double x) {
         double absxma_a;
 
-        if (std::isnan(a) || std::isnan(x)) {
-            return std::numeric_limits<double>::quiet_NaN();
+        if (cxx::isnan(a) || cxx::isnan(x)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         if (x < 0 || a < 0) {
             set_error("gammainc", SF_ERROR_DOMAIN, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         } else if (a == 0) {
             if (x > 0) {
                 return 1;
             } else {
-                return std::numeric_limits<double>::quiet_NaN();
+                return cxx::numeric_limits<double>::quiet_NaN();
             }
         } else if (x == 0) {
             /* Zero integration limit */
             return 0;
-        } else if (std::isinf(a)) {
-            if (std::isinf(x)) {
-                return std::numeric_limits<double>::quiet_NaN();
+        } else if (cxx::isinf(a)) {
+            if (cxx::isinf(x)) {
+                return cxx::numeric_limits<double>::quiet_NaN();
             }
             return 0;
-        } else if (std::isinf(x)) {
+        } else if (cxx::isinf(x)) {
             return 1;
         }
 
         /* Asymptotic regime where a ~ x; see [2]. */
-        absxma_a = std::abs(x - a) / a;
+        absxma_a = cxx::abs(x - a) / a;
         if ((a > detail::igam_SMALL) && (a < detail::igam_LARGE) && (absxma_a < detail::igam_SMALLRATIO)) {
             return detail::asymptotic_series(a, x, detail::IGAM);
-        } else if ((a > detail::igam_LARGE) && (absxma_a < detail::igam_LARGERATIO / std::sqrt(a))) {
+        } else if ((a > detail::igam_LARGE) && (absxma_a < detail::igam_LARGERATIO / cxx::sqrt(a))) {
             return detail::asymptotic_series(a, x, detail::IGAM);
         }
 
@@ -375,35 +375,35 @@ namespace cephes {
     XSF_HOST_DEVICE double igamc(double a, double x) {
         double absxma_a;
 
-        if (std::isnan(a) || std::isnan(x)) {
-            return std::numeric_limits<double>::quiet_NaN();
+        if (cxx::isnan(a) || cxx::isnan(x)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         if (x < 0 || a < 0) {
             set_error("gammaincc", SF_ERROR_DOMAIN, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         } else if (a == 0) {
             if (x > 0) {
                 return 0;
             } else {
-                return std::numeric_limits<double>::quiet_NaN();
+                return cxx::numeric_limits<double>::quiet_NaN();
             }
         } else if (x == 0) {
             return 1;
-        } else if (std::isinf(a)) {
-            if (std::isinf(x)) {
-                return std::numeric_limits<double>::quiet_NaN();
+        } else if (cxx::isinf(a)) {
+            if (cxx::isinf(x)) {
+                return cxx::numeric_limits<double>::quiet_NaN();
             }
             return 1;
-        } else if (std::isinf(x)) {
+        } else if (cxx::isinf(x)) {
             return 0;
         }
 
         /* Asymptotic regime where a ~ x; see [2]. */
-        absxma_a = std::abs(x - a) / a;
+        absxma_a = cxx::abs(x - a) / a;
         if ((a > detail::igam_SMALL) && (a < detail::igam_LARGE) && (absxma_a < detail::igam_SMALLRATIO)) {
             return detail::asymptotic_series(a, x, detail::IGAMC);
-        } else if ((a > detail::igam_LARGE) && (absxma_a < detail::igam_LARGERATIO / std::sqrt(a))) {
+        } else if ((a > detail::igam_LARGE) && (absxma_a < detail::igam_LARGERATIO / cxx::sqrt(a))) {
             return detail::asymptotic_series(a, x, detail::IGAMC);
         }
 
@@ -415,7 +415,7 @@ namespace cephes {
                 return detail::igamc_continued_fraction(a, x);
             }
         } else if (x <= 0.5) {
-            if (-0.4 / std::log(x) < a) {
+            if (-0.4 / cxx::log(x) < a) {
                 return 1.0 - detail::igam_series(a, x);
             } else {
                 return detail::igamc_series(a, x);

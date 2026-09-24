@@ -89,23 +89,23 @@ namespace cephes {
         /* Computes fl(a*b) and err(a*b). */
         XSF_HOST_DEVICE inline double two_prod(double a, double b, double *err) {
             volatile double p = a * b;
-            *err = std::fma(a, b, -p);
+            *err = cxx::fma(a, b, -p);
             return p;
         }
 
         /* Computes fl(a*a) and err(a*a).  Faster than the above method. */
         XSF_HOST_DEVICE inline double two_sqr(double a, double *err) {
             volatile double p = a * a;
-            *err = std::fma(a, a, -p);
+            *err = cxx::fma(a, a, -p);
             return p;
         }
 
         /* Computes the nearest integer to d. */
         XSF_HOST_DEVICE inline double two_nint(double d) {
-            if (d == std::floor(d)) {
+            if (d == cxx::floor(d)) {
                 return d;
             }
-            return std::floor(d + 0.5);
+            return cxx::floor(d + 0.5);
         }
 
         struct double_double {
@@ -312,9 +312,9 @@ namespace cephes {
             return double_double(lhs.hi * rhs, lhs.lo * rhs);
         }
 
-        XSF_HOST_DEVICE inline bool isfinite(const double_double &a) { return std::isfinite(a.hi); }
+        XSF_HOST_DEVICE inline bool isfinite(const double_double &a) { return cxx::isfinite(a.hi); }
 
-        XSF_HOST_DEVICE inline bool isinf(const double_double &a) { return std::isinf(a.hi); }
+        XSF_HOST_DEVICE inline bool isinf(const double_double &a) { return cxx::isinf(a.hi); }
 
         XSF_HOST_DEVICE inline double_double round(const double_double &a) {
             double hi = two_nint(a.hi);
@@ -329,7 +329,7 @@ namespace cephes {
             } else {
                 /* High word is not an integer. */
                 lo = 0.0;
-                if (std::abs(hi - a.hi) == 0.5 && a.lo < 0.0) {
+                if (cxx::abs(hi - a.hi) == 0.5 && a.lo < 0.0) {
                     /* There is a tie in the high word, consult the low word
                        to break the tie. */
                     hi -= 1.0; /* NOTE: This does not cause INEXACT. */
@@ -339,12 +339,12 @@ namespace cephes {
         }
 
         XSF_HOST_DEVICE inline double_double floor(const double_double &a) {
-            double hi = std::floor(a.hi);
+            double hi = cxx::floor(a.hi);
             double lo = 0.0;
 
             if (hi == a.hi) {
                 /* High word is integer already.  Round the low word. */
-                lo = std::floor(a.lo);
+                lo = cxx::floor(a.lo);
                 hi = quick_two_sum(hi, lo, &lo);
             }
 
@@ -352,12 +352,12 @@ namespace cephes {
         }
 
         XSF_HOST_DEVICE inline double_double ceil(const double_double &a) {
-            double hi = std::ceil(a.hi);
+            double hi = cxx::ceil(a.hi);
             double lo = 0.0;
 
             if (hi == a.hi) {
                 /* High word is integer already.  Round the low word. */
-                lo = std::ceil(a.lo);
+                lo = cxx::ceil(a.lo);
                 hi = quick_two_sum(hi, lo, &lo);
             }
 
@@ -380,7 +380,7 @@ namespace cephes {
             return lhs - rhs * n;
         }
 
-        XSF_HOST_DEVICE inline std::pair<double_double, double_double>
+        XSF_HOST_DEVICE inline cxx::pair<double_double, double_double>
         divrem(const double_double &lhs, const double_double &rhs) {
             double_double n = round(lhs / rhs);
             double_double remainder = lhs - n * rhs;
@@ -411,7 +411,7 @@ namespace cephes {
 
         XSF_HOST_DEVICE inline double_double ldexp(const double_double &a, int expt) {
             // float128 * (2.0 ^ expt)
-            return double_double(std::ldexp(a.hi, expt), std::ldexp(a.lo, expt));
+            return double_double(cxx::ldexp(a.hi, expt), cxx::ldexp(a.lo, expt));
         }
 
         XSF_HOST_DEVICE inline double_double frexp(const double_double &a, int *expt) {
@@ -419,9 +419,9 @@ namespace cephes {
             //    0.5<=|b[0]|<1.0 or |b[0]| == 1.0 and b[0]*b[1]<0
             //    """
             int exponent;
-            double man = std::frexp(a.hi, &exponent);
-            double b1 = std::ldexp(a.lo, -exponent);
-            if (std::abs(man) == 0.5 && man * b1 < 0) {
+            double man = cxx::frexp(a.hi, &exponent);
+            double b1 = cxx::ldexp(a.lo, -exponent);
+            if (cxx::abs(man) == 0.5 && man * b1 < 0) {
                 man *= 2;
                 b1 *= 2;
                 exponent -= 1;
@@ -433,11 +433,11 @@ namespace cephes {
         // Numeric limits
 
         XSF_HOST_DEVICE inline double_double quiet_NaN() {
-            return double_double(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN());
+            return double_double(cxx::numeric_limits<double>::quiet_NaN(), cxx::numeric_limits<double>::quiet_NaN());
         }
 
         XSF_HOST_DEVICE inline double_double infinity() {
-            return double_double(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity());
+            return double_double(cxx::numeric_limits<double>::infinity(), cxx::numeric_limits<double>::infinity());
         }
 
         const double_double inv_fact[] = {
@@ -496,7 +496,7 @@ namespace cephes {
                 return E;
             }
 
-            m = std::floor(a.hi / LOG2.hi + 0.5);
+            m = cxx::floor(a.hi / LOG2.hi + 0.5);
             r = mul_pwr2(double_double(a) - LOG2 * m, inv_k);
 
             p = square(r);
@@ -508,7 +508,7 @@ namespace cephes {
                 p = p * r;
                 ++i;
                 t = p * inv_fact[i];
-            } while ((std::abs(static_cast<double>(t)) > inv_k * EPS) && i < 5);
+            } while ((cxx::abs(static_cast<double>(t)) > inv_k * EPS) && i < 5);
 
             s = s + t;
 
@@ -548,7 +548,7 @@ namespace cephes {
                 return quiet_NaN();
             }
 
-            x = double_double(std::log(a.hi)); /* Initial approximation */
+            x = double_double(cxx::log(a.hi)); /* Initial approximation */
 
             /* x = x + a * exp(-x) - 1.0; */
             x = x + a * exp(-x) - 1.0;
@@ -561,9 +561,9 @@ namespace cephes {
             if (a.hi <= -1.0) {
                 return -infinity();
             }
-            la = std::log1p(a.hi);
+            la = cxx::log1p(a.hi);
             elam1 = xsf::cephes::expm1(la);
-            ll = std::log1p(a.lo / (1 + a.hi));
+            ll = cxx::log1p(a.lo / (1 + a.hi));
             if (a.hi > 0) {
                 ll -= (elam1 - a.hi) / (elam1 + 1);
             }

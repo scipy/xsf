@@ -92,24 +92,24 @@ namespace cephes {
 
         if (x < 0.0) {
             set_error("ellpk", SF_ERROR_DOMAIN, NULL);
-            return (std::numeric_limits<double>::quiet_NaN());
+            return (cxx::numeric_limits<double>::quiet_NaN());
         }
 
         if (x > 1.0) {
-            if (std::isinf(x)) {
+            if (cxx::isinf(x)) {
                 return 0.0;
             }
-            return ellpk(1 / x) / std::sqrt(x);
+            return ellpk(1 / x) / cxx::sqrt(x);
         }
 
         if (x > detail::MACHEP) {
-            return (polevl(x, detail::ellpk_P, 10) - std::log(x) * polevl(x, detail::ellpk_Q, 10));
+            return (polevl(x, detail::ellpk_P, 10) - cxx::log(x) * polevl(x, detail::ellpk_Q, 10));
         } else {
             if (x == 0.0) {
                 set_error("ellpk", SF_ERROR_SINGULAR, NULL);
-                return (std::numeric_limits<double>::infinity());
+                return (cxx::numeric_limits<double>::infinity());
             } else {
-                return (detail::ellpk_C1 - 0.5 * std::log(x));
+                return (detail::ellpk_C1 - 0.5 * cxx::log(x));
             }
         }
     }

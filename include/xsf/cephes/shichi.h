@@ -126,7 +126,7 @@ namespace cephes {
             int n, maxiter;
             double err, sum, term, m;
 
-            m = std::pow(z, -1.0 / 3);
+            m = cxx::pow(z, -1.0 / 3);
             if (m < 50) {
                 maxiter = m;
             } else {
@@ -138,15 +138,15 @@ namespace cephes {
             for (n = 0; n < maxiter; ++n) {
                 term *= (a1 + n) * (a2 + n) * (a3 + n) * z / (n + 1);
                 sum += term;
-                if (std::abs(term) < 1e-13 * std::abs(sum) || term == 0) {
+                if (cxx::abs(term) < 1e-13 * cxx::abs(sum) || term == 0) {
                     break;
                 }
             }
 
-            err = std::abs(term);
+            err = cxx::abs(term);
 
-            if (err > 1e-13 * std::abs(sum)) {
-                return std::numeric_limits<double>::quiet_NaN();
+            if (err > 1e-13 * cxx::abs(sum)) {
+                return cxx::numeric_limits<double>::quiet_NaN();
             }
 
             return sum;
@@ -168,7 +168,7 @@ namespace cephes {
 
         if (x == 0.0) {
             si = 0.0;
-            ci = -std::numeric_limits<double>::infinity();
+            ci = -cxx::numeric_limits<double>::infinity();
             return (0);
         }
 
@@ -195,7 +195,7 @@ namespace cephes {
             a /= k;
             s += a / k;
             k += 1.0;
-        } while (std::abs(a / s) > detail::MACHEP);
+        } while (cxx::abs(a / s) > detail::MACHEP);
 
         s *= x;
         goto done;
@@ -204,7 +204,7 @@ namespace cephes {
         /* Chebyshev series expansions */
         if (x < 18.0) {
             a = (576.0 / x - 52.0) / 10.0;
-            k = std::exp(x) / x;
+            k = cxx::exp(x) / x;
             s = k * chbevl(a, detail::shichi_S1, 22);
             c = k * chbevl(a, detail::shichi_C1, 23);
             goto done;
@@ -212,7 +212,7 @@ namespace cephes {
 
         if (x <= 88.0) {
             a = (6336.0 / x - 212.0) / 70.0;
-            k = std::exp(x) / x;
+            k = cxx::exp(x) / x;
             s = k * chbevl(a, detail::shichi_S2, 23);
             c = k * chbevl(a, detail::shichi_C2, 24);
             goto done;
@@ -220,8 +220,8 @@ namespace cephes {
 
     asymp:
         if (x > 1000) {
-            si = std::numeric_limits<double>::infinity();
-            ci = std::numeric_limits<double>::infinity();
+            si = cxx::numeric_limits<double>::infinity();
+            ci = cxx::numeric_limits<double>::infinity();
         } else {
             /* Asymptotic expansions
              * http://functions.wolfram.com/GammaBetaErf/CoshIntegral/06/02/
@@ -229,8 +229,8 @@ namespace cephes {
              */
             a = detail::hyp3f0(0.5, 1, 1, 4.0 / (x * x));
             b = detail::hyp3f0(1, 1, 1.5, 4.0 / (x * x));
-            si = std::cosh(x) / x * a + std::sinh(x) / (x * x) * b;
-            ci = std::sinh(x) / x * a + std::cosh(x) / (x * x) * b;
+            si = cxx::cosh(x) / x * a + cxx::sinh(x) / (x * x) * b;
+            ci = cxx::sinh(x) / x * a + cxx::cosh(x) / (x * x) * b;
         }
         if (sign) {
             si = -si;
@@ -244,7 +244,7 @@ namespace cephes {
 
         si = s;
 
-        ci = detail::SCIPY_EULER + std::log(x) + c;
+        ci = detail::SCIPY_EULER + cxx::log(x) + c;
         return (0);
     }
 

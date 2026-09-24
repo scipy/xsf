@@ -38,7 +38,7 @@ namespace detail {
     constexpr double loggamma_LOGPI = 1.1447298858494001741434262; // log(pi)
     constexpr double loggamma_TAYLOR_RADIUS = 0.2;
 
-    XSF_HOST_DEVICE std::complex<double> loggamma_stirling(std::complex<double> z) {
+    XSF_HOST_DEVICE cxx::complex<double> loggamma_stirling(cxx::complex<double> z) {
         /* Stirling series for log-Gamma
          *
          * The coefficients are B[2*n]/(2*n*(2*n - 1)) where B[2*n] is the
@@ -47,13 +47,13 @@ namespace detail {
         double coeffs[] = {-2.955065359477124183E-2,  6.4102564102564102564E-3, -1.9175269175269175269E-3,
                            8.4175084175084175084E-4,  -5.952380952380952381E-4, 7.9365079365079365079E-4,
                            -2.7777777777777777778E-3, 8.3333333333333333333E-2};
-        std::complex<double> rz = 1.0 / z;
-        std::complex<double> rzz = rz / z;
+        cxx::complex<double> rz = 1.0 / z;
+        cxx::complex<double> rzz = rz / z;
 
-        return (z - 0.5) * std::log(z) - z + loggamma_HLOG2PI + rz * evalpoly(coeffs, 7, rzz);
+        return (z - 0.5) * cxx::log(z) - z + loggamma_HLOG2PI + rz * evalpoly(coeffs, 7, rzz);
     }
 
-    XSF_HOST_DEVICE std::complex<double> loggamma_recurrence(std::complex<double> z) {
+    XSF_HOST_DEVICE cxx::complex<double> loggamma_recurrence(cxx::complex<double> z) {
         /* Backward recurrence relation.
          *
          * See Proposition 2.2 in [1] and the Julia implementation [2].
@@ -61,21 +61,21 @@ namespace detail {
          */
         int signflips = 0;
         int sb = 0;
-        std::complex<double> shiftprod = z;
+        cxx::complex<double> shiftprod = z;
 
         z += 1.0;
         int nsb;
         while (z.real() <= loggamma_SMALLX) {
             shiftprod *= z;
-            nsb = std::signbit(shiftprod.imag());
+            nsb = cxx::signbit(shiftprod.imag());
             signflips += nsb != 0 && sb == 0 ? 1 : 0;
             sb = nsb;
             z += 1.0;
         }
-        return loggamma_stirling(z) - std::log(shiftprod) - signflips * 2 * M_PI * std::complex<double>(0, 1);
+        return loggamma_stirling(z) - cxx::log(shiftprod) - signflips * 2 * M_PI * cxx::complex<double>(0, 1);
     }
 
-    XSF_HOST_DEVICE std::complex<double> loggamma_taylor(std::complex<double> z) {
+    XSF_HOST_DEVICE cxx::complex<double> loggamma_taylor(cxx::complex<double> z) {
         /* Taylor series for log-Gamma around z = 1.
          *
          * It is
@@ -101,74 +101,74 @@ namespace detail {
 
 XSF_HOST_DEVICE inline double loggamma(double x) {
     if (x < 0.0) {
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     return cephes::lgam(x);
 }
 
 XSF_HOST_DEVICE inline float loggamma(float x) { return loggamma(static_cast<double>(x)); }
 
-XSF_HOST_DEVICE inline std::complex<double> loggamma(std::complex<double> z) {
+XSF_HOST_DEVICE inline cxx::complex<double> loggamma(cxx::complex<double> z) {
     // Compute the principal branch of log-Gamma
 
-    if (std::isnan(z.real()) || std::isnan(z.imag())) {
-        return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+    if (cxx::isnan(z.real()) || cxx::isnan(z.imag())) {
+        return {cxx::numeric_limits<double>::quiet_NaN(), cxx::numeric_limits<double>::quiet_NaN()};
     }
-    if (z.real() <= 0 && z == std::floor(z.real())) {
+    if (z.real() <= 0 && z == cxx::floor(z.real())) {
         set_error("loggamma", SF_ERROR_SINGULAR, NULL);
-        return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+        return {cxx::numeric_limits<double>::quiet_NaN(), cxx::numeric_limits<double>::quiet_NaN()};
     }
-    if (z.real() > detail::loggamma_SMALLX || std::abs(z.imag()) > detail::loggamma_SMALLY) {
+    if (z.real() > detail::loggamma_SMALLX || cxx::abs(z.imag()) > detail::loggamma_SMALLY) {
         return detail::loggamma_stirling(z);
     }
-    if (std::abs(z - 1.0) < detail::loggamma_TAYLOR_RADIUS) {
+    if (cxx::abs(z - 1.0) < detail::loggamma_TAYLOR_RADIUS) {
         return detail::loggamma_taylor(z);
     }
-    if (std::abs(z - 2.0) < detail::loggamma_TAYLOR_RADIUS) {
+    if (cxx::abs(z - 2.0) < detail::loggamma_TAYLOR_RADIUS) {
         // Recurrence relation and the Taylor series around 1.
         return detail::zlog1(z - 1.0) + detail::loggamma_taylor(z - 1.0);
     }
     if (z.real() < 0.1) {
         // Reflection formula; see Proposition 3.1 in [1]
-        double tmp = std::copysign(2 * M_PI, z.imag()) * std::floor(0.5 * z.real() + 0.25);
-        return std::complex<double>(detail::loggamma_LOGPI, tmp) - std::log(sinpi(z)) - loggamma(1.0 - z);
+        double tmp = cxx::copysign(2 * M_PI, z.imag()) * cxx::floor(0.5 * z.real() + 0.25);
+        return cxx::complex<double>(detail::loggamma_LOGPI, tmp) - cxx::log(sinpi(z)) - loggamma(1.0 - z);
     }
-    if (std::signbit(z.imag()) == 0) {
+    if (cxx::signbit(z.imag()) == 0) {
         // z.imag() >= 0 but is not -0.0
         return detail::loggamma_recurrence(z);
     }
-    return std::conj(detail::loggamma_recurrence(std::conj(z)));
+    return cxx::conj(detail::loggamma_recurrence(cxx::conj(z)));
 }
 
-XSF_HOST_DEVICE inline std::complex<float> loggamma(std::complex<float> z) {
-    return static_cast<std::complex<float>>(loggamma(static_cast<std::complex<double>>(z)));
+XSF_HOST_DEVICE inline cxx::complex<float> loggamma(cxx::complex<float> z) {
+    return static_cast<cxx::complex<float>>(loggamma(static_cast<cxx::complex<double>>(z)));
 }
 
 XSF_HOST_DEVICE inline double rgamma(double z) { return cephes::rgamma(z); }
 
 XSF_HOST_DEVICE inline float rgamma(float z) { return rgamma(static_cast<double>(z)); }
 
-XSF_HOST_DEVICE inline std::complex<double> rgamma(std::complex<double> z) {
+XSF_HOST_DEVICE inline cxx::complex<double> rgamma(cxx::complex<double> z) {
     // Guard against NaN/Inf inputs: std::exp(complex) is implemented in
     // libstdc++ as std::polar(std::exp(re), im), and std::polar asserts
     // __rho >= 0 under _GLIBCXX_ASSERTIONS -- which is false for NaN.
-    if (!std::isfinite(z.real()) || !std::isfinite(z.imag())) {
-        return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+    if (!cxx::isfinite(z.real()) || !cxx::isfinite(z.imag())) {
+        return {cxx::numeric_limits<double>::quiet_NaN(), cxx::numeric_limits<double>::quiet_NaN()};
     }
     // Compute 1/Gamma(z) using loggamma.
-    if (z.real() <= 0 && z == std::floor(z.real())) {
+    if (z.real() <= 0 && z == cxx::floor(z.real())) {
         // Zeros at 0, -1, -2, ...
         return 0.0;
     }
-    std::complex<double> lg = loggamma(z);
-    if (lg.real() == std::numeric_limits<double>::infinity()) {
-        return {0.0, std::copysign(0.0, z.imag())};
+    cxx::complex<double> lg = loggamma(z);
+    if (lg.real() == cxx::numeric_limits<double>::infinity()) {
+        return {0.0, cxx::copysign(0.0, z.imag())};
     }
-    return std::exp(-lg);
+    return cxx::exp(-lg);
 }
 
-XSF_HOST_DEVICE inline std::complex<float> rgamma(std::complex<float> z) {
-    return static_cast<std::complex<float>>(rgamma(static_cast<std::complex<double>>(z)));
+XSF_HOST_DEVICE inline cxx::complex<float> rgamma(cxx::complex<float> z) {
+    return static_cast<cxx::complex<float>>(rgamma(static_cast<cxx::complex<double>>(z)));
 }
 
 } // namespace xsf

@@ -121,7 +121,7 @@ namespace cephes {
             double res = 1; /* A[0] = 1 */
             double expfac, term;
 
-            expfac = std::exp(-lambda * p) / (lambda + 1) / p;
+            expfac = cxx::exp(-lambda * p) / (lambda + 1) / p;
             if (expfac == 0) {
                 set_error("expn", SF_ERROR_UNDERFLOW, NULL);
                 return 0;
@@ -135,7 +135,7 @@ namespace cephes {
                 fac *= multiplier;
                 term = fac * polevl(lambda, expn_A[k], expn_Adegs[k]);
                 res += term;
-                if (std::abs(term) < MACHEP * std::abs(res)) {
+                if (cxx::abs(term) < MACHEP * cxx::abs(res)) {
                     break;
                 }
             }
@@ -151,11 +151,11 @@ namespace cephes {
         int i, k;
         constexpr double big = 1.44115188075855872E+17;
 
-        if (std::isnan(x)) {
-            return std::numeric_limits<double>::quiet_NaN();
+        if (cxx::isnan(x)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         } else if (n < 0 || x < 0) {
             set_error("expn", SF_ERROR_DOMAIN, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         if (x > detail::MAXLOG) {
@@ -165,14 +165,14 @@ namespace cephes {
         if (x == 0.0) {
             if (n < 2) {
                 set_error("expn", SF_ERROR_SINGULAR, NULL);
-                return std::numeric_limits<double>::infinity();
+                return cxx::numeric_limits<double>::infinity();
             } else {
                 return (1.0 / (n - 1.0));
             }
         }
 
         if (n == 0) {
-            return (std::exp(-x) / x);
+            return (cxx::exp(-x) / x);
         }
 
         /* Asymptotic expansion for large n, DLMF 8.20(ii) */
@@ -203,7 +203,7 @@ namespace cephes {
                 qk = qkm1 * yk + qkm2 * xk;
                 if (qk != 0) {
                     r = pk / qk;
-                    t = std::abs((ans - r) / r);
+                    t = cxx::abs((ans - r) / r);
                     ans = r;
                 } else {
                     t = 1.0;
@@ -212,7 +212,7 @@ namespace cephes {
                 pkm1 = pk;
                 qkm2 = qkm1;
                 qkm1 = qk;
-                if (std::abs(pk) > big) {
+                if (cxx::abs(pk) > big) {
                     pkm2 /= big;
                     pkm1 /= big;
                     qkm2 /= big;
@@ -220,12 +220,12 @@ namespace cephes {
                 }
             } while (t > detail::MACHEP);
 
-            ans *= std::exp(-x);
+            ans *= cxx::exp(-x);
             return ans;
         }
 
         /* Power series expansion, DLMF 8.19.8 */
-        psi = -detail::SCIPY_EULER - std::log(x);
+        psi = -detail::SCIPY_EULER - cxx::log(x);
         for (i = 1; i < n; i++) {
             psi = psi + 1.0 / i;
         }
@@ -247,14 +247,14 @@ namespace cephes {
                 ans += yk / pk;
             }
             if (ans != 0.0)
-                t = std::abs(yk / ans);
+                t = cxx::abs(yk / ans);
             else
                 t = 1.0;
         } while (t > detail::MACHEP);
         k = xk;
         t = n;
         r = n - 1;
-        ans = (std::pow(z, r) * psi * rgamma(t)) - ans;
+        ans = (cxx::pow(z, r) * psi * rgamma(t)) - ans;
         return ans;
     }
 

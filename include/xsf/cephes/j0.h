@@ -188,11 +188,11 @@ namespace cephes {
         q = polevl(q, detail::j0_QP, 7) / p1evl(q, detail::j0_QQ, 7);
         if (x < 10.0) {
             double xn = x - M_PI_4;
-            p = p * std::cos(xn) - w * q * std::sin(xn);
-            return (p * detail::SQRT2OPI / std::sqrt(x));
+            p = p * cxx::cos(xn) - w * q * cxx::sin(xn);
+            return (p * detail::SQRT2OPI / cxx::sqrt(x));
         }
-        p = (p + w * q) * std::cos(x) + (p - w * q) * std::sin(x);
-        return (p * detail::SQRT1OPI / std::sqrt(x));
+        p = (p + w * q) * cxx::cos(x) + (p - w * q) * cxx::sin(x);
+        return (p * detail::SQRT1OPI / cxx::sqrt(x));
     }
 
     /*                                                     y0() 2  */
@@ -210,20 +210,20 @@ namespace cephes {
         if (x <= 5.0) {
             if (x == 0.0) {
                 set_error("y0", SF_ERROR_SINGULAR, NULL);
-                return -std::numeric_limits<double>::infinity();
+                return -cxx::numeric_limits<double>::infinity();
             } else if (x < 0.0) {
                 set_error("y0", SF_ERROR_DOMAIN, NULL);
-                return std::numeric_limits<double>::quiet_NaN();
+                return cxx::numeric_limits<double>::quiet_NaN();
             }
             if (x < 3e-8) {
                 /* x*x/4 below machine epsilon — use limiting form directly. */
                 w = detail::j0_YP[7] / detail::j0_YQ[6];
-                w += M_2_PI * std::log(x);
+                w += M_2_PI * cxx::log(x);
                 return (w);
             }
             z = x * x;
             w = polevl(z, detail::j0_YP, 7) / p1evl(z, detail::j0_YQ, 7);
-            w += M_2_PI * std::log(x) * j0(x);
+            w += M_2_PI * cxx::log(x) * j0(x);
             return (w);
         }
 
@@ -233,11 +233,11 @@ namespace cephes {
         q = polevl(z, detail::j0_QP, 7) / p1evl(z, detail::j0_QQ, 7);
         if (x < 10.0) {
             double xn = x - M_PI_4;
-            p = p * std::sin(xn) + w * q * std::cos(xn);
-            return (p * detail::SQRT2OPI / std::sqrt(x));
+            p = p * cxx::sin(xn) + w * q * cxx::cos(xn);
+            return (p * detail::SQRT2OPI / cxx::sqrt(x));
         }
-        p = (w * q - p) * std::cos(x) + (p + w * q) * std::sin(x);
-        return (p * detail::SQRT1OPI / std::sqrt(x));
+        p = (w * q - p) * cxx::cos(x) + (p + w * q) * cxx::sin(x);
+        return (p * detail::SQRT1OPI / cxx::sqrt(x));
     }
 
 } // namespace cephes

@@ -179,7 +179,7 @@ namespace cephes {
 
         if ((a <= 0.0) || (b <= 0.0) || (x < 0.0)) {
             set_error("fdtrc", SF_ERROR_DOMAIN, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
         w = b / (b + a * x);
         return incbet(0.5 * b, 0.5 * a, w);
@@ -190,7 +190,7 @@ namespace cephes {
 
         if ((a <= 0.0) || (b <= 0.0) || (x < 0.0)) {
             set_error("fdtr", SF_ERROR_DOMAIN, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
         w = a * x;
         w = w / (b + w);

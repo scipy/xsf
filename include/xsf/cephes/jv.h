@@ -97,7 +97,7 @@ namespace cephes {
              */
 
             maxiter = 22000;
-            miniter = std::abs(x) - std::abs(*n);
+            miniter = cxx::abs(x) - cxx::abs(*n);
             if (miniter < 1) {
                 miniter = 1;
             }
@@ -133,7 +133,7 @@ namespace cephes {
                     r = 0.0;
 
                 if (r != 0) {
-                    t = std::abs((ans - r) / r);
+                    t = cxx::abs((ans - r) / r);
                     ans = r;
                 } else {
                     t = 1.0;
@@ -148,7 +148,7 @@ namespace cephes {
                 }
 
                 /* renormalize coefficients */
-                if (std::abs(pk) > big) {
+                if (cxx::abs(pk) > big) {
                     pkm2 /= big;
                     pkm1 /= big;
                     qkm2 /= big;
@@ -162,7 +162,7 @@ namespace cephes {
 
             /* Change n to n-1 if n < 0 and the continued fraction is small */
             if (nflag > 0) {
-                if (std::abs(ans) < 0.125) {
+                if (cxx::abs(ans) < 0.125) {
                     nflag = -1;
                     *n = *n - 1.0;
                     goto fstart;
@@ -208,7 +208,7 @@ namespace cephes {
              */
 
             if (cancel) {
-                if ((kf >= 0.0) && (std::abs(pk) > std::abs(pkm1))) {
+                if ((kf >= 0.0) && (cxx::abs(pk) > cxx::abs(pkm1))) {
                     k += 1.0;
                     pkm2 = pk;
                 }
@@ -236,28 +236,28 @@ namespace cephes {
                 y += u;
                 k += 1.0;
                 if (y != 0)
-                    t = std::abs(u / y);
+                    t = cxx::abs(u / y);
             }
-            t = std::frexp(0.5 * x, &ex);
+            t = cxx::frexp(0.5 * x, &ex);
             ex = ex * n;
             if ((ex > -1023) && (ex < 1023) && (n > 0.0) && (n < (MAXGAM - 1.0))) {
-                t = std::pow(0.5 * x, n) * xsf::cephes::rgamma(n + 1.0);
+                t = cxx::pow(0.5 * x, n) * xsf::cephes::rgamma(n + 1.0);
                 y *= t;
             } else {
-                t = n * std::log(0.5 * x) - lgam_sgn(n + 1.0, &sgngam);
+                t = n * cxx::log(0.5 * x) - lgam_sgn(n + 1.0, &sgngam);
                 if (y < 0) {
                     sgngam = -sgngam;
                     y = -y;
                 }
-                t += std::log(y);
+                t += cxx::log(y);
                 if (t < -MAXLOG) {
                     return (0.0);
                 }
                 if (t > MAXLOG) {
                     set_error("Jv", SF_ERROR_OVERFLOW, NULL);
-                    return (std::numeric_limits<double>::infinity());
+                    return (cxx::numeric_limits<double>::infinity());
                 }
-                y = sgngam * std::exp(t);
+                y = sgngam * cxx::exp(t);
             }
             return (y);
         }
@@ -296,7 +296,7 @@ namespace cephes {
                 j += 1.0;
                 u *= (m - k * k) / (j * z);
                 q += sign * u;
-                t = std::abs(u / p);
+                t = cxx::abs(u / p);
                 if (t < conv) {
                     conv = t;
                     qq = q;
@@ -311,7 +311,7 @@ namespace cephes {
 
         hank1:
             u = x - (0.5 * n + 0.25) * M_PI;
-            t = std::sqrt(2.0 / (M_PI * x)) * (pp * std::cos(u) - qq * std::sin(u));
+            t = cxx::sqrt(2.0 / (M_PI * x)) * (pp * cxx::cos(u) - qq * cxx::sin(u));
             return (t);
         }
 
@@ -453,7 +453,7 @@ namespace cephes {
             /* Test for x very close to n. Use expansion for transition region if so. */
             cbn = cbrt(n);
             z = (x - n) / cbn;
-            if (std::abs(z) <= 0.7) {
+            if (cxx::abs(z) <= 0.7) {
                 return (jv_jnt(n, x));
             }
 
@@ -464,17 +464,17 @@ namespace cephes {
             }
 
             if (zz > 0.0) {
-                sz = std::sqrt(zz);
-                t = 1.5 * (std::log((1.0 + sz) / z) - sz); /* zeta ** 3/2          */
+                sz = cxx::sqrt(zz);
+                t = 1.5 * (cxx::log((1.0 + sz) / z) - sz); /* zeta ** 3/2          */
                 zeta = cbrt(t * t);
                 nflg = 1;
             } else {
-                sz = std::sqrt(-zz);
-                t = 1.5 * (sz - std::acos(1.0 / z));
+                sz = cxx::sqrt(-zz);
+                t = 1.5 * (sz - cxx::acos(1.0 / z));
                 zeta = -cbrt(t * t);
                 nflg = -1;
             }
-            z32i = std::abs(1.0 / t);
+            z32i = cxx::abs(1.0 / t);
             sqz = cbrt(t);
 
             /* Airy function */
@@ -502,8 +502,8 @@ namespace cephes {
             /* flags to stop when terms get larger */
             doa = 1;
             dob = 1;
-            akl = std::numeric_limits<double>::infinity();
-            bkl = std::numeric_limits<double>::infinity();
+            akl = cxx::numeric_limits<double>::infinity();
+            bkl = cxx::numeric_limits<double>::infinity();
 
             for (k = 0; k <= 3; k++) {
                 tk = 2 * k;
@@ -533,7 +533,7 @@ namespace cephes {
 
                 if (doa) {
                     ak *= np;
-                    t = std::abs(ak);
+                    t = cxx::abs(ak);
                     if (t < akl) {
                         akl = t;
                         pp += ak;
@@ -544,7 +544,7 @@ namespace cephes {
                 if (dob) {
                     bk += jv_lambda[tkp1] * zp * u[0];
                     bk *= -np / sqz;
-                    t = std::abs(bk);
+                    t = cxx::abs(bk);
                     if (t < bkl) {
                         bkl = t;
                         qq += bk;
@@ -572,11 +572,11 @@ namespace cephes {
 
         nint = 0; /* Flag for integer n */
         sign = 1; /* Flag for sign inversion */
-        an = std::abs(n);
-        y = std::floor(an);
+        an = cxx::abs(n);
+        y = cxx::floor(an);
         if (y == an) {
             nint = 1;
-            i = an - 16384.0 * std::floor(an / 16384.0);
+            i = an - 16384.0 * cxx::floor(an / 16384.0);
             if (n < 0.0) {
                 if (i & 1)
                     sign = -sign;
@@ -595,23 +595,23 @@ namespace cephes {
 
         if ((x < 0.0) && (y != an)) {
             set_error("Jv", SF_ERROR_DOMAIN, NULL);
-            y = std::numeric_limits<double>::quiet_NaN();
+            y = cxx::numeric_limits<double>::quiet_NaN();
             goto done;
         }
 
         if (x == 0 && n < 0 && !nint) {
             set_error("Jv", SF_ERROR_OVERFLOW, NULL);
-            return std::numeric_limits<double>::infinity() * rgamma(n + 1);
+            return cxx::numeric_limits<double>::infinity() * rgamma(n + 1);
         }
 
-        y = std::abs(x);
+        y = cxx::abs(x);
 
-        if (y * y < std::abs(n + 1) * detail::MACHEP) {
-            return std::pow(0.5 * x, n) * rgamma(n + 1);
+        if (y * y < cxx::abs(n + 1) * detail::MACHEP) {
+            return cxx::pow(0.5 * x, n) * rgamma(n + 1);
         }
 
-        k = 3.6 * std::sqrt(y);
-        t = 3.6 * std::sqrt(an);
+        k = 3.6 * cxx::sqrt(y);
+        t = 3.6 * cxx::sqrt(an);
         if ((y < t) && (an > 21.0)) {
             return (sign * detail::jv_jvs(n, x));
         }
@@ -645,7 +645,7 @@ namespace cephes {
                 y = y + an + 1.0;
                 if (y < 30.0)
                     y = 30.0;
-                y = n + std::floor(y - n);
+                y = n + cxx::floor(y - n);
                 q = detail::jv_recur(&y, x, &k, 0);
                 y = detail::jv_jvs(y, x) * q;
                 goto done;
@@ -660,8 +660,8 @@ namespace cephes {
                 if (n < 0.0) {
                     k = -k;
                 }
-                q = n - std::floor(n);
-                k = std::floor(k) + q;
+                q = n - cxx::floor(n);
+                k = cxx::floor(k) + q;
                 if (n > 0.0) {
                     q = detail::jv_recur(&n, x, &k, 1);
                 } else {
@@ -682,7 +682,7 @@ namespace cephes {
             /* boundary between convergence of
              * power series and Hankel expansion
              */
-            y = std::abs(k);
+            y = cxx::abs(k);
             if (y < 26.0)
                 t = (0.0083 * y + 0.09) * y + 12.9;
             else
@@ -705,7 +705,7 @@ namespace cephes {
              */
             if (n < 0.0) {
                 set_error("jv", SF_ERROR_LOSS, NULL);
-                y = std::numeric_limits<double>::quiet_NaN();
+                y = cxx::numeric_limits<double>::quiet_NaN();
                 goto done;
             }
             t = x / n;
