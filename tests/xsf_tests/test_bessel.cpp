@@ -19,3 +19,14 @@ TEST_CASE("iv tiny inputs", "[bessel][xsf_tests]") {
     CAPTURE(n, z, result, ref, rel_err, rtol);
     REQUIRE(rel_err <= rtol);
 }
+
+using large_order_case = std::tuple<std::complex<double> (*)(double, std::complex<double>), double>;
+
+TEST_CASE("cyl_bessel_j and cyl_bessel_i at complex zero beyond the AMOS order range", "[bessel][xsf_tests]") {
+    auto [kernel, v] = GENERATE(
+        large_order_case{xsf::cyl_bessel_j, 0x1p52}, large_order_case{xsf::cyl_bessel_je, 0x1p52},
+        large_order_case{xsf::cyl_bessel_i, 0x1p30}, large_order_case{xsf::cyl_bessel_ie, 0x1p30}
+    );
+
+    REQUIRE(kernel(v, {0.0, 0.0}) == std::complex<double>(0.0, 0.0));
+}
