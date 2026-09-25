@@ -422,6 +422,22 @@ XSF_HOST_DEVICE inline double atan2(double y, double x) {
 #endif
 }
 
+XSF_HOST_DEVICE inline double tgamma(float x) {
+#if defined(XSF_TARGET_CUDA)
+    return cuda::std::tgamma(x);
+#else
+    return std::tgamma(x);
+#endif
+}
+
+XSF_HOST_DEVICE inline double tgamma(double x) {
+#if defined(XSF_TARGET_CUDA)
+    return cuda::std::tgamma(x);
+#else
+    return std::tgamma(x);
+#endif
+}
+
 // TODO: Check if separating for NVRTC compilation is necessary
 XSF_HOST_DEVICE inline double ceil(double x) {
 #if defined(XSF_TARGET_CUDA)

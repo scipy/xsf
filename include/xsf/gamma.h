@@ -86,8 +86,8 @@ XSF_HOST_DEVICE inline cxx::complex<float> gamma(cxx::complex<float> z) {
 }
 
 template <typename T>
-T gamma_ratio(T a, T b) {
-    return std::tgamma(a) / std::tgamma(b);
+XSF_HOST_DEVICE T gamma_ratio(T a, T b) {
+    return cxx::tgamma(a) / cxx::tgamma(b);
 }
 
 } // namespace xsf
