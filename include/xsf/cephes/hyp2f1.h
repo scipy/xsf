@@ -85,7 +85,7 @@ namespace cephes {
         constexpr double hyp2f1_EPS = 1.0e-13;
 
         constexpr double hyp2f1_ETHRESH = 1.0e-12;
-        constexpr std::uint64_t hyp2f1_MAXITER = 10000;
+        constexpr cxx::uint64_t hyp2f1_MAXITER = 10000;
 
         /* hys2f1 and hyp2f1ra depend on each other, so we need this prototype */
         XSF_HOST_DEVICE double hyp2f1ra(double a, double b, double c, double x, double *loss);
@@ -94,19 +94,19 @@ namespace cephes {
         /* The `loss` parameter estimates loss of significance */
         XSF_HOST_DEVICE double hys2f1(double a, double b, double c, double x, double *loss) {
             double f, g, h, k, m, s, u, umax;
-            std::uint64_t i;
+            cxx::uint64_t i;
             int ib, intflag = 0;
 
-            if (std::abs(b) > std::abs(a)) {
+            if (cxx::abs(b) > cxx::abs(a)) {
                 /* Ensure that |a| > |b| ... */
                 f = b;
                 b = a;
                 a = f;
             }
 
-            ib = std::round(b);
+            ib = cxx::round(b);
 
-            if (std::abs(b - ib) < hyp2f1_EPS && ib <= 0 && std::abs(b) < std::abs(a)) {
+            if (cxx::abs(b - ib) < hyp2f1_EPS && ib <= 0 && cxx::abs(b) < cxx::abs(a)) {
                 /* .. except when `b` is a smaller negative integer */
                 f = b;
                 b = a;
@@ -114,7 +114,7 @@ namespace cephes {
                 intflag = 1;
             }
 
-            if ((std::abs(a) > std::abs(c) + 1 || intflag) && std::abs(c - a) > 2 && std::abs(a) > 2) {
+            if ((cxx::abs(a) > cxx::abs(c) + 1 || intflag) && cxx::abs(c - a) > 2 && cxx::abs(a) > 2) {
                 /* |a| >> |c| implies that large cancellation error is to be expected.
                  *
                  * We try to reduce it with the recurrence relations
@@ -131,14 +131,14 @@ namespace cephes {
             u = 1.0;
             k = 0.0;
             do {
-                if (std::abs(h) < hyp2f1_EPS) {
+                if (cxx::abs(h) < hyp2f1_EPS) {
                     *loss = 1.0;
-                    return std::numeric_limits<double>::infinity();
+                    return cxx::numeric_limits<double>::infinity();
                 }
                 m = k + 1.0;
                 u = u * ((f + k) * (g + k) * x / ((h + k) * m));
                 s += u;
-                k = std::abs(u); /* remember largest term summed */
+                k = cxx::abs(u); /* remember largest term summed */
                 if (k > umax)
                     umax = k;
                 k = m;
@@ -146,7 +146,7 @@ namespace cephes {
                     *loss = 1.0;
                     return (s);
                 }
-            } while (s == 0 || std::abs(u / s) > MACHEP);
+            } while (s == 0 || cxx::abs(u / s) > MACHEP);
 
             /* return estimated relative error */
             *loss = (MACHEP * umax) / fabs(s) + (MACHEP * i);
@@ -162,14 +162,14 @@ namespace cephes {
 
             int ia, ib, neg_int_a = 0, neg_int_b = 0;
 
-            ia = std::round(a);
-            ib = std::round(b);
+            ia = cxx::round(a);
+            ib = cxx::round(b);
 
-            if (a <= 0 && std::abs(a - ia) < hyp2f1_EPS) { /* a is a negative integer */
+            if (a <= 0 && cxx::abs(a - ia) < hyp2f1_EPS) { /* a is a negative integer */
                 neg_int_a = 1;
             }
 
-            if (b <= 0 && std::abs(b - ib) < hyp2f1_EPS) { /* b is a negative integer */
+            if (b <= 0 && cxx::abs(b - ib) < hyp2f1_EPS) { /* b is a negative integer */
                 neg_int_b = 1;
             }
 
@@ -177,19 +177,19 @@ namespace cephes {
             s = 1.0 - x;
             if (x < -0.5 && !(neg_int_a || neg_int_b)) {
                 if (b > a)
-                    y = std::pow(s, -a) * hys2f1(a, c - b, c, -x / s, &err);
+                    y = cxx::pow(s, -a) * hys2f1(a, c - b, c, -x / s, &err);
 
                 else
-                    y = std::pow(s, -b) * hys2f1(c - a, b, c, -x / s, &err);
+                    y = cxx::pow(s, -b) * hys2f1(c - a, b, c, -x / s, &err);
 
                 goto done;
             }
 
             d = c - a - b;
-            id = std::round(d); /* nearest integer to d */
+            id = cxx::round(d); /* nearest integer to d */
 
             if (x > 0.9 && !(neg_int_a || neg_int_b)) {
-                if (std::abs(d - id) > MACHEP) {
+                if (cxx::abs(d - id) > MACHEP) {
                     int sgngam;
 
                     /* test for integer c-a-b */
@@ -207,8 +207,8 @@ namespace cephes {
                     sign *= sgngam;
                     w -= lgam_sgn(c - b, &sgngam);
                     sign *= sgngam;
-                    q *= sign * std::exp(w);
-                    r = std::pow(s, d) * hys2f1(c - a, c - b, d + 1.0, s, &err1);
+                    q *= sign * cxx::exp(w);
+                    r = cxx::pow(s, d) * hys2f1(c - a, c - b, d + 1.0, s, &err1);
                     sign = 1;
                     w = lgam_sgn(-d, &sgngam);
                     sign *= sgngam;
@@ -216,11 +216,11 @@ namespace cephes {
                     sign *= sgngam;
                     w -= lgam_sgn(b, &sgngam);
                     sign *= sgngam;
-                    r *= sign * std::exp(w);
+                    r *= sign * cxx::exp(w);
                     y = q + r;
 
-                    q = std::abs(q); /* estimate cancellation error */
-                    r = std::abs(r);
+                    q = cxx::abs(q); /* estimate cancellation error */
+                    r = cxx::abs(r);
                     if (q > r) {
                         r = q;
                     }
@@ -248,7 +248,7 @@ namespace cephes {
                         aid = -id;
                     }
 
-                    ax = std::log(s);
+                    ax = cxx::log(s);
 
                     /* sum for t = 0 */
                     y = xsf::cephes::psi(1.0) + xsf::cephes::psi(1.0 + e) - xsf::cephes::psi(a + d1) -
@@ -268,9 +268,9 @@ namespace cephes {
                         if (t > hyp2f1_MAXITER) { /* should never happen */
                             set_error("hyp2f1", SF_ERROR_SLOW, NULL);
                             *loss = 1.0;
-                            return std::numeric_limits<double>::quiet_NaN();
+                            return cxx::numeric_limits<double>::quiet_NaN();
                         }
-                    } while (y == 0 || std::abs(q / y) > hyp2f1_EPS);
+                    } while (y == 0 || cxx::abs(q / y) > hyp2f1_EPS);
 
                     if (id == 0.0) {
                         y *= xsf::cephes::Gamma(c) / (xsf::cephes::Gamma(a) * xsf::cephes::Gamma(b));
@@ -299,7 +299,7 @@ namespace cephes {
                     if ((aid & 1) != 0)
                         y = -y;
 
-                    q = std::pow(s, id); /* s to the id power */
+                    q = cxx::pow(s, id); /* s to the id power */
                     if (id > 0.0)
                         y *= q;
                     else
@@ -328,18 +328,18 @@ namespace cephes {
             double sum = 1;
             double collector_max = 1;
 
-            if (!(std::abs(b) < 1e5)) {
-                return std::numeric_limits<double>::quiet_NaN();
+            if (!(cxx::abs(b) < 1e5)) {
+                return cxx::numeric_limits<double>::quiet_NaN();
             }
 
             for (k = 1; k <= -b; k++) {
                 collector *= (a + k - 1) * x / k;
-                collector_max = std::fmax(std::abs(collector), collector_max);
+                collector_max = cxx::fmax(cxx::abs(collector), collector_max);
                 sum += collector;
             }
 
-            if (1e-16 * (1 + collector_max / std::abs(sum)) > 1e-7) {
-                return std::numeric_limits<double>::quiet_NaN();
+            if (1e-16 * (1 + collector_max / cxx::abs(sum)) > 1e-7) {
+                return cxx::numeric_limits<double>::quiet_NaN();
             }
 
             return sum;
@@ -361,9 +361,9 @@ namespace cephes {
 
             /* Don't cross c or zero */
             if ((c < 0 && a <= c) || (c >= 0 && a >= c)) {
-                da = std::round(a - c);
+                da = cxx::round(a - c);
             } else {
-                da = std::round(a);
+                da = cxx::round(a);
             }
             t = a - da;
 
@@ -371,11 +371,11 @@ namespace cephes {
 
             XSF_ASSERT(da != 0);
 
-            if (std::abs(da) > hyp2f1_MAXITER) {
+            if (cxx::abs(da) > hyp2f1_MAXITER) {
                 /* Too expensive to compute this value, so give up */
                 set_error("hyp2f1", SF_ERROR_NO_RESULT, NULL);
                 *loss = 1.0;
-                return std::numeric_limits<double>::quiet_NaN();
+                return cxx::numeric_limits<double>::quiet_NaN();
             }
 
             if (da < 0) {
@@ -422,17 +422,17 @@ namespace cephes {
         int neg_int_ca_or_cb = 0;
 
         err = 0.0;
-        ax = std::abs(x);
+        ax = cxx::abs(x);
         s = 1.0 - x;
-        ia = std::round(a); /* nearest integer to a */
-        ib = std::round(b);
+        ia = cxx::round(a); /* nearest integer to a */
+        ib = cxx::round(b);
 
         if (x == 0.0) {
             return 1.0;
         }
 
         d = c - a - b;
-        id = std::round(d);
+        id = cxx::round(d);
 
         if ((a == 0 || b == 0) && c != 0) {
             return 1.0;
@@ -440,45 +440,45 @@ namespace cephes {
 
         if (a == -1 && c != 0) {
             double result = 1 - (b / c) * x; /* hyp2f1(-1, b; c; x) = 1 - (b/c)*x, c != 0 */
-            if (std::abs(result) < 1e-15) {
+            if (cxx::abs(result) < 1e-15) {
                 return 0.0;
             }
             return result;
         }
 
-        if (a <= 0 && std::abs(a - ia) < detail::hyp2f1_EPS) { /* a is a negative integer */
+        if (a <= 0 && cxx::abs(a - ia) < detail::hyp2f1_EPS) { /* a is a negative integer */
             neg_int_a = 1;
         }
 
-        if (b <= 0 && std::abs(b - ib) < detail::hyp2f1_EPS) { /* b is a negative integer */
+        if (b <= 0 && cxx::abs(b - ib) < detail::hyp2f1_EPS) { /* b is a negative integer */
             neg_int_b = 1;
         }
 
-        if (d <= -1 && !(std::abs(d - id) > detail::hyp2f1_EPS && s < 0) && !(neg_int_a || neg_int_b)) {
-            return std::pow(s, d) * hyp2f1(c - a, c - b, c, x);
+        if (d <= -1 && !(cxx::abs(d - id) > detail::hyp2f1_EPS && s < 0) && !(neg_int_a || neg_int_b)) {
+            return cxx::pow(s, d) * hyp2f1(c - a, c - b, c, x);
         }
         if (d <= 0 && x == 1 && !(neg_int_a || neg_int_b))
             goto hypdiv;
 
         if (ax < 1.0 || x == -1.0) {
             /* 2F1(a,b;b;x) = (1-x)**(-a) */
-            if (std::abs(b - c) < detail::hyp2f1_EPS) { /* b = c */
+            if (cxx::abs(b - c) < detail::hyp2f1_EPS) { /* b = c */
                 if (neg_int_b) {
                     y = detail::hyp2f1_neg_c_equal_bc(a, b, x);
                 } else {
-                    y = std::pow(s, -a); /* s to the -a power */
+                    y = cxx::pow(s, -a); /* s to the -a power */
                 }
                 goto hypdon;
             }
-            if (std::abs(a - c) < detail::hyp2f1_EPS) { /* a = c */
-                y = std::pow(s, -b);                    /* s to the -b power */
+            if (cxx::abs(a - c) < detail::hyp2f1_EPS) { /* a = c */
+                y = cxx::pow(s, -b);                    /* s to the -b power */
                 goto hypdon;
             }
         }
 
         if (c <= 0.0) {
-            ic = std::round(c);                          /* nearest integer to c */
-            if (std::abs(c - ic) < detail::hyp2f1_EPS) { /* c is a negative integer */
+            ic = cxx::round(c);                          /* nearest integer to c */
+            if (cxx::abs(c - ic) < detail::hyp2f1_EPS) { /* c is a negative integer */
                 /* check if termination before explosion */
                 if (neg_int_a && (ia > ic))
                     goto hypok;
@@ -491,24 +491,24 @@ namespace cephes {
         if (neg_int_a || neg_int_b) /* function is a polynomial */
             goto hypok;
 
-        t1 = std::abs(b - a);
-        if (x < -2.0 && std::abs(t1 - round(t1)) > detail::hyp2f1_EPS) {
+        t1 = cxx::abs(b - a);
+        if (x < -2.0 && cxx::abs(t1 - round(t1)) > detail::hyp2f1_EPS) {
             /* This transform has a pole for b-a integer, and
              * may produce large cancellation errors for |1/x| close 1
              */
             p = hyp2f1(a, 1 - c + a, 1 - b + a, 1.0 / x);
             q = hyp2f1(b, 1 - c + b, 1 - a + b, 1.0 / x);
-            p *= std::pow(-x, -a);
-            q *= std::pow(-x, -b);
+            p *= cxx::pow(-x, -a);
+            q *= cxx::pow(-x, -b);
             t1 = Gamma(c);
             s = t1 * Gamma(b - a) * (rgamma(b) * rgamma(c - a));
             y = t1 * Gamma(a - b) * (rgamma(a) * rgamma(c - b));
             return s * p + y * q;
         } else if (x < -1.0) {
-            if (std::abs(a) < std::abs(b)) {
-                return std::pow(s, -a) * hyp2f1(a, c - b, c, x / (x - 1));
+            if (cxx::abs(a) < cxx::abs(b)) {
+                return cxx::pow(s, -a) * hyp2f1(a, c - b, c, x / (x - 1));
             } else {
-                return std::pow(s, -b) * hyp2f1(b, c - a, c, x / (x - 1));
+                return cxx::pow(s, -b) * hyp2f1(b, c - a, c, x / (x - 1));
             }
         }
 
@@ -516,21 +516,21 @@ namespace cephes {
             goto hypdiv;
 
         p = c - a;
-        ia = std::round(p);                                         /* nearest integer to c-a */
-        if ((ia <= 0.0) && (std::abs(p - ia) < detail::hyp2f1_EPS)) /* negative int c - a */
+        ia = cxx::round(p);                                         /* nearest integer to c-a */
+        if ((ia <= 0.0) && (cxx::abs(p - ia) < detail::hyp2f1_EPS)) /* negative int c - a */
             neg_int_ca_or_cb = 1;
 
         r = c - b;
-        ib = std::round(r);                                         /* nearest integer to c-b */
-        if ((ib <= 0.0) && (std::abs(r - ib) < detail::hyp2f1_EPS)) /* negative int c - b */
+        ib = cxx::round(r);                                         /* nearest integer to c-b */
+        if ((ib <= 0.0) && (cxx::abs(r - ib) < detail::hyp2f1_EPS)) /* negative int c - b */
             neg_int_ca_or_cb = 1;
 
-        id = std::round(d); /* nearest integer to d */
-        q = std::abs(d - id);
+        id = cxx::round(d); /* nearest integer to d */
+        q = cxx::abs(d - id);
 
         /* Thanks to Christian Burger <BURGER@DMRHRZ11.HRZ.Uni-Marburg.DE>
          * for reporting a bug here.  */
-        if (std::abs(ax - 1.0) < detail::hyp2f1_EPS) { /* |x| == 1.0   */
+        if (cxx::abs(ax - 1.0) < detail::hyp2f1_EPS) { /* |x| == 1.0   */
             if (x > 0.0) {
                 if (neg_int_ca_or_cb) {
                     if (d >= 0.0)
@@ -590,13 +590,13 @@ namespace cephes {
          * AMS55 #15.3.3
          */
     hypf:
-        y = std::pow(s, d) * detail::hys2f1(c - a, c - b, c, x, &err);
+        y = cxx::pow(s, d) * detail::hys2f1(c - a, c - b, c, x, &err);
         goto hypdon;
 
         /* The alarm exit */
     hypdiv:
         set_error("hyp2f1", SF_ERROR_OVERFLOW, NULL);
-        return std::numeric_limits<double>::infinity();
+        return cxx::numeric_limits<double>::infinity();
     }
 
 } // namespace cephes

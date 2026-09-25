@@ -127,16 +127,16 @@ namespace cephes {
             double y, w, v;
 
             if (x >= MAXGAM) {
-                return (std::numeric_limits<double>::infinity());
+                return (cxx::numeric_limits<double>::infinity());
             }
             w = 1.0 / x;
             w = 1.0 + w * xsf::cephes::polevl(w, gamma_STIR, 4);
-            y = std::exp(x);
+            y = cxx::exp(x);
             if (x > MAXSTIR) { /* Avoid overflow in pow() */
-                v = std::pow(x, 0.5 * x - 0.25);
+                v = cxx::pow(x, 0.5 * x - 0.25);
                 y = v * (v / y);
             } else {
-                y = std::pow(x, x - 0.5) / y;
+                y = cxx::pow(x, x - 0.5) / y;
             }
             y = SQRT2PI * y * w;
             return (y);
@@ -148,31 +148,31 @@ namespace cephes {
         int i;
         int sgngam = 1;
 
-        if (!std::isfinite(x)) {
+        if (!cxx::isfinite(x)) {
             if (x > 0) {
                 // gamma(+inf) = +inf
                 return x;
             }
             // gamma(NaN) and gamma(-inf) both should equal NaN.
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         if (x == 0) {
             /* For pole at zero, value depends on sign of zero.
              * +inf when approaching from right, -inf when approaching
              * from left. */
-            return std::copysign(std::numeric_limits<double>::infinity(), x);
+            return cxx::copysign(cxx::numeric_limits<double>::infinity(), x);
         }
 
-        q = std::abs(x);
+        q = cxx::abs(x);
 
         if (q > 33.0) {
             if (x < 0.0) {
-                p = std::floor(q);
+                p = cxx::floor(q);
                 if (p == q) {
                     // x is a negative integer. This is a pole.
                     set_error("Gamma", SF_ERROR_SINGULAR, NULL);
-                    return (std::numeric_limits<double>::quiet_NaN());
+                    return (cxx::numeric_limits<double>::quiet_NaN());
                 }
                 i = p;
                 if ((i & 1) == 0) {
@@ -185,9 +185,9 @@ namespace cephes {
                 }
                 z = q * sinpi(z);
                 if (z == 0.0) {
-                    return (sgngam * std::numeric_limits<double>::infinity());
+                    return (sgngam * cxx::numeric_limits<double>::infinity());
                 }
-                z = std::abs(z);
+                z = cxx::abs(z);
                 z = M_PI / (z * detail::stirf(q));
             } else {
                 z = detail::stirf(x);
@@ -230,7 +230,7 @@ namespace cephes {
         if (x == 0.0) {
             /* For this to have happened, x must have started as a negative integer. */
             set_error("Gamma", SF_ERROR_SINGULAR, NULL);
-            return (std::numeric_limits<double>::quiet_NaN());
+            return (cxx::numeric_limits<double>::quiet_NaN());
         } else
             return (z / ((1.0 + 0.5772156649015329 * x) * x));
     }
@@ -266,7 +266,7 @@ namespace cephes {
 #pragma GCC optimize("00")
 #endif
         XSF_HOST_DEVICE inline double lgam_large_x(double x) {
-            double q = (x - 0.5) * std::log(x) - x + LS2PI;
+            double q = (x - 0.5) * cxx::log(x) - x + LS2PI;
             if (x > 1.0e8) {
                 return (q);
             }
@@ -284,18 +284,18 @@ namespace cephes {
 
             *sign = 1;
 
-            if (!std::isfinite(x)) {
+            if (!cxx::isfinite(x)) {
                 return x;
             }
 
             if (x < -34.0) {
                 q = -x;
                 w = lgam_sgn(q, sign);
-                p = std::floor(q);
+                p = cxx::floor(q);
                 if (p == q) {
                 lgsing:
                     set_error("lgam", SF_ERROR_SINGULAR, NULL);
-                    return (std::numeric_limits<double>::infinity());
+                    return (cxx::numeric_limits<double>::infinity());
                 }
                 i = p;
                 if ((i & 1) == 0) {
@@ -313,7 +313,7 @@ namespace cephes {
                     goto lgsing;
                 }
                 /*     z = log(M_PI) - log( z ) - w; */
-                z = LOGPI - std::log(z) - w;
+                z = LOGPI - cxx::log(z) - w;
                 return (z);
             }
 
@@ -341,23 +341,23 @@ namespace cephes {
                     *sign = 1;
                 }
                 if (u == 2.0) {
-                    return (std::log(z));
+                    return (cxx::log(z));
                 }
                 p -= 2.0;
                 x = x + p;
                 p = x * polevl(x, gamma_B, 5) / p1evl(x, gamma_C, 6);
-                return (std::log(z) + p);
+                return (cxx::log(z) + p);
             }
 
             if (x > MAXLGM) {
-                return (*sign * std::numeric_limits<double>::infinity());
+                return (*sign * cxx::numeric_limits<double>::infinity());
             }
 
             if (x >= 1000.0) {
                 return lgam_large_x(x);
             }
 
-            q = (x - 0.5) * std::log(x) - x + LS2PI;
+            q = (x - 0.5) * cxx::log(x) - x + LS2PI;
             p = 1.0 / (x * x);
             return q + polevl(p, gamma_A, 4) / x;
         }
@@ -373,22 +373,22 @@ namespace cephes {
     XSF_HOST_DEVICE inline double gammasgn(double x) {
         double fx;
 
-        if (std::isnan(x)) {
+        if (cxx::isnan(x)) {
             return x;
         }
         if (x > 0) {
             return 1.0;
         }
         if (x == 0) {
-            return std::copysign(1.0, x);
+            return cxx::copysign(1.0, x);
         }
-        if (std::isinf(x)) {
+        if (cxx::isinf(x)) {
             // x > 0 case handled, so x must be negative infinity.
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
-        fx = std::floor(x);
+        fx = cxx::floor(x);
         if (x - fx == 0.0) {
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
         // sign of gamma for x in (-n, -n+1) for positive integer n is (-1)^n.
         if (static_cast<int>(fx) % 2) {

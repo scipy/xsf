@@ -132,7 +132,7 @@ namespace detail {
 
 } // namespace detail
 
-inline void airyb(double x, double *ai, double *bi, double *ad, double *bd) {
+inline void airyb(double x, double &ai, double &bi, double &ad, double &bd) {
 
     // =======================================================
     // Purpose: Compute Airy functions and their derivatives
@@ -162,10 +162,10 @@ inline void airyb(double x, double *ai, double *bi, double *ad, double *bd) {
         xm = 5.0;
 
     if (x == 0.0) {
-        *ai = c1;
-        *bi = sr3 * c1;
-        *ad = -c2;
-        *bd = sr3 * c2;
+        ai = c1;
+        bi = sr3 * c1;
+        ad = -c2;
+        bd = sr3 * c2;
         return;
     }
 
@@ -188,8 +188,8 @@ inline void airyb(double x, double *ai, double *bi, double *ad, double *bd) {
                 break;
         }
 
-        *ai = c1 * fx - c2 * gx;
-        *bi = sr3 * (c1 * fx + c2 * gx);
+        ai = c1 * fx - c2 * gx;
+        bi = sr3 * (c1 * fx + c2 * gx);
 
         df = 0.5 * x * x;
         r = df;
@@ -209,8 +209,8 @@ inline void airyb(double x, double *ai, double *bi, double *ad, double *bd) {
                 break;
         }
 
-        *ad = c1 * df - c2 * dg;
-        *bd = sr3 * (c1 * df + c2 * dg);
+        ad = c1 * df - c2 * dg;
+        bd = sr3 * (c1 * df + c2 * dg);
     } else {
         km = (int)(24.5 - xa);
         if (xa < 6.0)
@@ -268,10 +268,10 @@ inline void airyb(double x, double *ai, double *bi, double *ad, double *bd) {
                 sbd += dk[k - 1] * r;
             }
             xp1 = exp(-xe);
-            *ai = 0.5 * rp * xf * xp1 * sai;
-            *bi = rp * xf / xp1 * sbi;
-            *ad = -0.5 * rp / xf * xp1 * sad;
-            *bd = rp / xf / xp1 * sbd;
+            ai = 0.5 * rp * xf * xp1 * sai;
+            bi = rp * xf / xp1 * sbi;
+            ad = -0.5 * rp / xf * xp1 * sad;
+            bd = rp / xf / xp1 * sbd;
         } else {
             xcs = cos(xe + pi / 4.0);
             xss = sin(xe + pi / 4.0);
@@ -293,10 +293,10 @@ inline void airyb(double x, double *ai, double *bi, double *ad, double *bd) {
                 sdb += dk[2 * k] * r;
             }
 
-            *ai = rp * xf * (xss * ssa - xcs * ssb);
-            *bi = rp * xf * (xcs * ssa + xss * ssb);
-            *ad = -rp / xf * (xcs * sda + xss * sdb);
-            *bd = rp / xf * (xss * sda - xcs * sdb);
+            ai = rp * xf * (xss * ssa - xcs * ssb);
+            bi = rp * xf * (xcs * ssa + xss * ssb);
+            ad = -rp / xf * (xcs * sda + xss * sdb);
+            bd = rp / xf * (xss * sda - xcs * sdb);
         }
     }
     return;
@@ -353,7 +353,7 @@ inline void airyzo(int nt, int kf, double *xa, double *xb, double *xc, double *x
 
         while (1) {
             x = rt0;
-            airyb(x, &ai, &bi, &ad, &bd);
+            airyb(x, ai, bi, ad, bd);
 
             if (kf == 1) {
                 rt = rt0 - ai / ad;
@@ -371,7 +371,7 @@ inline void airyzo(int nt, int kf, double *xa, double *xb, double *xc, double *x
 
         xa[i - 1] = rt;
         if (err > 1.0e-14) {
-            airyb(rt, &ai, &bi, &ad, &bd);
+            airyb(rt, ai, bi, ad, bd);
         }
 
         if (kf == 1) {
@@ -409,7 +409,7 @@ inline void airyzo(int nt, int kf, double *xa, double *xb, double *xc, double *x
 
         while (1) {
             x = rt0;
-            airyb(x, &ai, &bi, &ad, &bd);
+            airyb(x, ai, bi, ad, bd);
 
             if (kf == 1) {
                 rt = rt0 - ad / (ai * x);
@@ -427,7 +427,7 @@ inline void airyzo(int nt, int kf, double *xa, double *xb, double *xc, double *x
         xb[i - 1] = rt;
 
         if (err > 1.0e-14) {
-            airyb(rt, &ai, &bi, &ad, &bd);
+            airyb(rt, ai, bi, ad, bd);
         }
 
         if (kf == 1) {

@@ -46,15 +46,15 @@ constexpr double EXPN1 = 0.36787944117144232159553; // exp(-1)
 constexpr double OMEGA = 0.56714329040978387299997; // W(1, 0)
 
 namespace detail {
-    XSF_HOST_DEVICE inline std::complex<double> lambertw_branchpt(std::complex<double> z) {
+    XSF_HOST_DEVICE inline cxx::complex<double> lambertw_branchpt(cxx::complex<double> z) {
         // Series for W(z, 0) around the branch point; see 4.22 in [1].
         double coeffs[] = {-1.0 / 3.0, 1.0, -1.0};
-        std::complex<double> p = std::sqrt(2.0 * (M_E * z + 1.0));
+        cxx::complex<double> p = cxx::sqrt(2.0 * (M_E * z + 1.0));
 
         return evalpoly(coeffs, 2, p);
     }
 
-    XSF_HOST_DEVICE inline std::complex<double> lambertw_pade0(std::complex<double> z) {
+    XSF_HOST_DEVICE inline cxx::complex<double> lambertw_pade0(cxx::complex<double> z) {
         // (3, 2) Pade approximation for W(z, 0) around 0.
         double num[] = {12.85106382978723404255, 12.34042553191489361902, 1.0};
         double denom[] = {32.53191489361702127660, 14.34042553191489361702, 1.0};
@@ -65,12 +65,12 @@ namespace detail {
         return z * evalpoly(num, 2, z) / evalpoly(denom, 2, z);
     }
 
-    XSF_HOST_DEVICE inline std::complex<double> lambertw_asy(std::complex<double> z, long k) {
+    XSF_HOST_DEVICE inline cxx::complex<double> lambertw_asy(cxx::complex<double> z, long k) {
         /* Compute the W function using the first two terms of the
          * asymptotic series. See 4.20 in [1].
          */
-        std::complex<double> w = std::log(z) + 2.0 * M_PI * k * std::complex<double>(0, 1);
-        return w - std::log(w);
+        cxx::complex<double> w = cxx::log(z) + 2.0 * M_PI * k * cxx::complex<double>(0, 1);
+        return w - cxx::log(w);
     }
 
     namespace lambertw_real {
@@ -328,116 +328,116 @@ XSF_HOST_DEVICE inline double lambertw(double z, long k, double tol) {
     constexpr double x0 = 0.60653065971263342360;
 
     // tol not used in this method
-    if (std::isnan(z)) {
-        return std::numeric_limits<double>::quiet_NaN();
+    if (cxx::isnan(z)) {
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     if (z < z0) {
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
 
     if (k == 0) {
-        if (std::abs(z) < 0.055) {
+        if (cxx::abs(z) < 0.055) {
             // empirically determined region around zero where 10 terms of the
             // series expansion is more accurate than the minimax approximation
             return lambertw_series(z);
         }
         if (z < +2.1820144653320312500) {
-            return cephes::ratevl(std::sqrt(z - z0), P1, 8, Q1, 7);
+            return cephes::ratevl(cxx::sqrt(z - z0), P1, 8, Q1, 7);
         }
         if (z < +4.3246045021497925573E+1) {
-            return cephes::ratevl(std::sqrt(z - z0), P2, 7, Q2, 7);
+            return cephes::ratevl(cxx::sqrt(z - z0), P2, 7, Q2, 7);
         }
         if (z < +5.9808565427761132714E+2) {
-            return cephes::ratevl(std::sqrt(z - z0), P3, 7, Q3, 7);
+            return cephes::ratevl(cxx::sqrt(z - z0), P3, 7, Q3, 7);
         }
         if (z < +8.0491241056345904686E+3) {
-            return cephes::ratevl(std::sqrt(z - z0), P4, 7, Q4, 7);
+            return cephes::ratevl(cxx::sqrt(z - z0), P4, 7, Q4, 7);
         }
         if (z < +1.1112458624177664276E+5) {
-            return cephes::ratevl(std::sqrt(z - z0), P5, 7, Q5, 7);
+            return cephes::ratevl(cxx::sqrt(z - z0), P5, 7, Q5, 7);
         }
         if (z < +1.5870426133287885398E+6) {
-            return cephes::ratevl(std::sqrt(z - z0), P6, 7, Q6, 7);
+            return cephes::ratevl(cxx::sqrt(z - z0), P6, 7, Q6, 7);
         }
         if (z < +2.3414708033996018338E+7) {
-            return cephes::ratevl(std::sqrt(z - z0), P7, 7, Q7, 7);
+            return cephes::ratevl(cxx::sqrt(z - z0), P7, 7, Q7, 7);
         }
         if (z < +3.5576474271222021108E+8) {
-            return cephes::ratevl(std::sqrt(z - z0), P8, 7, Q8, 7);
+            return cephes::ratevl(cxx::sqrt(z - z0), P8, 7, Q8, 7);
         }
         if (z < +5.5501716292484833443E+9) {
-            return cephes::ratevl(std::sqrt(z - z0), P9, 7, Q9, 7);
+            return cephes::ratevl(cxx::sqrt(z - z0), P9, 7, Q9, 7);
         }
         if (z < +8.8674704839289895890E+10) {
-            return cephes::ratevl(std::sqrt(z - z0), P10, 7, Q10, 7);
+            return cephes::ratevl(cxx::sqrt(z - z0), P10, 7, Q10, 7);
         }
         if (z < +1.4477791865269224022E+12) {
-            return cephes::ratevl(std::sqrt(z - z0), P11, 7, Q11, 7);
+            return cephes::ratevl(cxx::sqrt(z - z0), P11, 7, Q11, 7);
         }
         if (z < +2.4111458632511484051E+13) {
-            return cephes::ratevl(std::sqrt(z - z0), P12, 7, Q12, 7);
+            return cephes::ratevl(cxx::sqrt(z - z0), P12, 7, Q12, 7);
         }
         if (z < +4.0897036442600808776E+14) {
-            return cephes::ratevl(std::sqrt(z - z0), P13, 7, Q13, 7);
+            return cephes::ratevl(cxx::sqrt(z - z0), P13, 7, Q13, 7);
         }
         if (z < +7.0555901476789968723E+15) {
-            return cephes::ratevl(std::sqrt(z - z0), P14, 7, Q14, 7);
+            return cephes::ratevl(cxx::sqrt(z - z0), P14, 7, Q14, 7);
         }
         if (z < +1.2366607557976727250E+17) {
-            return cephes::ratevl(std::sqrt(z - z0), P15, 7, Q15, 7);
+            return cephes::ratevl(cxx::sqrt(z - z0), P15, 7, Q15, 7);
         }
         if (z < +2.1999373487930999771E+18) {
-            return cephes::ratevl(std::sqrt(z - z0), P16, 7, Q16, 7);
+            return cephes::ratevl(cxx::sqrt(z - z0), P16, 7, Q16, 7);
         }
         if (z < +3.9685392198344016155E+19) {
-            return cephes::ratevl(std::sqrt(z - z0), P17, 7, Q17, 7);
+            return cephes::ratevl(cxx::sqrt(z - z0), P17, 7, Q17, 7);
         }
         if (z < +1.4127075145274652069E+104) {
-            return cephes::ratevl(std::log(z), P18, 7, Q18, 7);
+            return cephes::ratevl(cxx::log(z), P18, 7, Q18, 7);
         }
-        if (std::isfinite(z)) {
-            return cephes::ratevl(std::log(z), P19, 7, Q19, 7);
+        if (cxx::isfinite(z)) {
+            return cephes::ratevl(cxx::log(z), P19, 7, Q19, 7);
         }
-        return std::numeric_limits<double>::infinity();
+        return cxx::numeric_limits<double>::infinity();
     } else if (k == -1) {
         if (z < -0.3542913309442164) {
-            return cephes::ratevl(std::sqrt(z - z0), Pm05, 7, Qm05, 7);
+            return cephes::ratevl(cxx::sqrt(z - z0), Pm05, 7, Qm05, 7);
         }
         if (z < -1.8872688282289434049E-1) {
-            return cephes::ratevl(-z / (std::sqrt(z - z0) + x0), Pm1, 7, Qm1, 7);
+            return cephes::ratevl(-z / (cxx::sqrt(z - z0) + x0), Pm1, 7, Qm1, 7);
         }
         if (z < -6.0497597226958343647E-2) {
-            return cephes::ratevl(-z / (std::sqrt(z - z0) + x0), Pm2, 7, Qm2, 7);
+            return cephes::ratevl(-z / (cxx::sqrt(z - z0) + x0), Pm2, 7, Qm2, 7);
         }
         if (z < -1.7105334740676008194E-2) {
-            return cephes::ratevl(-z / (std::sqrt(z - z0) + x0), Pm3, 7, Qm3, 7);
+            return cephes::ratevl(-z / (cxx::sqrt(z - z0) + x0), Pm3, 7, Qm3, 7);
         }
         if (z < -4.5954962127943706433E-3) {
-            return cephes::ratevl(-z / (std::sqrt(z - z0) + x0), Pm4, 7, Qm4, 7);
+            return cephes::ratevl(-z / (cxx::sqrt(z - z0) + x0), Pm4, 7, Qm4, 7);
         }
         if (z < -1.2001610672197724173E-3) {
-            return cephes::ratevl(-z / (std::sqrt(z - z0) + x0), Pm5, 7, Qm5, 7);
+            return cephes::ratevl(-z / (cxx::sqrt(z - z0) + x0), Pm5, 7, Qm5, 7);
         }
         if (z < -3.0728805932191499844E-4) {
-            return cephes::ratevl(-z / (std::sqrt(z - z0) + x0), Pm6, 7, Qm6, 7);
+            return cephes::ratevl(-z / (cxx::sqrt(z - z0) + x0), Pm6, 7, Qm6, 7);
         }
         if (z < -7.7447159838062184354E-5) {
-            return cephes::ratevl(-z / (std::sqrt(z - z0) + x0), Pm7, 7, Qm7, 7);
+            return cephes::ratevl(-z / (cxx::sqrt(z - z0) + x0), Pm7, 7, Qm7, 7);
         }
         if (z < -4.5808119698158173174E-17) {
-            return cephes::ratevl(std::log(-z), Pm8, 7, Qm8, 7);
+            return cephes::ratevl(cxx::log(-z), Pm8, 7, Qm8, 7);
         }
         if (z < -6.1073672236594792982E-79) {
-            return cephes::ratevl(std::log(-z), Pm9, 7, Qm9, 7);
+            return cephes::ratevl(cxx::log(-z), Pm9, 7, Qm9, 7);
         }
         if (z < 0) {
-            return cephes::ratevl(std::log(-z), Pm10, 7, Qm10, 7);
+            return cephes::ratevl(cxx::log(-z), Pm10, 7, Qm10, 7);
         }
 
-        return std::numeric_limits<double>::quiet_NaN(); // z > 0
+        return cxx::numeric_limits<double>::quiet_NaN(); // z > 0
     }
 
-    return std::numeric_limits<double>::quiet_NaN();
+    return cxx::numeric_limits<double>::quiet_NaN();
 }
 
 XSF_HOST_DEVICE inline float lambertw(float z, long k, float tol) {
@@ -445,10 +445,10 @@ XSF_HOST_DEVICE inline float lambertw(float z, long k, float tol) {
     return static_cast<float>(lambertw(static_cast<double>(z), k, static_cast<double>(tol)));
 }
 
-XSF_HOST_DEVICE inline std::complex<double> lambertw(std::complex<double> z, long k, double tol) {
+XSF_HOST_DEVICE inline cxx::complex<double> lambertw(cxx::complex<double> z, long k, double tol) {
     double absz;
-    std::complex<double> w;
-    std::complex<double> ew, wew, wewz, wn;
+    cxx::complex<double> w;
+    cxx::complex<double> ew, wew, wewz, wn;
 
     if (z.imag() == 0 && ((k == 0 && z.real() > detail::lambertw_real::z0) ||
                           (k == -1 && z.real() > detail::lambertw_real::z0 && z.real() < 0))) {
@@ -456,34 +456,34 @@ XSF_HOST_DEVICE inline std::complex<double> lambertw(std::complex<double> z, lon
         return {lambertw(z.real(), k, tol), 0.0};
     }
 
-    if (std::isnan(z.real()) || std::isnan(z.imag())) {
+    if (cxx::isnan(z.real()) || cxx::isnan(z.imag())) {
         return z;
     }
-    if (z.real() == std::numeric_limits<double>::infinity()) {
-        return z + 2.0 * M_PI * k * std::complex<double>(0, 1);
+    if (z.real() == cxx::numeric_limits<double>::infinity()) {
+        return z + 2.0 * M_PI * k * cxx::complex<double>(0, 1);
     }
-    if (z.real() == -std::numeric_limits<double>::infinity()) {
-        return -z + (2.0 * M_PI * k + M_PI) * std::complex<double>(0, 1);
+    if (z.real() == -cxx::numeric_limits<double>::infinity()) {
+        return -z + (2.0 * M_PI * k + M_PI) * cxx::complex<double>(0, 1);
     }
     if (z == 0.0) {
         if (k == 0) {
             return z;
         }
         set_error("lambertw", SF_ERROR_SINGULAR, NULL);
-        return -std::numeric_limits<double>::infinity();
+        return -cxx::numeric_limits<double>::infinity();
     }
     if (z == 1.0 && k == 0) {
         // Split out this case because the asymptotic series blows up
         return OMEGA;
     }
 
-    absz = std::abs(z);
+    absz = cxx::abs(z);
     // Get an initial guess for Halley's method
     if (k == 0) {
-        if (std::abs(z + EXPN1) < 0.3) {
+        if (cxx::abs(z + EXPN1) < 0.3) {
             w = detail::lambertw_branchpt(z);
         } else if (
-            -1.0 < z.real() && z.real() < 1.5 && std::abs(z.imag()) < 1.0 && -2.5 * std::abs(z.imag()) - 0.2 < z.real()
+            -1.0 < z.real() && z.real() < 1.5 && cxx::abs(z.imag()) < 1.0 && -2.5 * cxx::abs(z.imag()) - 0.2 < z.real()
         ) {
             /* Empirically determined decision boundary where the Pade
              * approximation is more accurate. */
@@ -493,7 +493,7 @@ XSF_HOST_DEVICE inline std::complex<double> lambertw(std::complex<double> z, lon
         }
     } else if (k == -1) {
         if (absz <= EXPN1 && z.imag() == 0.0 && z.real() < 0.0) {
-            w = std::log(-z.real());
+            w = cxx::log(-z.real());
         } else {
             w = detail::lambertw_asy(z, k);
         }
@@ -505,21 +505,21 @@ XSF_HOST_DEVICE inline std::complex<double> lambertw(std::complex<double> z, lon
     if (w.real() >= 0) {
         // Rearrange the formula to avoid overflow in exp
         for (int i = 0; i < 100; i++) {
-            ew = std::exp(-w);
+            ew = cxx::exp(-w);
             wewz = w - z * ew;
             wn = w - wewz / (w + 1.0 - (w + 2.0) * wewz / (2.0 * w + 2.0));
-            if (std::abs(wn - w) <= tol * std::abs(wn)) {
+            if (cxx::abs(wn - w) <= tol * cxx::abs(wn)) {
                 return wn;
             }
             w = wn;
         }
     } else {
         for (int i = 0; i < 100; i++) {
-            ew = std::exp(w);
+            ew = cxx::exp(w);
             wew = w * ew;
             wewz = wew - z;
             wn = w - wewz / (wew + ew - (w + 2.0) * wewz / (2.0 * w + 2.0));
-            if (std::abs(wn - w) <= tol * std::abs(wn)) {
+            if (cxx::abs(wn - w) <= tol * cxx::abs(wn)) {
                 return wn;
             }
             w = wn;
@@ -527,12 +527,12 @@ XSF_HOST_DEVICE inline std::complex<double> lambertw(std::complex<double> z, lon
     }
 
     set_error("lambertw", SF_ERROR_SLOW, "iteration failed to converge: %g + %gj", z.real(), z.imag());
-    return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+    return {cxx::numeric_limits<double>::quiet_NaN(), cxx::numeric_limits<double>::quiet_NaN()};
 }
 
-XSF_HOST_DEVICE inline std::complex<float> lambertw(std::complex<float> z, long k, float tol) {
-    return static_cast<std::complex<float>>(
-        lambertw(static_cast<std::complex<double>>(z), k, static_cast<double>(tol))
+XSF_HOST_DEVICE inline cxx::complex<float> lambertw(cxx::complex<float> z, long k, float tol) {
+    return static_cast<cxx::complex<float>>(
+        lambertw(static_cast<cxx::complex<double>>(z), k, static_cast<double>(tol))
     );
 }
 

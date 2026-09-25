@@ -11,6 +11,8 @@ authors = [
 ]
 platforms = [
   "linux-64",
+  { platform = "linux-64", cuda = "13.0" },
+  { platform = "linux-64", cuda = "12.0" },
   "linux-aarch64",
   "osx-arm64",
   "win-64",
@@ -26,7 +28,12 @@ cxx_compiler = ["vs2026"]
 [package]
 name = { workspace = true }
 version = { workspace = true }
-build.backend.name = "pixi-build-cmake"
+build = {
+  backend.name = "pixi-build-cmake",
+  # for the header-only package, headers are not automatically input-tracked
+  # as they are not visible to `ninja`
+  config.extra-input-globs = ["include/xsf/**/*"],
+}
 
 [target.unix.activation]
 env.SHARE_PREFIX = "$CONDA_PREFIX/share"
@@ -73,7 +80,9 @@ coverage = {
 }
 
 cupy-tests = {
-  platforms = ["linux-64"],
+  platforms = ["linux-64-cuda-13-0", "linux-64-cuda-12-0"],
+  target.linux-64-cuda-13-0.dependencies.cuda-version = "==13.0",
+  target.linux-64-cuda-12-0.dependencies.cuda-version = "==12.0",
   dependencies = {
     xsf.path = ".",
     xsref = {
@@ -85,6 +94,12 @@ cupy-tests = {
     pytest-xdist = "*",
     polars = "*",
   },
+  # TODO: Right now, we restrict the cache to in memory to prevent
+  # kernels compiled against old versions of the xsf headers being used
+  # between test runs.
+  # We need to investigate how to fix the cache validation before enabling
+  # kernel caching on disk.
+  activation.env.CUPY_CACHE_IN_MEMORY = "1",
   tasks.test-cupy = {
     description = "Run CuPy integration tests.",
     cmd = "pytest -n auto --forked python_tests/test_cupy.py",

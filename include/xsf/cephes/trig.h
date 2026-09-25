@@ -12,6 +12,7 @@
 #pragma once
 
 #include "../config.h"
+#include "../numbers.h"
 
 namespace xsf {
 namespace cephes {
@@ -19,39 +20,39 @@ namespace cephes {
     /* Compute sin(pi * x). */
     template <typename T>
     XSF_HOST_DEVICE T sinpi(T x) {
-        T s = 1.0;
+        T s = T(1.0);
 
-        if (std::signbit(x)) {
+        if (cxx::signbit(x)) {
             x = -x;
-            s = -1.0;
+            s = -T(1.0);
         }
 
-        T r = std::fmod(x, 2.0);
-        if (r < 0.5) {
-            return s * std::sin(M_PI * r);
-        } else if (r > 1.5) {
-            return s * std::sin(M_PI * (r - 2.0));
+        T r = cxx::fmod(x, T(2.0));
+        if (r < T(0.5)) {
+            return s * cxx::sin(numbers::pi_v<T> * r);
+        } else if (r > T(1.5)) {
+            return s * cxx::sin(numbers::pi_v<T> * (r - T(2.0)));
         } else {
-            return -s * std::sin(M_PI * (r - 1.0));
+            return -s * cxx::sin(numbers::pi_v<T> * (r - T(1.0)));
         }
     }
 
     /* Compute cos(pi * x) */
     template <typename T>
     XSF_HOST_DEVICE T cospi(T x) {
-        if (x < 0.0) {
+        if (x < T(0.0)) {
             x = -x;
         }
 
-        T r = std::fmod(x, 2.0);
-        if (r == 0.5) {
+        T r = cxx::fmod(x, T(2.0));
+        if (r == T(0.5)) {
             // We don't want to return -0.0
-            return 0.0;
+            return T(0.0);
         }
-        if (r < 1.0) {
-            return -std::sin(M_PI * (r - 0.5));
+        if (r < T(1.0)) {
+            return -cxx::sin(numbers::pi_v<T> * (r - T(0.5)));
         } else {
-            return std::sin(M_PI * (r - 1.5));
+            return cxx::sin(numbers::pi_v<T> * (r - T(1.5)));
         }
     }
 } // namespace cephes

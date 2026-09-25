@@ -14,12 +14,12 @@ XSF_HOST_DEVICE inline double boxcox(double x, double lmbda) {
      * abs(lmbda)*log(x) < eps whenever abs(lmbda) <= eps/-log(min double)
      * which is ~2.98e-19.
      */
-    if (std::abs(lmbda) < 1e-19) {
-        return std::log(x);
-    } else if (lmbda * std::log(x) < 709.78) {
-        return std::expm1(lmbda * std::log(x)) / lmbda;
+    if (cxx::abs(lmbda) < 1e-19) {
+        return cxx::log(x);
+    } else if (lmbda * cxx::log(x) < 709.78) {
+        return cxx::expm1(lmbda * cxx::log(x)) / lmbda;
     } else {
-        return std::copysign(1.0, lmbda) * std::exp(lmbda * std::log(x) - std::log(std::abs(lmbda))) - 1 / lmbda;
+        return cxx::copysign(1.0, lmbda) * cxx::exp(lmbda * cxx::log(x) - cxx::log(cxx::abs(lmbda))) - 1 / lmbda;
     }
 }
 
@@ -33,13 +33,13 @@ XSF_HOST_DEVICE inline double boxcox1p(double x, double lmbda) {
      * value, rather than eps.  The second condition here prevents underflow
      * when log1p(x) is < eps.
      */
-    double lgx = std::log1p(x);
-    if (std::abs(lmbda) < 1e-19 || (std::abs(lgx) < 1e-289 && std::abs(lmbda) < 1e273)) {
+    double lgx = cxx::log1p(x);
+    if (cxx::abs(lmbda) < 1e-19 || (cxx::abs(lgx) < 1e-289 && cxx::abs(lmbda) < 1e273)) {
         return lgx;
     } else if (lmbda * lgx < 709.78) {
-        return std::expm1(lmbda * lgx) / lmbda;
+        return cxx::expm1(lmbda * lgx) / lmbda;
     } else {
-        return std::copysign(1.0, lmbda) * std::exp(lmbda * lgx - std::log(std::abs(lmbda))) - 1 / lmbda;
+        return cxx::copysign(1.0, lmbda) * cxx::exp(lmbda * lgx - cxx::log(cxx::abs(lmbda))) - 1 / lmbda;
     }
 }
 
@@ -49,11 +49,11 @@ XSF_HOST_DEVICE inline float boxcox1p(float x, float lmbda) {
 
 XSF_HOST_DEVICE inline double inv_boxcox(double x, double lmbda) {
     if (lmbda == 0) {
-        return std::exp(x);
+        return cxx::exp(x);
     } else if (lmbda * x < 1.79e308) {
-        return std::exp(std::log1p(lmbda * x) / lmbda);
+        return cxx::exp(cxx::log1p(lmbda * x) / lmbda);
     } else {
-        return std::exp((std::log(std::copysign(1.0, lmbda) * (x + 1 / lmbda)) + std::log(std::abs(lmbda))) / lmbda);
+        return cxx::exp((cxx::log(cxx::copysign(1.0, lmbda) * (x + 1 / lmbda)) + cxx::log(cxx::abs(lmbda))) / lmbda);
     }
 }
 
@@ -63,13 +63,13 @@ XSF_HOST_DEVICE inline float inv_boxcox(float x, float lmbda) {
 
 XSF_HOST_DEVICE inline double inv_boxcox1p(double x, double lmbda) {
     if (lmbda == 0) {
-        return std::expm1(x);
-    } else if (std::abs(lmbda * x) < 1e-154) {
+        return cxx::expm1(x);
+    } else if (cxx::abs(lmbda * x) < 1e-154) {
         return x;
     } else if (lmbda * x < 1.79e308) {
-        return std::expm1(std::log1p(lmbda * x) / lmbda);
+        return cxx::expm1(cxx::log1p(lmbda * x) / lmbda);
     } else {
-        return std::expm1((std::log(std::copysign(1.0, lmbda) * (x + 1 / lmbda)) + std::log(std::abs(lmbda))) / lmbda);
+        return cxx::expm1((cxx::log(cxx::copysign(1.0, lmbda) * (x + 1 / lmbda)) + cxx::log(cxx::abs(lmbda))) / lmbda);
     }
 }
 
