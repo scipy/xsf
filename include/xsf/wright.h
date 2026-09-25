@@ -77,7 +77,7 @@ namespace detail {
         s = two_sum(a, b, &err);
         if (err > 0) {
             /* fl(a + b) rounded down */
-            return cxx::nextafter(s, INFINITY);
+            return cxx::nextafter(s, static_cast<double>(INFINITY));
         } else {
             /* fl(a + b) rounded up or didn't round */
             return s;
@@ -93,7 +93,7 @@ namespace detail {
 
         s = two_sum(a, b, &err);
         if (err < 0) {
-            return cxx::nextafter(s, -INFINITY);
+            return cxx::nextafter(s, -static_cast<double>(INFINITY));
         } else {
             return s;
         }

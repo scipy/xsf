@@ -3,8 +3,7 @@
 namespace xsf {
 
 template <typename T>
-XSF_HOST_DEVICE typename cxx::enable_if<cxx::is_floating_point<T>::value, T>::type
-extended_absolute_error(T actual, T desired) {
+XSF_HOST_DEVICE typename cxx::enable_if_t<cxx::is_floating_point_v<T>, T> extended_absolute_error(T actual, T desired) {
     if (actual == desired || (cxx::isnan(actual) && cxx::isnan(desired))) {
         return T(0);
     }
@@ -16,17 +15,17 @@ extended_absolute_error(T actual, T desired) {
     if (cxx::isinf(actual)) {
         /* We don't want to penalize early overflow too harshly, so instead
          * compare with the mythical value nextafter(max_float). */
-        T sgn = cxx::copysign(1.0, actual);
+        T sgn = cxx::copysign(T(1), actual);
         T max_float = cxx::numeric_limits<T>::max();
         // max_float * 2**-(mantissa_bits + 1) = ulp(max_float)
-        T ulp = cxx::pow(2, -cxx::numeric_limits<T>::digits) * max_float;
+        T ulp = cxx::pow(T(2), static_cast<T>(-cxx::numeric_limits<T>::digits)) * max_float;
         return cxx::abs((sgn * cxx::numeric_limits<T>::max() - desired) + sgn * ulp);
     }
     if (cxx::isinf(desired)) {
-        T sgn = cxx::copysign(1.0, desired);
+        T sgn = cxx::copysign(T(1), desired);
         T max_float = cxx::numeric_limits<T>::max();
         // max_float * 2**-(mantissa_bits + 1) = ulp(max_float)
-        T ulp = cxx::pow(2, -cxx::numeric_limits<T>::digits) * max_float;
+        T ulp = cxx::pow(T(2), static_cast<T>(-cxx::numeric_limits<T>::digits)) * max_float;
         return cxx::abs((sgn * cxx::numeric_limits<T>::max() - actual) + sgn * ulp);
     }
     return cxx::abs(actual - desired);
@@ -40,8 +39,7 @@ XSF_HOST_DEVICE T extended_absolute_error(cxx::complex<T> actual, cxx::complex<T
 }
 
 template <typename T>
-XSF_HOST_DEVICE typename cxx::enable_if<cxx::is_floating_point<T>::value, T>::type
-extended_relative_error(T actual, T desired) {
+XSF_HOST_DEVICE typename cxx::enable_if_t<cxx::is_floating_point_v<T>, T> extended_relative_error(T actual, T desired) {
     T abs_error = extended_absolute_error(actual, desired);
     T abs_desired = cxx::abs(desired);
     if (desired == 0.0) {

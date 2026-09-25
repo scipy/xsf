@@ -63,7 +63,7 @@ XSF_HOST_DEVICE inline cxx::pair<double, cxx::uint64_t> _iv_ratio_cf(double v, d
 
     int e;
     cxx::frexp(cxx::fmax(v, x), &e);
-    T c = T(cxx::ldexp(1, 2 - e)); // rescaling multiplier
+    T c = T(cxx::ldexp(1., static_cast<double>(2 - e))); // rescaling multiplier
     T vc = v * c;
     T xc = x * c;
 

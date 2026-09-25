@@ -88,7 +88,7 @@ namespace detail {
         double lnx = cxx::log(x);
         // For numerical stability, we factor out the maximum term exp(..) with k=k_max
         // but only if it is larger than 0.
-        double max_exponent = cxx::fmax(0, k_max * lnx - cephes::lgam(k_max + 1) - cephes::lgam(a * k_max + b));
+        double max_exponent = cxx::fmax(0., k_max * lnx - cephes::lgam(k_max + 1) - cephes::lgam(a * k_max + b));
         for (int k = nstart; k < nstart + n; k++) {
             res += cxx::exp(k * lnx - cephes::lgam(k + 1) - cephes::lgam(a * k + b) - max_exponent);
         }
@@ -799,7 +799,7 @@ XSF_HOST_DEVICE inline double wright_bessel_t(double a, double b, double x) {
             if (x <= 1e11) {
                 order = 6;
             } else {
-                order = static_cast<int>(cxx::fmin(cxx::log10(x) - 5 + b / 10, 30));
+                order = static_cast<int>(cxx::fmin(cxx::log10(x) - 5 + b / 10, 30.));
             }
         } else {
             if (x <= 1e4) {
@@ -809,7 +809,7 @@ XSF_HOST_DEVICE inline double wright_bessel_t(double a, double b, double x) {
             } else if (x <= 1e10) {
                 order = static_cast<int>(4 * cxx::log10(x) - 16);
             } else {
-                order = static_cast<int>(cxx::fmin(6 * cxx::log10(x) - 36, 100));
+                order = static_cast<int>(cxx::fmin(6 * cxx::log10(x) - 36, 100.));
             }
         }
         return detail::wb_large_a<log_wb>(a, b, x, order);
