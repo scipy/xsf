@@ -391,8 +391,8 @@ namespace detail {
                  * (-1)**(a - b + k) * gamma(c - b) * (-1)**(k + a - c + 1)(k + a - c)!
                  * = (-1)**(c - b - 1)*Gamma(k + a - c + 1)
                  */
-                factor_ = cxx::pow(-1, m_ + n_) * xsf::binom(c_ - 1, b_ - 1) * xsf::cephes::poch(c_ - a_ + 1, m_ - 1) /
-                          cxx::pow(z_, static_cast<double>(k_));
+                factor_ = cxx::pow(-1., static_cast<double>(m_ + n_)) * xsf::binom(c_ - 1, b_ - 1) *
+                          xsf::cephes::poch(c_ - a_ + 1, m_ - 1) / cxx::pow(z_, static_cast<double>(k_));
             }
             term = factor_;
             factor_ *= (b_ + m_ + k_) * (k_ + a_ - c_ + 1) / ((k_ + 1) * (m_ + k_ + 1)) / z_;

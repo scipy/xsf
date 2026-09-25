@@ -76,7 +76,7 @@ XSF_HOST_DEVICE inline cxx::complex<double> exp1(cxx::complex<double> z) {
         ce1 = 1.0;
         cr = 1.0;
         for (k = 1; k < 501; k++) {
-            cr = -cr * z * static_cast<double>(k / cxx::pow(k + 1, 2));
+            cr = -cr * z * static_cast<double>(k / cxx::pow(static_cast<double>(k + 1), 2.));
             ce1 += cr;
             if (cxx::abs(cr) < cxx::abs(ce1) * 1e-15) {
                 break;

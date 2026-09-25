@@ -213,7 +213,7 @@ namespace cephes {
             }
 
             /* Reduce the argument to sine */
-            x_shift = cxx::fmod(x, 4);
+            x_shift = cxx::fmod(x, 4.);
             small_term = -SQRT2OPI * sin(0.5 * M_PI * x_shift);
             small_term *= xsf::cephes::lanczos_sum_expg_scaled(x + 1) * xsf::cephes::zeta(x + 1, 1);
 

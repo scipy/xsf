@@ -171,7 +171,7 @@ namespace cephes {
                     if (w < 3 * a) {
                         result = w;
                     } else {
-                        double D = cxx::fmax(2, a * (a - 1));
+                        double D = cxx::fmax(2., a * (a - 1));
                         double lg = xsf::cephes::lgam(a);
                         double lb = cxx::log(q) + lg;
                         if (lb < -D * 2.3) {

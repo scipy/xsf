@@ -116,9 +116,9 @@ namespace cephes {
             return owens_t_SELECT_METHOD[iaint * 15 + ihint];
         }
 
-        XSF_HOST_DEVICE inline double owens_t_norm1(double x) { return xsf::cephes::erf(x / cxx::sqrt(2)) / 2; }
+        XSF_HOST_DEVICE inline double owens_t_norm1(double x) { return xsf::cephes::erf(x / cxx::sqrt(2.)) / 2; }
 
-        XSF_HOST_DEVICE inline double owens_t_norm2(double x) { return xsf::cephes::erfc(x / cxx::sqrt(2)) / 2; }
+        XSF_HOST_DEVICE inline double owens_t_norm2(double x) { return xsf::cephes::erfc(x / cxx::sqrt(2.)) / 2; }
 
         XSF_HOST_DEVICE inline double owensT1(double h, double a, double m) {
             int j = 1;
