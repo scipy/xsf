@@ -42,11 +42,11 @@ namespace detail {
         double sum = 0.0;
         if (a >= 0) {
             for (T i = n; i >= m; --i) {
-                sum += cxx::pow(i, -a);
+                sum += cxx::pow(static_cast<double>(i), -a);
             }
         } else {
             for (T i = m; i <= n; ++i) {
-                sum += cxx::pow(i, -a);
+                sum += cxx::pow(static_cast<double>(i), -a);
             }
         }
         return sum;
@@ -69,7 +69,7 @@ namespace detail {
         double denom = 0.0;
         if (a >= 0) {
             for (T i = n; i >= 1; --i) {
-                double term = cxx::pow(i, -a);
+                double term = cxx::pow(static_cast<double>(i), -a);
                 denom += term;
                 if (i >= j && i <= k) {
                     numer += term;
@@ -77,7 +77,7 @@ namespace detail {
             }
         } else {
             for (T i = 1; i <= n; ++i) {
-                double term = cxx::pow(i, -a);
+                double term = cxx::pow(static_cast<double>(i), -a);
                 denom += term;
                 if (i >= j && i <= k) {
                     numer += term;
@@ -153,7 +153,7 @@ XSF_HOST_DEVICE inline double gen_harmonic(T n, double a) {
         if (znp1 / z1 <= detail::zeta_ratio_threshold) {
             return z1 - znp1;
         } else {
-            return detail::sum_powers(static_cast<T>(1), n, a);
+            return detail::sum_powers(T(1), n, a);
         }
     }
 }
@@ -244,7 +244,7 @@ XSF_HOST_DEVICE inline double normalized_gen_harmonic(T j, T k, T n, double a) {
                 // and denominator.
                 return (zj - zkp1) / (z1 - znp1);
             } else {
-                return (zj - zkp1) / detail::sum_powers(static_cast<T>(1), n, a);
+                return (zj - zkp1) / detail::sum_powers(T(1), n, a);
             }
         } else {
             if (zeta_denom_ok) {

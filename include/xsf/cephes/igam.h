@@ -150,7 +150,7 @@ namespace cephes {
             }
 
             fac = a + xsf::cephes::lanczos_g - 0.5;
-            res = cxx::sqrt(fac / cxx::exp(1)) / xsf::cephes::lanczos_sum_expg_scaled(a);
+            res = cxx::sqrt(fac / cxx::exp(1.)) / xsf::cephes::lanczos_sum_expg_scaled(a);
 
             if ((a < 200) && (x < 200)) {
                 res *= cxx::exp(a - x) * cxx::pow(x / fac, a);

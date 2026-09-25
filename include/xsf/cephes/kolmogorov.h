@@ -133,7 +133,7 @@ namespace cephes {
                 return {1.0, 0.0, 0};
             }
             /* x <= 0.040611972203751713 */
-            if (x <= M_PI / cxx::sqrt(-MIN_EXPABLE * 8)) {
+            if (x <= M_PI / cxx::sqrt(-MIN_EXPABLE * 8.)) {
                 return {1.0, 0.0, 0};
             }
 
@@ -206,7 +206,7 @@ namespace cephes {
                 cdf = 1 - sf;
                 pdf = D;
             }
-            pdf = cxx::fmax(0, pdf);
+            pdf = cxx::fmax(0., pdf);
             cdf = cxx::clamp(cdf, 0.0, 1.0);
             sf = cxx::clamp(sf, 0.0, 1.0);
             return {sf, cdf, pdf};
@@ -255,7 +255,7 @@ namespace cephes {
                  *  so (1-q^(-(4-1)*2*x^2)) = (1-exp(-6*0.8275^2) ~ (1-exp(-4.1)
                  */
                 constexpr double jiggerb = 256 * cxx::numeric_limits<double>::epsilon();
-                double pba = psf / (1.0 - cxx::exp(-4)) / 2, pbb = psf * (1 - jiggerb) / 2;
+                double pba = psf / (1.0 - cxx::exp(-4.)) / 2, pbb = psf * (1 - jiggerb) / 2;
                 double q0;
                 a = cxx::sqrt(-0.5 * cxx::log(pba));
                 b = cxx::sqrt(-0.5 * cxx::log(pbb));
@@ -729,8 +729,8 @@ namespace cephes {
                 int nUpperTerms = n - n1mxceil + 1;
                 bUseUpperSum = (nUpperTerms <= 1 && x < 0.5);
                 bUseUpperSum =
-                    (bUseUpperSum ||
-                     ((n >= SM_UPPERSUM_MIN_N) && (nUpperTerms <= SM_UPPER_MAX_TERMS) && (x <= 0.5 / cxx::sqrt(n))));
+                    (bUseUpperSum || ((n >= SM_UPPERSUM_MIN_N) && (nUpperTerms <= SM_UPPER_MAX_TERMS) &&
+                                      (x <= 0.5 / cxx::sqrt(static_cast<double>(n)))));
             }
             {
                 int start = 0, step = 1, nTerms = n1mxfl + 1;
@@ -818,7 +818,7 @@ namespace cephes {
                     }
                 }
             }
-            pdf = cxx::fmax(0, pdf);
+            pdf = cxx::fmax(0., pdf);
             cdf = cxx::clamp(cdf, 0.0, 1.0);
             sf = cxx::clamp(sf, 0.0, 1.0);
             return {sf, cdf, pdf};
@@ -898,7 +898,7 @@ namespace cephes {
                 z0 = (z0 * z0 + R * cxx::exp(1 - z0)) / (1 + z0);
                 x = z0 / n;
                 a = xmin * (1 - 4 * cxx::numeric_limits<double>::epsilon());
-                a = cxx::fmax(a, 0);
+                a = cxx::fmax(a, 0.);
                 b = xmax * (1 + 4 * cxx::numeric_limits<double>::epsilon());
                 b = cxx::fmin(b, 1.0 / n);
                 x = cxx::clamp(x, a, b);
@@ -906,7 +906,7 @@ namespace cephes {
                 /* 4(b) : 1/n < x < (n-1)/n */
                 double xmin = 1 - psfrootn;
                 double logpsf = (psf < 0.5 ? cxx::log(psf) : cxx::log1p(-pcdf));
-                double xmax = cxx::sqrt(-logpsf / (2.0L * n));
+                double xmax = cxx::sqrt(-logpsf / (2.0 * n));
                 double xmax6 = xmax - 1.0L / (6 * n);
                 a = xmin;
                 b = xmax;
