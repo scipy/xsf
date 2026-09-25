@@ -781,6 +781,9 @@ namespace amos {
         }
         if (*ierr != 0)
             return 0.;
+        if (std::imag(z) == 0.0) {
+            z = std::complex<double>(std::real(z), 0.0);
+        }
         az = std::abs(z);
         tol = std::numeric_limits<double>::epsilon();
         fid = id;
@@ -2915,6 +2918,9 @@ namespace amos {
         }
         if (*ierr != 0) {
             return 0.0;
+        }
+        if (std::imag(z) == 0.0) {
+            z = std::complex<double>(std::real(z), 0.0);
         }
         az = std::abs(z);
         tol = RTOL_MIN;

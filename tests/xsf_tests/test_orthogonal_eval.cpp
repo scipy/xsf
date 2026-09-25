@@ -1,7 +1,6 @@
 #include "../../include/xsf/config.h"
 #include "../testing_utils.h"
 
-#include <xsf/cephes/polevl.h>
 #include <xsf/evalpoly.h>
 #include <xsf/orthogonal_eval.h>
 
@@ -36,22 +35,14 @@ std::vector<double> multiply(const std::vector<double> &a, const std::vector<dou
     return out;
 }
 
-double polyval(const std::vector<double> &coeffs, double x) {
+template <typename T>
+T polyval(const std::vector<double> &coeffs, T x) {
     if (coeffs.size() == 1) {
         return coeffs[0];
     }
 
     const std::vector<double> reversed(coeffs.rbegin(), coeffs.rend());
-    return xsf::cephes::polevl(x, reversed.data(), reversed.size() - 1);
-}
-
-std::complex<double> polyval(const std::vector<double> &coeffs, std::complex<double> x) {
-    if (coeffs.size() == 1) {
-        return coeffs[0];
-    }
-
-    const std::vector<double> reversed(coeffs.rbegin(), coeffs.rend());
-    return xsf::cevalpoly(reversed.data(), reversed.size() - 1, x);
+    return xsf::evalpoly(reversed.data(), reversed.size() - 1, x);
 }
 
 double sample(double a, double b, int i) {

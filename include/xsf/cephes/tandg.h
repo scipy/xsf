@@ -88,7 +88,7 @@ namespace cephes {
             int sign;
 
             /* make argument positive but save the sign */
-            if (std::signbit(xx)) {
+            if (cxx::signbit(xx)) {
                 x = -xx;
                 sign = -1;
             } else {
@@ -96,7 +96,7 @@ namespace cephes {
                 sign = 1;
             }
 
-            if (std::isinf(x)) {
+            if (cxx::isinf(x)) {
                 set_error((cotflg ? "cotdg" : "tandg"), SF_ERROR_NO_RESULT, NULL);
                 return 0.0;
             }
@@ -104,10 +104,10 @@ namespace cephes {
             /* Reduce modulo a full turn. Exact: 360 is representable and fmod
              * is exact. A turn is an even number of half turns, so the parity
              * of k below is unchanged. */
-            x = std::fmod(x, 360.0);
+            x = cxx::fmod(x, 360.0);
 
             /* modulo 180 */
-            double k = std::floor(x / 180.0);
+            double k = cxx::floor(x / 180.0);
             x = x - 180.0 * k;
             if (cotflg) {
                 if (x <= 90.0) {
@@ -134,10 +134,10 @@ namespace cephes {
                 if (static_cast<long long>(k) & 1) {
                     sign *= -1;
                 }
-                return sign * std::numeric_limits<double>::infinity();
+                return sign * cxx::numeric_limits<double>::infinity();
             }
             /* x is now transformed into [0, 90) */
-            return sign * std::tan(x * detail::PI180);
+            return sign * cxx::tan(x * detail::PI180);
         }
 
     } // namespace detail

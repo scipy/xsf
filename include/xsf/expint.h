@@ -28,19 +28,19 @@ XSF_HOST_DEVICE inline double exp1(double x) {
     constexpr double ga = cephes::detail::SCIPY_EULER;
 
     if (x == 0.0) {
-        return std::numeric_limits<double>::infinity();
+        return cxx::numeric_limits<double>::infinity();
     }
     if (x <= 1.0) {
         e1 = 1.0;
         r = 1.0;
         for (k = 1; k < 26; k++) {
-            r = -r * k * x / std::pow(k + 1.0, 2);
+            r = -r * k * x / cxx::pow(k + 1.0, 2);
             e1 += r;
-            if (std::abs(r) <= std::abs(e1) * 1e-15) {
+            if (cxx::abs(r) <= cxx::abs(e1) * 1e-15) {
                 break;
             }
         }
-        return -ga - std::log(x) + x * e1;
+        return -ga - cxx::log(x) + x * e1;
     }
     m = 20 + (int)(80.0 / x);
     t0 = 0.0;
@@ -48,12 +48,12 @@ XSF_HOST_DEVICE inline double exp1(double x) {
         t0 = k / (1.0 + k / (x + t0));
     }
     t = 1.0 / (x + t0);
-    return std::exp(-x) * t;
+    return cxx::exp(-x) * t;
 }
 
 XSF_HOST_DEVICE inline float exp1(float x) { return exp1(static_cast<double>(x)); }
 
-XSF_HOST_DEVICE inline std::complex<double> exp1(std::complex<double> z) {
+XSF_HOST_DEVICE inline cxx::complex<double> exp1(cxx::complex<double> z) {
     // ====================================================
     // Purpose: Compute complex exponential integral E1(z)
     // Input :  z   --- Argument of E1(z)
@@ -61,33 +61,33 @@ XSF_HOST_DEVICE inline std::complex<double> exp1(std::complex<double> z) {
     // ====================================================
     constexpr double el = cephes::detail::SCIPY_EULER;
     int k;
-    std::complex<double> ce1, cr, zc, zd, zdc;
+    cxx::complex<double> ce1, cr, zc, zd, zdc;
     double x = z.real();
-    double a0 = std::abs(z);
+    double a0 = cxx::abs(z);
     // Continued fraction converges slowly near negative real axis,
     // so use power series in a wedge around it until radius 40.0
-    double xt = -2.0 * std::abs(z.imag());
+    double xt = -2.0 * cxx::abs(z.imag());
 
     if (a0 == 0.0) {
-        return std::numeric_limits<double>::infinity();
+        return cxx::numeric_limits<double>::infinity();
     }
     if ((a0 < 5.0) || ((x < xt) && (a0 < 40.0))) {
         // Power series
         ce1 = 1.0;
         cr = 1.0;
         for (k = 1; k < 501; k++) {
-            cr = -cr * z * static_cast<double>(k / std::pow(k + 1, 2));
+            cr = -cr * z * static_cast<double>(k / cxx::pow(k + 1, 2));
             ce1 += cr;
-            if (std::abs(cr) < std::abs(ce1) * 1e-15) {
+            if (cxx::abs(cr) < cxx::abs(ce1) * 1e-15) {
                 break;
             }
         }
         if ((x <= 0.0) && (z.imag() == 0.0)) {
             // Careful on the branch cut -- use the sign of the imaginary part
             //  to get the right sign on the factor if pi.
-            ce1 = -el - std::log(-z) + z * ce1 - std::copysign(M_PI, z.imag()) * std::complex<double>(0.0, 1.0);
+            ce1 = -el - cxx::log(-z) + z * ce1 - cxx::copysign(M_PI, z.imag()) * cxx::complex<double>(0.0, 1.0);
         } else {
-            ce1 = -el - std::log(z) + z * ce1;
+            ce1 = -el - cxx::log(z) + z * ce1;
         }
     } else {
         // Continued fraction https://dlmf.nist.gov/6.9
@@ -106,20 +106,20 @@ XSF_HOST_DEVICE inline std::complex<double> exp1(std::complex<double> z) {
             zd = static_cast<double>(1) / (zd * static_cast<double>(k) + z);
             zdc *= (z * zd - static_cast<double>(1));
             zc += zdc;
-            if ((std::abs(zdc) <= std::abs(zc) * 1e-15) && (k > 20)) {
+            if ((cxx::abs(zdc) <= cxx::abs(zc) * 1e-15) && (k > 20)) {
                 break;
             }
         }
-        ce1 = std::exp(-z) * zc;
+        ce1 = cxx::exp(-z) * zc;
         if ((x <= 0.0) && (z.imag() == 0.0)) {
-            ce1 -= M_PI * std::complex<double>(0.0, 1.0);
+            ce1 -= M_PI * cxx::complex<double>(0.0, 1.0);
         }
     }
     return ce1;
 }
 
-XSF_HOST_DEVICE inline std::complex<float> exp1(std::complex<float> z) {
-    return static_cast<std::complex<float>>(exp1(static_cast<std::complex<double>>(z)));
+XSF_HOST_DEVICE inline cxx::complex<float> exp1(cxx::complex<float> z) {
+    return static_cast<cxx::complex<float>>(exp1(static_cast<cxx::complex<double>>(z)));
 }
 
 XSF_HOST_DEVICE inline double expi(double x) {
@@ -133,10 +133,10 @@ XSF_HOST_DEVICE inline double expi(double x) {
     double ei, r;
 
     if (x == 0.0) {
-        ei = -std::numeric_limits<double>::infinity();
+        ei = -cxx::numeric_limits<double>::infinity();
     } else if (x < 0) {
         ei = -exp1(-x);
-    } else if (std::abs(x) <= 40.0) {
+    } else if (cxx::abs(x) <= 40.0) {
         // Power series around x=0
         ei = 1.0;
         r = 1.0;
@@ -144,14 +144,14 @@ XSF_HOST_DEVICE inline double expi(double x) {
         for (int k = 1; k <= 100; k++) {
             r = r * k * x / ((k + 1.0) * (k + 1.0));
             ei += r;
-            if (std::abs(r / ei) <= 1.0e-15) {
+            if (cxx::abs(r / ei) <= 1.0e-15) {
                 break;
             }
         }
-        ei = ga + std::log(x) + x * ei;
-    } else if (std::isinf(x)) {
+        ei = ga + cxx::log(x) + x * ei;
+    } else if (cxx::isinf(x)) {
         // Special use-case needed because exp(inf) / inf is undefined/NaN
-        return std::numeric_limits<double>::infinity();
+        return cxx::numeric_limits<double>::infinity();
     } else {
         // Asymptotic expansion (the series is not convergent)
         ei = 1.0;
@@ -160,36 +160,36 @@ XSF_HOST_DEVICE inline double expi(double x) {
             r = r * k / x;
             ei += r;
         }
-        ei = std::exp(x) / x * ei;
+        ei = cxx::exp(x) / x * ei;
     }
     return ei;
 }
 
 XSF_HOST_DEVICE inline float expi(float x) { return expi(static_cast<double>(x)); }
 
-XSF_HOST_DEVICE inline std::complex<double> expi(std::complex<double> z) {
+XSF_HOST_DEVICE inline cxx::complex<double> expi(cxx::complex<double> z) {
     // ============================================
     // Purpose: Compute exponential integral Ei(x)
     // Input :  x  --- Complex argument of Ei(x)
     // Output:  EI --- Ei(x)
     // ============================================
 
-    std::complex<double> cei;
+    cxx::complex<double> cei;
     cei = -exp1(-z);
     if (z.imag() > 0.0) {
-        cei += std::complex<double>(0.0, M_PI);
+        cei += cxx::complex<double>(0.0, M_PI);
     } else if (z.imag() < 0.0) {
-        cei -= std::complex<double>(0.0, M_PI);
+        cei -= cxx::complex<double>(0.0, M_PI);
     } else {
         if (z.real() > 0.0) {
-            cei += std::complex<double>(0.0, copysign(M_PI, z.imag()));
+            cei += cxx::complex<double>(0.0, copysign(M_PI, z.imag()));
         }
     }
     return cei;
 }
 
-XSF_HOST_DEVICE inline std::complex<float> expi(std::complex<float> z) {
-    return static_cast<std::complex<float>>(expi(static_cast<std::complex<double>>(z)));
+XSF_HOST_DEVICE inline cxx::complex<float> expi(cxx::complex<float> z) {
+    return static_cast<cxx::complex<float>>(expi(static_cast<cxx::complex<double>>(z)));
 }
 
 namespace detail {
@@ -249,7 +249,7 @@ namespace detail {
 //
 XSF_HOST_DEVICE inline double scaled_exp1(double x) {
     if (x < 0) {
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
 
     if (x == 0) {
@@ -258,7 +258,7 @@ XSF_HOST_DEVICE inline double scaled_exp1(double x) {
 
     if (x <= 1) {
         // For small x, the naive implementation is sufficiently accurate.
-        return x * std::exp(x) * exp1(x);
+        return x * cxx::exp(x) * exp1(x);
     }
 
     if (x <= 1250) {

@@ -190,6 +190,7 @@ namespace numpy {
     using D_DDDD = void (*)(cdouble, cdouble &, cdouble &, cdouble &, cdouble &);
 
     // 2 inputs, 1 output
+    using pd_d = double (*)(std::ptrdiff_t, double);
     using qf_f = float (*)(long long int, float);
     using qd_d = double (*)(long long int, double);
     using ff_f = float (*)(float, float);
@@ -236,6 +237,7 @@ namespace numpy {
     using dd_dddd = void (*)(double, double, double &, double &, double &, double &);
 
     // 3 inputs, 1 output
+    using pdd_d = double (*)(std::ptrdiff_t, double, double);
     using fff_f = float (*)(float, float, float);
     using ddd_d = double (*)(double, double, double);
     using ffF_F = cfloat (*)(float, float, cfloat);
@@ -270,6 +272,7 @@ namespace numpy {
     using qqd_ddd = void (*)(long long int, long long int, double, double &, double &, double &);
 
     // 4 inputs, 1 output
+    using pddd_d = double (*)(std::ptrdiff_t, double, double, double);
     using llld_d = double (*)(long int, long int, long int, double);
     using qqqd_d = double (*)(long long int, long long int, long long int, double);
     using qqqF_F = cfloat (*)(long long int, long long int, long long int, cfloat);

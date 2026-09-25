@@ -55,7 +55,7 @@
 namespace xsf {
 namespace detail {
 
-    constexpr double TWOITERTOL = std::numeric_limits<double>::epsilon();
+    constexpr double TWOITERTOL = cxx::numeric_limits<double>::epsilon();
 
     /* Computes fl(a+b) and err(a+b).  */
     XSF_HOST_DEVICE inline double two_sum(double a, double b, double *err) {
@@ -70,14 +70,14 @@ namespace detail {
     XSF_HOST_DEVICE inline double add_round_up(double a, double b) {
         double s, err;
 
-        if (std::isnan(a) || std::isnan(b)) {
+        if (cxx::isnan(a) || cxx::isnan(b)) {
             return NAN;
         }
 
         s = two_sum(a, b, &err);
         if (err > 0) {
             /* fl(a + b) rounded down */
-            return std::nextafter(s, INFINITY);
+            return cxx::nextafter(s, INFINITY);
         } else {
             /* fl(a + b) rounded up or didn't round */
             return s;
@@ -87,13 +87,13 @@ namespace detail {
     XSF_HOST_DEVICE inline double add_round_down(double a, double b) {
         double s, err;
 
-        if (std::isnan(a) || std::isnan(b)) {
+        if (cxx::isnan(a) || cxx::isnan(b)) {
             return NAN;
         }
 
         s = two_sum(a, b, &err);
         if (err < 0) {
-            return std::nextafter(s, -INFINITY);
+            return cxx::nextafter(s, -INFINITY);
         } else {
             return s;
         }
@@ -101,15 +101,15 @@ namespace detail {
 
 } // namespace detail
 
-XSF_HOST_DEVICE inline std::complex<double> wrightomega(std::complex<double> z) {
-    constexpr std::complex<double> I(0.0, 1.0);
+XSF_HOST_DEVICE inline cxx::complex<double> wrightomega(cxx::complex<double> z) {
+    constexpr cxx::complex<double> I(0.0, 1.0);
     double pi = M_PI, s = 1.0;
     double x, y, ympi, yppi, near;
-    std::complex<double> e, r, pz, wp1, t, fac, w;
+    cxx::complex<double> e, r, pz, wp1, t, fac, w;
 
     /* extract real and imaginary parts of z */
-    x = std::real(z);
-    y = std::imag(z);
+    x = cxx::real(z);
+    y = cxx::imag(z);
 
     /* compute if we are near the branch cuts */
     ympi = y - pi;
@@ -120,39 +120,39 @@ XSF_HOST_DEVICE inline std::complex<double> wrightomega(std::complex<double> z) 
     /*****************************/
     /* NaN output for NaN input  */
     /*****************************/
-    if (std::isnan(x) || std::isnan(y)) {
-        return std::complex<double>(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN());
+    if (cxx::isnan(x) || cxx::isnan(y)) {
+        return cxx::complex<double>(cxx::numeric_limits<double>::quiet_NaN(), cxx::numeric_limits<double>::quiet_NaN());
     }
     /*********************************/
     /* Signed zeros between branches */
     /*********************************/
-    else if (std::isinf(x) && (x < 0.0) && (-pi < y) && (y <= pi)) {
-        if (std::fabs(y) <= pi / 2.0) {
+    else if (cxx::isinf(x) && (x < 0.0) && (-pi < y) && (y <= pi)) {
+        if (cxx::fabs(y) <= pi / 2.0) {
             if (y >= 0) {
-                return std::complex<double>(0.0, 0.0);
+                return cxx::complex<double>(0.0, 0.0);
             } else {
-                return std::complex<double>(0.0, -0.0);
+                return cxx::complex<double>(0.0, -0.0);
             }
         } else {
             if (y >= 0) {
-                return std::complex<double>(-0.0, 0.0);
+                return cxx::complex<double>(-0.0, 0.0);
             } else {
-                return std::complex<double>(-0.0, -0.0);
+                return cxx::complex<double>(-0.0, -0.0);
             }
         }
     }
     /**************************/
     /* Asymptotic for large z */
     /**************************/
-    else if (std::isinf(x) || std::isinf(y)) {
-        return std::complex<double>(x, y);
+    else if (cxx::isinf(x) || cxx::isinf(y)) {
+        return cxx::complex<double>(x, y);
     }
 
     /******************************************/
     /* Test If exactly on the singular points */
     /******************************************/
-    if ((x == -1.0) && (std::fabs(y) == pi)) {
-        return std::complex<double>(-1.0, 0.0);
+    if ((x == -1.0) && (cxx::fabs(y) == pi)) {
+        return cxx::complex<double>(-1.0, 0.0);
     }
 
     /* Choose approximation based on region */
@@ -161,7 +161,7 @@ XSF_HOST_DEVICE inline std::complex<double> wrightomega(std::complex<double> z) 
     /* Series about z=-1+Pi*I         */
     /**********************************/
     if ((-2.0 < x && x <= 1.0 && 1.0 < y && y < 2.0 * pi)) {
-        pz = std::conj(std::sqrt(std::conj(2.0 * (z + 1.0 - I * pi))));
+        pz = cxx::conj(cxx::sqrt(cxx::conj(2.0 * (z + 1.0 - I * pi))));
         w = -1.0 + (I + (1.0 / 3.0 + (-1.0 / 36.0 * I + (1.0 / 270.0 + 1.0 / 4320.0 * I * pz) * pz) * pz) * pz) * pz;
     }
     /**********************************/
@@ -169,7 +169,7 @@ XSF_HOST_DEVICE inline std::complex<double> wrightomega(std::complex<double> z) 
     /* Series about z=-1-Pi*I         */
     /**********************************/
     else if ((-2.0 < x && x <= 1.0 && -2.0 * pi < y && y < -1.0)) {
-        pz = std::conj(std::sqrt(std::conj(2.0 * (z + 1.0 + I * pi))));
+        pz = cxx::conj(cxx::sqrt(cxx::conj(2.0 * (z + 1.0 + I * pi))));
         w = -1.0 + (-I + (1.0 / 3.0 + (1.0 / 36.0 * I + (1.0 / 270.0 - 1.0 / 4320.0 * I * pz) * pz) * pz) * pz) * pz;
     }
     /*********************************/
@@ -177,7 +177,7 @@ XSF_HOST_DEVICE inline std::complex<double> wrightomega(std::complex<double> z) 
     /* Series: About -infinity       */
     /*********************************/
     else if (x <= -2.0 && -pi < y && y <= pi) {
-        pz = std::exp(z);
+        pz = cxx::exp(z);
         w = (1.0 + (-1.0 + (3.0 / 2.0 + (-8.0 / 3.0 + 125.0 / 24.0 * pz) * pz) * pz) * pz) * pz;
         if (w == 0.0) {
             set_error("wrightomega", SF_ERROR_UNDERFLOW, "underflow in exponential series");
@@ -203,7 +203,7 @@ XSF_HOST_DEVICE inline std::complex<double> wrightomega(std::complex<double> z) 
     /*************************/
     else if (x <= -0.105e1 && pi < y && y - pi <= -0.75e0 * (x + 0.1e1)) {
         t = z - I * pi;
-        pz = std::log(-t);
+        pz = cxx::log(-t);
         w = t - pz;
         fac = pz / t;
         w += fac;
@@ -211,7 +211,7 @@ XSF_HOST_DEVICE inline std::complex<double> wrightomega(std::complex<double> z) 
         w += fac * (0.5 * pz - 1.0);
         fac /= t;
         w += fac * (pz * pz / 3.0 - 3.0 * pz / 2.0 + 1.0);
-        if (std::abs(z) > 1e50)
+        if (cxx::abs(z) > 1e50)
         /* Series is accurate and the iterative scheme could overflow */
         {
             return w;
@@ -223,7 +223,7 @@ XSF_HOST_DEVICE inline std::complex<double> wrightomega(std::complex<double> z) 
     /***************************/
     else if (x <= -0.105e1 && 0.75e0 * (x + 0.1e1) < y + pi && y + pi <= 0.0e0) {
         t = z + I * pi;
-        pz = std::log(-t);
+        pz = cxx::log(-t);
         w = t - pz;
         fac = pz / t;
         w += fac;
@@ -231,7 +231,7 @@ XSF_HOST_DEVICE inline std::complex<double> wrightomega(std::complex<double> z) 
         w += fac * (0.5 * pz - 1.0);
         fac /= t;
         w += fac * (pz * pz / 3.0 - 3.0 * pz / 2.0 + 1.0);
-        if (std::abs(z) > 1e50)
+        if (cxx::abs(z) > 1e50)
         /* Series is accurate and the iterative scheme could overflow */
         {
             return w;
@@ -242,7 +242,7 @@ XSF_HOST_DEVICE inline std::complex<double> wrightomega(std::complex<double> z) 
     /* Series solution about infinity   */
     /************************************/
     else {
-        pz = std::log(z);
+        pz = cxx::log(z);
         w = z - pz;
         fac = pz / z;
         w += fac;
@@ -250,7 +250,7 @@ XSF_HOST_DEVICE inline std::complex<double> wrightomega(std::complex<double> z) 
         w += fac * (0.5 * pz - 1.0);
         fac /= z;
         w += fac * (pz * pz / 3.0 - 3.0 * pz / 2.0 + 1.0);
-        if (std::abs(z) > 1e50)
+        if (cxx::abs(z) > 1e50)
         /* Series is accurate and the iterative scheme could overflow */
         {
             return w;
@@ -260,9 +260,9 @@ XSF_HOST_DEVICE inline std::complex<double> wrightomega(std::complex<double> z) 
     /**********************************/
     /* Regularize if near branch cuts */
     /**********************************/
-    if (x <= -0.1e1 + near && (std::fabs(ympi) <= near || std::fabs(yppi) <= near)) {
+    if (x <= -0.1e1 + near && (cxx::fabs(ympi) <= near || cxx::fabs(yppi) <= near)) {
         s = -1.0;
-        if (std::fabs(ympi) <= near) {
+        if (cxx::fabs(ympi) <= near) {
             /* Recompute ympi with directed rounding */
             ympi = detail::add_round_up(y, -pi);
 
@@ -287,7 +287,7 @@ XSF_HOST_DEVICE inline std::complex<double> wrightomega(std::complex<double> z) 
     /* Iteration one */
     /*****************/
     w = s * w;
-    r = z - s * w - std::log(w);
+    r = z - s * w - cxx::log(w);
     wp1 = s * w + 1.0;
     e = r / wp1 * (2.0 * wp1 * (wp1 + 2.0 / 3.0 * r) - r) / (2.0 * wp1 * (wp1 + 2.0 / 3.0 * r) - 2.0 * r);
     w = w * (1.0 + e);
@@ -295,9 +295,9 @@ XSF_HOST_DEVICE inline std::complex<double> wrightomega(std::complex<double> z) 
     /*****************/
     /* Iteration two */
     /*****************/
-    if (std::abs((2.0 * w * w - 8.0 * w - 1.0) * std::pow(std::abs(r), 4.0)) >=
-        detail::TWOITERTOL * 72.0 * std::pow(std::abs(wp1), 6.0)) {
-        r = z - s * w - std::log(w);
+    if (cxx::abs((2.0 * w * w - 8.0 * w - 1.0) * cxx::pow(cxx::abs(r), 4.0)) >=
+        detail::TWOITERTOL * 72.0 * cxx::pow(cxx::abs(wp1), 6.0)) {
+        r = z - s * w - cxx::log(w);
         wp1 = s * w + 1.0;
         e = r / wp1 * (2.0 * wp1 * (wp1 + 2.0 / 3.0 * r) - r) / (2.0 * wp1 * (wp1 + 2.0 / 3.0 * r) - 2.0 * r);
         w = w * (1.0 + e);
@@ -311,21 +311,21 @@ XSF_HOST_DEVICE inline std::complex<double> wrightomega(std::complex<double> z) 
     return w;
 }
 
-XSF_HOST_DEVICE inline std::complex<float> wrightomega(std::complex<float> z) {
-    return static_cast<std::complex<float>>(wrightomega(static_cast<std::complex<double>>(z)));
+XSF_HOST_DEVICE inline cxx::complex<float> wrightomega(cxx::complex<float> z) {
+    return static_cast<cxx::complex<float>>(wrightomega(static_cast<cxx::complex<double>>(z)));
 }
 
 XSF_HOST_DEVICE inline double wrightomega(double x) {
     double w, wp1, e, r;
 
     /* NaN output for NaN input  */
-    if (std::isnan(x)) {
+    if (cxx::isnan(x)) {
         return x;
     }
 
     /* Positive infinity is asymptotically x */
     /* Negative infinity is zero */
-    if (std::isinf(x)) {
+    if (cxx::isinf(x)) {
         if (x > 0.0) {
             return x;
         } else {
@@ -338,7 +338,7 @@ XSF_HOST_DEVICE inline double wrightomega(double x) {
          * Skip the iterative scheme because  exp(x) is already
          * accurate to double precision.
          */
-        w = std::exp(x);
+        w = cxx::exp(x);
         if (w == 0.0) {
             set_error("wrightomega", SF_ERROR_UNDERFLOW, "underflow in exponential series");
         }
@@ -355,26 +355,26 @@ XSF_HOST_DEVICE inline double wrightomega(double x) {
     /* Split into three distinct intervals (-inf,-2), [-2,1), [1,inf) */
     if (x < -2.0) {
         /* exponential is approx < 1.3e-1 accurate */
-        w = std::exp(x);
+        w = cxx::exp(x);
     } else if (x < 1) {
         /* on [-2,1) approx < 1.5e-1 accurate */
-        w = std::exp(2.0 * (x - 1.0) / 3.0);
+        w = cxx::exp(2.0 * (x - 1.0) / 3.0);
     } else {
         /* infinite series with 2 terms approx <1.7e-1 accurate */
-        w = std::log(x);
+        w = cxx::log(x);
         w = x - w + w / x;
     }
 
     /* Iteration one of Fritsch, Shafer, and Crowley (FSC) iteration */
-    r = x - w - std::log(w);
+    r = x - w - cxx::log(w);
     wp1 = w + 1.0;
     e = r / wp1 * (2.0 * wp1 * (wp1 + 2.0 / 3.0 * r) - r) / (2.0 * wp1 * (wp1 + 2.0 / 3.0 * r) - 2.0 * r);
     w = w * (1.0 + e);
 
     /* Iteration two (if needed based on the condition number) */
-    if (std::fabs((2.0 * w * w - 8.0 * w - 1.0) * std::pow(std::fabs(r), 4.0)) >=
-        detail::TWOITERTOL * 72.0 * std::pow(std::fabs(wp1), 6.0)) {
-        r = x - w - std::log(w);
+    if (cxx::fabs((2.0 * w * w - 8.0 * w - 1.0) * cxx::pow(cxx::fabs(r), 4.0)) >=
+        detail::TWOITERTOL * 72.0 * cxx::pow(cxx::fabs(wp1), 6.0)) {
+        r = x - w - cxx::log(w);
         wp1 = w + 1.0;
         e = r / wp1 * (2.0 * wp1 * (wp1 + 2.0 / 3.0 * r) - r) / (2.0 * wp1 * (wp1 + 2.0 / 3.0 * r) - 2.0 * r);
         w = w * (1.0 + e);

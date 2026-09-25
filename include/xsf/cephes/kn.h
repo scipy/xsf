@@ -106,16 +106,16 @@ namespace cephes {
         if (n > detail::kn_MAXFAC) {
         overf:
             set_error("kn", SF_ERROR_OVERFLOW, NULL);
-            return (std::numeric_limits<double>::infinity());
+            return (cxx::numeric_limits<double>::infinity());
         }
 
         if (x <= 0.0) {
             if (x < 0.0) {
                 set_error("kn", SF_ERROR_DOMAIN, NULL);
-                return std::numeric_limits<double>::quiet_NaN();
+                return cxx::numeric_limits<double>::quiet_NaN();
             } else {
                 set_error("kn", SF_ERROR_SINGULAR, NULL);
-                return std::numeric_limits<double>::infinity();
+                return cxx::numeric_limits<double>::infinity();
             }
         }
 
@@ -155,20 +155,20 @@ namespace cephes {
                     zn *= z;
                     t = nk1f * zn / kf;
                     s += t;
-                    if ((std::numeric_limits<double>::max() - std::abs(t)) < std::abs(s)) {
+                    if ((cxx::numeric_limits<double>::max() - cxx::abs(t)) < cxx::abs(s)) {
                         goto overf;
                     }
-                    if ((tox > 1.0) && ((std::numeric_limits<double>::max() / tox) < zmn)) {
+                    if ((tox > 1.0) && ((cxx::numeric_limits<double>::max() / tox) < zmn)) {
                         goto overf;
                     }
                     zmn *= tox;
                 }
                 s *= 0.5;
-                t = std::abs(s);
-                if ((zmn > 1.0) && ((std::numeric_limits<double>::max() / zmn) < t)) {
+                t = cxx::abs(s);
+                if ((zmn > 1.0) && ((cxx::numeric_limits<double>::max() / zmn) < t)) {
                     goto overf;
                 }
-                if ((t > 1.0) && ((std::numeric_limits<double>::max() / t) < zmn)) {
+                if ((t > 1.0) && ((cxx::numeric_limits<double>::max() / t) < zmn)) {
                     goto overf;
                 }
                 ans = s * zmn;
@@ -218,12 +218,12 @@ namespace cephes {
         fn = 1.0;
         t = 1.0;
         s = t;
-        nkf = std::numeric_limits<double>::infinity();
+        nkf = cxx::numeric_limits<double>::infinity();
         i = 0;
         do {
             z = pn - pk * pk;
             t = t * z / (fn * z0);
-            nk1f = std::abs(t);
+            nk1f = cxx::abs(t);
             if ((i >= n) && (nk1f > nkf)) {
                 goto adone;
             }
@@ -232,10 +232,10 @@ namespace cephes {
             fn += 1.0;
             pk += 2.0;
             i += 1;
-        } while (std::abs(t / s) > detail::MACHEP);
+        } while (cxx::abs(t / s) > detail::MACHEP);
 
     adone:
-        ans = std::exp(-x) * std::sqrt(M_PI / (2.0 * x)) * s;
+        ans = cxx::exp(-x) * cxx::sqrt(M_PI / (2.0 * x)) * s;
         return (ans);
     }
 

@@ -125,20 +125,20 @@ namespace cephes {
 
         if (x == 0.0) {
             set_error("k1", SF_ERROR_SINGULAR, NULL);
-            return std::numeric_limits<double>::infinity();
+            return cxx::numeric_limits<double>::infinity();
         } else if (x < 0.0) {
             set_error("k1", SF_ERROR_DOMAIN, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
         z = 0.5 * x;
 
         if (x <= 2.0) {
             y = x * x - 2.0;
-            y = std::log(z) * i1(x) + chbevl(y, detail::k1_A, 11) / x;
+            y = cxx::log(z) * i1(x) + chbevl(y, detail::k1_A, 11) / x;
             return (y);
         }
 
-        return (std::exp(-x) * chbevl(8.0 / x - 2.0, detail::k1_B, 25) / std::sqrt(x));
+        return (cxx::exp(-x) * chbevl(8.0 / x - 2.0, detail::k1_B, 25) / cxx::sqrt(x));
     }
 
     XSF_HOST_DEVICE double k1e(double x) {
@@ -146,19 +146,19 @@ namespace cephes {
 
         if (x == 0.0) {
             set_error("k1e", SF_ERROR_SINGULAR, NULL);
-            return std::numeric_limits<double>::infinity();
+            return cxx::numeric_limits<double>::infinity();
         } else if (x < 0.0) {
             set_error("k1e", SF_ERROR_DOMAIN, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         if (x <= 2.0) {
             y = x * x - 2.0;
-            y = std::log(0.5 * x) * i1(x) + chbevl(y, detail::k1_A, 11) / x;
+            y = cxx::log(0.5 * x) * i1(x) + chbevl(y, detail::k1_A, 11) / x;
             return (y * exp(x));
         }
 
-        return (chbevl(8.0 / x - 2.0, detail::k1_B, 25) / std::sqrt(x));
+        return (chbevl(8.0 / x - 2.0, detail::k1_B, 25) / cxx::sqrt(x));
     }
 
 } // namespace cephes

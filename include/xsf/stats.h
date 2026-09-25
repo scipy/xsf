@@ -17,6 +17,7 @@
 #include "config.h"
 #include "erf.h"
 #include "gamma.h"
+#include "tools.h"
 
 namespace xsf {
 
@@ -86,10 +87,10 @@ XSF_HOST_DEVICE XSF_HOST_DEVICE inline double ndtr(double x) { return cephes::nd
 
 XSF_HOST_DEVICE XSF_HOST_DEVICE inline float ndtr(float x) { return ndtr(static_cast<double>(x)); }
 
-XSF_HOST_DEVICE inline std::complex<double> ndtr(std::complex<double> z) { return 0.5 * erfc(-z * M_SQRT1_2); }
+XSF_HOST_DEVICE inline cxx::complex<double> ndtr(cxx::complex<double> z) { return 0.5 * erfc(-z * M_SQRT1_2); }
 
-XSF_HOST_DEVICE inline std::complex<float> ndtr(std::complex<float> z) {
-    return static_cast<std::complex<float>>(ndtr(static_cast<std::complex<double>>(z)));
+XSF_HOST_DEVICE inline cxx::complex<float> ndtr(cxx::complex<float> z) {
+    return static_cast<cxx::complex<float>>(ndtr(static_cast<cxx::complex<double>>(z)));
 }
 
 /*
@@ -132,11 +133,11 @@ XSF_HOST_DEVICE inline float log_ndtr(float x) { return log_ndtr(static_cast<dou
  * This implementation uses $\erfc(z) = \exp(-z^2) w(iz)$ taking special care to select
  * the principal branch of the log function log( exp(-z^2) w(i z) )
  */
-XSF_HOST_DEVICE inline std::complex<double> log_ndtr(std::complex<double> z) {
+XSF_HOST_DEVICE inline cxx::complex<double> log_ndtr(cxx::complex<double> z) {
     if (z.real() > 6) {
         // Underflow. Close to the real axis, expand the log in log(1 - ndtr(-z)).
-        std::complex<double> w = -0.5 * erfc(z * M_SQRT1_2);
-        if (std::abs(w) < 1e-8) {
+        cxx::complex<double> w = -0.5 * erfc(z * M_SQRT1_2);
+        if (cxx::abs(w) < 1e-8) {
             return w;
         }
     }
@@ -157,10 +158,10 @@ XSF_HOST_DEVICE inline std::complex<double> log_ndtr(std::complex<double> z) {
         im -= 2.0 * M_PI;
     }
 
-    std::complex<double> val1 = std::complex<double>(mRe_z2, im);
+    cxx::complex<double> val1 = cxx::complex<double>(mRe_z2, im);
 
-    std::complex<double> val2 = std::log(xsf::wofz(complex<double>(-y, x)));
-    std::complex<double> result = val1 + val2 - M_LN2;
+    cxx::complex<double> val2 = cxx::log(xsf::wofz(complex<double>(-y, x)));
+    cxx::complex<double> result = val1 + val2 - M_LN2;
 
     /* Again, select the principal branch: log(z) = log|z| + i arg(z), thus
      * the imaginary part of the result should belong to [-pi, pi].
@@ -176,8 +177,8 @@ XSF_HOST_DEVICE inline std::complex<double> log_ndtr(std::complex<double> z) {
     return {result.real(), im};
 }
 
-XSF_HOST_DEVICE inline std::complex<float> log_ndtr(std::complex<float> z) {
-    return static_cast<std::complex<float>>(log_ndtr(static_cast<std::complex<double>>(z)));
+XSF_HOST_DEVICE inline cxx::complex<float> log_ndtr(cxx::complex<float> z) {
+    return static_cast<cxx::complex<float>>(log_ndtr(static_cast<cxx::complex<double>>(z)));
 }
 
 XSF_HOST_DEVICE inline double nbdtr(int k, int n, double p) { return cephes::nbdtr(k, n, p); }
@@ -186,186 +187,10 @@ XSF_HOST_DEVICE inline float nbdtr(int k, int n, float p) {
     return static_cast<float>(nbdtr(k, n, static_cast<double>(p)));
 }
 
-XSF_HOST_DEVICE inline bool bivariate_normal_sf_boundary(double dh, double dk, double r, double &p) {
-    // Handles degenerate cases for bivariate_normal_sf (infinite arguments or zero correlation).
-    // Returns true and sets p if a boundary case applies, false otherwise.
-
-    const double math_inf = std::numeric_limits<double>::infinity();
-    if (dh == math_inf || dk == math_inf) {
-        // if dh ==  inf | dk ==  inf:p = 0;
-        p = 0.0;
-        return true;
-    }
-    if (dh == -math_inf) {
-        // elseif dh == -inf, if dk == -inf, p = 1; else p = phid(-dk); end
-        p = (dk == -math_inf) ? 1.0 : ndtr(-dk);
-        return true;
-    }
-    if (dk == -math_inf) {
-        // elseif dk == -inf, p = phid(-dh);
-        p = ndtr(-dh);
-        return true;
-    }
-    if (r == 0.0) {
-        // elseif r == 0, p = phid(-dh)*phid(-dk);
-        p = ndtr(-dh) * ndtr(-dk);
-        return true;
-    }
-    return false;
-}
-
-constexpr double bvn_w6[3] = {0.1713244923791705, 0.3607615730481384, 0.4679139345726904};
-constexpr double bvn_x6[3] = {0.9324695142031522, 0.6612093864662647, 0.2386191860831970};
-
-constexpr double bvn_w12[6] = {0.04717533638651177, 0.1069393259953183, 0.1600783285433464,
-                               0.2031674267230659,  0.2334925365383547, 0.2491470458134029};
-constexpr double bvn_x12[6] = {0.9815606342467191, 0.9041172563704750, 0.7699026741943050,
-                               0.5873179542866171, 0.3678314989981802, 0.1252334085114692};
-
-constexpr double bvn_w20[10] = {0.01761400713915212, 0.04060142980038694, 0.06267204833410906, 0.08327674157670475,
-                                0.1019301198172404,  0.1181945319615184,  0.1316886384491766,  0.1420961093183821,
-                                0.1491729864726037,  0.1527533871307259};
-constexpr double bvn_x20[10] = {0.9931285991850949, 0.9639719272779138, 0.9122344282513259, 0.8391169718222188,
-                                0.7463319064601508, 0.6360536807265150, 0.5108670019508271, 0.3737060887154196,
-                                0.2277858511416451, 0.07652652113349733};
-
-XSF_HOST_DEVICE inline double bivariate_normal_sf(double dh, double dk, double r) {
-    // Survival function of the standard bivariate normal distribution.
-    //
-    // Return P(X > dh, Y > dk) for a standard bivariate normal vector
-    // (X, Y) with correlation r.
-    //
-    // dh, dk are the lower limits of the upper tail, and r must satisfy
-    // -1 <= r <= 1.
-    //
-    // Adapted from the MATLAB original implementation by Dr. Alan Genz;
-    // see license information in _qmvnt.py
-    // In the comments, phid is the CDF of the standard normal distribution.
-
-    double p;
-    if (bivariate_normal_sf_boundary(dh, dk, r, p)) {
-        return p;
-    }
-    // else, tp = 2*pi; h = dh; k = dk; hk = h*k; bvn = 0;
-    double tp = 2 * M_PI;
-    double h = dh;
-    double k = dk;
-    double hk = h * k;
-    double bvn = 0.0;
-    const double *w;
-    const double *x;
-    int n;
-    if (std::abs(r) < 0.3) {
-        // Gauss Legendre points and weights, n = 6
-        w = bvn_w6;
-        x = bvn_x6;
-        n = 3;
-    } else if (std::abs(r) < 0.75) {
-        // Gauss Legendre points and weights, n = 12
-        w = bvn_w12;
-        x = bvn_x12;
-        n = 6;
-    } else {
-        // Gauss Legendre points and weights, n = 20
-        w = bvn_w20;
-        x = bvn_x20;
-        n = 10;
-    }
-
-    // if abs(r) < 0.925, hs = ( h*h + k*k )/2; asr = asin(r)/2;
-    if (std::abs(r) < 0.925) {
-        double hs = (h * h + k * k) / 2.0;
-        double asr = std::asin(r) / 2.0;
-        // sn = sin(asr*x); bvn = exp((sn*hk-hs)./(1-sn.^2))*w';
-        for (int i = 0; i < n; ++i) {
-            const double x_i[2] = {1.0 - x[i], 1.0 + x[i]};
-            for (int j = 0; j < 2; ++j) {
-                double sn = std::sin(asr * x_i[j]);
-                bvn += std::exp((sn * hk - hs) / (1.0 - sn * sn)) * w[i];
-            }
-        }
-        // bvn = bvn*asr/tp + phid(-h)*phid(-k);
-        bvn = bvn * asr / tp + ndtr(-h) * ndtr(-k);
-    } else {
-        // else, if r < 0, k = -k; hk = -hk; end
-        if (r < 0.0) {
-            k = -k;
-            hk = -hk;
-        }
-        if (std::abs(r) < 1.0) {
-            // if abs(r) < 1, as = 1-r^2; a = sqrt(as); bs = (h-k)^2;
-            double as_ = 1.0 - r * r;
-            double a = std::sqrt(as_);
-            double bs = (h - k) * (h - k);
-            // asr = -( bs/as + hk )/2; c = (4-hk)/8 ; d = (12-hk)/80;
-            double asr = -(bs / as_ + hk) / 2.0;
-            double c = (4.0 - hk) / 8.0;
-            double d = (12.0 - hk) / 80.0;
-            if (asr > -100.0)
-                // if asr > -100, bvn = a*exp(asr)*(1-c*(bs-as)*(1-d*bs)/3+c*d*as^2); end
-                bvn = a * std::exp(asr) * (1.0 - c * (bs - as_) * (1.0 - d * bs) / 3.0 + c * d * as_ * as_);
-            if (hk > -100.0) {
-                // if hk  > -100, b = sqrt(bs); sp = sqrt(tp)*phid(-b/a);
-                double b = std::sqrt(bs);
-                double sp = std::sqrt(tp) * ndtr(-b / a);
-                // bvn = bvn - exp(-hk/2)*sp*b*( 1 - c*bs*(1-d*bs)/3 );
-                bvn = bvn - std::exp(-hk / 2.0) * sp * b * (1.0 - c * bs * (1.0 - d * bs) / 3.0);
-            }
-            // end, a = a/2; xs = (a*x).^2; asr = -( bs./xs + hk )/2;
-            a = a / 2.0;
-
-            // ix = find( asr > -100 ); xs = xs(ix); sp = ( 1 + c*xs.*(1+5*d*xs) );
-            double tmp = 0.0;
-            for (int i = 0; i < n; ++i) {
-                const double x_i[2] = {1.0 - x[i], 1.0 + x[i]};
-                for (int j = 0; j < 2; ++j) {
-                    double xs_i = (a * x_i[j]) * (a * x_i[j]);
-                    double asr_i = -(bs / xs_i + hk) / 2.0;
-                    if (asr_i <= -100.0) {
-                        continue;
-                    }
-                    double sp = 1.0 + c * xs_i * (1.0 + 5.0 * d * xs_i);
-                    // rs = sqrt(1-xs); ep = exp( -(hk/2)*xs./(1+rs).^2 )./rs;
-                    double rs = std::sqrt(1.0 - xs_i);
-                    double ep = std::exp(-(hk / 2.0) * xs_i / ((1.0 + rs) * (1.0 + rs))) / rs;
-                    tmp += w[i] * std::exp(asr_i) * (sp - ep);
-                }
-            }
-
-            // bvn = ( a*( (exp(asr(ix)).*(sp-ep))*w(ix)' ) - bvn )/tp;
-            bvn = (a * tmp - bvn) / tp;
-        }
-        // end
-        // if r > 0, bvn =  bvn + phid( -max( h, k ) );
-        if (r > 0.0) {
-            bvn = bvn + ndtr(-(h > k ? h : k));
-        } else if (h >= k) {
-            // elseif h >= k, bvn = -bvn;
-            bvn = -bvn;
-        } else {
-            // else, if h < 0, L = phid(k)-phid(h); else, L = phid(-h)-phid(-k); end
-            double L;
-            if (h < 0.0) {
-                L = ndtr(k) - ndtr(h);
-            } else {
-                L = ndtr(-h) - ndtr(-k);
-            }
-            // bvn =  L - bvn;
-            bvn = L - bvn;
-        }
-    }
-    // end, p = max( 0, min( 1, bvn ) );
-    return bvn < 0.0 ? 0.0 : (bvn > 1.0 ? 1.0 : bvn);
-}
-
 XSF_HOST_DEVICE inline double nbdtrc(int k, int n, double p) { return cephes::nbdtrc(k, n, p); }
 
 XSF_HOST_DEVICE inline float nbdtrc(int k, int n, float p) {
     return static_cast<float>(nbdtrc(k, n, static_cast<double>(p)));
-}
-
-XSF_HOST_DEVICE inline float bivariate_normal_sf(float dh, float dk, float r) {
-    return bivariate_normal_sf(static_cast<double>(dh), static_cast<double>(dk), static_cast<double>(r));
 }
 
 XSF_HOST_DEVICE inline double nbdtri(int k, int n, double p) { return cephes::nbdtri(k, n, p); }
@@ -379,14 +204,14 @@ XSF_HOST_DEVICE inline double ndtri(double x) { return cephes::ndtri(x); }
 XSF_HOST_DEVICE inline float ndtri(float x) { return static_cast<float>(cephes::ndtri(x)); }
 
 XSF_HOST_DEVICE XSF_HOST_DEVICE inline double nrdtrimn(double p, double std, double x) {
-    if (std::isnan(std) || std <= 0) {
-        return std::numeric_limits<double>::quiet_NaN();
+    if (cxx::isnan(std) || std <= 0) {
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
-    if (std::isnan(p) || p <= 0 || p >= 1) {
-        return std::numeric_limits<double>::quiet_NaN();
+    if (cxx::isnan(p) || p <= 0 || p >= 1) {
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
-    if (std::isnan(x)) {
-        return std::numeric_limits<double>::quiet_NaN();
+    if (cxx::isnan(x)) {
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     return x - std * cephes::ndtri(p);
 }
@@ -396,11 +221,11 @@ XSF_HOST_DEVICE XSF_HOST_DEVICE inline float nrdtrimn(float p, float std, float 
 }
 
 XSF_HOST_DEVICE XSF_HOST_DEVICE inline double nrdtrisd(double mean, double p, double x) {
-    if (std::isnan(mean) || std::isnan(p) || std::isnan(x)) {
-        return std::numeric_limits<double>::quiet_NaN();
+    if (cxx::isnan(mean) || cxx::isnan(p) || cxx::isnan(x)) {
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     if (p <= 0 || p >= 1) {
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     return (x - mean) / cephes::ndtri(p);
 }
@@ -507,29 +332,29 @@ XSF_HOST_DEVICE inline void poisson_binom_cdf_all(InputMat p, OutputMat res) {
 
     detail::poisson_binom_pmf_all_impl(p, res);
     for (decltype(n) i = 1; i < n; i++) {
-        res(i) = std::min(res(i) + res(i - 1), T(1));
+        res(i) = cxx::min(res(i) + res(i - 1), T(1));
     }
     res(n) = T(1);
 }
 
-template <typename InputMat>
-XSF_HOST_DEVICE inline typename InputMat::value_type take_from_pmf(InputMat pmf, long long int k) {
+template <typename InputMat, typename Int>
+XSF_HOST_DEVICE inline typename InputMat::value_type take_from_pmf(InputMat pmf, Int k) {
     using T = typename InputMat::value_type;
     auto size = pmf.extent(0);
-    if ((k < 0) || (k >= static_cast<long long int>(size))) {
+    if (detail::cmp_less(k, 0) || !detail::cmp_less(k, size)) {
         return T(0);
     }
     return pmf(k);
 }
 
-template <typename InputMat>
-XSF_HOST_DEVICE inline typename InputMat::value_type take_from_discrete_cdf(InputMat cdf, long long int k) {
+template <typename InputMat, typename Int>
+XSF_HOST_DEVICE inline typename InputMat::value_type take_from_discrete_cdf(InputMat cdf, Int k) {
     using T = typename InputMat::value_type;
     auto size = cdf.extent(0);
-    if (k < 0) {
+    if (detail::cmp_less(k, 0)) {
         return T(0);
     }
-    if (k >= static_cast<long long int>(size) - 1) {
+    if (!detail::cmp_less(k, size - 1)) {
         return T(1);
     }
     return cdf(k);
@@ -600,7 +425,7 @@ XSF_HOST_DEVICE inline void wilcoxon_cdf_all(int n, OutputMat res) {
 
     detail::wilcoxon_pmf_all_impl(n, res);
     for (long long int i = 1; i < out_size - 1; ++i) {
-        res(i) = std::min(res(i) + res(i - 1), T(1.0));
+        res(i) = cxx::min(res(i) + res(i - 1), T(1.0));
     }
     res(out_size - 1) = T(1.0);
 }
@@ -614,8 +439,8 @@ XSF_HOST_DEVICE inline typename InputMat::value_type wilcoxon_pmf(long long int 
 template <typename InputMat>
 XSF_HOST_DEVICE inline typename InputMat::value_type wilcoxon_pmf(double k, InputMat pmf) {
     using T = typename InputMat::value_type;
-    if (std::isnan(k)) {
-        return std::numeric_limits<T>::quiet_NaN();
+    if (cxx::isnan(k)) {
+        return cxx::numeric_limits<T>::quiet_NaN();
     }
     return wilcoxon_pmf(static_cast<long long int>(k), pmf);
 }
@@ -629,8 +454,8 @@ XSF_HOST_DEVICE inline typename InputMat::value_type wilcoxon_cdf(long long int 
 template <typename InputMat>
 XSF_HOST_DEVICE inline typename InputMat::value_type wilcoxon_cdf(double k, InputMat cdf) {
     using T = typename InputMat::value_type;
-    if (std::isnan(k)) {
-        return std::numeric_limits<T>::quiet_NaN();
+    if (cxx::isnan(k)) {
+        return cxx::numeric_limits<T>::quiet_NaN();
     }
     return wilcoxon_cdf(static_cast<long long int>(k), cdf);
 }
@@ -645,8 +470,8 @@ XSF_HOST_DEVICE inline typename InputMat::value_type wilcoxon_sf(long long int k
 template <typename InputMat>
 XSF_HOST_DEVICE inline typename InputMat::value_type wilcoxon_sf(double k, InputMat cdf) {
     using T = typename InputMat::value_type;
-    if (std::isnan(k)) {
-        return std::numeric_limits<T>::quiet_NaN();
+    if (cxx::isnan(k)) {
+        return cxx::numeric_limits<T>::quiet_NaN();
     }
     return wilcoxon_sf(static_cast<long long int>(k), cdf);
 }
@@ -656,10 +481,10 @@ namespace detail {
     XSF_HOST_DEVICE inline double von_mises_cdf_series(double k, double x, unsigned int p) {
         double s, c, sn, cn, r, v;
         unsigned int n;
-        s = std::sin(x);
-        c = std::cos(x);
-        sn = std::sin(p * x);
-        cn = std::cos(p * x);
+        s = cxx::sin(x);
+        c = cxx::cos(x);
+        sn = cxx::sin(p * x);
+        cn = cxx::cos(p * x);
         r = 0;
         v = 0;
         for (n = p - 1; n > 0; --n) {
@@ -675,7 +500,7 @@ namespace detail {
 
     XSF_HOST_DEVICE inline double von_mises_cdf_normalapprox(double k, double x) {
         double b = xsf::cephes::detail::SQRT2OPI / cephes::i0e(k);
-        double z = b * std::sin(x / 2.0);
+        double z = b * cxx::sin(x / 2.0);
         return ndtr(z);
     }
 
@@ -697,10 +522,10 @@ XSF_HOST_DEVICE inline double von_mises_cdf(double k, double x) {
 
     if (k < 0) {
         set_error("von_mises_cdf", SF_ERROR_DOMAIN, NULL);
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
 
-    double ix = std::round(x / (2 * M_PI));
+    double ix = cxx::round(x / (2 * M_PI));
     x -= ix * 2.0 * M_PI;
 
     // These values should give 12 decimal digits
@@ -710,7 +535,7 @@ XSF_HOST_DEVICE inline double von_mises_cdf(double k, double x) {
     if (k < ck) {
         unsigned int p = static_cast<unsigned int>(1 + a1 + a2 * k - a3 / (k + a4));
         result = detail::von_mises_cdf_series(k, x, p);
-        result = std::min(std::max(result, 0.0), 1.0);
+        result = cxx::min(cxx::max(result, 0.0), 1.0);
     } else {
         result = detail::von_mises_cdf_normalapprox(k, x);
     }

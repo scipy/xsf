@@ -106,12 +106,12 @@ namespace cephes {
 
         /* make argument positive but save the sign */
         sign = 1;
-        if (std::signbit(x)) {
+        if (cxx::signbit(x)) {
             x = -x;
             sign = -1;
         }
 
-        if (std::isinf(x)) {
+        if (cxx::isinf(x)) {
             set_error("sindg", SF_ERROR_NO_RESULT, NULL);
             return (0.0);
         }
@@ -119,14 +119,14 @@ namespace cephes {
         /* Reduce modulo a full turn. Exact: 360 is representable and fmod is
          * exact. The octant index below is taken modulo 8, so dropping whole
          * turns does not change the result. */
-        x = std::fmod(x, 360.0);
+        x = cxx::fmod(x, 360.0);
 
-        y = std::floor(x / 45.0); /* integer part of x/M_PI_4 */
+        y = cxx::floor(x / 45.0); /* integer part of x/M_PI_4 */
 
         /* strip high bits of integer part to prevent integer overflow */
-        z = std::ldexp(y, -4);
-        z = std::floor(z);        /* integer part of y/8 */
-        z = y - std::ldexp(z, 4); /* y - 16 * (y/16) */
+        z = cxx::ldexp(y, -4);
+        z = cxx::floor(z);        /* integer part of y/8 */
+        z = y - cxx::ldexp(z, 4); /* y - 16 * (y/16) */
 
         j = z; /* convert to integer for tests on the phase angle */
         /* map zeros to origin */
@@ -166,7 +166,7 @@ namespace cephes {
         if (x < 0)
             x = -x;
 
-        if (std::isinf(x)) {
+        if (cxx::isinf(x)) {
             set_error("cosdg", SF_ERROR_NO_RESULT, NULL);
             return (0.0);
         }
@@ -174,12 +174,12 @@ namespace cephes {
         /* Reduce modulo a full turn. Exact: 360 is representable and fmod is
          * exact. The octant index below is taken modulo 8, so dropping whole
          * turns does not change the result. */
-        x = std::fmod(x, 360.0);
+        x = cxx::fmod(x, 360.0);
 
-        y = std::floor(x / 45.0);
-        z = std::ldexp(y, -4);
-        z = std::floor(z);        /* integer part of y/8 */
-        z = y - std::ldexp(z, 4); /* y - 16 * (y/16) */
+        y = cxx::floor(x / 45.0);
+        z = cxx::ldexp(y, -4);
+        z = cxx::floor(z);        /* integer part of y/8 */
+        z = y - cxx::ldexp(z, 4); /* y - 16 * (y/16) */
 
         /* integer and fractional part modulo one octant */
         j = z;

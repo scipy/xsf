@@ -411,6 +411,10 @@ std::complex<T> sph_bessel_k(long n, std::complex<T> z) {
         return std::numeric_limits<T>::quiet_NaN();
     }
 
+    if (std::imag(z) == 0) {
+        return {sph_bessel_k(n, std::real(z)), 0};
+    }
+
     return std::sqrt(static_cast<T>(M_PI_2) / z) * cyl_bessel_k(n + 1 / static_cast<T>(2), z);
 }
 

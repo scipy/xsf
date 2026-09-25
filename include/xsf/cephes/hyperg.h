@@ -98,12 +98,12 @@ namespace cephes {
                 u = an * (bn * x / n);
 
                 /* check for blowup */
-                temp = std::abs(u);
-                if ((temp > 1.0) && (maxt > (std::numeric_limits<double>::max() / temp)))
+                temp = cxx::abs(u);
+                if ((temp > 1.0) && (maxt > (cxx::numeric_limits<double>::max() / temp)))
                     goto error;
 
                 a0 *= u;
-                t = std::abs(a0);
+                t = cxx::abs(a0);
 
                 /* terminating condition for asymptotic series:
                  * the series is divergent (if a or b is not a negative integer),
@@ -129,7 +129,7 @@ namespace cephes {
         pdone: /* series converged! */
 
             /* estimate error due to roundoff and cancellation */
-            *err = std::abs(MACHEP * (n + maxt));
+            *err = cxx::abs(MACHEP * (n + maxt));
 
             alast = a0;
             goto done;
@@ -155,7 +155,7 @@ namespace cephes {
             }
 
             /* estimate error due to roundoff, cancellation, and nonconvergence */
-            *err = MACHEP * (n + maxt) + std::abs(a0);
+            *err = MACHEP * (n + maxt) + cxx::abs(a0);
 
         done:
             sum += alast;
@@ -163,7 +163,7 @@ namespace cephes {
 
             /* series blew up: */
         error:
-            *err = std::numeric_limits<double>::infinity();
+            *err = cxx::numeric_limits<double>::infinity();
             set_error("hyperg", SF_ERROR_NO_RESULT, NULL);
             return (sum);
         }
@@ -189,10 +189,10 @@ namespace cephes {
 
             if (x == 0) {
                 acanc = 1.0;
-                asum = std::numeric_limits<double>::infinity();
+                asum = cxx::numeric_limits<double>::infinity();
                 goto adone;
             }
-            temp = std::log(std::abs(x));
+            temp = cxx::log(cxx::abs(x));
             t = x + temp * (a - b);
             u = -temp * a;
 
@@ -204,16 +204,16 @@ namespace cephes {
 
             h1 = hyp2f0(a, a - b + 1, -1.0 / x, 1, &err1);
 
-            temp = std::exp(u) * xsf::cephes::rgamma(b - a);
+            temp = cxx::exp(u) * xsf::cephes::rgamma(b - a);
             h1 *= temp;
             err1 *= temp;
 
             h2 = hyp2f0(b - a, 1.0 - a, 1.0 / x, 2, &err2);
 
             if (a < 0)
-                temp = std::exp(t) * xsf::cephes::rgamma(a);
+                temp = cxx::exp(t) * xsf::cephes::rgamma(a);
             else
-                temp = std::exp(t - xsf::cephes::lgam(a));
+                temp = cxx::exp(t - xsf::cephes::lgam(a));
 
             h2 *= temp;
             err2 *= temp;
@@ -223,22 +223,22 @@ namespace cephes {
             else
                 asum = h2;
 
-            acanc = std::abs(err1) + std::abs(err2);
+            acanc = cxx::abs(err1) + cxx::abs(err2);
 
             if (b < 0) {
                 temp = xsf::cephes::Gamma(b);
                 asum *= temp;
-                acanc *= std::abs(temp);
+                acanc *= cxx::abs(temp);
             }
 
             if (asum != 0.0)
-                acanc /= std::abs(asum);
+                acanc /= cxx::abs(asum);
 
             if (acanc != acanc)
                 /* nan */
                 acanc = 1.0;
 
-            if (std::isinf(asum))
+            if (cxx::isinf(asum))
                 /* infinity */
                 acanc = 0;
 
@@ -271,20 +271,20 @@ namespace cephes {
             while (t > MACHEP) {
                 if (bn == 0) { /* check bn first since if both   */
                     set_error("hyperg", SF_ERROR_SINGULAR, NULL);
-                    return (std::numeric_limits<double>::infinity()); /* an and bn are zero it is     */
+                    return (cxx::numeric_limits<double>::infinity()); /* an and bn are zero it is     */
                 }
                 if (an == 0) /* a singularity            */
                     return (sum);
                 if (n > maxn) {
                     /* too many terms; take the last one as error estimate */
-                    c = std::abs(c) + std::abs(t) * 50.0;
+                    c = cxx::abs(c) + cxx::abs(t) * 50.0;
                     goto pdone;
                 }
                 u = x * (an / (bn * n));
 
                 /* check for blowup */
-                temp = std::abs(u);
-                if ((temp > 1.0) && (maxt > (std::numeric_limits<double>::max() / temp))) {
+                temp = cxx::abs(u);
+                if ((temp > 1.0) && (maxt > (cxx::numeric_limits<double>::max() / temp))) {
                     *err = 1.0; /* blowup: estimate 100% error */
                     return sum;
                 }
@@ -296,7 +296,7 @@ namespace cephes {
                 c = (sumc - sum) - y;
                 sum = sumc;
 
-                t = std::abs(a0);
+                t = cxx::abs(a0);
 
                 an += 1.0;
                 bn += 1.0;
@@ -307,9 +307,9 @@ namespace cephes {
 
             /* estimate error due to roundoff and cancellation */
             if (sum != 0.0) {
-                *err = std::abs(c / sum);
+                *err = cxx::abs(c / sum);
             } else {
-                *err = std::abs(c);
+                *err = cxx::abs(c);
             }
 
             if (*err != *err) {
@@ -327,11 +327,11 @@ namespace cephes {
 
         /* See if a Kummer transformation will help */
         temp = b - a;
-        if (std::abs(temp) < 0.001 * std::abs(a))
+        if (cxx::abs(temp) < 0.001 * cxx::abs(a))
             return (exp(x) * hyperg(temp, b, -x));
 
         /* Try power & asymptotic series, starting from the one that is likely OK */
-        if (std::abs(x) < 10 + std::abs(a) + std::abs(b)) {
+        if (cxx::abs(x) < 10 + cxx::abs(a) + cxx::abs(b)) {
             psum = detail::hy1f1p(a, b, x, &pcanc);
             if (pcanc < 1.0e-15)
                 goto done;

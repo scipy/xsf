@@ -1,13 +1,14 @@
 # Contributing to xsf
 
-Install [Pixi](https://pixi.sh/latest/#installation) first. Pixi provisions the compiler toolchain and other dependencies defined in `pixi.toml`.
-
-> [!NOTE]
-> The documented commands below have only been tested on macOS and Linux.
+Development of xsf is made easy with [Pixi](https://pixi.prefix.dev/).
+As a first step, [install Pixi](https://pixi.prefix.dev/latest/installation).
 
 ## Clone the repository
 
-Fork the repository, then set `origin` to your fork and add `upstream`:
+Clone the xsf repository, following
+<https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository>.
+In summary, fork the repository on GitHub,
+then set `origin` to your fork and add `upstream`:
 
 ```bash
 git clone https://github.com/your-github-id/xsf.git
@@ -38,63 +39,31 @@ git checkout main
 git merge upstream/main
 ```
 
-## Run tests
+## Development tasks
 
-Run the default C++ test workflow:
+All development tasks are then available via `pixi run`:
 
-```shell
-pixi run tests
+```bash
+pixi run tests     # run the tests
+pixi run coverage  # generate test coverage report
+pixi run format    # format source files
 ```
 
-For incremental local work, you can run the steps separately:
+Run `pixi task list` for a full list of available tasks.
 
-```shell
-pixi run configure-tests
-pixi run build-only
-# '4' here determines the number of workers used
-pixi run tests-only 4
+Multiple environments are available for the `tests` task:
+
+```bash
+pixi run --environment=tests-release tests  # test with release build type
+pixi run --environment=tests-debug tests    # test with debug build type
+pixi run --environment=coverage tests       # test with coverage build type
 ```
 
-Useful variants:
+Run specific tests by passing `ctest` flags to `pixi run tests`,
+e.g. `pixi run tests -R xsf_tests_test_boxcox`,
+following <https://cmake.org/cmake/help/latest/manual/ctest.1.html#cmdoption-ctest-R>.
 
-- Rebuild after changing code: `pixi run build-tests`
-- Debug test build with extra assertions: `pixi run tests-debug`
-
-## Formatting
-
-Check formatting without modifying files:
-
-```shell
-pixi run format-dry-error
-```
-
-Apply formatting:
-
-```shell
-pixi run format
-```
-
-## Coverage
-
-Generate a local HTML coverage report with:
-
-```shell
-pixi run coverage
-# or
-pixi run configure-coverage
-pixi run --skip-deps build-tests-cov
-pixi run --skip-deps tests-only
-pixi run --skip-deps coverage
-```
-
-The generated report is written to `build/coverage_report/index.html`.
-
-For subsequent runs in the same build tree, it is usually enough to rerun:
-
-```shell
-pixi run --skip-deps tests-only
-pixi run --skip-deps coverage
-```
+Run `pixi info` for a full list of environments and their tasks.
 
 ## Pull requests
 

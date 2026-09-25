@@ -29,18 +29,18 @@ namespace cephes {
             }
         }
         /* Special handling for negative and integer nu */
-        if ((nu < 0) && (std::floor(nu) == nu)) {
+        if ((nu < 0) && (cxx::floor(nu) == nu)) {
             nu = -nu;
             factor = static_cast<int>(nu) % 2;
         }
-        Sm = std::exp(nu * std::log(a)) / (Gamma(nu + 1) * (lambda + nu + 1));
+        Sm = cxx::exp(nu * cxx::log(a)) / (Gamma(nu + 1) * (lambda + nu + 1));
         m = 0;
         do {
             sum += Sm;
             Sol = Sm;
             Sm *= -a * a * (lambda + nu + 1 + 2 * m) / ((nu + m + 1) * (m + 1) * (lambda + nu + 1 + 2 * m + 2));
             m++;
-            relerr = std::abs((Sm - Sol) / Sm);
+            relerr = cxx::abs((Sm - Sol) / Sm);
         } while (relerr > detail::besselpoly_EPS && m < 1000);
         if (!factor)
             return sum;

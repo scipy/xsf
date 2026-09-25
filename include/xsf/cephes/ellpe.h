@@ -95,12 +95,12 @@ namespace cephes {
             if (x == 0.0)
                 return (1.0);
             set_error("ellpe", SF_ERROR_DOMAIN, NULL);
-            return (std::numeric_limits<double>::quiet_NaN());
+            return (cxx::numeric_limits<double>::quiet_NaN());
         }
         if (x > 1.0) {
-            return ellpe(1.0 - 1 / x) * std::sqrt(x);
+            return ellpe(1.0 - 1 / x) * cxx::sqrt(x);
         }
-        return (polevl(x, detail::ellpe_P, 10) - std::log(x) * (x * polevl(x, detail::ellpe_Q, 9)));
+        return (polevl(x, detail::ellpe_P, 10) - cxx::log(x) * (x * polevl(x, detail::ellpe_Q, 9)));
     }
 
 } // namespace cephes

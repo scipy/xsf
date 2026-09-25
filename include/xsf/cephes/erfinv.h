@@ -34,15 +34,15 @@ namespace cephes {
         if ((domain_lb < y) && (y < domain_ub)) {
             return ndtri(0.5 * (y + 1)) * M_SQRT1_2;
         } else if (y == domain_lb) {
-            return -std::numeric_limits<double>::infinity();
+            return -cxx::numeric_limits<double>::infinity();
         } else if (y == domain_ub) {
-            return std::numeric_limits<double>::infinity();
-        } else if (std::isnan(y)) {
+            return cxx::numeric_limits<double>::infinity();
+        } else if (cxx::isnan(y)) {
             set_error("erfinv", SF_ERROR_DOMAIN, NULL);
             return y;
         } else {
             set_error("erfinv", SF_ERROR_DOMAIN, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
     }
 
@@ -60,15 +60,15 @@ namespace cephes {
         if ((domain_lb < y) && (y < domain_ub)) {
             return -ndtri(0.5 * y) * M_SQRT1_2;
         } else if (y == domain_lb) {
-            return std::numeric_limits<double>::infinity();
+            return cxx::numeric_limits<double>::infinity();
         } else if (y == domain_ub) {
-            return -std::numeric_limits<double>::infinity();
-        } else if (std::isnan(y)) {
+            return -cxx::numeric_limits<double>::infinity();
+        } else if (cxx::isnan(y)) {
             set_error("erfcinv", SF_ERROR_DOMAIN, NULL);
             return y;
         } else {
             set_error("erfcinv", SF_ERROR_DOMAIN, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
     }
 
