@@ -17,6 +17,7 @@
 #include "cephes/unity.h"
 #include "config.h"
 #include "evalpoly.h"
+#include "numbers.h"
 
 namespace xsf {
 
@@ -28,7 +29,7 @@ XSF_HOST_DEVICE T sinpi(T x) {
 template <typename T>
 XSF_HOST_DEVICE cxx::complex<T> sinpi(cxx::complex<T> z) {
     T x = z.real();
-    T piy = M_PI * z.imag();
+    T piy = numbers::pi_v<T> * z.imag();
     T abspiy = cxx::abs(piy);
     T sinpix = cephes::sinpi(x);
     T cospix = cephes::cospi(x);
@@ -49,23 +50,23 @@ XSF_HOST_DEVICE cxx::complex<T> sinpi(cxx::complex<T> z) {
     T coshfac;
     T sinhfac;
     if (exphpiy == cxx::numeric_limits<T>::infinity()) {
-        if (sinpix == 0.0) {
+        if (sinpix == T(0.0)) {
             // Preserve the sign of zero.
-            coshfac = cxx::copysign(0.0, sinpix);
+            coshfac = cxx::copysign(T(0.0), sinpix);
         } else {
             coshfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), sinpix);
         }
-        if (cospix == 0.0) {
+        if (cospix == T(0.0)) {
             // Preserve the sign of zero.
-            sinhfac = cxx::copysign(0.0, cospix);
+            sinhfac = cxx::copysign(T(0.0), cospix);
         } else {
             sinhfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), cospix);
         }
         return {coshfac, sinhfac};
     }
 
-    coshfac = 0.5 * sinpix * exphpiy;
-    sinhfac = 0.5 * cospix * exphpiy;
+    coshfac = T(0.5) * sinpix * exphpiy;
+    sinhfac = T(0.5) * cospix * exphpiy;
     return {coshfac * exphpiy, sinhfac * exphpiy};
 }
 
@@ -77,7 +78,7 @@ XSF_HOST_DEVICE T cospi(T x) {
 template <typename T>
 XSF_HOST_DEVICE cxx::complex<T> cospi(cxx::complex<T> z) {
     T x = z.real();
-    T piy = M_PI * z.imag();
+    T piy = numbers::pi_v<T> * z.imag();
     T abspiy = cxx::abs(piy);
     T sinpix = cephes::sinpi(x);
     T cospix = cephes::cospi(x);
@@ -91,23 +92,23 @@ XSF_HOST_DEVICE cxx::complex<T> cospi(cxx::complex<T> z) {
     T coshfac;
     T sinhfac;
     if (exphpiy == cxx::numeric_limits<T>::infinity()) {
-        if (sinpix == 0.0) {
+        if (sinpix == T(0.0)) {
             // Preserve the sign of zero.
-            coshfac = cxx::copysign(0.0, cospix);
+            coshfac = cxx::copysign(T(0.0), cospix);
         } else {
             coshfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), cospix);
         }
-        if (cospix == 0.0) {
+        if (cospix == T(0.0)) {
             // Preserve the sign of zero.
-            sinhfac = cxx::copysign(0.0, sinpix);
+            sinhfac = cxx::copysign(T(0.0), sinpix);
         } else {
             sinhfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), sinpix);
         }
         return {coshfac, sinhfac};
     }
 
-    coshfac = 0.5 * cospix * exphpiy;
-    sinhfac = 0.5 * sinpix * exphpiy;
+    coshfac = T(0.5) * cospix * exphpiy;
+    sinhfac = T(0.5) * sinpix * exphpiy;
     return {coshfac * exphpiy, sinhfac * exphpiy};
 }
 
