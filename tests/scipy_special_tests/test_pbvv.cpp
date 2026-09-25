@@ -1,6 +1,6 @@
 #include "../testing_utils.h"
 
-#include <xsf/par_cyl.h>
+#include <xsf/cpu/par_cyl.h>
 
 namespace fs = std::filesystem;
 

@@ -1,6 +1,6 @@
 #include "../testing_utils.h"
 #include <tuple>
-#include <xsf/numbers.h>
+#include <xsf/cpu/numbers.h>
 
 TEST_CASE("numbers.h", "[numbers][xsf_tests]") {
     REQUIRE(xsf::numbers::pi_v<float> == float(M_PI));

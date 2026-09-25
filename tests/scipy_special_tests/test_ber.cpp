@@ -1,6 +1,6 @@
 #include "../testing_utils.h"
 
-#include <xsf/kelvin.h>
+#include <xsf/cpu/kelvin.h>
 
 namespace fs = std::filesystem;
 

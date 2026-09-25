@@ -1,7 +1,7 @@
 #pragma once
 
+#include "../error.h"
 #include "dual.h"
-#include "error.h"
 #include "recur.h"
 
 namespace xsf {

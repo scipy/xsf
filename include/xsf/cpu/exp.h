@@ -1,11 +1,11 @@
 #pragma once
 
-#include "config.h"
-#include "trig.h"
+#include "../config.h"
+#include "../trig.h"
 
-#include "cephes/exp10.h"
-#include "cephes/exp2.h"
-#include "cephes/unity.h"
+#include "../cephes/exp10.h"
+#include "../cephes/exp2.h"
+#include "../cephes/unity.h"
 
 namespace xsf {
 

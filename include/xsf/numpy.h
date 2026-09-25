@@ -17,7 +17,7 @@
 #include <numpy/npy_math.h>
 #include <numpy/ufuncobject.h>
 
-#include "dual.h"
+#include "cpu/dual.h"
 #include "error.h"
 // Force defining the parenthesis operator even when compiling with a compiler
 // defaulting to C++ >= 23.

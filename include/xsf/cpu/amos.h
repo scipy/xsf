@@ -1,7 +1,7 @@
 #pragma once
 
-#include "amos/amos.h"
-#include "error.h"
+#include "../amos/amos.h"
+#include "../error.h"
 
 namespace xsf {
 

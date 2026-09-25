@@ -1,11 +1,11 @@
 // Translated from Cython to C++ by the xsf developers in 2026.
 #pragma once
 
+#include "../config.h"
+#include "../gamma.h"
+#include "../log.h"
+#include "../trig.h"
 #include "bessel.h"
-#include "config.h"
-#include "gamma.h"
-#include "log.h"
-#include "trig.h"
 
 namespace xsf {
 namespace detail {

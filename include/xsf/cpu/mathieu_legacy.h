@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "error.h"
-#include "specfun/specfun.h"
+#include "../error.h"
+#include "../specfun/specfun.h"
 
 namespace xsf {
 

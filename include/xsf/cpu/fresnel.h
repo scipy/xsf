@@ -1,7 +1,7 @@
 #pragma once
 
-#include "cephes/fresnl.h"
-#include "config.h"
+#include "../cephes/fresnl.h"
+#include "../config.h"
 
 namespace xsf {
 namespace detail {
