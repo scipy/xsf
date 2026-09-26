@@ -6,6 +6,14 @@
 namespace {
 
 using C = std::complex<double>;
+using Cf = std::complex<float>;
+
+template <typename Actual, typename Expected>
+void check_close(Actual result, Expected expected, double tol) {
+    const double error = xsf::extended_relative_error(Expected(result), expected);
+    CAPTURE(result, expected, error);
+    REQUIRE(error <= tol);
+}
 
 } // namespace
 
@@ -18,15 +26,17 @@ TEST_CASE("Carlson RC", "[ellint_carlson][xsf_tests]") {
             test_case{1.0, 1.0, 1.0}, test_case{0.0, 0.25, M_PI}, test_case{2.25, 2.0, std::log(2.0)},
             test_case{0.25, -2.0, std::log(2.0) / 3.0}
         );
-        const double result = xsf::cpu::elliprc(x, y);
-        const double error = xsf::extended_relative_error(result, expected);
-        CAPTURE(x, y, result, expected, error);
-        REQUIRE(error <= 1e-13);
+        CAPTURE(x, y);
+        check_close(xsf::cpu::elliprc(x, y), expected, 1e-13);
+        check_close(xsf::cpu::elliprc(float(x), float(y)), expected, 1e-6);
     }
 
     REQUIRE(xsf::cpu::elliprc(1.0, std::numeric_limits<double>::infinity()) == 0.0);
+    REQUIRE(xsf::cpu::elliprc(1.0f, std::numeric_limits<float>::infinity()) == 0.0f);
     REQUIRE(std::isnan(xsf::cpu::elliprc(1.0, 0.0)));
-    REQUIRE(xsf::cpu::elliprc(C{1.0}, C{1.0, std::numeric_limits<double>::infinity()}) == C{0.0});
+    REQUIRE(std::isnan(xsf::cpu::elliprc(1.0f, 0.0f)));
+    REQUIRE(xsf::cpu::elliprc(C{1}, C{1, std::numeric_limits<double>::infinity()}) == C{0});
+    REQUIRE(xsf::cpu::elliprc(Cf{1}, Cf{1, std::numeric_limits<float>::infinity()}) == Cf{0});
 
     using test_case = std::tuple<C, C, C>;
     auto [x, y, expected] = GENERATE(
@@ -35,10 +45,9 @@ TEST_CASE("Carlson RC", "[ellint_carlson][xsf_tests]") {
         test_case{C{0.0, -1.0}, C{0.0, 1.0}, C{1.2260849569072, -0.34471136988768}},
         test_case{0.25, -2.0, std::log(2.0) / 3.0}, test_case{C{0.0, 1.0}, -1.0, C{0.77778596920447, 0.19832484993429}}
     );
-    const C result = xsf::cpu::elliprc(x, y);
-    const double error = xsf::extended_relative_error(result, expected);
-    CAPTURE(x, y, result, expected, error);
-    REQUIRE(error <= 1e-13);
+    CAPTURE(x, y);
+    check_close(xsf::cpu::elliprc(x, y), expected, 1e-13);
+    check_close(xsf::cpu::elliprc(Cf(x), Cf(y)), expected, 1e-6);
 }
 
 TEST_CASE("Carlson RD", "[ellint_carlson][xsf_tests]") {
@@ -50,19 +59,25 @@ TEST_CASE("Carlson RD", "[ellint_carlson][xsf_tests]") {
             test_case{1.0, 1.0, 1.0, 1.0}, test_case{0.0, 2.0, 1.0, 3.0 * 0.59907011736779610371},
             test_case{2.0, 3.0, 4.0, 0.16510527294261}
         );
-        const double result = xsf::cpu::elliprd(x, y, z);
-        const double error = xsf::extended_relative_error(result, expected);
-        CAPTURE(x, y, z, result, expected, error);
-        REQUIRE(error <= 1e-13);
+        CAPTURE(x, y, z);
+        check_close(xsf::cpu::elliprd(x, y, z), expected, 1e-13);
+        check_close(xsf::cpu::elliprd(float(x), float(y), float(z)), expected, 1e-6);
     }
 
     REQUIRE(xsf::cpu::elliprd(1.0, 1.0, std::numeric_limits<double>::infinity()) == 0.0);
+    REQUIRE(xsf::cpu::elliprd(1.0f, 1.0f, std::numeric_limits<float>::infinity()) == 0.0f);
     REQUIRE(std::isinf(xsf::cpu::elliprd(1.0, 1.0, 0.0)));
+    REQUIRE(std::isinf(xsf::cpu::elliprd(1.0f, 1.0f, 0.0f)));
     REQUIRE(std::isnan(xsf::cpu::elliprd(1.0, 1.0, -1.0)));
-    REQUIRE(std::isinf(xsf::cpu::elliprd(C{1.0}, C{1.0}, C{0.0}).real()));
-    REQUIRE(std::isinf(xsf::cpu::elliprd(C{0.0}, C{1.0}, C{0.0}).real()));
+    REQUIRE(std::isnan(xsf::cpu::elliprd(1.0f, 1.0f, -1.0f)));
+    REQUIRE(std::isinf(xsf::cpu::elliprd(C{1}, C{1}, C{0}).real()));
+    REQUIRE(std::isinf(xsf::cpu::elliprd(Cf{1}, Cf{1}, Cf{0}).real()));
+    REQUIRE(std::isinf(xsf::cpu::elliprd(C{0}, C{1}, C{0}).real()));
+    REQUIRE(std::isinf(xsf::cpu::elliprd(Cf{0}, Cf{1}, Cf{0}).real()));
     REQUIRE(std::isnan(xsf::cpu::elliprd(1.0, 1.0, -std::numeric_limits<double>::min() / 2.0)));
-    REQUIRE(std::isnan(xsf::cpu::elliprd(C{1.0}, C{1.0}, C{-1.0}).real()));
+    REQUIRE(std::isnan(xsf::cpu::elliprd(1.0f, 1.0f, -std::numeric_limits<float>::min() / 2.0f)));
+    REQUIRE(std::isnan(xsf::cpu::elliprd(C{1}, C{1}, C{-1}).real()));
+    REQUIRE(std::isnan(xsf::cpu::elliprd(Cf{1}, Cf{1}, Cf{-1}).real()));
 
     using test_case = std::tuple<C, C, C, C>;
     auto [x, y, z, expected] = GENERATE(
@@ -72,10 +87,9 @@ TEST_CASE("Carlson RD", "[ellint_carlson][xsf_tests]") {
         test_case{0.0, C{-1.0, 1.0}, C{0.0, 1.0}, C{-1.8577235439239, -0.96193450888839}},
         test_case{C{-2.0, -1.0}, C{0.0, -1.0}, C{-1.0, 1.0}, C{1.8249027393704, -1.2218475784827}}
     );
-    const C result = xsf::cpu::elliprd(x, y, z);
-    const double error = xsf::extended_relative_error(result, expected);
-    CAPTURE(x, y, z, result, expected, error);
-    REQUIRE(error <= 1e-13);
+    CAPTURE(x, y, z);
+    check_close(xsf::cpu::elliprd(x, y, z), expected, 1e-13);
+    check_close(xsf::cpu::elliprd(Cf(x), Cf(y), Cf(z)), expected, 1e-6);
 }
 
 TEST_CASE("Carlson RF", "[ellint_carlson][xsf_tests]") {
@@ -85,17 +99,21 @@ TEST_CASE("Carlson RF", "[ellint_carlson][xsf_tests]") {
         using test_case = std::tuple<double, double, double, double>;
         auto [x, y, z, expected] =
             GENERATE(test_case{1.0, 1.0, 1.0, 1.0}, test_case{0.0, 1.0, 2.0, 1.31102877714605990523});
-        const double result = xsf::cpu::elliprf(x, y, z);
-        const double error = xsf::extended_relative_error(result, expected);
-        CAPTURE(x, y, z, result, expected, error);
-        REQUIRE(error <= 1e-13);
+        CAPTURE(x, y, z);
+        check_close(xsf::cpu::elliprf(x, y, z), expected, 1e-13);
+        check_close(xsf::cpu::elliprf(float(x), float(y), float(z)), expected, 1e-6);
     }
 
     REQUIRE(xsf::cpu::elliprf(1.0, std::numeric_limits<double>::infinity(), 1.0) == 0.0);
+    REQUIRE(xsf::cpu::elliprf(1.0f, std::numeric_limits<float>::infinity(), 1.0f) == 0.0f);
     REQUIRE(std::isinf(xsf::cpu::elliprf(0.0, 1.0, 0.0)));
+    REQUIRE(std::isinf(xsf::cpu::elliprf(0.0f, 1.0f, 0.0f)));
     REQUIRE(std::isnan(xsf::cpu::elliprf(1.0, 1.0, -1.0)));
-    REQUIRE(xsf::cpu::elliprf(C{std::numeric_limits<double>::infinity()}, C{0.0}, C{1.0}) == C{0.0});
-    REQUIRE(std::isnan(xsf::cpu::elliprf(C{1.0}, C{1.0}, C{-std::numeric_limits<double>::infinity(), 1.0}).real()));
+    REQUIRE(std::isnan(xsf::cpu::elliprf(1.0f, 1.0f, -1.0f)));
+    REQUIRE(xsf::cpu::elliprf(C{std::numeric_limits<double>::infinity()}, C{0}, C{1}) == C{0});
+    REQUIRE(xsf::cpu::elliprf(Cf{std::numeric_limits<float>::infinity()}, Cf{0}, Cf{1}) == Cf{0});
+    REQUIRE(std::isnan(xsf::cpu::elliprf(C{1}, C{1}, C{-std::numeric_limits<double>::infinity(), 1}).real()));
+    REQUIRE(std::isnan(xsf::cpu::elliprf(Cf{1}, Cf{1}, Cf{-std::numeric_limits<float>::infinity(), 1}).real()));
 
     using test_case = std::tuple<C, C, C, C>;
     auto [x, y, z, expected] = GENERATE(
@@ -105,10 +123,9 @@ TEST_CASE("Carlson RF", "[ellint_carlson][xsf_tests]") {
         test_case{2.0, 3.0, 4.0, 0.58408284167715}, test_case{C{0.0, 1.0}, C{0.0, -1.0}, 2.0, 1.0441445654064},
         test_case{C{-1.0, 1.0}, C{0.0, 1.0}, C{1.0, -1.0}, C{0.93912050218619, -0.53296252018635}}
     );
-    const C result = xsf::cpu::elliprf(x, y, z);
-    const double error = xsf::extended_relative_error(result, expected);
-    CAPTURE(x, y, z, result, expected, error);
-    REQUIRE(error <= 1e-13);
+    CAPTURE(x, y, z);
+    check_close(xsf::cpu::elliprf(x, y, z), expected, 1e-13);
+    check_close(xsf::cpu::elliprf(Cf(x), Cf(y), Cf(z)), expected, 1e-6);
 }
 
 TEST_CASE("Carlson RG", "[ellint_carlson][xsf_tests]") {
@@ -118,15 +135,17 @@ TEST_CASE("Carlson RG", "[ellint_carlson][xsf_tests]") {
         using test_case = std::tuple<double, double, double, double>;
         auto [x, y, z, expected] =
             GENERATE(test_case{1.0, 1.0, 1.0, 1.0}, test_case{0.0, 0.0, 1.0, 0.5}, test_case{0.0, 16.0, 16.0, M_PI});
-        const double result = xsf::cpu::elliprg(x, y, z);
-        const double error = xsf::extended_relative_error(result, expected);
-        CAPTURE(x, y, z, result, expected, error);
-        REQUIRE(error <= 1e-13);
+        CAPTURE(x, y, z);
+        check_close(xsf::cpu::elliprg(x, y, z), expected, 1e-13);
+        check_close(xsf::cpu::elliprg(float(x), float(y), float(z)), expected, 1e-6);
     }
 
     REQUIRE(xsf::cpu::elliprg(0.0, 0.0, 0.0) == 0.0);
+    REQUIRE(xsf::cpu::elliprg(0.0f, 0.0f, 0.0f) == 0.0f);
     REQUIRE(std::isinf(xsf::cpu::elliprg(1.0, std::numeric_limits<double>::infinity(), 1.0)));
-    REQUIRE(std::isinf(xsf::cpu::elliprg(C{std::numeric_limits<double>::infinity()}, C{1.0}, C{1.0}).real()));
+    REQUIRE(std::isinf(xsf::cpu::elliprg(1.0f, std::numeric_limits<float>::infinity(), 1.0f)));
+    REQUIRE(std::isinf(xsf::cpu::elliprg(C{std::numeric_limits<double>::infinity()}, C{1}, C{1}).real()));
+    REQUIRE(std::isinf(xsf::cpu::elliprg(Cf{std::numeric_limits<float>::infinity()}, Cf{1}, Cf{1}).real()));
 
     using test_case = std::tuple<C, C, C, C>;
     auto [x, y, z, expected] = GENERATE(
@@ -136,10 +155,9 @@ TEST_CASE("Carlson RG", "[ellint_carlson][xsf_tests]") {
         test_case{C{0.0, -1.0}, C{-1.0, 1.0}, C{0.0, 1.0}, C{0.36023392184473, 0.40348623401722}},
         test_case{0.0, 0.0796, 4.0, 1.0284758090288}
     );
-    const C result = xsf::cpu::elliprg(x, y, z);
-    const double error = xsf::extended_relative_error(result, expected);
-    CAPTURE(x, y, z, result, expected, error);
-    REQUIRE(error <= 1e-13);
+    CAPTURE(x, y, z);
+    check_close(xsf::cpu::elliprg(x, y, z), expected, 1e-13);
+    check_close(xsf::cpu::elliprg(Cf(x), Cf(y), Cf(z)), expected, 1e-6);
 }
 
 TEST_CASE("Carlson RJ", "[ellint_carlson][xsf_tests]") {
@@ -151,16 +169,19 @@ TEST_CASE("Carlson RJ", "[ellint_carlson][xsf_tests]") {
             test_case{1.0, 1.0, 1.0, 1.0, 1.0}, test_case{0.0, 1.0, 2.0, 3.0, 0.77688623778582},
             test_case{2.0, 3.0, 4.0, -0.5, 0.24723819703052}, test_case{2.0, 3.0, 4.0, -5.0, -0.12711230042964}
         );
-        const double result = xsf::cpu::elliprj(x, y, z, p);
-        const double error = xsf::extended_relative_error(result, expected);
-        CAPTURE(x, y, z, p, result, expected, error);
-        REQUIRE(error <= 1e-13);
+        CAPTURE(x, y, z, p);
+        check_close(xsf::cpu::elliprj(x, y, z, p), expected, 1e-13);
+        check_close(xsf::cpu::elliprj(float(x), float(y), float(z), float(p)), expected, 1e-6);
     }
 
     REQUIRE(xsf::cpu::elliprj(1.0, 1.0, 1.0, std::numeric_limits<double>::infinity()) == 0.0);
+    REQUIRE(xsf::cpu::elliprj(1.0f, 1.0f, 1.0f, std::numeric_limits<float>::infinity()) == 0.0f);
     REQUIRE(std::isnan(xsf::cpu::elliprj(-1.0, 1.0, 1.0, 1.0)));
+    REQUIRE(std::isnan(xsf::cpu::elliprj(-1.0f, 1.0f, 1.0f, 1.0f)));
     REQUIRE(xsf::cpu::elliprj(1.0, 1.0, std::numeric_limits<double>::infinity(), 1.0) == 0.0);
+    REQUIRE(xsf::cpu::elliprj(1.0f, 1.0f, std::numeric_limits<float>::infinity(), 1.0f) == 0.0f);
     REQUIRE(std::isnan(xsf::cpu::elliprj(1.0, 0.0, 0.0, 0.0)));
+    REQUIRE(std::isnan(xsf::cpu::elliprj(1.0f, 0.0f, 0.0f, 0.0f)));
 
     using test_case = std::tuple<C, C, C, C, C>;
     auto [x, y, z, p, expected] = GENERATE(
@@ -173,10 +194,9 @@ TEST_CASE("Carlson RJ", "[ellint_carlson][xsf_tests]") {
         // Cauchy principal values.
         test_case{2.0, 3.0, 4.0, -0.5, 0.24723819703052}, test_case{2.0, 3.0, 4.0, -5.0, -0.12711230042964}
     );
-    const C result = xsf::cpu::elliprj(x, y, z, p);
-    const double error = xsf::extended_relative_error(result, expected);
-    CAPTURE(x, y, z, p, result, expected, error);
-    REQUIRE(error <= 1e-13);
+    CAPTURE(x, y, z, p);
+    check_close(xsf::cpu::elliprj(x, y, z, p), expected, 1e-13);
+    check_close(xsf::cpu::elliprj(Cf(x), Cf(y), Cf(z), Cf(p)), expected, 1e-6);
 }
 
 TEST_CASE("Carlson RJ difficult arguments", "[ellint_carlson][xsf_tests]") {
