@@ -913,7 +913,7 @@ namespace numpy {
               data_deleter([](void *ptr) { delete static_cast<ufunc_data<Func> *>(ptr); }),
               types(ufunc_traits<Func>::types) {
             if (data == nullptr) {
-                PyErr_NoMemory();
+                xsf::set_error("ufunc_wraps", SF_ERROR_MEMORY, "memory allocation error");
             }
         }
     };
@@ -942,7 +942,7 @@ namespace numpy {
               m_data_deleters(new (std::nothrow) data_deleter_type[m_ntypes]),
               m_types(new (std::nothrow) char[m_ntypes * m_nin_and_nout]) {
             if (m_func == nullptr || m_data == nullptr || m_data_deleters == nullptr || m_types == nullptr) {
-                PyErr_NoMemory();
+                xsf::set_error("ufunc_overloads", SF_ERROR_MEMORY, "memory allocation error");
                 return;
             }
 
