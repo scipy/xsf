@@ -379,6 +379,11 @@ void assoc_legendre_p_pm1(NormPolicy norm, int n, int m, dual<T, Order> z, int b
             } else {
                 res[2] = 0;
             }
+            // These three closed forms are the z=+1 values. At z=-1 the
+            // second derivative picks up (-1)^n. scipy/scipy#26229.
+            if (real(z[0]) < 0 && (n % 2 != 0) && (m == 0 || m == 2 || m == 4)) {
+                res[2] = -res[2];
+            }
         }
     }
 }
