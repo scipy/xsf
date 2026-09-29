@@ -52,7 +52,13 @@ foreach(test_file ${TEST_SOURCES})
   set(target_name ${test_dir}_${test_name})
   list(APPEND ALL_TEST_TARGETS ${target_name})
 
-  add_executable(${target_name} ${test_file})
+  # Compile the guard in each target so it detects standard upgrades from dependencies.
+  add_executable(${target_name} ${test_file} cxx17_check.cpp)
+  set_target_properties(${target_name} PROPERTIES
+      CXX_STANDARD 17
+      CXX_STANDARD_REQUIRED YES
+      CXX_EXTENSIONS NO
+  )
 
   target_link_libraries(${target_name} PRIVATE Catch2::Catch2WithMain Arrow::arrow_shared Parquet::parquet_shared xsf)
 
