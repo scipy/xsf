@@ -236,7 +236,7 @@ template <typename F>
 using invoke_result_t = std::invoke_result_t<F>;
 
 template <typename T>
-using remove_cvref_t = std::remove_cvref_t<T>;
+using remove_cvref_t = std::remove_cv_t<std::remove_reference_t<T>>;
 
 #endif
 
