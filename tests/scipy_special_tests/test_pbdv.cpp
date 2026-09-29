@@ -34,3 +34,26 @@ TEST_CASE("pbdv dd->dd scipy_special_tests", "[pbdv][dd->dd][scipy_special_tests
     CAPTURE(v, x, out1, desired1, error1, tol1, fallback);
     REQUIRE(error1 <= tol1);
 }
+
+TEST_CASE("pbdv remains stable for large arguments", "[pbdv][regression]") {
+    struct Case {
+        double v;
+        double x;
+        double desired0;
+        double desired1;
+    };
+    const Case cases[] = {
+        {std::nextafter(50.0, 0.0), -std::sqrt(500.0), 3.1429284557854132e37, -2.7008764338749622e38},
+        {std::nextafter(50.0, 0.0), -std::nextafter(50.0, 0.0), 5.6977287669133012e235, -1.3650529001419031e237},
+        {-1.0, 50.0, 7.3587705514938545e-274, -1.8411632169283370e-272},
+    };
+
+    for (const auto &test_case : cases) {
+        double out0;
+        double out1;
+        xsf::pbdv(test_case.v, test_case.x, out0, out1);
+        CAPTURE(test_case.v, test_case.x, out0, out1);
+        REQUIRE(xsf::extended_relative_error(out0, test_case.desired0) <= 5e-13);
+        REQUIRE(xsf::extended_relative_error(out1, test_case.desired1) <= 5e-13);
+    }
+}
