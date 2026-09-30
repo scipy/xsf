@@ -18,6 +18,10 @@ find_package(Catch2 3 REQUIRED)
 find_package(Arrow REQUIRED)
 find_package(Parquet REQUIRED)
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  # Enable the conforming lambda processor, which is not the default in C++17.
+  add_compile_options(/Zc:lambda)
+endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   # Enable debug assertions to make sure they won't get triggered in debug builds of
