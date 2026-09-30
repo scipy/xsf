@@ -109,7 +109,7 @@ cupy-tests = {
 lint = {
   dependencies = {
     git = "*",
-    clang-format = "22.*",
+    clang-format = "23.*",
   },
   tasks = {
     format = {
