@@ -92,7 +92,7 @@
  */
 #pragma once
 
-#include "xsf/config.h"
+#include "../../config.h"
 #include <cmath>
 #include <complex>
 #include <cstdlib>
