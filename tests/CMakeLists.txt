@@ -18,6 +18,9 @@ find_package(Catch2 3 REQUIRED)
 find_package(Arrow REQUIRED)
 find_package(Parquet REQUIRED)
 
+# Select C++17 even when the compiler defaults to a newer standard.
+set(CMAKE_CXX_STANDARD 17)
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   # Enable the conforming lambda processor, which is not the default in C++17.
   add_compile_options(/Zc:lambda)
