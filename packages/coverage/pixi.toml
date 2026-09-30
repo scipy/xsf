@@ -33,7 +33,7 @@ host-dependencies = {
 }
 run-dependencies = {
   cmake = "*",
-  lcov = "*",
+  lcov = "==1.16",
   "if(linux)" = {
     gcc = "16.*", # for gcov
   }
