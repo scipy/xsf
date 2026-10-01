@@ -31,8 +31,8 @@ namespace detail {
         return d * hyp2f1(a, b, c, g);
     }
 
-    XSF_HOST_DEVICE inline double eval_jacobi_l(cxx::ptrdiff_t n, double alpha, double beta, double x) {
-        cxx::ptrdiff_t kk;
+    XSF_HOST_DEVICE inline double eval_jacobi_l(int n, double alpha, double beta, double x) {
+        int kk;
         double p, d;
         double k, t;
 
@@ -83,11 +83,11 @@ XSF_HOST_DEVICE inline cxx::complex<float> eval_jacobi(float n, float alpha, flo
     ));
 }
 
-XSF_HOST_DEVICE inline double eval_jacobi(cxx::ptrdiff_t n, double alpha, double beta, double x) {
+XSF_HOST_DEVICE inline double eval_jacobi(int n, double alpha, double beta, double x) {
     return detail::eval_jacobi_l(n, alpha, beta, x);
 }
 
-XSF_HOST_DEVICE inline float eval_jacobi(cxx::ptrdiff_t n, float alpha, float beta, float x) {
+XSF_HOST_DEVICE inline float eval_jacobi(int n, float alpha, float beta, float x) {
     return detail::eval_jacobi_l(n, static_cast<double>(alpha), static_cast<double>(beta), static_cast<double>(x));
 }
 
@@ -97,7 +97,7 @@ XSF_HOST_DEVICE inline double eval_sh_jacobi(double n, double p, double q, doubl
     return detail::eval_jacobi(n, p - q, q - 1.0, 2.0 * x - 1.0) / binom(2.0 * n + p - 1.0, n);
 }
 
-XSF_HOST_DEVICE inline double eval_sh_jacobi(cxx::ptrdiff_t n, double p, double q, double x) {
+XSF_HOST_DEVICE inline double eval_sh_jacobi(int n, double p, double q, double x) {
     return detail::eval_jacobi_l(n, p - q, q - 1.0, 2.0 * x - 1.0) / binom(2.0 * n + p - 1.0, n);
 }
 
@@ -109,7 +109,7 @@ XSF_HOST_DEVICE inline float eval_sh_jacobi(float n, float p, float q, float x) 
            binom(2.0 * static_cast<double>(n) + static_cast<double>(p) - 1.0, static_cast<double>(n));
 }
 
-XSF_HOST_DEVICE inline float eval_sh_jacobi(cxx::ptrdiff_t n, float p, float q, float x) {
+XSF_HOST_DEVICE inline float eval_sh_jacobi(int n, float p, float q, float x) {
     return detail::eval_jacobi_l(
                n, static_cast<double>(p) - static_cast<double>(q), static_cast<double>(q) - 1.0,
                2.0 * static_cast<double>(x) - 1.0
