@@ -313,9 +313,7 @@ TEST_CASE("eval_sh_jacobi matches SciPy complex<float> reference values", "[eval
 TEST_CASE("eval_jacobi recurrence overload", "[eval_jacobi][xsf_tests]") {
     // https://github.com/scipy/scipy/blob/a125578782dd3213fb57fda0f4b97c70dd054b1d/scipy/special/tests/test_orthogonal_eval.py#L185-L188
     check_recurrence(
-        [](std::ptrdiff_t n, const std::vector<double> &params, double x) {
-            return xsf::eval_jacobi(n, params[0], params[1], x);
-        },
+        [](int n, const std::vector<double> &params, double x) { return xsf::eval_jacobi(n, params[0], params[1], x); },
         [](double n, const std::vector<double> &params, double x) {
             return xsf::eval_jacobi(n, params[0], params[1], x);
         },
@@ -326,7 +324,7 @@ TEST_CASE("eval_jacobi recurrence overload", "[eval_jacobi][xsf_tests]") {
 TEST_CASE("eval_sh_jacobi recurrence overload", "[eval_sh_jacobi][xsf_tests]") {
     // https://github.com/scipy/scipy/blob/a125578782dd3213fb57fda0f4b97c70dd054b1d/scipy/special/tests/test_orthogonal_eval.py#L190-L192
     check_recurrence(
-        [](std::ptrdiff_t n, const std::vector<double> &params, double x) {
+        [](int n, const std::vector<double> &params, double x) {
             return xsf::eval_sh_jacobi(n, params[0], params[1], x);
         },
         [](double n, const std::vector<double> &params, double x) {
@@ -351,7 +349,7 @@ TEST_CASE("eval_jacobi alpha=-1 beta=1", "[eval_jacobi][xsf_tests]") {
 
     for (std::size_t j = 0; j < expected.size(); ++j) {
         const double x = -1.0 + 0.2 * static_cast<double>(j);
-        auto out = xsf::eval_jacobi(static_cast<std::ptrdiff_t>(n), -1.0, 1.0, x);
+        auto out = xsf::eval_jacobi(n, -1.0, 1.0, x);
         auto error = xsf::extended_absolute_error(out, expected[j]);
         auto tol = 1e-14 + 1e-10 * std::abs(expected[j]);
         CAPTURE(n, x, out, expected[j], error, tol);
@@ -379,7 +377,7 @@ TEST_CASE("eval_jacobi alpha=-1 beta=-1", "[eval_jacobi][xsf_tests]") {
 
     for (std::size_t j = 0; j < expected.size(); ++j) {
         const double x = -1.0 + 0.2 * static_cast<double>(j);
-        auto out = xsf::eval_jacobi(static_cast<std::ptrdiff_t>(n), -1.0, -1.0, x);
+        auto out = xsf::eval_jacobi(n, -1.0, -1.0, x);
         auto error = xsf::extended_absolute_error(out, expected[j]);
         auto tol = 1e-14 + 1e-10 * std::abs(expected[j]);
         CAPTURE(n, x, out, expected[j], error, tol);
