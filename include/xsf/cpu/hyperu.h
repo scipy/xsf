@@ -1,9 +1,9 @@
 // Translated from Cython to C++ by the xsf developers in 2026.
 #pragma once
 
-#include "cephes/poch.h"
-#include "config.h"
-#include "error.h"
+#include "../cephes/poch.h"
+#include "../config.h"
+#include "../error.h"
 #include "specfun.h"
 
 namespace xsf {

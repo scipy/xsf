@@ -1,6 +1,6 @@
 #include "../testing_utils.h"
 
-#include <xsf/fresnel.h>
+#include <xsf/cpu/fresnel.h>
 
 namespace fs = std::filesystem;
 

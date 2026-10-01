@@ -1,6 +1,6 @@
 #include "../testing_utils.h"
 #include <tuple>
-#include <xsf/bessel.h>
+#include <xsf/cpu/bessel.h>
 
 TEST_CASE("iv tiny inputs", "[bessel][xsf_tests]") {
     using test_case = std::tuple<long, double, double, double>;

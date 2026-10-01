@@ -82,8 +82,8 @@
  */
 #pragma once
 
-#include "../bessel.h"
 #include "../config.h"
+#include "../cpu/bessel.h"
 #include "../error.h"
 
 #include "dd_real.h"

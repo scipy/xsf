@@ -1,6 +1,6 @@
 #include "../testing_utils.h"
 
-#include <xsf/exp.h>
+#include <xsf/cpu/exp.h>
 
 namespace fs = std::filesystem;
 

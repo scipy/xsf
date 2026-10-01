@@ -1,7 +1,7 @@
 #pragma once
 
-#include "binom.h"
-#include "config.h"
+#include "../binom.h"
+#include "../config.h"
 #include "numbers.h"
 
 namespace xsf {

@@ -1,7 +1,7 @@
 #include "../testing_utils.h"
 #include <complex>
 #include <tuple>
-#include <xsf/sph_bessel.h>
+#include <xsf/cpu/sph_bessel.h>
 
 TEST_CASE("spherical_j reflection complex", "[spherical_bessel][xsf_tests]") {
     using test_case = std::tuple<long, std::complex<double>, std::complex<double>, double>;

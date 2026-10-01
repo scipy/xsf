@@ -12,7 +12,7 @@
 #pragma once
 
 #include "../config.h"
-#include "../numbers.h"
+#include "../cpu/numbers.h"
 
 namespace xsf {
 namespace cephes {

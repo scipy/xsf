@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cephes/struve.h"
+#include "../cephes/struve.h"
 
 namespace xsf {
 namespace detail {

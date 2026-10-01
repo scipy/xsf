@@ -16,8 +16,8 @@
 #include "cephes/trig.h"
 #include "cephes/unity.h"
 #include "config.h"
+#include "cpu/numbers.h"
 #include "evalpoly.h"
-#include "numbers.h"
 
 namespace xsf {
 

@@ -70,7 +70,7 @@
 
 #pragma once
 
-#include "../config.h"
+#include "../../config.h"
 #include <memory>
 
 namespace xsf {

@@ -1,7 +1,7 @@
 #include "../testing_utils.h"
 #include <cmath>
 #include <tuple>
-#include <xsf/specfun/specfun.h>
+#include <xsf/cpu/specfun/specfun.h>
 
 TEST_CASE("lpmv endpoint x=-1 gives signed infinity for m=0 gh-82", "[lpmv][xsf_tests]") {
     const double m = 0.0;

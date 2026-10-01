@@ -1,9 +1,9 @@
 #pragma once
 
+#include "../cephes/airy.h"
+#include "../config.h"
+#include "../error.h"
 #include "amos.h"
-#include "cephes/airy.h"
-#include "config.h"
-#include "error.h"
 
 inline int cephes_airy(float xf, float *aif, float *aipf, float *bif, float *bipf) {
     double ai;

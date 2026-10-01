@@ -1,6 +1,6 @@
 #pragma once
 
-#include "error.h"
+#include "../error.h"
 #include "specfun/specfun.h"
 
 #define SPECFUN_ZCONVINF(func, z)                                                                                      \

@@ -1,6 +1,6 @@
 #include "../testing_utils.h"
 
-#include <xsf/airy.h>
+#include <xsf/cpu/airy.h>
 
 namespace fs = std::filesystem;
 
