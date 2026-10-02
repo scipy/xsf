@@ -171,6 +171,9 @@ using invoke_result_t = typename invoke_result<F>::type;
 template <typename T>
 using remove_cvref_t = cuda::std::remove_cvref_t<T>;
 
+template <typename... Ts>
+using void_t = cuda::std::void_t<Ts...>;
+
 #else
 
 using std::ptrdiff_t;
@@ -237,6 +240,9 @@ using invoke_result_t = std::invoke_result_t<F>;
 
 template <typename T>
 using remove_cvref_t = std::remove_cv_t<std::remove_reference_t<T>>;
+
+template <typename... Ts>
+using void_t = std::void_t<Ts...>;
 
 #endif
 
