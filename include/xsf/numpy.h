@@ -5,6 +5,7 @@
 
 #include <array>
 #include <cassert>
+#include <cstdint>
 #include <cstring>
 #include <iostream>
 #include <memory>
@@ -273,6 +274,8 @@ namespace numpy {
 
     // 4 inputs, 1 output
     using pddd_d = double (*)(std::ptrdiff_t, double, double, double);
+    using i4ddd_d = double (*)(std::int32_t, double, double, double);
+    using i8ddd_d = double (*)(std::int64_t, double, double, double);
     using llld_d = double (*)(long int, long int, long int, double);
     using qqqd_d = double (*)(long long int, long long int, long long int, double);
     using qqqF_F = cfloat (*)(long long int, long long int, long long int, cfloat);
