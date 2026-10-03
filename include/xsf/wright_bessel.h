@@ -554,6 +554,88 @@ namespace detail {
      * Source: https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/_precompute/wright_bessel.py */
     constexpr double wb_A[] = {0.41037, 0.30833, 6.9952, 18.382, -2.8566, 2.1122};
 
+    /* Signed log-sum of the same Gauss nodes as wright_bessel_integral.
+     * The factored exp(exp_term) form overflows once the contour radius
+     * asked for by the fit is restored (gh-291). The exp_term terms cancel
+     * in the logarithm, so this accumulation stays finite. */
+    template <bool log_wb>
+    XSF_HOST_DEVICE inline double wright_bessel_integral_logspace(double a, double b, double x, double eps) {
+        const double ninf = -cxx::numeric_limits<double>::infinity();
+        double max_pos = ninf;
+        double max_neg = ninf;
+        double sum_pos = 0;
+        double sum_neg = 0;
+
+        for (int pass = 0; pass < 2; ++pass) {
+            sum_pos = 0;
+            sum_neg = 0;
+            for (int k = 0; k < 50; ++k) {
+                double r = wb_x_laguerre[k];
+                double x_r_a = x * cxx::pow(r + eps, -a);
+                double sinv = cxx::sin(x_r_a * cephes::sinpi(a) + M_PI * b);
+                if (sinv != 0.0 && wb_w_laguerre[k] > 0.0) {
+                    double log_abs = cxx::log(wb_w_laguerre[k]) + x_r_a * cephes::cospi(a) -
+                                     b * cxx::log(r + eps) + cxx::log(cxx::fabs(sinv)) - eps - cxx::log(M_PI);
+                    if (pass == 0) {
+                        if (sinv > 0.0) {
+                            max_pos = cxx::fmax(max_pos, log_abs);
+                        } else {
+                            max_neg = cxx::fmax(max_neg, log_abs);
+                        }
+                    } else if (sinv > 0.0 && max_pos > ninf) {
+                        sum_pos += cxx::exp(log_abs - max_pos);
+                    } else if (sinv < 0.0 && max_neg > ninf) {
+                        sum_neg += cxx::exp(log_abs - max_neg);
+                    }
+                }
+
+                double phi = M_PI * (wb_x_legendre[k] + 1) / 2.0;
+                double x_eps_a = x * cxx::pow(eps, -a);
+                double cosv = cxx::cos(eps * cxx::sin(phi) - x_eps_a * cxx::sin(a * phi) + (1 - b) * phi);
+                if (cosv != 0.0 && wb_w_legendre[k] > 0.0) {
+                    double log_abs = cxx::log(wb_w_legendre[k]) + eps * cxx::cos(phi) + x_eps_a * cxx::cos(a * phi) +
+                                     cxx::log(cxx::fabs(cosv)) + cxx::log(M_PI / 2.0) + (1 - b) * cxx::log(eps) -
+                                     cxx::log(M_PI);
+                    if (pass == 0) {
+                        if (cosv > 0.0) {
+                            max_pos = cxx::fmax(max_pos, log_abs);
+                        } else {
+                            max_neg = cxx::fmax(max_neg, log_abs);
+                        }
+                    } else if (cosv > 0.0 && max_pos > ninf) {
+                        sum_pos += cxx::exp(log_abs - max_pos);
+                    } else if (cosv < 0.0 && max_neg > ninf) {
+                        sum_neg += cxx::exp(log_abs - max_neg);
+                    }
+                }
+            }
+        }
+
+        double lp = (sum_pos == 0.0 || max_pos == ninf) ? ninf : max_pos + cxx::log(sum_pos);
+        double ln = (sum_neg == 0.0 || max_neg == ninf) ? ninf : max_neg + cxx::log(sum_neg);
+        double diff = ninf;
+        double sign = 1.0;
+        if (lp > ln) {
+            diff = (ln == ninf) ? lp : lp + cxx::log1p(-cxx::exp(ln - lp));
+        } else if (ln > lp) {
+            diff = (lp == ninf) ? ln : ln + cxx::log1p(-cxx::exp(lp - ln));
+            sign = -1.0;
+        }
+        if (log_wb) {
+            if (!(sign > 0.0) || diff == ninf) {
+                return cxx::numeric_limits<double>::quiet_NaN();
+            }
+            return diff;
+        }
+        if (diff == ninf) {
+            return 0.0;
+        }
+        if (diff > 709.78271289338403) {
+            return sign * cxx::numeric_limits<double>::infinity();
+        }
+        return sign * cxx::exp(diff);
+    }
+
     template <bool log_wb>
     XSF_HOST_DEVICE inline double wright_bessel_integral(double a, double b, double x) {
         /* 5. Integral representation
@@ -620,7 +702,10 @@ namespace detail {
             eps = cxx::fmax(eps, cxx::pow(b, -b / (1. - b)) + 0.1 * b);
         }
 
-        // safeguard, higher better for larger a, lower better for tiny a.
+        // Keep the historical ceiling on the linear path. When the fit asks
+        // for a larger radius, or the factored exponential would overflow,
+        // sum the same nodes in log space at the uncapped radius (gh-291, gh-292).
+        double eps_fit = cxx::fmax(eps, 3.);
         eps = cxx::fmin(eps, 150.);
         eps = cxx::fmax(eps, 3.); // 3 seems to be a pretty good choice in general.
 
@@ -637,6 +722,10 @@ namespace detail {
         exp_term = cxx::fmax(exp_term, eps + x_eps_a);
         // phi = pi  => cos(phi) = -1
         exp_term = cxx::fmax(exp_term, -eps + x_eps_a * cephes::cospi(a));
+
+        if (eps_fit > 150. || exp_term > 709.78271289338403) {
+            return wright_bessel_integral_logspace<log_wb>(a, b, x, eps_fit);
+        }
 
         double res1 = 0;
         double res2 = 0;
