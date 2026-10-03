@@ -82,7 +82,8 @@ XSF_HOST_DEVICE inline int sici(cxx::complex<double> z, cxx::complex<double> &si
     }
 
     // DLMF 6.5.5/6.5.6 plus DLMF 6.4.4/6.4.6/6.4.7
-    cxx::complex<double> jz = cxx::complex<double>(0.0, 1.0) * z;
+    // Multiply by i componentwise to preserve signed zero for the branch cut.
+    cxx::complex<double> jz(-z.imag(), z.real());
     cxx::complex<double> term1 = expi(jz);
     cxx::complex<double> term2 = expi(-jz);
     si = cxx::complex<double>(0.0, -0.5) * (term1 - term2);
