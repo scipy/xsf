@@ -22,6 +22,28 @@ TEST_CASE("assoc_legendre_p scipy/gh-23101", "[assoc_legendre_p][xsf_tests]") {
     REQUIRE(rel_error <= rtol);
 }
 
+TEST_CASE("assoc_legendre_p second derivative sign at z = +-1 scipy/gh-26229", "[assoc_legendre_p][xsf_tests]") {
+    // The second derivative of P_n^m at x = -1 is (-1)^n times its value at x = 1, so for
+    // odd n the z = -1 endpoint must flip sign. References were computed by differentiating
+    // P_n^m(x) = (-1)^m (1 - x^2)^(m/2) * d^m P_n(x) / dx^m symbolically and evaluating at the endpoints.
+    using test_case = std::tuple<int, int, double, double, double>;
+    auto [n, m, z, ref, rtol] = GENERATE(
+        test_case{3, 0, -1.0, -15.0, 1e-13}, test_case{3, 0, 1.0, 15.0, 1e-13},
+        test_case{4, 0, -1.0, 45.0, 1e-13}, test_case{4, 0, 1.0, 45.0, 1e-13},
+        test_case{5, 0, -1.0, -105.0, 1e-13},
+        test_case{3, 2, -1.0, 90.0, 1e-12}, test_case{3, 2, 1.0, -90.0, 1e-12},
+        test_case{4, 2, -1.0, -510.0, 1e-12}, test_case{5, 2, -1.0, 1890.0, 1e-12},
+        test_case{7, 0, -1.0, -378.0, 1e-12}, test_case{7, 2, -1.0, 13356.0, 1e-11},
+        test_case{5, 4, -1.0, -7560.0, 1e-11}
+    );
+    xsf::dual<double, 2> z_dual(z);
+    const auto w = xsf::assoc_legendre_p(xsf::assoc_legendre_unnorm, n, m, z_dual, 2);
+    const auto rel_error = xsf::extended_relative_error(w[2], ref);
+
+    CAPTURE(n, m, z, (double)w[2], ref, rtol, rel_error);
+    REQUIRE(rel_error <= rtol);
+}
+
 TEST_CASE("assoc_legendre_p norm m0 gh-78", "[assoc_legendre_p][xsf_tests]") {
     const int n_max = 10;
     const int m = 0;
