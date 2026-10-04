@@ -2,6 +2,7 @@
 #include "../testing_utils.h"
 
 #include <xsf/evalpoly.h>
+#include <xsf/gamma.h>
 #include <xsf/orthogonal_eval.h>
 
 #include <array>
@@ -388,4 +389,58 @@ TEST_CASE("eval_jacobi alpha=-1 beta=-1", "[eval_jacobi][xsf_tests]") {
         CAPTURE(n, x, out, expected[j], error, tol);
         REQUIRE(error <= tol);
     }
+}
+
+TEST_CASE("eval_hermitenorm matches constructed polynomials", "[eval_hermitenorm][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L138-L140
+    check_poly(
+        [](int n, const std::vector<double> &) {
+            std::vector<double> out(n + 1, 0.0);
+            for (int m = 0; m <= n / 2; ++m) {
+                const int power = n - 2 * m;
+                out[power] = std::pow(-1.0, m) * xsf::gamma(n + 1.0) /
+                             (std::pow(2.0, m) * xsf::gamma(m + 1.0) * xsf::gamma(power + 1.0));
+            }
+            return out;
+        },
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_hermitenorm(n, x); }, {}, {-100.0, 100.0},
+        1e-12
+    );
+}
+
+TEST_CASE("eval_hermite matches constructed polynomials", "[eval_hermite][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L134-L136
+    check_poly(
+        [](int n, const std::vector<double> &) {
+            std::vector<double> out(n + 1, 0.0);
+            for (int m = 0; m <= n / 2; ++m) {
+                const int power = n - 2 * m;
+                out[power] = std::pow(-1.0, m) * xsf::gamma(n + 1.0) * std::pow(2.0, power) /
+                             (xsf::gamma(m + 1.0) * xsf::gamma(power + 1.0));
+            }
+            return out;
+        },
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_hermite(n, x); }, {}, {-100.0, 100.0}, 1e-12
+    );
+}
+
+TEST_CASE("Hermite evaluators handle domain and NaN inputs", "[eval_hermite][eval_hermitenorm][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L244-L255
+    REQUIRE(std::isnan(xsf::eval_hermite(-1, 1.0)));
+    REQUIRE(std::isnan(xsf::eval_hermitenorm(-1, 1.0)));
+
+    for (int n = 0; n <= 2; ++n) {
+        for (double x : {0.0, 1.0, std::numeric_limits<double>::quiet_NaN()}) {
+            CAPTURE(n, x);
+            REQUIRE(std::isnan(xsf::eval_hermite(n, x)) == std::isnan(x));
+            REQUIRE(std::isnan(xsf::eval_hermitenorm(n, x)) == std::isnan(x));
+        }
+    }
+}
+
+TEST_CASE("eval_hermite preserves high-order accuracy", "[eval_hermite][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L238-L241
+    constexpr double expected = -1.457076485701412e60;
+    const double out = xsf::eval_hermite(70, 1.0);
+    REQUIRE(xsf::extended_absolute_error(out, expected) <= 1e-14 * std::abs(expected));
 }
