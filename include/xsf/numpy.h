@@ -273,6 +273,9 @@ namespace numpy {
     using qqd_ddd = void (*)(long long int, long long int, double, double &, double &, double &);
 
     // 4 inputs, 1 output
+    using iddd_d = double (*)(int, double, double, double);
+    using lddd_d = double (*)(long, double, double, double);
+    using qddd_d = double (*)(long long, double, double, double);
     using pddd_d = double (*)(std::ptrdiff_t, double, double, double);
     using i4ddd_d = double (*)(std::int32_t, double, double, double);
     using i8ddd_d = double (*)(std::int64_t, double, double, double);
