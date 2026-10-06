@@ -554,11 +554,19 @@ namespace detail {
      * Source: https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/_precompute/wright_bessel.py */
     constexpr double wb_A[] = {0.41037, 0.30833, 6.9952, 18.382, -2.8566, 2.1122};
 
-    /* Signed log-sum of the same Gauss nodes as wright_bessel_integral.
+    // Largest contour radius used by the factored linear path (historical ceiling).
+    constexpr double wb_eps_cap = 150.;
+    // log(DBL_MAX): exp(t) overflows a double for t above this.
+    constexpr double wb_log_dbl_max = 709.78271289338403;
+
+    /* log of the same Gauss-node sum as wright_bessel_integral, accumulated
+     * as separate positive and negative parts in log space.
      * The factored exp(exp_term) form overflows once the contour radius
      * asked for by the fit is restored (gh-291). The exp_term terms cancel
-     * in the logarithm, so this accumulation stays finite. */
-    template <bool log_wb>
+     * in the logarithm, so this accumulation stays finite.
+     * The Wright function is positive for x > 0. When the positive part does
+     * not exceed the negative one the quadrature has lost all accuracy at
+     * this radius, and NaN is returned so the caller can fall back. */
     XSF_HOST_DEVICE inline double wright_bessel_integral_logspace(double a, double b, double x, double eps) {
         const double ninf = -cxx::numeric_limits<double>::infinity();
         double max_pos = ninf;
@@ -613,27 +621,10 @@ namespace detail {
 
         double lp = (sum_pos == 0.0 || max_pos == ninf) ? ninf : max_pos + cxx::log(sum_pos);
         double ln = (sum_neg == 0.0 || max_neg == ninf) ? ninf : max_neg + cxx::log(sum_neg);
-        double diff = ninf;
-        double sign = 1.0;
-        if (lp > ln) {
-            diff = (ln == ninf) ? lp : lp + cxx::log1p(-cxx::exp(ln - lp));
-        } else if (ln > lp) {
-            diff = (lp == ninf) ? ln : ln + cxx::log1p(-cxx::exp(lp - ln));
-            sign = -1.0;
+        if (!(lp > ln)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
-        if (log_wb) {
-            if (!(sign > 0.0) || diff == ninf) {
-                return cxx::numeric_limits<double>::quiet_NaN();
-            }
-            return diff;
-        }
-        if (diff == ninf) {
-            return 0.0;
-        }
-        if (diff > 709.78271289338403) {
-            return sign * cxx::numeric_limits<double>::infinity();
-        }
-        return sign * cxx::exp(diff);
+        return (ln == ninf) ? lp : lp + cxx::log1p(-cxx::exp(ln - lp));
     }
 
     template <bool log_wb>
@@ -706,7 +697,7 @@ namespace detail {
         // for a larger radius, or the factored exponential would overflow,
         // sum the same nodes in log space at the uncapped radius (gh-291, gh-292).
         double eps_fit = cxx::fmax(eps, 3.);
-        eps = cxx::fmin(eps, 150.);
+        eps = cxx::fmin(eps, wb_eps_cap);
         eps = cxx::fmax(eps, 3.); // 3 seems to be a pretty good choice in general.
 
         // We factor out exp(-exp_term) from wb_Kmod and wb_P to avoid overflow of
@@ -723,8 +714,16 @@ namespace detail {
         // phi = pi  => cos(phi) = -1
         exp_term = cxx::fmax(exp_term, -eps + x_eps_a * cephes::cospi(a));
 
-        if (eps_fit > 150. || exp_term > 709.78271289338403) {
-            return wright_bessel_integral_logspace<log_wb>(a, b, x, eps_fit);
+        if (eps_fit > wb_eps_cap || exp_term > wb_log_dbl_max) {
+            double log_res = wright_bessel_integral_logspace(a, b, x, eps_fit);
+            if (!cxx::isnan(log_res)) {
+                if (log_wb) {
+                    return log_res;
+                }
+                return (log_res > wb_log_dbl_max) ? cxx::numeric_limits<double>::infinity() : cxx::exp(log_res);
+            }
+            // No positive total at the uncapped radius: keep the capped
+            // radius and the linear path below.
         }
 
         double res1 = 0;
