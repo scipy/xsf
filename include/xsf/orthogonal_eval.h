@@ -2,6 +2,7 @@
 
 #include "binom.h"
 #include "config.h"
+#include "error.h"
 #include "hyp2f1.h"
 
 namespace xsf {
@@ -57,6 +58,40 @@ namespace detail {
             }
             return binom(n + alpha, n) * p;
         }
+    }
+
+    template <typename Int>
+    XSF_HOST_DEVICE inline double eval_hermitenorm(Int n, double x) {
+        if (cxx::isnan(x)) {
+            return x;
+        }
+
+        if (n < 0) {
+            set_error("eval_hermitenorm", SF_ERROR_DOMAIN, "polynomial only defined for nonnegative n");
+            return cxx::numeric_limits<double>::quiet_NaN();
+        } else if (n == 0) {
+            return 1.0;
+        } else if (n == 1) {
+            return x;
+        }
+
+        double y3 = 0.0;
+        double y2 = 1.0;
+        for (Int k = n; k > 1; --k) {
+            const double y1 = x * y2 - k * y3;
+            y3 = y2;
+            y2 = y1;
+        }
+        return x * y2 - y3;
+    }
+
+    template <typename Int>
+    XSF_HOST_DEVICE inline double eval_hermite(Int n, double x) {
+        if (n < 0) {
+            set_error("eval_hermite", SF_ERROR_DOMAIN, "polynomial only defined for nonnegative n");
+            return cxx::numeric_limits<double>::quiet_NaN();
+        }
+        return eval_hermitenorm(n, cxx::sqrt(2.0) * x) * cxx::pow(2.0, n / 2.0);
     }
 
 } // namespace detail
@@ -134,6 +169,30 @@ XSF_HOST_DEVICE inline cxx::complex<float> eval_sh_jacobi(float n, float p, floa
         ) /
         binom(2.0 * static_cast<double>(n) + static_cast<double>(p) - 1.0, static_cast<double>(n))
     );
+}
+
+// Hermite (probabilist's)
+
+template <typename Int, cxx::enable_if_t<cxx::is_integral_v<Int>, int> = 0>
+XSF_HOST_DEVICE inline double eval_hermitenorm(Int n, double x) {
+    return detail::eval_hermitenorm(n, x);
+}
+
+template <typename Int, cxx::enable_if_t<cxx::is_integral_v<Int>, int> = 0>
+XSF_HOST_DEVICE inline float eval_hermitenorm(Int n, float x) {
+    return detail::eval_hermitenorm(n, static_cast<double>(x));
+}
+
+// Hermite (physicist's)
+
+template <typename Int, cxx::enable_if_t<cxx::is_integral_v<Int>, int> = 0>
+XSF_HOST_DEVICE inline double eval_hermite(Int n, double x) {
+    return detail::eval_hermite(n, x);
+}
+
+template <typename Int, cxx::enable_if_t<cxx::is_integral_v<Int>, int> = 0>
+XSF_HOST_DEVICE inline float eval_hermite(Int n, float x) {
+    return detail::eval_hermite(n, static_cast<double>(x));
 }
 
 } // namespace xsf
