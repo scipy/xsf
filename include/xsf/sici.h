@@ -50,7 +50,7 @@ namespace detail {
 
 } // namespace detail
 
-XSF_HOST_DEVICE inline int sici(cxx::complex<double> z, cxx::complex<double> &si, cxx::complex<double> &ci) {
+XSF_HOST_DEVICE inline void sici(cxx::complex<double> z, cxx::complex<double> &si, cxx::complex<double> &ci) {
     /* Compute sin/cos integrals at complex arguments. The algorithm
      * largely follows that of [1].
      */
@@ -60,12 +60,12 @@ XSF_HOST_DEVICE inline int sici(cxx::complex<double> z, cxx::complex<double> &si
     if (z == cxx::numeric_limits<double>::infinity()) {
         si = M_PI_2;
         ci = 0;
-        return 0;
+        return;
     }
     if (z == -cxx::numeric_limits<double>::infinity()) {
         si = -M_PI_2;
         ci = {0.0, M_PI};
-        return 0;
+        return;
     }
 
     if (cxx::abs(z) < 0.8) {
@@ -78,7 +78,7 @@ XSF_HOST_DEVICE inline int sici(cxx::complex<double> z, cxx::complex<double> &si
         } else {
             ci += EULER + cxx::log(z);
         }
-        return 0;
+        return;
     }
 
     // DLMF 6.5.5/6.5.6 plus DLMF 6.4.4/6.4.6/6.4.7
@@ -103,19 +103,17 @@ XSF_HOST_DEVICE inline int sici(cxx::complex<double> z, cxx::complex<double> &si
             ci -= cxx::complex<double>(0.0, M_PI);
         }
     }
-    return 0;
 }
 
-XSF_HOST_DEVICE inline int sici(cxx::complex<float> z, cxx::complex<float> &si_f, cxx::complex<float> &ci_f) {
+XSF_HOST_DEVICE inline void sici(cxx::complex<float> z, cxx::complex<float> &si_f, cxx::complex<float> &ci_f) {
     cxx::complex<double> si;
     cxx::complex<double> ci;
-    int res = sici(z, si, ci);
+    sici(z, si, ci);
     si_f = si;
     ci_f = ci;
-    return res;
 }
 
-XSF_HOST_DEVICE inline int shichi(cxx::complex<double> z, cxx::complex<double> &shi, cxx::complex<double> &chi) {
+XSF_HOST_DEVICE inline void shichi(cxx::complex<double> z, cxx::complex<double> &shi, cxx::complex<double> &chi) {
     /* Compute sinh/cosh integrals at complex arguments. The algorithm
      * largely follows that of [1].
      */
@@ -123,12 +121,12 @@ XSF_HOST_DEVICE inline int shichi(cxx::complex<double> z, cxx::complex<double> &
     if (z == cxx::numeric_limits<double>::infinity()) {
         shi = cxx::numeric_limits<double>::infinity();
         chi = cxx::numeric_limits<double>::infinity();
-        return 0;
+        return;
     }
     if (z == -cxx::numeric_limits<double>::infinity()) {
         shi = -cxx::numeric_limits<double>::infinity();
         chi = cxx::numeric_limits<double>::infinity();
-        return 0;
+        return;
     }
     if (cxx::abs(z) < 0.8) {
         // Use the series to avoid cancellation in shi
@@ -139,7 +137,7 @@ XSF_HOST_DEVICE inline int shichi(cxx::complex<double> z, cxx::complex<double> &
         } else {
             chi += EULER + cxx::log(z);
         }
-        return 0;
+        return;
     }
 
     cxx::complex<double> term1 = expi(z);
@@ -155,37 +153,33 @@ XSF_HOST_DEVICE inline int shichi(cxx::complex<double> z, cxx::complex<double> &
     } else if (z.real() < 0) {
         chi += cxx::complex<double>(0.0, M_PI);
     }
-    return 0;
 }
 
-XSF_HOST_DEVICE inline int shichi(cxx::complex<float> z, cxx::complex<float> &shi_f, cxx::complex<float> &chi_f) {
+XSF_HOST_DEVICE inline void shichi(cxx::complex<float> z, cxx::complex<float> &shi_f, cxx::complex<float> &chi_f) {
     cxx::complex<double> shi;
     cxx::complex<double> chi;
-    int res = shichi(z, shi, chi);
+    shichi(z, shi, chi);
     shi_f = shi;
     chi_f = chi;
-    return res;
 }
 
-XSF_HOST_DEVICE inline int sici(double x, double &si, double &ci) { return cephes::sici(x, si, ci); }
+XSF_HOST_DEVICE inline void sici(double x, double &si, double &ci) { cephes::sici(x, si, ci); }
 
-XSF_HOST_DEVICE inline int shichi(double x, double &shi, double &chi) { return cephes::shichi(x, shi, chi); }
+XSF_HOST_DEVICE inline void shichi(double x, double &shi, double &chi) { cephes::shichi(x, shi, chi); }
 
-XSF_HOST_DEVICE inline int sici(float x, float &si_f, float &ci_f) {
+XSF_HOST_DEVICE inline void sici(float x, float &si_f, float &ci_f) {
     double si;
     double ci;
-    int res = cephes::sici(x, si, ci);
+    cephes::sici(x, si, ci);
     si_f = si;
     ci_f = ci;
-    return res;
 }
 
-XSF_HOST_DEVICE inline int shichi(float x, float &shi_f, float &chi_f) {
+XSF_HOST_DEVICE inline void shichi(float x, float &shi_f, float &chi_f) {
     double shi;
     double chi;
-    int res = cephes::shichi(x, shi, chi);
+    cephes::shichi(x, shi, chi);
     shi_f = shi;
     chi_f = chi;
-    return res;
 }
 } // namespace xsf
