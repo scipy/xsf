@@ -58,6 +58,8 @@
  */
 #pragma once
 
+#include "../config.h"
+
 namespace xsf {
 namespace cephes {
     namespace detail {

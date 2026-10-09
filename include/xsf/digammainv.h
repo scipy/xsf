@@ -1,11 +1,11 @@
 #pragma once
 
-#include "xsf/cephes/const.h"
-#include "xsf/cephes/psi.h"
-#include "xsf/cephes/zeta.h"
-#include "xsf/config.h"
-#include "xsf/error.h"
-#include "xsf/tools.h"
+#include "cephes/const.h"
+#include "cephes/psi.h"
+#include "cephes/zeta.h"
+#include "config.h"
+#include "error.h"
+#include "tools.h"
 
 namespace xsf {
 namespace detail {

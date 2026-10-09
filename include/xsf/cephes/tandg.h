@@ -78,6 +78,8 @@
 #include "../config.h"
 #include "../error.h"
 
+#include "const.h"
+
 namespace xsf {
 namespace cephes {
 
