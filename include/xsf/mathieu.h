@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include "xsf/config.h"
-#include "xsf/error.h"
-#include "xsf/trig.h"
+#include "config.h"
+#include "error.h"
+#include "trig.h"
 
 namespace xsf {
 namespace mathieu {
