@@ -94,6 +94,39 @@ namespace detail {
         return eval_hermitenorm(n, cxx::sqrt(2.0) * x) * cxx::pow(2.0, n / 2.0);
     }
 
+    // Integer-degree L_n^(alpha)(x) by forward recurrence on the normalized values
+    // p_k = L_k^(alpha)(x) / binom(k + alpha, k) and their differences d_k = p_k - p_{k-1}:
+    //   d_{k+1} = (k d_k - x p_k) / (k + alpha + 1),  p_{k+1} = p_k + d_{k+1},
+    // starting from p_0 = 1, d_0 = 0.
+    template <typename Int>
+    XSF_HOST_DEVICE inline double eval_genlaguerre_l(Int n, double alpha, double x) {
+        if (alpha <= -1) {
+            set_error("eval_genlaguerre", SF_ERROR_DOMAIN, "polynomial defined only for alpha > -1");
+            return cxx::numeric_limits<double>::quiet_NaN();
+        }
+
+        if (cxx::isnan(alpha) || cxx::isnan(x)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
+        }
+
+        if (n < 0) {
+            return 0.0;
+        } else if (n == 0) {
+            return 1.0;
+        } else if (n == 1) {
+            return -x + alpha + 1.0;
+        }
+
+        double d = -x / (alpha + 1.0);
+        double p = d + 1.0;
+        for (Int kk = 0; kk < n - 1; ++kk) {
+            const double k = kk + 1.0;
+            d = -x / (k + alpha + 1.0) * p + (k / (k + alpha + 1.0)) * d;
+            p = d + p;
+        }
+        return binom(n + alpha, n) * p;
+    }
+
 } // namespace detail
 
 // Jacobi
@@ -193,6 +226,30 @@ XSF_HOST_DEVICE inline double eval_hermite(Int n, double x) {
 template <typename Int, cxx::enable_if_t<cxx::is_integral_v<Int>, int> = 0>
 XSF_HOST_DEVICE inline float eval_hermite(Int n, float x) {
     return detail::eval_hermite(n, static_cast<double>(x));
+}
+
+// Generalized Laguerre. Floating-degree and complex overloads are in cpu/orthogonal_eval.h.
+
+template <typename Int, cxx::enable_if_t<cxx::is_integral_v<Int>, int> = 0>
+XSF_HOST_DEVICE inline double eval_genlaguerre(Int n, double alpha, double x) {
+    return detail::eval_genlaguerre_l(n, alpha, x);
+}
+
+template <typename Int, cxx::enable_if_t<cxx::is_integral_v<Int>, int> = 0>
+XSF_HOST_DEVICE inline float eval_genlaguerre(Int n, float alpha, float x) {
+    return detail::eval_genlaguerre_l(n, static_cast<double>(alpha), static_cast<double>(x));
+}
+
+// Laguerre
+
+template <typename Int, cxx::enable_if_t<cxx::is_integral_v<Int>, int> = 0>
+XSF_HOST_DEVICE inline double eval_laguerre(Int n, double x) {
+    return detail::eval_genlaguerre_l(n, 0.0, x);
+}
+
+template <typename Int, cxx::enable_if_t<cxx::is_integral_v<Int>, int> = 0>
+XSF_HOST_DEVICE inline float eval_laguerre(Int n, float x) {
+    return detail::eval_genlaguerre_l(n, 0.0, static_cast<double>(x));
 }
 
 } // namespace xsf
