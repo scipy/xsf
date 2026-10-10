@@ -178,7 +178,7 @@ namespace cephes {
         return (igam(df / 2.0, x / 2.0));
     }
 
-    XSF_HOST_DEVICE double chdtri(double df, double y) {
+    XSF_HOST_DEVICE inline double chdtri(double df, double y) {
         double x;
 
         if ((y < 0.0) || (y > 1.0)) { /* || (df < 1.0) ) */

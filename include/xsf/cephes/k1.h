@@ -141,7 +141,7 @@ namespace cephes {
         return (cxx::exp(-x) * chbevl(8.0 / x - 2.0, detail::k1_B, 25) / cxx::sqrt(x));
     }
 
-    XSF_HOST_DEVICE double k1e(double x) {
+    XSF_HOST_DEVICE inline double k1e(double x) {
         double y;
 
         if (x == 0.0) {

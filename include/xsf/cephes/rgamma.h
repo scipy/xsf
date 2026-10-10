@@ -72,7 +72,7 @@ namespace cephes {
 
     } // namespace detail
 
-    XSF_HOST_DEVICE double rgamma(double x) {
+    XSF_HOST_DEVICE inline double rgamma(double x) {
         double w, y, z;
 
         if (x == 0) {

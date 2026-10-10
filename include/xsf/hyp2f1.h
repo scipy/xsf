@@ -459,7 +459,7 @@ namespace detail {
         cxx::complex<double> z_, Z_;
     };
 
-    XSF_HOST_DEVICE cxx::complex<double>
+    XSF_HOST_DEVICE inline cxx::complex<double>
     hyp2f1_transform1_limiting_case(double a, double b, double c, double m, cxx::complex<double> z) {
         /* 1 - z transform in limiting case where c - a - b approaches an integer m. */
         cxx::complex<double> result = 0.0;
@@ -494,7 +494,7 @@ namespace detail {
         }
     }
 
-    XSF_HOST_DEVICE cxx::complex<double>
+    XSF_HOST_DEVICE inline cxx::complex<double>
     hyp2f1_transform2_limiting_case(double a, double b, double c, double m, cxx::complex<double> z) {
         /* 1 / z transform in limiting case where a - b approaches a non-negative integer m. Negative integer case
          * can be handled by swapping a and b. */

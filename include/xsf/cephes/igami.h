@@ -23,7 +23,7 @@ namespace cephes {
 
     namespace detail {
 
-        XSF_HOST_DEVICE double find_inverse_s(double p, double q) {
+        XSF_HOST_DEVICE inline double find_inverse_s(double p, double q) {
             /*
              * Computation of the Incomplete Gamma Function Ratios and their Inverse
              * ARMIDO R. DIDONATO and ALFRED H. MORRIS, JR.

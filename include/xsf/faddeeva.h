@@ -1958,7 +1958,7 @@ XSF_HOST_DEVICE double erfcx(double x) {
    with the help of Maple and a little shell script.   This allows
    the Chebyshev polynomials to be of significantly lower degree (about 1/30)
    compared to fitting the whole [0,1] interval with a single polynomial. */
-XSF_HOST_DEVICE double w_im_y100(double y100, double x) {
+XSF_HOST_DEVICE inline double w_im_y100(double y100, double x) {
     switch ((int)y100) {
     case 0: {
         double t = 2 * y100 - 1;

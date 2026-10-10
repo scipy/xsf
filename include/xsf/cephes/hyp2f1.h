@@ -92,7 +92,7 @@ namespace cephes {
 
         /* Defining power series expansion of Gauss hypergeometric function */
         /* The `loss` parameter estimates loss of significance */
-        XSF_HOST_DEVICE double hys2f1(double a, double b, double c, double x, double *loss) {
+        XSF_HOST_DEVICE inline double hys2f1(double a, double b, double c, double x, double *loss) {
             double f, g, h, k, m, s, u, umax;
             cxx::uint64_t i;
             int ib, intflag = 0;
@@ -155,7 +155,7 @@ namespace cephes {
         }
 
         /* Apply transformations for |x| near 1 then call the power series */
-        XSF_HOST_DEVICE double hyt2f1(double a, double b, double c, double x, double *loss) {
+        XSF_HOST_DEVICE inline double hyt2f1(double a, double b, double c, double x, double *loss) {
             double p, q, r, s, t, y, w, d, err, err1;
             double ax, id, d1, d2, e, y1;
             int i, aid, sign;
@@ -322,7 +322,7 @@ namespace cephes {
         /*
           15.4.2 Abramowitz & Stegun.
         */
-        XSF_HOST_DEVICE double hyp2f1_neg_c_equal_bc(double a, double b, double x) {
+        XSF_HOST_DEVICE inline double hyp2f1_neg_c_equal_bc(double a, double b, double x) {
             double k;
             double collector = 1;
             double sum = 1;
@@ -354,7 +354,7 @@ namespace cephes {
          *
          * AMS55 #15.2.10
          */
-        XSF_HOST_DEVICE double hyp2f1ra(double a, double b, double c, double x, double *loss) {
+        XSF_HOST_DEVICE inline double hyp2f1ra(double a, double b, double c, double x, double *loss) {
             double f2, f1, f0;
             int n;
             double t, err, da;
@@ -412,7 +412,7 @@ namespace cephes {
         }
     } // namespace detail
 
-    XSF_HOST_DEVICE double hyp2f1(double a, double b, double c, double x) {
+    XSF_HOST_DEVICE inline double hyp2f1(double a, double b, double c, double x) {
         double d, d1, d2, e;
         double p, q, r, s, y, ax;
         double ia, ib, ic, id, err;

@@ -455,7 +455,7 @@ namespace cephes {
             *Cman = man2;
         }
 
-        XSF_HOST_DEVICE double_double pow_D(const double_double &a, int m) {
+        XSF_HOST_DEVICE inline double_double pow_D(const double_double &a, int m) {
             /*
              * Using dd_npwr() here would be quite time-consuming.
              * Tradeoff accuracy-time by using pow().
@@ -496,7 +496,7 @@ namespace cephes {
          */
         constexpr int SM_MAX_EXPONENT = 960;
 
-        XSF_HOST_DEVICE double_double pow2Scaled_D(const double_double &a, int m, int *pExponent) {
+        XSF_HOST_DEVICE inline double_double pow2Scaled_D(const double_double &a, int m, int *pExponent) {
             /* Compute a^m = significand*2^expt and return as (significand, expt) */
             double_double ans, y;
             int ansE, yE;

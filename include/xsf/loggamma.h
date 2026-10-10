@@ -38,7 +38,7 @@ namespace detail {
     constexpr double loggamma_LOGPI = 1.1447298858494001741434262; // log(pi)
     constexpr double loggamma_TAYLOR_RADIUS = 0.2;
 
-    XSF_HOST_DEVICE cxx::complex<double> loggamma_stirling(cxx::complex<double> z) {
+    XSF_HOST_DEVICE inline cxx::complex<double> loggamma_stirling(cxx::complex<double> z) {
         /* Stirling series for log-Gamma
          *
          * The coefficients are B[2*n]/(2*n*(2*n - 1)) where B[2*n] is the
@@ -53,7 +53,7 @@ namespace detail {
         return (z - 0.5) * cxx::log(z) - z + loggamma_HLOG2PI + rz * evalpoly(coeffs, 7, rzz);
     }
 
-    XSF_HOST_DEVICE cxx::complex<double> loggamma_recurrence(cxx::complex<double> z) {
+    XSF_HOST_DEVICE inline cxx::complex<double> loggamma_recurrence(cxx::complex<double> z) {
         /* Backward recurrence relation.
          *
          * See Proposition 2.2 in [1] and the Julia implementation [2].
@@ -75,7 +75,7 @@ namespace detail {
         return loggamma_stirling(z) - cxx::log(shiftprod) - signflips * 2 * M_PI * cxx::complex<double>(0, 1);
     }
 
-    XSF_HOST_DEVICE cxx::complex<double> loggamma_taylor(cxx::complex<double> z) {
+    XSF_HOST_DEVICE inline cxx::complex<double> loggamma_taylor(cxx::complex<double> z) {
         /* Taylor series for log-Gamma around z = 1.
          *
          * It is
