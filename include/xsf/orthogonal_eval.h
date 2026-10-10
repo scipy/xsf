@@ -94,6 +94,10 @@ namespace detail {
         return eval_hermitenorm(n, cxx::sqrt(2.0) * x) * cxx::pow(2.0, n / 2.0);
     }
 
+    // Integer-degree L_n^(alpha)(x) by forward recurrence on the normalized values
+    // p_k = L_k^(alpha)(x) / binom(k + alpha, k) and their differences d_k = p_k - p_{k-1}:
+    //   d_{k+1} = (k d_k - x p_k) / (k + alpha + 1),  p_{k+1} = p_k + d_{k+1},
+    // starting from p_0 = 1, d_0 = 0.
     template <typename Int>
     XSF_HOST_DEVICE inline double eval_genlaguerre_l(Int n, double alpha, double x) {
         if (alpha <= -1) {
