@@ -485,6 +485,29 @@ TEST_CASE("eval_genlaguerre supports complex inputs", "[eval_genlaguerre][xsf_te
     );
 }
 
+TEST_CASE("Laguerre float overloads", "[eval_genlaguerre][eval_laguerre][xsf_tests]") {
+    // L_3^a(x) = (a+1)(a+2)(a+3)/6 - (a+2)(a+3)x/2 + (a+3)x^2/2 - x^3/6
+    const float alpha = 0.5f;
+    const float x = 2.0f;
+    const std::complex<float> z{2.0f, -0.5f};
+    const float gen_expected = -43.0f / 48.0f;
+    const float expected = -1.0f / 3.0f;
+    const std::complex<float> gen_complex_expected{-13.0f / 12.0f, -1.0f / 3.0f};
+    const std::complex<float> complex_expected{-11.0f / 24.0f, -25.0f / 48.0f};
+
+    REQUIRE(xsf::extended_relative_error(xsf::eval_genlaguerre(3, alpha, x), gen_expected) < 1e-6f);
+    REQUIRE(xsf::extended_relative_error(xsf::eval_laguerre(3, x), expected) < 1e-6f);
+    REQUIRE(xsf::extended_relative_error(xsf::eval_genlaguerre(3.0f, alpha, x), gen_expected) < 1e-6f);
+    REQUIRE(xsf::extended_relative_error(xsf::eval_laguerre(3.0f, x), expected) < 1e-6f);
+    REQUIRE(
+        xsf::extended_absolute_error(xsf::eval_genlaguerre(3.0f, alpha, z), gen_complex_expected) <
+        1e-6f * std::abs(gen_complex_expected)
+    );
+    REQUIRE(
+        xsf::extended_absolute_error(xsf::eval_laguerre(3.0f, z), complex_expected) < 1e-6f * std::abs(complex_expected)
+    );
+}
+
 TEST_CASE("Laguerre evaluators handle domain and NaN inputs", "[eval_genlaguerre][eval_laguerre][xsf_tests]") {
     // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L23-L26
     // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L258-L265
