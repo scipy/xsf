@@ -404,9 +404,17 @@ void assoc_legendre_p_for_each_n(
 
     int m_abs = abs(m);
     if (m_abs > n) {
+        // Since n < m_abs <= INT_MAX, incrementing j cannot overflow.
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
+#endif
         for (int j = 0; j <= n; ++j) {
             f(j, res);
         }
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
     } else {
         for (int j = 0; j < m_abs; ++j) {
             f(j, res);
@@ -613,9 +621,17 @@ void sph_legendre_p_for_each_n(int n, int m, T theta, const T &res_m_abs_m, T (&
 
     int m_abs = abs(m);
     if (m_abs > n) {
+        // Since n < m_abs <= INT_MAX, incrementing j cannot overflow.
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
+#endif
         for (int j = 0; j <= n; ++j) {
             f(j, res);
         }
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
     } else {
         for (int j = 0; j < m_abs; ++j) {
             f(j, res);
