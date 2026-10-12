@@ -404,7 +404,9 @@ void assoc_legendre_p_for_each_n(
 
     int m_abs = abs(m);
     if (m_abs > n) {
-        // Since n < m_abs <= INT_MAX, incrementing j cannot overflow.
+        // Since n < m_abs <= INT_MAX, incrementing j cannot overflow, but GCC can
+        // give a spurious warning that it might overflow when compiling with
+        // -Waggressive-loop-optimizations.
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
@@ -621,7 +623,9 @@ void sph_legendre_p_for_each_n(int n, int m, T theta, const T &res_m_abs_m, T (&
 
     int m_abs = abs(m);
     if (m_abs > n) {
-        // Since n < m_abs <= INT_MAX, incrementing j cannot overflow.
+        // Since n < m_abs <= INT_MAX, incrementing j cannot overflow, but GCC can
+        // give a spurious warning that it might overflow when compiling with
+        // -Waggressive-loop-optimizations.
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
