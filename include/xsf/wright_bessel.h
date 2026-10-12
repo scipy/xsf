@@ -24,6 +24,7 @@
 #include "cephes/polevl.h"
 #include "cephes/rgamma.h"
 #include "config.h"
+#include "cephes/const.h"
 #include "digamma.h"
 #include "error.h"
 
@@ -554,6 +555,77 @@ namespace detail {
      * Source: https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/_precompute/wright_bessel.py */
     constexpr double wb_A[] = {0.41037, 0.30833, 6.9952, 18.382, -2.8566, 2.1122};
 
+    // Largest contour radius used by the factored linear path (historical ceiling).
+    constexpr double wb_eps_cap = 150.;
+
+    /* log of the same Gauss-node sum as wright_bessel_integral, accumulated
+     * as separate positive and negative parts in log space.
+     * The factored exp(exp_term) form overflows once the contour radius
+     * asked for by the fit is restored (gh-291). The exp_term terms cancel
+     * in the logarithm, so this accumulation stays finite.
+     * The Wright function is positive for x > 0. When the positive part does
+     * not exceed the negative one the quadrature has lost all accuracy at
+     * this radius, and NaN is returned so the caller can fall back. */
+    XSF_HOST_DEVICE inline double wright_bessel_integral_logspace(double a, double b, double x, double eps) {
+        const double ninf = -cxx::numeric_limits<double>::infinity();
+        double max_pos = ninf;
+        double max_neg = ninf;
+        double sum_pos = 0;
+        double sum_neg = 0;
+
+        for (int pass = 0; pass < 2; ++pass) {
+            sum_pos = 0;
+            sum_neg = 0;
+            for (int k = 0; k < 50; ++k) {
+                double r = wb_x_laguerre[k];
+                double x_r_a = x * cxx::pow(r + eps, -a);
+                double sinv = cxx::sin(x_r_a * cephes::sinpi(a) + M_PI * b);
+                if (sinv != 0.0 && wb_w_laguerre[k] > 0.0) {
+                    double log_abs = cxx::log(wb_w_laguerre[k]) + x_r_a * cephes::cospi(a) -
+                                     b * cxx::log(r + eps) + cxx::log(cxx::fabs(sinv)) - eps - cxx::log(M_PI);
+                    if (pass == 0) {
+                        if (sinv > 0.0) {
+                            max_pos = cxx::fmax(max_pos, log_abs);
+                        } else {
+                            max_neg = cxx::fmax(max_neg, log_abs);
+                        }
+                    } else if (sinv > 0.0 && max_pos > ninf) {
+                        sum_pos += cxx::exp(log_abs - max_pos);
+                    } else if (sinv < 0.0 && max_neg > ninf) {
+                        sum_neg += cxx::exp(log_abs - max_neg);
+                    }
+                }
+
+                double phi = M_PI * (wb_x_legendre[k] + 1) / 2.0;
+                double x_eps_a = x * cxx::pow(eps, -a);
+                double cosv = cxx::cos(eps * cxx::sin(phi) - x_eps_a * cxx::sin(a * phi) + (1 - b) * phi);
+                if (cosv != 0.0 && wb_w_legendre[k] > 0.0) {
+                    double log_abs = cxx::log(wb_w_legendre[k]) + eps * cxx::cos(phi) + x_eps_a * cxx::cos(a * phi) +
+                                     cxx::log(cxx::fabs(cosv)) + cxx::log(M_PI / 2.0) + (1 - b) * cxx::log(eps) -
+                                     cxx::log(M_PI);
+                    if (pass == 0) {
+                        if (cosv > 0.0) {
+                            max_pos = cxx::fmax(max_pos, log_abs);
+                        } else {
+                            max_neg = cxx::fmax(max_neg, log_abs);
+                        }
+                    } else if (cosv > 0.0 && max_pos > ninf) {
+                        sum_pos += cxx::exp(log_abs - max_pos);
+                    } else if (cosv < 0.0 && max_neg > ninf) {
+                        sum_neg += cxx::exp(log_abs - max_neg);
+                    }
+                }
+            }
+        }
+
+        double lp = (sum_pos == 0.0 || max_pos == ninf) ? ninf : max_pos + cxx::log(sum_pos);
+        double ln = (sum_neg == 0.0 || max_neg == ninf) ? ninf : max_neg + cxx::log(sum_neg);
+        if (!(lp > ln)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
+        }
+        return (ln == ninf) ? lp : lp + cxx::log1p(-cxx::exp(ln - lp));
+    }
+
     template <bool log_wb>
     XSF_HOST_DEVICE inline double wright_bessel_integral(double a, double b, double x) {
         /* 5. Integral representation
@@ -620,8 +692,11 @@ namespace detail {
             eps = cxx::fmax(eps, cxx::pow(b, -b / (1. - b)) + 0.1 * b);
         }
 
-        // safeguard, higher better for larger a, lower better for tiny a.
-        eps = cxx::fmin(eps, 150.);
+        // Keep the historical ceiling on the linear path. When the fit asks
+        // for a larger radius, or the factored exponential would overflow,
+        // sum the same nodes in log space at the uncapped radius (gh-291, gh-292).
+        double eps_fit = cxx::fmax(eps, 3.);
+        eps = cxx::fmin(eps, wb_eps_cap);
         eps = cxx::fmax(eps, 3.); // 3 seems to be a pretty good choice in general.
 
         // We factor out exp(-exp_term) from wb_Kmod and wb_P to avoid overflow of
@@ -637,6 +712,53 @@ namespace detail {
         exp_term = cxx::fmax(exp_term, eps + x_eps_a);
         // phi = pi  => cos(phi) = -1
         exp_term = cxx::fmax(exp_term, -eps + x_eps_a * cephes::cospi(a));
+
+        // cephes::detail::MAXLOG is log(DBL_MAX): exp(t) overflows a double above it.
+        if (eps_fit > wb_eps_cap || exp_term > cephes::detail::MAXLOG) {
+            double log_res = wright_bessel_integral_logspace(a, b, x, eps_fit);
+            if (!cxx::isnan(log_res)) {
+                if (log_wb) {
+                    return log_res;
+                }
+                return (log_res > cephes::detail::MAXLOG) ? cxx::numeric_limits<double>::infinity()
+                                                          : cxx::exp(log_res);
+            }
+            /* No positive total at the uncapped radius: the quadrature has
+             * lost all accuracy here. Every single series term is a rigorous
+             * lower bound for the positive Wright function,
+             * Phi >= x^k / (k! Gamma(a k + b)) for all k >= 0. If the largest
+             * term alone overflows a double, the true value overflows too and
+             * +inf is provably correct for wright_bessel (gh-292).
+             * log_wright_bessel cannot be certified this way and reports NaN.
+             * The peak term index solves lbx = psi(k+1) + a psi(a k + b);
+             * Newton with ln in place of psi (Stirling) lands close enough,
+             * and any integer k keeps the bound valid. */
+            double lbx = cxx::log(x);
+            double kstar = cxx::exp((lbx - a * cxx::log(a)) / (1.0 + a));
+            for (int it = 0; it < 8; ++it) {
+                double f = lbx - cxx::log(kstar + 1) - a * cxx::log(a * kstar + b);
+                double fp = -1.0 / (kstar + 1) - a * a / (a * kstar + b);
+                kstar -= f / fp;
+                if (!(kstar > 0.0)) {
+                    kstar = 1.0;
+                }
+            }
+            double kf = cxx::floor(kstar);
+            double kc = cxx::ceil(kstar);
+            double lmax = -cxx::numeric_limits<double>::infinity();
+            if (kf >= 0.0) {
+                lmax = cxx::fmax(lmax, kf * lbx - cephes::lgam(kf + 1) - cephes::lgam(a * kf + b));
+            }
+            lmax = cxx::fmax(lmax, kc * lbx - cephes::lgam(kc + 1) - cephes::lgam(a * kc + b));
+            if (lmax > cephes::detail::MAXLOG) {
+                if (log_wb) {
+                    return cxx::numeric_limits<double>::quiet_NaN();
+                }
+                return cxx::numeric_limits<double>::infinity();
+            }
+            // The true value is representable: keep the capped radius and
+            // the linear path below.
+        }
 
         double res1 = 0;
         double res2 = 0;
@@ -655,7 +777,15 @@ namespace detail {
 
         if (!log_wb) {
             // Remember the factored out exp_term from wb_Kmod and wb_P
-            return cxx::exp(exp_term) / M_PI * (res1 + res2);
+            double s = res1 + res2;
+            if (!(s > 0.0)) {
+                /* The quadrature broke down. The Wright function is positive
+                 * for x > 0, so a non-positive partial sum is a failure
+                 * signal, never a result: report NaN instead of a wrongly
+                 * signed infinity (gh-292). */
+                return cxx::numeric_limits<double>::quiet_NaN();
+            }
+            return cxx::exp(exp_term) / M_PI * s;
         } else {
             // logarithm of Wright's function
             return exp_term + cxx::log((res1 + res2) / M_PI);
@@ -736,10 +866,11 @@ XSF_HOST_DEVICE inline double wright_bessel_t(double a, double b, double x) {
         }
     }
 
-    constexpr double exp_inf = 709.78271289338403;
     int order;
+    // cephes::detail::MAXLOG is log(DBL_MAX): the Taylor series in x stays
+    // finite for doubles only below it.
     if ((a <= 1e-3 && b <= 50 && x <= 9) || (a <= 1e-4 && b <= 70 && x <= 100) ||
-        (a <= 1e-5 && b <= 170 && (x < exp_inf || (log_wb && x <= 1e3)))) {
+        (a <= 1e-5 && b <= 170 && (x < cephes::detail::MAXLOG || (log_wb && x <= 1e3)))) {
         /* Taylor Series expansion in a=0 to order=order => precision <= 1e-11
          * If beta is also small => precision <= 1e-11.
          * max order = 5 */
@@ -750,7 +881,7 @@ XSF_HOST_DEVICE inline double wright_bessel_t(double a, double b, double x) {
                 order = 3;
             } else if (x <= 100) {
                 order = 4;
-            } else { // x < exp_inf
+            } else { // x < MAXLOG
                 order = 5;
             }
         } else if (a <= 1e-4) {
