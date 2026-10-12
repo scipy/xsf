@@ -404,9 +404,21 @@ void assoc_legendre_p_for_each_n(
 
     int m_abs = abs(m);
     if (m_abs > n) {
+        // Since n < m_abs <= INT_MAX, incrementing j cannot overflow, but GCC can
+        // give a spurious warning that it might overflow when compiling with
+        // -Waggressive-loop-optimizations.
+        // Observed with GCC 13.3 in SciPy CI. Remove this
+        // workaround once SciPy's minimum supported GCC version reaches 14.
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 14
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
+#endif
         for (int j = 0; j <= n; ++j) {
             f(j, res);
         }
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 14
+#pragma GCC diagnostic pop
+#endif
     } else {
         for (int j = 0; j < m_abs; ++j) {
             f(j, res);
@@ -613,9 +625,21 @@ void sph_legendre_p_for_each_n(int n, int m, T theta, const T &res_m_abs_m, T (&
 
     int m_abs = abs(m);
     if (m_abs > n) {
+        // Since n < m_abs <= INT_MAX, incrementing j cannot overflow, but GCC can
+        // give a spurious warning that it might overflow when compiling with
+        // -Waggressive-loop-optimizations.
+        // Observed with GCC 13.3 in SciPy CI. Remove this
+        // workaround once SciPy's minimum supported GCC version reaches 14.
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 14
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
+#endif
         for (int j = 0; j <= n; ++j) {
             f(j, res);
         }
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 14
+#pragma GCC diagnostic pop
+#endif
     } else {
         for (int j = 0; j < m_abs; ++j) {
             f(j, res);
