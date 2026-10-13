@@ -1164,6 +1164,37 @@ inline std::complex<float> cyl_hankel_1(float v, std::complex<float> z) {
     return static_cast<std::complex<float>>(cyl_hankel_1(static_cast<double>(v), static_cast<std::complex<double>>(z)));
 }
 
+template <typename OutputVec>
+inline void cyl_hankel_1_all(double v, std::complex<double> z, OutputVec cy) {
+    int kode = 1;
+    int m = 1;
+    int nz, ierr;
+    int sign = 1;
+
+    int n = cy.extent(0);
+
+    if (std::isnan(v) || std::isnan(z.real()) || std::isnan(z.imag())) {
+        for (int i = 0; i < n; ++i) {
+            cy(i).real(NAN);
+            cy(i).imag(NAN);
+        }
+        return;
+    }
+
+    if (v < 0) {
+        v = -v;
+        sign = -1;
+    }
+
+    nz = amos::besh(z, v, kode, m, n, cy.data_handle(), &ierr);
+    set_error_and_nan<double>("hankel1_all:", ierr_to_sferr(nz, ierr), cy);
+    if (sign == -1) {
+        for (int i = 0; i < n; ++i) {
+            cy(i) = detail::rotate(cy(i), v + i);
+        }
+    }
+}
+
 inline std::complex<double> cyl_hankel_2(double v, std::complex<double> z) {
     int n = 1;
     int kode = 1;
