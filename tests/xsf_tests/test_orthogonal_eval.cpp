@@ -29,6 +29,26 @@ std::vector<double> laguerre_coefficients(int n, double alpha) {
     return out;
 }
 
+std::vector<double> gegenbauer_coefficients(int n, double alpha) {
+    // Coefficients in ascending powers of x, used by polyval as an independent reference.
+    // C_n^(alpha)(x) = sum_k (-1)^k (alpha)_{n-k} / (k! (n-2k)!) (2x)^(n-2k)
+    std::vector<double> out(n + 1, 0.0);
+    for (int k = 0; 2 * k <= n; ++k) {
+        double c = (k % 2 == 0) ? 1.0 : -1.0;
+        for (int j = 0; j < n - k; ++j) {
+            c *= alpha + j;
+        }
+        for (int j = 1; j <= k; ++j) {
+            c /= j;
+        }
+        for (int j = 1; j <= n - 2 * k; ++j) {
+            c *= 2.0 / j;
+        }
+        out[n - 2 * k] = c;
+    }
+    return out;
+}
+
 std::vector<double> linear_power(double c0, double c1, int n) {
     std::vector<double> out(n + 1, 0.0);
     for (int j = 0; j <= n; ++j) {
@@ -662,4 +682,158 @@ TEST_CASE("Laguerre evaluators support noninteger degrees", "[eval_genlaguerre][
     REQUIRE(xsf::extended_relative_error(xsf::eval_laguerre(n, x), expected) < 1e-12);
     REQUIRE(xsf::extended_relative_error(xsf::eval_genlaguerre(n, alpha, z), gen_complex_expected) < 1e-12);
     REQUIRE(xsf::extended_relative_error(xsf::eval_laguerre(n, z), complex_expected) < 1e-12);
+}
+
+TEST_CASE("eval_gegenbauer matches constructed polynomials", "[eval_gegenbauer][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L87-L90
+    check_poly(
+        [](int n, const std::vector<double> &params) { return gegenbauer_coefficients(n, params[0]); },
+        [](int n, const std::vector<double> &params, double x) { return xsf::eval_gegenbauer(n, params[0], x); },
+        {{-0.499, 10.0}}, {-1.0, 1.0}, 1e-7
+    );
+}
+
+TEST_CASE("eval_gegenbauer supports complex inputs", "[eval_gegenbauer][xsf_tests]") {
+    const std::vector<std::complex<double>> xs = {{-0.75, -0.25}, {0.0, -0.5}, {0.5, 0.25}, {0.9, 0.1}};
+    check_complex_poly(
+        [](int n, const std::vector<double> &params) { return gegenbauer_coefficients(n, params[0]); },
+        [](double n, const std::vector<double> &params, std::complex<double> x) {
+            return xsf::eval_gegenbauer(n, params[0], x);
+        },
+        {{-0.499, 10.0}}, xs, 1e-7
+    );
+}
+
+TEST_CASE("eval_gegenbauer small-x power series", "[eval_gegenbauer][xsf_tests]") {
+    // x < 1e-5 uses a power series instead of the recurrence
+    for (int n = 0; n < 10; ++n) {
+        for (double alpha : {-0.25, 0.5, 2.0}) {
+            const auto coeffs = gegenbauer_coefficients(n, alpha);
+            for (double x : {-1e-6, 0.0, 1e-6}) {
+                const double expected = polyval(coeffs, x);
+                CAPTURE(n, alpha, x);
+                REQUIRE(
+                    xsf::extended_absolute_error(xsf::eval_gegenbauer(n, alpha, x), expected) <=
+                    1e-14 * std::abs(expected)
+                );
+            }
+        }
+    }
+}
+
+TEST_CASE("Gegenbauer float overloads", "[eval_gegenbauer][xsf_tests]") {
+    // C_3^a(x) = 4a(a+1)(a+2)x^3/3 - 2a(a+1)x
+    const float alpha = 0.5f;
+    const float x = 2.0f;
+    const std::complex<float> z{2.0f, -0.5f};
+    const float expected = 17.0f;
+    const std::complex<float> complex_expected{13.25f, -13.9375f};
+
+    REQUIRE(xsf::extended_relative_error(xsf::eval_gegenbauer(3, alpha, x), expected) < 1e-6f);
+    REQUIRE(xsf::extended_relative_error(xsf::eval_gegenbauer(3.0f, alpha, x), expected) < 1e-6f);
+    REQUIRE(
+        xsf::extended_absolute_error(xsf::eval_gegenbauer(3.0f, alpha, z), complex_expected) <
+        1e-6f * std::abs(complex_expected)
+    );
+}
+
+TEST_CASE("eval_gegenbauer handles NaN inputs", "[eval_gegenbauer][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L268-L275
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    for (double alpha : {0.0, 1.0, nan}) {
+        for (double x : {1e-6, 2.0, nan}) {
+            for (double n : {0.0, 1.0, 2.0, 3.2, nan}) {
+                CAPTURE(n, alpha, x);
+                const bool expected = std::isnan(n) || std::isnan(alpha) || std::isnan(x);
+                REQUIRE(std::isnan(xsf::eval_gegenbauer(n, alpha, x)) == expected);
+                if (!std::isnan(n) && n == std::floor(n)) {
+                    REQUIRE(std::isnan(xsf::eval_gegenbauer(static_cast<int>(n), alpha, x)) == expected);
+                }
+            }
+        }
+    }
+}
+
+TEST_CASE("eval_gegenbauer handles infinite x", "[eval_gegenbauer][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L277-L291
+    const double inf = std::numeric_limits<double>::infinity();
+    for (int n = 0; n < 10; ++n) {
+        for (double alpha : {-0.45, -0.25, -0.125, 0.0, 0.25, 1.0, 2.0}) {
+            for (double x : {-inf, inf}) {
+                double expected;
+                if (alpha == 0.0) {
+                    expected = 0.0;
+                } else if (n == 0) {
+                    expected = 1.0;
+                } else {
+                    // sign of leading coefficient: 2^n * Gamma(n+alpha) / (n! Gamma(alpha))
+                    const double lead_sign = alpha < 0 ? -1.0 : 1.0;
+                    const double x_sign = (x < 0 && n % 2) ? -1.0 : 1.0;
+                    expected = lead_sign * x_sign * inf;
+                }
+                CAPTURE(n, alpha, x);
+                REQUIRE(xsf::eval_gegenbauer(n, alpha, x) == expected);
+                REQUIRE(xsf::eval_gegenbauer(static_cast<double>(n), alpha, x) == expected);
+            }
+        }
+    }
+}
+
+TEST_CASE("eval_gegenbauer supports noninteger degrees", "[eval_gegenbauer][xsf_tests]") {
+    // # Generate references with mpmath
+    // import random
+    // import mpmath as mp
+    // mp.mp.dps = 50
+    // rng = random.Random(42)
+    // for _ in range(5):
+    //     n, alpha = rng.uniform(-0.5, 5), rng.uniform(-0.4, 2)
+    //     x = rng.uniform(-1, 1)
+    //     z = complex(rng.uniform(-1, 1), rng.uniform(-1, 1))
+    //     print(n, alpha, x, z, float(mp.gegenbauer(n, alpha, x)), complex(mp.gegenbauer(n, alpha, z)))
+    using test_case = std::tuple<double, double, double, std::complex<double>, double, std::complex<double>>;
+    auto [n, alpha, x, z, expected, complex_expected] = GENERATE(
+        test_case{
+            3.0168473915183607,
+            -0.3399741874655994,
+            -0.4499413632617615,
+            {-0.5535785237023545, 0.4729424283280248},
+            -0.15730182090720007,
+            {-0.3504087568738779, 0.03817332157949974}
+        },
+        test_case{
+            3.2218471808260123,
+            1.741230962491629,
+            -0.8261223347411677,
+            {-0.15615636062945915, -0.9404055611238593},
+            -5.743884954988635,
+            {25.571396549499184, 26.504180561928923}
+        },
+        test_case{
+            0.7025088614198185,
+            0.8128526914480697,
+            -0.9469280606322728,
+            {-0.602324698626703, 0.2997688755590464},
+            -2.1802125229493514,
+            {-0.41502008373986893, 0.6015154502505775}
+        },
+        test_case{
+            2.497178143317692,
+            0.129057492897672,
+            0.17853136775181744,
+            {0.6188609133556533, -0.987002480643878},
+            -0.10294922344150036,
+            {-0.5949525864022667, -0.19261066323156825}
+        },
+        test_case{
+            3.932005885080444,
+            1.2755345479717444,
+            -0.31949896696401625,
+            {-0.6890410003764369, 0.9144261444135624},
+            -0.007280823247730967,
+            {-22.50680736287767, 49.190313468154784}
+        }
+    );
+    CAPTURE(n, alpha, x, z);
+    REQUIRE(xsf::extended_relative_error(xsf::eval_gegenbauer(n, alpha, x), expected) < 1e-12);
+    REQUIRE(xsf::extended_relative_error(xsf::eval_gegenbauer(n, alpha, z), complex_expected) < 1e-12);
 }

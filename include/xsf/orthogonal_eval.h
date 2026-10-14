@@ -127,6 +127,89 @@ namespace detail {
         return binom(n + alpha, n) * p;
     }
 
+    // Integer-degree C_n^(alpha)(x). For |x| >= 1e-5, forward recurrence on the normalized values
+    // p_k = C_k^(alpha)(x) / binom(k + 2 alpha - 1, k) and their differences d_k = p_k - p_{k-1}:
+    //   d_{k+1} = 2 (k + alpha) / (k + 2 alpha) (x - 1) p_k + k / (k + 2 alpha) d_k,  p_{k+1} = p_k + d_{k+1},
+    // starting from p_1 = x, d_1 = x - 1. For |x| < 1e-5, the explicit power series in x is used instead.
+    template <typename Int>
+    XSF_HOST_DEVICE inline double eval_gegenbauer_l(Int n, double alpha, double x) {
+        if (cxx::isnan(alpha) || cxx::isnan(x)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
+        }
+
+        if (alpha == 0.0) {
+            return 0.0;
+        }
+        if (n < 0) {
+            return 0.0;
+        } else if (n == 0) {
+            return 1.0;
+        } else if (n == 1) {
+            return 2.0 * alpha * x;
+        }
+
+        // Symmetry property: C_n^alpha(-x) = (-1)^n C_n^alpha(x) for integer n
+        const int sign = (x < 0 && n % 2) ? -1 : 1;
+        x = cxx::abs(x);
+
+        if (x < 1e-5) {
+            // Power series rather than recurrence due to loss of precision
+            // http://functions.wolfram.com/Polynomials/GegenbauerC3/02/
+            const Int a = n / 2;
+
+            double d = (a % 2 == 0) ? 1.0 : -1.0;
+            d /= cephes::beta(alpha, 1.0 + a);
+            if (n == 2 * a) {
+                d /= (a + alpha);
+            } else {
+                d *= 2.0 * x;
+            }
+
+            double p = 0.0;
+            for (Int kk = 0; kk <= a; ++kk) {
+                p += d;
+                d *= -4.0 * x * x * (a - kk) * (alpha - a + kk + n) /
+                     ((n + 1.0 - 2.0 * a + 2.0 * kk) * (n + 2.0 - 2.0 * a + 2.0 * kk));
+                if (cxx::abs(d) < 1e-20 * cxx::abs(p)) {
+                    // converged
+                    break;
+                }
+            }
+            return sign * p;
+        }
+
+        double d = x - 1.0;
+        double p = x;
+        for (Int kk = 0; kk < n - 1; ++kk) {
+            const double k = kk + 1.0;
+            d = (2.0 * (k + alpha) / (k + 2.0 * alpha)) * (x - 1.0) * p + (k / (k + 2.0 * alpha)) * d;
+            p = d + p;
+        }
+
+        if (cxx::abs(alpha / n) < 1e-8) {
+            // avoid loss of precision
+            return sign * 2.0 * alpha / n * p;
+        }
+        return sign * binom(n + 2.0 * alpha - 1.0, n) * p;
+    }
+
+    template <typename T>
+    XSF_HOST_DEVICE inline T eval_gegenbauer(double n, double alpha, T x) {
+        // If n is an integer, use more stable `eval_gegenbauer_l`
+        if constexpr (cxx::is_same_v<T, double>) {
+            if (n >= 0 && n < 1e10 && n == static_cast<long long>(n)) {
+                return eval_gegenbauer_l(static_cast<long long>(n), alpha, x);
+            }
+        }
+
+        const double d = cephes::Gamma(n + 2.0 * alpha) / cephes::Gamma(1.0 + n) / cephes::Gamma(2.0 * alpha);
+        const double a = -n;
+        const double b = n + 2.0 * alpha;
+        const double c = alpha + 0.5;
+        const T g = (1.0 - x) / 2.0;
+        return d * hyp2f1(a, b, c, g);
+    }
+
 } // namespace detail
 
 // Jacobi
@@ -250,6 +333,36 @@ XSF_HOST_DEVICE inline double eval_laguerre(Int n, double x) {
 template <typename Int, cxx::enable_if_t<cxx::is_integral_v<Int>, int> = 0>
 XSF_HOST_DEVICE inline float eval_laguerre(Int n, float x) {
     return detail::eval_genlaguerre_l(n, 0.0, static_cast<double>(x));
+}
+
+// Gegenbauer (ultraspherical)
+
+XSF_HOST_DEVICE inline double eval_gegenbauer(double n, double alpha, double x) {
+    return detail::eval_gegenbauer(n, alpha, x);
+}
+
+XSF_HOST_DEVICE inline float eval_gegenbauer(float n, float alpha, float x) {
+    return detail::eval_gegenbauer(static_cast<double>(n), static_cast<double>(alpha), static_cast<double>(x));
+}
+
+XSF_HOST_DEVICE inline cxx::complex<double> eval_gegenbauer(double n, double alpha, cxx::complex<double> x) {
+    return detail::eval_gegenbauer(n, alpha, x);
+}
+
+XSF_HOST_DEVICE inline cxx::complex<float> eval_gegenbauer(float n, float alpha, cxx::complex<float> x) {
+    return static_cast<cxx::complex<float>>(detail::eval_gegenbauer(
+        static_cast<double>(n), static_cast<double>(alpha), static_cast<cxx::complex<double>>(x)
+    ));
+}
+
+template <typename Int, cxx::enable_if_t<cxx::is_integral_v<Int>, int> = 0>
+XSF_HOST_DEVICE inline double eval_gegenbauer(Int n, double alpha, double x) {
+    return detail::eval_gegenbauer_l(n, alpha, x);
+}
+
+template <typename Int, cxx::enable_if_t<cxx::is_integral_v<Int>, int> = 0>
+XSF_HOST_DEVICE inline float eval_gegenbauer(Int n, float alpha, float x) {
+    return detail::eval_gegenbauer_l(n, static_cast<double>(alpha), static_cast<double>(x));
 }
 
 } // namespace xsf
