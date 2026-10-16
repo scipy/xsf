@@ -695,7 +695,7 @@ namespace cephes {
                 return {sf, cdf, pdf};
             }
             /* Special case:  x is so big, the sf underflows double64 */
-            if (-2 * n * x * x < MINLOG) {
+            if (-2.0 * n * x * x < MINLOG) {
                 return {0, 1, 0};
             }
             /* Special case:  x >= 1 - 1/n */
@@ -776,8 +776,8 @@ namespace cephes {
 
                     if (isfinite(Aj) && (Aj != 0.0)) {
                         /* coeff = 1/x + (j-1)/(x+j/n) - (n-j)/(1-x-j/n) */
-                        dAjCoeff = (n * (v - 1)) / (double_double(nxfl + v) + alpha) -
-                                   ((n - v) * n) / (double_double(n - nxfl - v) - alpha);
+                        dAjCoeff = (static_cast<double>(n) * (v - 1)) / (double_double(nxfl + v) + alpha) -
+                                   (static_cast<double>(n - v) * n) / (double_double(n - nxfl - v) - alpha);
                         dAjCoeff = dAjCoeff + oneOverX;
                         dAj = Aj * dAjCoeff;
 
@@ -907,7 +907,7 @@ namespace cephes {
                 double xmin = 1 - psfrootn;
                 double logpsf = (psf < 0.5 ? cxx::log(psf) : cxx::log1p(-pcdf));
                 double xmax = cxx::sqrt(-logpsf / (2.0 * n));
-                double xmax6 = xmax - 1.0L / (6 * n);
+                double xmax6 = xmax - 1.0L / (6.0L * n);
                 a = xmin;
                 b = xmax;
                 /* Allow for a little rounding error */
