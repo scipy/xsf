@@ -99,3 +99,38 @@ TEST_CASE("cotdg IEEE infinity sign scipy/20731", "[cotdg][xsf_tests]") {
         }
     }
 }
+
+TEST_CASE("sinpi and cospi complex large imaginary part", "[sinpi][cospi][xsf_tests]") {
+    // Reference values from mpmath.
+    const double a = 3.4129868967024852e+306;
+    const double rtol = 1e-12;
+    std::complex<double> w;
+
+    w = xsf::sinpi(std::complex<double>(0.25, -225.0));
+    CAPTURE(w);
+    REQUIRE(xsf::extended_relative_error(w, std::complex<double>(a, -a)) <= rtol);
+
+    w = xsf::cospi(std::complex<double>(0.25, 225.0));
+    CAPTURE(w);
+    REQUIRE(xsf::extended_relative_error(w, std::complex<double>(a, -a)) <= rtol);
+}
+
+TEST_CASE("cospi complex imaginary part overflow sign", "[cospi][xsf_tests]") {
+    const double inf = std::numeric_limits<double>::infinity();
+    std::complex<double> w;
+
+    w = xsf::cospi(std::complex<double>(0.25, 1000.0));
+    CAPTURE(w);
+    REQUIRE(w.real() == inf);
+    REQUIRE(w.imag() == -inf);
+
+    w = xsf::cospi(std::complex<double>(0.5, 1000.0));
+    CAPTURE(w);
+    REQUIRE(w.real() == 0.0);
+    REQUIRE(w.imag() == -inf);
+
+    w = xsf::cospi(std::complex<double>(0.0, 1000.0));
+    CAPTURE(w);
+    REQUIRE(w.real() == inf);
+    REQUIRE(w.imag() == 0.0);
+}
