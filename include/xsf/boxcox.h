@@ -65,7 +65,7 @@ XSF_HOST_DEVICE inline double inv_boxcox1p(double x, double lmbda) {
     if (lmbda == 0) {
         return cxx::expm1(x);
     } else if (cxx::abs(lmbda * x) < 1e-154) {
-        return x;
+        return cxx::expm1(x);
     } else if (lmbda * x < 1.79e308) {
         return cxx::expm1(cxx::log1p(lmbda * x) / lmbda);
     } else {
