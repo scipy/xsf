@@ -931,6 +931,25 @@ TEST_CASE("Legendre evaluators support negative integer degrees", "[eval_legendr
     }
 }
 
+TEST_CASE("Legendre evaluators propagate NaN inputs", "[eval_legendre][eval_sh_legendre][xsf_tests]") {
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const float nan_float = std::numeric_limits<float>::quiet_NaN();
+    for (int n : {-3, -2, -1, 0, 1, 2, 3}) {
+        CAPTURE(n);
+        REQUIRE(std::isnan(xsf::eval_legendre(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_sh_legendre(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_legendre(n, nan_float)));
+        REQUIRE(std::isnan(xsf::eval_sh_legendre(n, nan_float)));
+    }
+    for (double n : {-3.0, -2.0, -1.0, 0.0, 0.5, 1.0, 2.0, 3.0}) {
+        CAPTURE(n);
+        REQUIRE(std::isnan(xsf::eval_legendre(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_sh_legendre(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_legendre(static_cast<float>(n), nan_float)));
+        REQUIRE(std::isnan(xsf::eval_sh_legendre(static_cast<float>(n), nan_float)));
+    }
+}
+
 TEST_CASE("Legendre float overloads", "[eval_legendre][eval_sh_legendre][xsf_tests]") {
     // Extend the polynomial checks to float and complex<float> overloads.
     // P_3(x) = (5x^3 - 3x)/2.

@@ -213,6 +213,11 @@ namespace detail {
 
     template <typename T>
     XSF_HOST_DEVICE inline T eval_legendre(double n, T x) {
+        if constexpr (cxx::is_same_v<T, double>) {
+            if (cxx::isnan(x)) {
+                return x;
+            }
+        }
         return hyp2f1(-n, n + 1.0, 1.0, 0.5 * (1.0 - x));
     }
 
@@ -222,6 +227,10 @@ namespace detail {
     // starting from p_1 = x, d_1 = x - 1. Near x = 0 an explicit power series is used instead.
     template <typename Int>
     XSF_HOST_DEVICE inline double eval_legendre_l(Int n, double x) {
+        if (cxx::isnan(x)) {
+            return x;
+        }
+
         if (n < 0) {
             // P_{-n-1}(x) = P_n(x); add before negating to avoid signed overflow.
             n = -(n + 1);
