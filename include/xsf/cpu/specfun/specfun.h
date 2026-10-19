@@ -5499,7 +5499,7 @@ namespace specfun {
                 j = -j - 1;
             }
             r1 = 1.0;
-            for (j1 = 0; j1 < j; j1++) {
+            for (j1 = 1; j1 <= j; j1++) {
                 r1 *= (m + j1);
             }
             r2 = 1.0;
@@ -6168,17 +6168,17 @@ namespace specfun {
         sy[1] = (sy[0] - sin(x)) / x;
         f1 = sy[1];
 
+        *nm = n;
         for (int k = 2; k <= n; k++) {
             f = ((2.0 * k - 1.0) * f1 / x) - f0;
             sy[k] = f;
             if (fabs(f) >= 1.0e300) {
                 *nm = k - 1;
-                return;
+                break;
             }
             f0 = f1;
             f1 = f;
         }
-        *nm = n - 1;
         for (int k = 1; k <= *nm; k++) {
             dy[k] = sy[k - 1] - (k + 1.0) * sy[k] / x;
         }
