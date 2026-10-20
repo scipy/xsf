@@ -47,6 +47,10 @@ XSF_HOST_DEVICE cxx::complex<T> sinpi(cxx::complex<T> z) {
      * so we can compute exp(y/2), scale by the right factor of sin/cos
      * and then multiply by exp(y/2) to avoid overflow. */
     T exphpiy = cxx::exp(abspiy / 2);
+    // For large |piy|, sinh(piy) ~ sgn(piy) * exp(|piy|) / 2, so the sign of piy
+    // must be applied to the imaginary part (cosh is even and needs no sign).
+    // sinhcoef is the imaginary part's coefficient with the sign of piy copied in.
+    T sinhcoef = cxx::copysign(T(1.0), piy) * cospix;
     T coshfac;
     T sinhfac;
     if (exphpiy == cxx::numeric_limits<T>::infinity()) {
@@ -56,17 +60,18 @@ XSF_HOST_DEVICE cxx::complex<T> sinpi(cxx::complex<T> z) {
         } else {
             coshfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), sinpix);
         }
-        if (cospix == T(0.0)) {
-            // Preserve the sign of zero.
-            sinhfac = cxx::copysign(T(0.0), cospix);
+        if (sinhcoef == T(0.0)) {
+            // Preserve the sign of zero. Take it from sinhcoef rather than cospix,
+            // so it also includes the sign of piy.
+            sinhfac = cxx::copysign(T(0.0), sinhcoef);
         } else {
-            sinhfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), cospix);
+            sinhfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), sinhcoef);
         }
         return {coshfac, sinhfac};
     }
 
     coshfac = T(0.5) * sinpix * exphpiy;
-    sinhfac = T(0.5) * cospix * exphpiy;
+    sinhfac = T(0.5) * sinhcoef * exphpiy;
     return {coshfac * exphpiy, sinhfac * exphpiy};
 }
 
@@ -89,26 +94,33 @@ XSF_HOST_DEVICE cxx::complex<T> cospi(cxx::complex<T> z) {
 
     // See csinpi(z) for an idea of what's going on here.
     T exphpiy = cxx::exp(abspiy / 2);
+    // For large |piy|, sinh(piy) ~ sgn(piy) * exp(|piy|) / 2, so the sign of piy
+    // must be applied to the imaginary part (cosh is even and needs no sign).
+    // sinhcoef is the imaginary part's coefficient with the sign of piy copied in.
+    T sinhcoef = -cxx::copysign(T(1.0), piy) * sinpix;
     T coshfac;
     T sinhfac;
     if (exphpiy == cxx::numeric_limits<T>::infinity()) {
-        if (sinpix == T(0.0)) {
+        // The real part is cospix * cosh(piy), so check if cospix is zero: if it is,
+        // the real part is zero rather than inf.
+        if (cospix == T(0.0)) {
             // Preserve the sign of zero.
             coshfac = cxx::copysign(T(0.0), cospix);
         } else {
             coshfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), cospix);
         }
-        if (cospix == T(0.0)) {
-            // Preserve the sign of zero.
-            sinhfac = cxx::copysign(T(0.0), sinpix);
+        if (sinhcoef == T(0.0)) {
+            // Preserve the sign of zero. Take it from sinhcoef rather than sinpix,
+            // so it also includes the sign of piy.
+            sinhfac = cxx::copysign(T(0.0), sinhcoef);
         } else {
-            sinhfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), sinpix);
+            sinhfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), sinhcoef);
         }
         return {coshfac, sinhfac};
     }
 
     coshfac = T(0.5) * cospix * exphpiy;
-    sinhfac = T(0.5) * sinpix * exphpiy;
+    sinhfac = T(0.5) * sinhcoef * exphpiy;
     return {coshfac * exphpiy, sinhfac * exphpiy};
 }
 
