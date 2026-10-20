@@ -1,5 +1,6 @@
 #pragma once
 
+#include "beta.h"
 #include "binom.h"
 #include "config.h"
 #include "error.h"
@@ -210,6 +211,69 @@ namespace detail {
         return d * hyp2f1(a, b, c, g);
     }
 
+    template <typename T>
+    XSF_HOST_DEVICE inline T eval_legendre(double n, T x) {
+        if constexpr (cxx::is_same_v<T, double>) {
+            if (cxx::isnan(x)) {
+                return x;
+            }
+        }
+        return hyp2f1(-n, n + 1.0, 1.0, 0.5 * (1.0 - x));
+    }
+
+    // Integer-degree P_n(x) by forward recurrence on the values p_k = P_k(x) and their
+    // differences d_k = p_k - p_{k-1}:
+    //   d_{k+1} = ((2k + 1) (x - 1) p_k + k d_k) / (k + 1),  p_{k+1} = p_k + d_{k+1},
+    // starting from p_1 = x, d_1 = x - 1. Near x = 0 an explicit power series is used instead.
+    template <typename Int>
+    XSF_HOST_DEVICE inline double eval_legendre_l(Int n, double x) {
+        if (cxx::isnan(x)) {
+            return x;
+        }
+
+        if (n < 0) {
+            // P_{-n-1}(x) = P_n(x); add before negating to avoid signed overflow.
+            n = -(n + 1);
+        }
+
+        if (n == 0) {
+            return 1.0;
+        } else if (n == 1) {
+            return x;
+        } else if (cxx::abs(x) < 1e-5) {
+            // Power series rather than recurrence due to loss of precision
+            // http://functions.wolfram.com/Polynomials/LegendreP/02/
+            const Int a = n / 2;
+            double d = a % 2 == 0 ? 1.0 : -1.0;
+            if (n % 2 == 0) {
+                d *= -2.0 / beta(a + 1.0, -0.5);
+            } else {
+                d *= 2.0 * x / beta(a + 1.0, 0.5);
+            }
+
+            double p = 0.0;
+            for (Int kk = 0; kk <= a; ++kk) {
+                p += d;
+                d *= -2.0 * x * x * (a - kk) * (2.0 * n + 1.0 - 2.0 * a + 2.0 * kk) /
+                     ((n + 1.0 - 2.0 * a + 2.0 * kk) * (n + 2.0 - 2.0 * a + 2.0 * kk));
+                if (cxx::abs(d) < 1e-20 * cxx::abs(p)) {
+                    // converged
+                    break;
+                }
+            }
+            return p;
+        }
+
+        double d = x - 1.0;
+        double p = x;
+        for (Int kk = 0; kk < n - 1; ++kk) {
+            const double k = kk + 1.0;
+            d = ((2.0 * k + 1.0) / (k + 1.0)) * (x - 1.0) * p + (k / (k + 1.0)) * d;
+            p = d + p;
+        }
+        return p;
+    }
+
 } // namespace detail
 
 // Jacobi
@@ -363,6 +427,62 @@ XSF_HOST_DEVICE inline double eval_gegenbauer(Int n, double alpha, double x) {
 template <typename Int, cxx::enable_if_t<cxx::is_integral_v<Int>, int> = 0>
 XSF_HOST_DEVICE inline float eval_gegenbauer(Int n, float alpha, float x) {
     return detail::eval_gegenbauer_l(n, static_cast<double>(alpha), static_cast<double>(x));
+}
+
+// Legendre
+
+XSF_HOST_DEVICE inline double eval_legendre(double n, double x) { return detail::eval_legendre(n, x); }
+
+XSF_HOST_DEVICE inline float eval_legendre(float n, float x) {
+    return detail::eval_legendre(static_cast<double>(n), static_cast<double>(x));
+}
+
+XSF_HOST_DEVICE inline cxx::complex<double> eval_legendre(double n, cxx::complex<double> x) {
+    return detail::eval_legendre(n, x);
+}
+
+XSF_HOST_DEVICE inline cxx::complex<float> eval_legendre(float n, cxx::complex<float> x) {
+    return static_cast<cxx::complex<float>>(
+        detail::eval_legendre(static_cast<double>(n), static_cast<cxx::complex<double>>(x))
+    );
+}
+
+template <typename Int, cxx::enable_if_t<cxx::is_integral_v<Int>, int> = 0>
+XSF_HOST_DEVICE inline double eval_legendre(Int n, double x) {
+    return detail::eval_legendre_l(n, x);
+}
+
+template <typename Int, cxx::enable_if_t<cxx::is_integral_v<Int>, int> = 0>
+XSF_HOST_DEVICE inline float eval_legendre(Int n, float x) {
+    return detail::eval_legendre_l(n, static_cast<double>(x));
+}
+
+// Shifted Legendre
+
+XSF_HOST_DEVICE inline double eval_sh_legendre(double n, double x) { return detail::eval_legendre(n, 2.0 * x - 1.0); }
+
+XSF_HOST_DEVICE inline float eval_sh_legendre(float n, float x) {
+    return detail::eval_legendre(static_cast<double>(n), 2.0 * static_cast<double>(x) - 1.0);
+}
+
+XSF_HOST_DEVICE inline cxx::complex<double> eval_sh_legendre(double n, cxx::complex<double> x) {
+    return detail::eval_legendre(n, 2.0 * x - 1.0);
+}
+
+XSF_HOST_DEVICE inline cxx::complex<float> eval_sh_legendre(float n, cxx::complex<float> x) {
+    return static_cast<cxx::complex<float>>(
+        detail::eval_legendre(static_cast<double>(n), 2.0 * static_cast<cxx::complex<double>>(x) - 1.0)
+    );
+}
+
+template <typename Int, cxx::enable_if_t<cxx::is_integral_v<Int>, int> = 0>
+XSF_HOST_DEVICE inline double eval_sh_legendre(Int n, double x) {
+    return detail::eval_legendre_l(n, 2.0 * x - 1.0);
+}
+
+template <typename Int, cxx::enable_if_t<cxx::is_integral_v<Int>, int> = 0>
+XSF_HOST_DEVICE inline float eval_sh_legendre(Int n, float x) {
+    return detail::eval_legendre_l(n, 2.0 * static_cast<double>(x) - 1.0);
 }
 
 } // namespace xsf

@@ -49,6 +49,21 @@ std::vector<double> gegenbauer_coefficients(int n, double alpha) {
     return out;
 }
 
+// Monomial coefficients (lowest degree first) of P_n(x), or of P_n(2x - 1) if shifted.
+std::vector<double> legendre_coefficients(int n, bool shifted = false) {
+    std::vector<double> out(n + 1, 0.0);
+    if (shifted) {
+        for (int k = 0; k <= n; ++k) {
+            out[k] = std::pow(-1.0, n + k) * binom_int(n, k) * binom_int(n + k, k);
+        }
+    } else {
+        for (int k = 0; k <= n / 2; ++k) {
+            out[n - 2 * k] = std::pow(-1.0, k) * binom_int(n, k) * binom_int(2 * n - 2 * k, n) / std::pow(2.0, n);
+        }
+    }
+    return out;
+}
+
 std::vector<double> linear_power(double c0, double c1, int n) {
     std::vector<double> out(n + 1, 0.0);
     for (int j = 0; j <= n; ++j) {
@@ -836,4 +851,113 @@ TEST_CASE("eval_gegenbauer supports noninteger degrees", "[eval_gegenbauer][xsf_
     CAPTURE(n, alpha, x, z);
     REQUIRE(xsf::extended_relative_error(xsf::eval_gegenbauer(n, alpha, x), expected) < 1e-12);
     REQUIRE(xsf::extended_relative_error(xsf::eval_gegenbauer(n, alpha, z), complex_expected) < 1e-12);
+}
+
+TEST_CASE("eval_legendre matches constructed polynomials", "[eval_legendre][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L117-L119
+    check_poly(
+        [](int n, const std::vector<double> &) { return legendre_coefficients(n, false); },
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_legendre(n, x); }, {}, {-1.0, 1.0}, 1e-8
+    );
+}
+
+TEST_CASE("eval_legendre recurrence overload", "[eval_legendre][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L222-L224
+    check_recurrence(
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_legendre(n, x); },
+        [](double n, const std::vector<double> &, double x) { return xsf::eval_legendre(n, x); }, {}, {-1.0, 1.0}
+    );
+}
+
+TEST_CASE("eval_legendre supports complex inputs", "[eval_legendre][xsf_tests]") {
+    // Extend the polynomial checks to complex inputs.
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L117-L119
+    check_complex_poly(
+        [](int n, const std::vector<double> &) { return legendre_coefficients(n, false); },
+        [](double n, const std::vector<double> &, std::complex<double> x) { return xsf::eval_legendre(n, x); }, {},
+        {{-0.75, -0.25}, {0.0, -0.5}, {0.5, 0.25}, {2.0, -1.0}}, 1e-8
+    );
+}
+
+TEST_CASE("eval_sh_legendre matches constructed polynomials", "[eval_sh_legendre][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L121-L124
+    check_poly(
+        [](int n, const std::vector<double> &) { return legendre_coefficients(n, true); },
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_sh_legendre(n, x); }, {}, {0.0, 1.0}, 1e-8
+    );
+}
+
+TEST_CASE("eval_sh_legendre recurrence overload", "[eval_sh_legendre][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L226-L228
+    check_recurrence(
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_sh_legendre(n, x); },
+        [](double n, const std::vector<double> &, double x) { return xsf::eval_sh_legendre(n, x); }, {}, {0.0, 1.0}
+    );
+}
+
+TEST_CASE("eval_sh_legendre supports complex inputs", "[eval_sh_legendre][xsf_tests]") {
+    // Extend the polynomial checks to complex inputs.
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L121-L124
+    check_complex_poly(
+        [](int n, const std::vector<double> &) { return legendre_coefficients(n, true); },
+        [](double n, const std::vector<double> &, std::complex<double> x) { return xsf::eval_sh_legendre(n, x); }, {},
+        {{-0.75, -0.25}, {0.0, -0.5}, {0.5, 0.25}, {2.0, -1.0}}, 1e-8
+    );
+}
+
+TEST_CASE("eval_legendre preserves accuracy near zero", "[eval_legendre][xsf_tests]") {
+    // Exercise both parities of the power series used near zero.
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/orthogonal_eval.pxd#L351-L370
+    for (int n = 0; n <= 11; ++n) {
+        const auto coefficients = legendre_coefficients(n);
+        for (double x : {-1e-6, 0.0, 1e-20, 1e-6}) {
+            const double expected = polyval(coefficients, x);
+            const double out = xsf::eval_legendre(n, x);
+            CAPTURE(n, x, out, expected);
+            REQUIRE(std::abs(out - expected) <= 1e-14 * std::abs(expected));
+        }
+    }
+}
+
+TEST_CASE("Legendre evaluators support negative integer degrees", "[eval_legendre][eval_sh_legendre][xsf_tests]") {
+    // The Legendre polynomials satisfy the following symmetry relation for negative integer degrees:
+    // P_{-n-1}(x) = P_n(x),  n = 0, 1, 2, ...
+    for (int n : {-1, -2, -3, -4, -11, -12}) {
+        for (double x : {0.0, 1e-6, 0.5, 1.0}) {
+            CAPTURE(n, x);
+            REQUIRE(xsf::eval_legendre(n, x) == xsf::eval_legendre(-n - 1, x));
+            REQUIRE(xsf::eval_sh_legendre(n, x) == xsf::eval_sh_legendre(-n - 1, x));
+        }
+    }
+}
+
+TEST_CASE("Legendre evaluators propagate NaN inputs", "[eval_legendre][eval_sh_legendre][xsf_tests]") {
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const float nan_float = std::numeric_limits<float>::quiet_NaN();
+    for (int n : {-3, -2, -1, 0, 1, 2, 3}) {
+        CAPTURE(n);
+        REQUIRE(std::isnan(xsf::eval_legendre(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_sh_legendre(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_legendre(n, nan_float)));
+        REQUIRE(std::isnan(xsf::eval_sh_legendre(n, nan_float)));
+    }
+    for (double n : {-3.0, -2.0, -1.0, 0.0, 0.5, 1.0, 2.0, 3.0}) {
+        CAPTURE(n);
+        REQUIRE(std::isnan(xsf::eval_legendre(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_sh_legendre(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_legendre(static_cast<float>(n), nan_float)));
+        REQUIRE(std::isnan(xsf::eval_sh_legendre(static_cast<float>(n), nan_float)));
+    }
+}
+
+TEST_CASE("Legendre float overloads", "[eval_legendre][eval_sh_legendre][xsf_tests]") {
+    // Extend the polynomial checks to float and complex<float> overloads.
+    // P_3(x) = (5x^3 - 3x)/2.
+    const std::complex<float> z{0.5f, 0.5f};
+    REQUIRE(std::abs(xsf::eval_legendre(3, 0.5f) + 0.4375f) < 1e-6f);
+    REQUIRE(std::abs(xsf::eval_legendre(3.0f, 0.5f) + 0.4375f) < 1e-6f);
+    REQUIRE(std::abs(xsf::eval_legendre(3.0f, z) - std::complex<float>{-1.375f, -0.125f}) < 1e-6f);
+    REQUIRE(std::abs(xsf::eval_sh_legendre(3, 0.5f)) < 1e-6f);
+    REQUIRE(std::abs(xsf::eval_sh_legendre(3.0f, 0.5f)) < 1e-6f);
+    REQUIRE(std::abs(xsf::eval_sh_legendre(3.0f, z) - std::complex<float>{0.0f, -4.0f}) < 1e-6f);
 }
