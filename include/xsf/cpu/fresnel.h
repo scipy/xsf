@@ -295,7 +295,7 @@ namespace detail {
 
             if (x < 0.0) {
                 f.real(pp2 - f.real());
-                f.imag(pow(-1, ks) * pp2 - f.real());
+                f.imag(pow(-1, ks) * pp2 - f.imag());
                 g.real(cos(x2) - g.real());
                 g.imag(-pow(-1, ks) * sin(x2) - g.imag());
             }
