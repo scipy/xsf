@@ -105,9 +105,9 @@ namespace detail {
                 r = -r / (x * x);
                 bf += a[2 * k - 1] * r;
             }
-            bg = a[0] * x;
+            bg = a[0] / x;
             r = 1.0 / x;
-            for (k = 1; k < 10; k++) {
+            for (k = 1; k <= 10; k++) {
                 r = -r / (x * x);
                 bg += a[2 * k] * r;
             }
