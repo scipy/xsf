@@ -1110,6 +1110,26 @@ TEST_CASE("Chebyshev evaluators support negative integer degrees", "[eval_chebyt
     REQUIRE(xsf::eval_chebyu(-4, 0.5) == 0.0);
 }
 
+TEST_CASE("Chebyshev integer-degree evaluators propagate NaN inputs", "[chebyshev][xsf_tests]") {
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const float nan_float = std::numeric_limits<float>::quiet_NaN();
+    for (int n : {-3, -2, -1, 0, 1, 2, 3}) {
+        CAPTURE(n);
+        REQUIRE(std::isnan(xsf::eval_chebyt(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_chebyu(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_chebyc(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_chebys(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_sh_chebyt(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_sh_chebyu(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_chebyt(n, nan_float)));
+        REQUIRE(std::isnan(xsf::eval_chebyu(n, nan_float)));
+        REQUIRE(std::isnan(xsf::eval_chebyc(n, nan_float)));
+        REQUIRE(std::isnan(xsf::eval_chebys(n, nan_float)));
+        REQUIRE(std::isnan(xsf::eval_sh_chebyt(n, nan_float)));
+        REQUIRE(std::isnan(xsf::eval_sh_chebyu(n, nan_float)));
+    }
+}
+
 TEST_CASE("Chebyshev evaluators support noninteger degrees", "[eval_chebyt][eval_chebyu][xsf_tests]") {
     // T_nu(cos t) = cos(nu t), U_nu(cos t) = sin((nu + 1) t) / sin t.
     for (double nu : {0.5, 1.3, 2.5, 4.7, 7.25}) {

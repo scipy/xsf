@@ -284,6 +284,10 @@ namespace detail {
     // Use the Chebyshev T recurrence directly, see Mason & Handscomb, Chebyshev Polynomials, CRC Press (2003).
     template <typename Int>
     XSF_HOST_DEVICE inline double eval_chebyt_l(Int k, double x) {
+        if (cxx::isnan(x)) {
+            return x;
+        }
+
         if (k < 0) {
             // symmetry: T_{-k}(x) = T_k(x)
             k = -k;
@@ -310,6 +314,10 @@ namespace detail {
 
     template <typename Int>
     XSF_HOST_DEVICE inline double eval_chebyu_l(Int k, double x) {
+        if (cxx::isnan(x)) {
+            return x;
+        }
+
         int sign = 1;
         if (k < 0) {
             if (k == -1) {
