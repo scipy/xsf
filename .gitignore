@@ -46,3 +46,7 @@ build/
 
 # xsref
 xsref/
+
+# documentation build
+doc/_build/
+doc/source/api/generated/
