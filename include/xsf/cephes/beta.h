@@ -62,19 +62,52 @@ namespace cephes {
     XSF_HOST_DEVICE double lbeta(double, double);
 
     namespace detail {
-        constexpr double beta_ASYMP_FACTOR = 1e6;
+        /*
+         * Stable Stirling difference for ln Gamma(a) - ln Gamma(a + b)
+         * when a >= b > 0 and a is large (a > MAXGAM).
+         *
+         * Evaluating ln Gamma(a) - ln Gamma(a + b) directly cancels significant
+         * digits when a is large, yielding relative error ~1e-9.
+         * By expanding the difference analytically using Stirling's series:
+         *   ln Gamma(a) - ln Gamma(a + b) = -b * ln(a) + Delta(a, b)
+         * where:
+         *   Delta(a, b) = b - (a + b - 1/2) * ln(1 + b/a) + sum_k [B_{2k}/(2k(2k-1))] * [1/a^{2k-1} - 1/(a+b)^{2k-1}]
+         * For small x = b/a, b - a * ln(1 + x) = b * (x/2 - x^2/3 + x^3/4 - ...)
+         * which avoids any cancellation.
+         */
+        XSF_HOST_DEVICE inline double lgam_diff_stirling(double a, double b) {
+            double x = b / a;
+            double term_log = -b * cxx::log(a);
+            double cancellation;
+
+            if (x < 1e-4) {
+                cancellation = b * (x / 2.0 - (x * x) / 3.0 + (x * x * x) / 4.0 -
+                                   (x * x * x * x) / 5.0 + (x * x * x * x * x) / 6.0);
+            } else {
+                cancellation = b - a * cxx::log1p(x);
+            }
+
+            double term_mid = cancellation - (b - 0.5) * cxx::log1p(x);
+
+            /* First Stirling correction: 1/(12*a) - 1/(12*(a+b)) = (b/a) / (12 * (a + b)) */
+            double corr1 = (a < 1e150) ? (x / (12.0 * (a + b))) : 0.0;
+
+            /* Second Stirling correction: -1/(360*a^3) + 1/(360*(a+b)^3) */
+            double corr2 = 0.0;
+            if (a < 1e4) {
+                double u = 1.0 + x;
+                corr2 = -((u * u * u) - 1.0) / (360.0 * (a * a * a) * (u * u * u));
+            }
+
+            return term_log + term_mid + corr1 + corr2;
+        }
 
         /*
-         * Asymptotic expansion for  ln(|B(a, b)|) for a > ASYMP_FACTOR*max(|b|, 1).
+         * Asymptotic expansion for ln(|B(a, b)|) for a > ASYMP_FACTOR*max(|b|, 1).
          */
         XSF_HOST_DEVICE inline double lbeta_asymp(double a, double b, int *sgn) {
             double r = lgam_sgn(b, sgn);
-            r -= b * cxx::log(a);
-
-            r += b * (1 - b) / (2 * a);
-            r += b * (1 - b) * (1 - 2 * b) / (12 * a * a);
-            r += -b * b * (1 - b) * (1 - b) / (12 * a * a * a);
-
+            r += lgam_diff_stirling(a, b);
             return r;
         }
 
@@ -212,10 +245,14 @@ namespace cephes {
             b = y;
         }
 
-        if (cxx::abs(a) > detail::beta_ASYMP_FACTOR * cxx::abs(b) && a > detail::beta_ASYMP_FACTOR) {
-            /* Avoid loss of precision in lgam(a + b) - lgam(a) */
-            y = detail::lbeta_asymp(a, b, &sign);
-            return y;
+        if (a > detail::MAXGAM && b > 0.0) {
+            /*
+             * For large positive arguments, avoid catastrophic cancellation in
+             * lgam(a) + lgam(b) - lgam(a + b) by using the stable Stirling difference.
+             */
+            int sgngam;
+            double lgb = detail::lgam_sgn(b, &sgngam);
+            return lgb + detail::lgam_diff_stirling(a, b);
         }
 
         y = a + b;
