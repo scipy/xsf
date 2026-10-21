@@ -337,6 +337,112 @@ XSF_HOST_DEVICE inline void poisson_binom_cdf_all(InputMat p, OutputMat res) {
     res(n) = T(1);
 }
 
+namespace detail {
+
+    template <typename T>
+    XSF_HOST_DEVICE inline T poisson_binom_logadd(T a, T b) {
+        if (a == b) {
+            return a + cxx::log(T(2)); // also handles two negative infinities
+        }
+        T hi = cxx::max(a, b);
+        T lo = cxx::min(a, b);
+        return hi + cxx::log1p(cxx::exp(lo - hi));
+    }
+
+    // Log probability from its log odds, without rounding a near-one
+    // probability to one, or forming an underflowed probability first.
+    template <typename T>
+    XSF_HOST_DEVICE inline T poisson_binom_logprob(T odds) {
+        return odds > 0 ? -cxx::log1p(cxx::exp(-odds)) : odds - cxx::log1p(cxx::exp(odds));
+    }
+
+    template <bool Log, typename InputMat, typename OutputMat>
+    XSF_HOST_DEVICE inline void poisson_binom_sf_all_impl(InputMat p, OutputMat res) {
+        using T = typename OutputMat::value_type;
+        auto n = p.extent(0);
+        const T inf = cxx::numeric_limits<T>::infinity();
+        for (decltype(n) i = 0; i < n; ++i) {
+            if (!(p(i) >= 0 && p(i) <= 1)) {
+                set_error(Log ? "_poisson_binom_logsf_all" : "_poisson_binom_sf_all", SF_ERROR_DOMAIN,
+                          "probabilities must be in [0, 1]");
+                for (decltype(n) j = 0; j <= n; ++j) {
+                    res(j) = cxx::numeric_limits<T>::quiet_NaN();
+                }
+                return;
+            }
+        }
+        for (decltype(n) j = 0; j <= n; ++j) {
+            res(j) = Log ? -inf : T(0);
+        }
+        for (decltype(n) i = 0; i < n; ++i) {
+            const T prob = p(i);
+            if (prob == 0) {
+                continue;
+            }
+            T lp = 0, lq = 0;
+            if constexpr (Log) {
+                if (prob != 1) {
+                    lp = cxx::log(prob);
+                    lq = cxx::log1p(-prob);
+                }
+            }
+            for (auto j = i + 1; j > 0; --j) {
+                const auto k = j - 1;
+                const T prev = k == 0 ? (Log ? inf : T(1)) : res(k - 1);
+                if (prob == 1) {
+                    res(k) = prev;
+                } else if constexpr (Log) {
+                    // H_i(k) = (1-p_i) H_{i-1}(k) + p_i H_{i-1}(k-1).
+                    // Apply the same positive recurrence to its complement.
+                    // Store log(H/F) in-place: retaining both tails this way
+                    // needs no allocation or second caller-owned workspace.
+                    const T curr = res(k);
+                    const T lh = poisson_binom_logadd(lq + poisson_binom_logprob(curr),
+                                                     lp + poisson_binom_logprob(prev));
+                    const T lf = poisson_binom_logadd(lq + poisson_binom_logprob(-curr),
+                                                     lp + poisson_binom_logprob(-prev));
+                    res(k) = lh - lf;
+                } else {
+                    res(k) = (T(1) - prob) * res(k) + prob * prev;
+                }
+            }
+        }
+        if constexpr (Log) {
+            for (decltype(n) j = 0; j <= n; ++j) {
+                res(j) = poisson_binom_logprob(res(j));
+            }
+        }
+    }
+
+} // namespace detail
+
+template <typename InputMat, typename OutputMat>
+XSF_HOST_DEVICE inline void poisson_binom_sf_all(InputMat p, OutputMat res) {
+    /* Fill res(k) = P(S > k), k = 0, ..., n. As for pmf_all, p and res
+     * are nonoverlapping one-dimensional mdspans of lengths n and n+1.
+     * Uses O(n^2) arithmetic and the output array as O(n) workspace.
+     */
+    if (res.extent(0) != p.extent(0) + 1) {
+        set_error("_poisson_binom_sf_all", SF_ERROR_MEMORY, "out.shape[-1] must be p.shape[-1] + 1");
+        return;
+    }
+    detail::poisson_binom_sf_all_impl<false>(p, res);
+}
+
+template <typename InputMat, typename OutputMat>
+XSF_HOST_DEVICE inline void poisson_binom_logsf_all(InputMat p, OutputMat res) {
+    /* Fill res(k) = log(P(S > k)), without taking log of an ordinary
+     * probability. Same shape, nonaliasing and complexity as sf_all.
+     * log(p) and log1p(-p) preserve tiny input probabilities; the input
+     * vector is never transformed into rounded failure probabilities.
+     */
+    if (res.extent(0) != p.extent(0) + 1) {
+        set_error("_poisson_binom_logsf_all", SF_ERROR_MEMORY, "out.shape[-1] must be p.shape[-1] + 1");
+        return;
+    }
+    detail::poisson_binom_sf_all_impl<true>(p, res);
+}
+
 template <typename InputMat, typename Int>
 XSF_HOST_DEVICE inline typename InputMat::value_type take_from_pmf(InputMat pmf, Int k) {
     using T = typename InputMat::value_type;
