@@ -1,14 +1,15 @@
 #include <catch2/catch_test_macros.hpp>
-#include <xsf/stats.h>
-#include <xsf/third_party/kokkos/mdspan.hpp>
 #include <cfenv>
 #include <cmath>
 #include <limits>
 #include <vector>
+#include <xsf/stats.h>
+#include <xsf/third_party/kokkos/mdspan.hpp>
 
 TEST_CASE("poisson_binom direct tails: scipy issue 26409", "[poisson_binom][xsf_tests]") {
     std::vector<std::vector<double>> cases(3);
-    for (int i = 0; i < 32; ++i) cases[0].push_back((1 + i % 9) / 128.0);
+    for (int i = 0; i < 32; ++i)
+        cases[0].push_back((1 + i % 9) / 128.0);
     cases[1] = std::vector<double>(256, 1.0 / 128);
     cases[2] = std::vector<double>(16, 1e-20);
     const int k[] = {24, 250, 1};
@@ -54,9 +55,11 @@ void check_poisson_binom_tail_contract() {
     std::vector<T> short_output(4, 17);
     xsf::poisson_binom_sf_all(ps, std::mdspan(short_output.data(), short_output.size()));
     xsf::poisson_binom_logsf_all(ps, std::mdspan(short_output.data(), short_output.size()));
-    for (auto v : short_output) REQUIRE(v == T(17));
+    for (auto v : short_output)
+        REQUIRE(v == T(17));
     p.clear();
-    sf.resize(1); logsf.resize(1);
+    sf.resize(1);
+    logsf.resize(1);
     xsf::poisson_binom_sf_all(std::mdspan(p.data(), p.size()), std::mdspan(sf.data(), sf.size()));
     xsf::poisson_binom_logsf_all(std::mdspan(p.data(), p.size()), std::mdspan(logsf.data(), logsf.size()));
     REQUIRE(sf[0] == 0);
@@ -76,7 +79,8 @@ TEST_CASE("poisson_binom log tail near one and subnormal SF", "[poisson_binom][x
     const double expected = std::log1p(-std::ldexp(1., -64));
     REQUIRE(std::abs(logsf[0] - expected) <= 2e-11 * std::abs(expected));
     p = {std::numeric_limits<double>::denorm_min(), .5};
-    sf.resize(3); logsf.resize(3);
+    sf.resize(3);
+    logsf.resize(3);
     xsf::poisson_binom_sf_all(std::mdspan(p.data(), p.size()), std::mdspan(sf.data(), sf.size()));
     xsf::poisson_binom_logsf_all(std::mdspan(p.data(), p.size()), std::mdspan(logsf.data(), logsf.size()));
     REQUIRE(sf[1] == 0); // exact half-denorm rounds to even (zero)

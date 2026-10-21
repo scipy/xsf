@@ -363,8 +363,10 @@ namespace detail {
         const T inf = cxx::numeric_limits<T>::infinity();
         for (decltype(n) i = 0; i < n; ++i) {
             if (!(p(i) >= 0 && p(i) <= 1)) {
-                set_error(Log ? "_poisson_binom_logsf_all" : "_poisson_binom_sf_all", SF_ERROR_DOMAIN,
-                          "probabilities must be in [0, 1]");
+                set_error(
+                    Log ? "_poisson_binom_logsf_all" : "_poisson_binom_sf_all", SF_ERROR_DOMAIN,
+                    "probabilities must be in [0, 1]"
+                );
                 for (decltype(n) j = 0; j <= n; ++j) {
                     res(j) = cxx::numeric_limits<T>::quiet_NaN();
                 }
@@ -397,10 +399,10 @@ namespace detail {
                     // Store log(H/F) in-place: retaining both tails this way
                     // needs no allocation or second caller-owned workspace.
                     const T curr = res(k);
-                    const T lh = poisson_binom_logadd(lq + poisson_binom_logprob(curr),
-                                                     lp + poisson_binom_logprob(prev));
-                    const T lf = poisson_binom_logadd(lq + poisson_binom_logprob(-curr),
-                                                     lp + poisson_binom_logprob(-prev));
+                    const T lh =
+                        poisson_binom_logadd(lq + poisson_binom_logprob(curr), lp + poisson_binom_logprob(prev));
+                    const T lf =
+                        poisson_binom_logadd(lq + poisson_binom_logprob(-curr), lp + poisson_binom_logprob(-prev));
                     res(k) = lh - lf;
                 } else {
                     res(k) = (T(1) - prob) * res(k) + prob * prev;
