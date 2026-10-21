@@ -101,8 +101,13 @@ TEST_CASE("cotdg IEEE infinity sign scipy/20731", "[cotdg][xsf_tests]") {
 }
 
 TEST_CASE("sinpi and cospi complex large imaginary part", "[sinpi][cospi][xsf_tests]") {
-    // Reference values from mpmath.
-    const double a = 3.4129868967024852e+306;
+    // Reference values from mpmath with 1000 digits of precision:
+    //
+    // import mpmath as mp
+    // mp.mp.dps = 1000
+    // print(mp.nstr(mp.sinpi(0.25-225.0j),18))
+    // print(mp.nstr(mp.cospi(0.25+225.0j),18))
+    const double a = 3.41298689670248524e+306;
     const double rtol = 1e-12;
     std::complex<double> w;
 
