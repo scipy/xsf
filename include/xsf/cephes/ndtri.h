@@ -109,10 +109,19 @@ namespace cephes {
             1.34204006088543189037E-2, 3.28014464682127739104E-4, 2.89247864745380683936E-6, 6.79019408009981274425E-9,
         };
 
+        /* ndtri(0.5 + y) for |y| <= 0.5 - exp(-2), i.e. the central branch of ndtri.
+         * This is a separate function so that erfinv can avoid the rounding error
+         * in 0.5 * (y + 1) for small |y|. */
+        XSF_HOST_DEVICE inline double ndtri_central(double y) {
+            double y2 = y * y;
+            double x = y + y * (y2 * polevl(y2, ndtri_P0, 4) / p1evl(y2, ndtri_Q0, 8));
+            return x * SQRT2PI;
+        }
+
     } // namespace detail
 
     XSF_HOST_DEVICE inline double ndtri(double y0) {
-        double x, y, z, y2, x0, x1;
+        double x, y, z, x0, x1;
         int code;
 
         if (y0 == 0.0) {
@@ -133,11 +142,7 @@ namespace cephes {
         }
 
         if (y > 0.13533528323661269189) {
-            y = y - 0.5;
-            y2 = y * y;
-            x = y + y * (y2 * polevl(y2, detail::ndtri_P0, 4) / p1evl(y2, detail::ndtri_Q0, 8));
-            x = x * detail::SQRT2PI;
-            return (x);
+            return detail::ndtri_central(y - 0.5);
         }
 
         x = cxx::sqrt(-2.0 * cxx::log(y));

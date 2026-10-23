@@ -4,6 +4,7 @@
 #include "../config.h"
 #include "../error.h"
 
+#include "../ndtri_exp.h"
 #include "ndtri.h"
 
 namespace xsf {
@@ -20,7 +21,8 @@ namespace cephes {
         constexpr double domain_lb = -1;
         constexpr double domain_ub = 1;
 
-        constexpr double thresh = 1e-7;
+        /* So that the neglected cubic term stays below 1/4 ulp. */
+        constexpr double thresh = 1e-8;
 
         /*
          * For small arguments, use the Taylor expansion
@@ -31,8 +33,19 @@ namespace cephes {
         if ((-thresh < y) && (y < thresh)) {
             return y / M_2_SQRTPI;
         }
-        if ((domain_lb < y) && (y < domain_ub)) {
+        /*
+         * Avoid the rounding error of y + 1, which loses precision for |y| << 1 and
+         * for y -> 1 (e.g. erfinv(1 - 2^-53) would be inf):
+         *   ndtri(0.5 * (y + 1)) = -ndtri(0.5 * (1 - y)), and = ndtri_central(0.5 * y) for |y| < 0.5,
+         * where 0.5 * y is exact, and y + 1 and 1 - y are exact for y <= -0.5 and y >= 0.5.
+         */
+        if ((-0.5 < y) && (y < 0.5)) {
+            return detail::ndtri_central(0.5 * y) * M_SQRT1_2;
+        }
+        if ((domain_lb < y) && (y < 0)) {
             return ndtri(0.5 * (y + 1)) * M_SQRT1_2;
+        } else if ((0 < y) && (y < domain_ub)) {
+            return -ndtri(0.5 * (1 - y)) * M_SQRT1_2;
         } else if (y == domain_lb) {
             return -cxx::numeric_limits<double>::infinity();
         } else if (y == domain_ub) {
@@ -57,6 +70,11 @@ namespace cephes {
         constexpr double domain_lb = 0;
         constexpr double domain_ub = 2;
 
+        if ((domain_lb < y) && (y < 2 * cxx::numeric_limits<double>::min())) {
+            /* 0.5 * y can lose precision (or underflow to 0) for these y:
+             * ndtri(0.5 * y) = ndtri_exp(log(y) - log(2)). */
+            return -ndtri_exp(cxx::log(y) - M_LN2) * M_SQRT1_2;
+        }
         if ((domain_lb < y) && (y < domain_ub)) {
             return -ndtri(0.5 * y) * M_SQRT1_2;
         } else if (y == domain_lb) {
