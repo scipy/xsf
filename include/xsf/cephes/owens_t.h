@@ -157,7 +157,7 @@ namespace cephes {
             double y = 1.0 / hs;
             double val = 0.0;
             double vi = a * cxx::exp(-0.5 * ah * ah) / cxx::sqrt(2 * M_PI);
-            double z = (xsf::cephes::ndtr(ah) - 0.5) / h;
+            double z = owens_t_norm1(ah) / h;
 
             while (1) {
                 val += z;
