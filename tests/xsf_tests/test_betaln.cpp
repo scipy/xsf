@@ -15,6 +15,13 @@ TEST_CASE("betaln large arguments with ratio above the asymptotic threshold", "[
     struct Case {
         double a, b, expected;
     };
+    // Reference values: lgamma(a) + lgamma(b) - lgamma(a + b) with mpmath 1.3.0,
+    // computed at a precision where a + b is exact, e.g. for the first case
+    //     mp.dps = 80
+    //     mp.loggamma(mpf(1e100)) + mp.loggamma(mpf(1e107)) - mp.loggamma(mpf(1e100) + mpf(1e107))
+    //     = -1.711809570095832...e+101
+    // (dps = 50 + log10(max(a, b) / min(a, b)) + 10 for each case), then rounded
+    // to double.  The inputs are powers of ten that are exact in double.
     const std::vector<Case> cases = {
         {1e100, 1e107, -1.711809570095832e+101},
         {1e150, 1e157, -1.711809570095832e+151},
