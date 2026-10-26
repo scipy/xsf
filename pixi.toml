@@ -122,3 +122,33 @@ lint = {
     },
   },
 }
+
+docs = {
+  dependencies = {
+    breathe = "4.*",  # breathe 5 cannot resolve `doxygenfile` paths with directories
+    doxygen = "*",
+    make = "*",
+    pydata-sphinx-theme = "*",
+    python = "*",
+    sphinx = "*",
+  },
+  tasks = {
+    docs = {
+      description = "Build the HTML documentation with Doxygen and Sphinx.",
+      cmd = "make -C doc html",
+    },
+    docs-open = {
+      description = "Build the HTML documentation and open it in a web browser.",
+      depends-on = "docs",
+      cmd = [
+        "python",
+        "-c",
+        "import pathlib, webbrowser; webbrowser.open(pathlib.Path('doc/_build/html/index.html').resolve().as_uri())",
+      ],
+    },
+    docs-clean = {
+      description = "Remove generated documentation output.",
+      cmd = "make -C doc clean",
+    },
+  },
+}
