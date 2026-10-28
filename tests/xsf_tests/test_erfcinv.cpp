@@ -3,6 +3,8 @@
 #include <xsf/cephes/erfinv.h>
 
 TEST_CASE("cephes::erfcinv subnormal arguments", "[cephes::erfcinv][xsf_tests]") {
+    // Fixes gh-309 (https://github.com/scipy/xsf/issues/309): erfcinv returned inf
+    // or lost precision for subnormal y.
     // 0.5 * y used to lose precision (or underflow to 0) for subnormal y,
     // e.g. erfcinv(5e-324) was inf and erfcinv(1.5e-323) was 27.187827569944027.
     // 2**-1022 and 2**-1021 check either side of the y < 2 * DBL_MIN branch.
