@@ -438,7 +438,7 @@ namespace detail {
 
     template <typename Function>
     XSF_HOST_DEVICE inline cxx::pair<double, NewtonRootFinderStatus> find_root_newton(
-        Function func, double x, double rtol = 4 * cxx::numeric_limits<double>::epsilon(), double atol = 0.0,
+        Function func, double x, double rtol = 100 * cxx::numeric_limits<double>::epsilon(), double atol = 0.0,
         cxx::uint64_t maxiter = 100
     ) {
         if (maxiter == 0) {
