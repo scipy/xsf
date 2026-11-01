@@ -117,5 +117,27 @@ namespace cephes {
     XSF_HOST_DEVICE inline float lanczos_sum_expg_scaled(float x) {
         return static_cast<float>(lanczos_sum_expg_scaled(static_cast<double>(x)));
     }
+
+    namespace detail {
+
+        /*
+         * log(Gamma(x + m) / Gamma(x)) for x > 0 and x + m > 0.
+         *
+         * Port of `lgam_ratio` from jorenham/xsf-rust#415 by Joren Hammudoglu (BSD-3-Clause).
+         *
+         * lgam(x + m) - lgam(x) loses about x*log(x)*eps through cancellation when |m| << x.
+         * In the Lanczos form Gamma(z) = L(z) * ((z + g - 1/2) / e)**(z - 1/2), with
+         * L = lanczos_sum_expg_scaled, the ratio only has terms of size ~ |m|*log(x):
+         *
+         *   (x - 1/2) * log1p(m / xgh) + m * (log(xgh + m) - 1) + log(L(x + m) / L(x)),
+         *
+         * where xgh = x + g - 1/2.
+         */
+        XSF_HOST_DEVICE inline double lgam_ratio(double x, double m) {
+            double xgh = x + lanczos_g - 0.5;
+            return (x - 0.5) * cxx::log1p(m / xgh) + m * (cxx::log(xgh + m) - 1.0) +
+                   cxx::log(lanczos_sum_expg_scaled(x + m) / lanczos_sum_expg_scaled(x));
+        }
+    } // namespace detail
 } // namespace cephes
 } // namespace xsf
