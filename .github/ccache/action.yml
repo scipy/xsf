@@ -1,0 +1,33 @@
+name: Setup Compiler Cache
+description: Prepare and restore compiler cache using ccache
+inputs:
+  key_segment:
+    description: "Segment identifying the run for use in the cache key"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Prepare compiler cache
+      shell: bash
+      run: |
+        mkdir -p "${CCACHE_DIR}"
+        echo "CCACHE_TIMESTAMP=$(date -u +"%F-%T")" >> $GITHUB_ENV
+    - name: Setup compiler cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      id:   cache-ccache
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key:  ccache-v0-${{ inputs.key_segment }}-${{ env.CCACHE_TIMESTAMP }}
+        restore-keys: ccache-v0-${{ inputs.key_segment }}
+    - name: Install Pixi
+      uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
+      with:
+        pixi-version: v0.77.1
+        run-install: false
+        cache: false
+    - name: Reset ccache stats
+      shell: bash
+      run: |
+        # Restoring the cache also restored the stats from the previous run
+        pixi exec ccache --zero-stats

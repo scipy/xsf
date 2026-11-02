@@ -85,9 +85,9 @@ namespace cephes {
             -9.8907772644920670589288081640128194231,       6.565936202082889535528455955485877361223
         };
 
-        XSF_HOST_DEVICE double lanczos_sum(double x) { return ratevl(x, lanczos_num, 12, lanczos_denom, 12); }
+        XSF_HOST_DEVICE inline double lanczos_sum(double x) { return ratevl(x, lanczos_num, 12, lanczos_denom, 12); }
 
-        XSF_HOST_DEVICE double lanczos_sum_near_1(double dx) {
+        XSF_HOST_DEVICE inline double lanczos_sum_near_1(double dx) {
             double result = 0;
             unsigned k;
 
@@ -97,7 +97,7 @@ namespace cephes {
             return result;
         }
 
-        XSF_HOST_DEVICE double lanczos_sum_near_2(double dx) {
+        XSF_HOST_DEVICE inline double lanczos_sum_near_2(double dx) {
             double result = 0;
             double x = dx + 2;
             unsigned k;
@@ -110,7 +110,7 @@ namespace cephes {
     } // namespace detail
 
     constexpr double lanczos_g = 6.024680040776729583740234375;
-    XSF_HOST_DEVICE double lanczos_sum_expg_scaled(double x) {
+    XSF_HOST_DEVICE inline double lanczos_sum_expg_scaled(double x) {
         return ratevl(x, detail::lanczos_sum_expg_scaled_num, 12, detail::lanczos_sum_expg_scaled_denom, 12);
     }
 

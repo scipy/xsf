@@ -97,23 +97,23 @@ namespace cephes {
             }
 
             if (-mpp > 1e6) {
-                double sm = std::sqrt(-m);
-                double sp = std::sin(phi);
-                double cp = std::cos(phi);
+                double sm = cxx::sqrt(-m);
+                double sp = cxx::sin(phi);
+                double cp = cxx::cos(phi);
 
                 double a = -cosm1(phi);
-                double b1 = std::log(4 * sp * sm / (1 + cp));
+                double b1 = cxx::log(4 * sp * sm / (1 + cp));
                 double b = -(0.5 + b1) / 2.0 / m;
                 double c = (0.75 + cp / sp / sp - b1) / 16.0 / m / m;
                 return (a + b + c) * sm;
             }
 
             if (phi > 1e-153 && m > -1e200) {
-                double s = std::sin(phi);
+                double s = cxx::sin(phi);
                 double csc2 = 1.0 / s / s;
                 scalef = 1.0;
                 scaled = m / 3.0;
-                x = 1.0 / std::tan(phi) / std::tan(phi);
+                x = 1.0 / cxx::tan(phi) / cxx::tan(phi);
                 y = csc2 - m;
                 z = csc2;
             } else {
@@ -125,7 +125,7 @@ namespace cephes {
             }
 
             if (x == y && x == z) {
-                return (scalef + scaled / x) / std::sqrt(x);
+                return (scalef + scaled / x) / cxx::sqrt(x);
             }
 
             A0f = (x + y + z) / 3.0;
@@ -141,12 +141,12 @@ namespace cephes {
              * it is ~338.38. */
 
             /* N.B. This will evaluate its arguments multiple times. */
-            Q = 400.0 * std::fmax(std::abs(A0f - x), std::fmax(std::abs(A0f - y), std::abs(A0f - z)));
+            Q = 400.0 * cxx::fmax(cxx::abs(A0f - x), cxx::fmax(cxx::abs(A0f - y), cxx::abs(A0f - z)));
 
-            while (Q > std::abs(Af) && Q > std::abs(Ad) && n <= 100) {
-                double sx = std::sqrt(x1);
-                double sy = std::sqrt(y1);
-                double sz = std::sqrt(z1);
+            while (Q > cxx::abs(Af) && Q > cxx::abs(Ad) && n <= 100) {
+                double sx = cxx::sqrt(x1);
+                double sy = cxx::sqrt(y1);
+                double sz = cxx::sqrt(z1);
                 double lam = sx * sy + sx * sz + sy * sz;
                 seriesd += seriesn / (sz * (z1 + lam));
                 x1 = (x1 + lam) / 4.0;
@@ -192,20 +192,20 @@ namespace cephes {
         double lphi, t, E, denom, npio2;
         int d, mod, sign;
 
-        if (std::isnan(phi) || std::isnan(m))
-            return std::numeric_limits<double>::quiet_NaN();
+        if (cxx::isnan(phi) || cxx::isnan(m))
+            return cxx::numeric_limits<double>::quiet_NaN();
         if (m > 1.0)
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         ;
-        if (std::isinf(phi))
+        if (cxx::isinf(phi))
             return phi;
-        if (std::isinf(m))
+        if (cxx::isinf(m))
             return -m;
         if (m == 0.0)
             return (phi);
         lphi = phi;
-        npio2 = std::floor(lphi / M_PI_2);
-        if (std::fmod(std::abs(npio2), 2.0) == 1.0)
+        npio2 = cxx::floor(lphi / M_PI_2);
+        if (cxx::fmod(cxx::abs(npio2), 2.0) == 1.0)
             npio2 += 1;
         lphi = lphi - npio2 * M_PI_2;
         if (lphi < 0.0) {
@@ -217,7 +217,7 @@ namespace cephes {
         a = 1.0 - m;
         E = ellpe(m);
         if (a == 0.0) {
-            temp = std::sin(lphi);
+            temp = cxx::sin(lphi);
             goto done;
         }
         if (a > 1.0) {
@@ -238,47 +238,47 @@ namespace cephes {
             temp = ((((m11 * p2 + m9) * p2 + m7) * p2 + m5) * p2 + m3) * p2 * lphi + lphi;
             goto done;
         }
-        t = std::tan(lphi);
-        b = std::sqrt(a);
+        t = cxx::tan(lphi);
+        b = cxx::sqrt(a);
         /* Thanks to Brian Fitzgerald <fitzgb@mml0.meche.rpi.edu>
          * for pointing out an instability near odd multiples of pi/2.  */
-        if (std::abs(t) > 10.0) {
+        if (cxx::abs(t) > 10.0) {
             /* Transform the amplitude */
             e = 1.0 / (b * t);
             /* ... but avoid multiple recursions.  */
-            if (std::abs(e) < 10.0) {
-                e = std::atan(e);
-                temp = E + m * std::sin(lphi) * std::sin(e) - ellie(e, m);
+            if (cxx::abs(e) < 10.0) {
+                e = cxx::atan(e);
+                temp = E + m * cxx::sin(lphi) * cxx::sin(e) - ellie(e, m);
                 goto done;
             }
         }
-        c = std::sqrt(m);
+        c = cxx::sqrt(m);
         a = 1.0;
         d = 1;
         e = 0.0;
         mod = 0;
 
-        while (std::abs(c / a) > detail::MACHEP) {
+        while (cxx::abs(c / a) > detail::MACHEP) {
             temp = b / a;
             lphi = lphi + atan(t * temp) + mod * M_PI;
             denom = 1 - temp * t * t;
-            if (std::abs(denom) > 10 * detail::MACHEP) {
+            if (cxx::abs(denom) > 10 * detail::MACHEP) {
                 t = t * (1.0 + temp) / denom;
                 mod = (lphi + M_PI_2) / M_PI;
             } else {
-                t = std::tan(lphi);
-                mod = static_cast<int>(std::floor((lphi - std::atan(t)) / M_PI));
+                t = cxx::tan(lphi);
+                mod = static_cast<int>(cxx::floor((lphi - cxx::atan(t)) / M_PI));
             }
             c = (a - b) / 2.0;
-            temp = std::sqrt(a * b);
+            temp = cxx::sqrt(a * b);
             a = (a + b) / 2.0;
             b = temp;
             d += d;
-            e += c * std::sin(lphi);
+            e += c * cxx::sin(lphi);
         }
 
         temp = E / ellpk(1.0 - m);
-        temp *= (std::atan(t) + mod * M_PI) / (d * a);
+        temp *= (cxx::atan(t) + mod * M_PI) / (d * a);
         temp += e;
 
     done:

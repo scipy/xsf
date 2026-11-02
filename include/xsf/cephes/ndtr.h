@@ -149,19 +149,18 @@ namespace cephes {
                                      4.86371970985681366614E1,   1.96520832956077098242E2,  5.26445194995477358631E2,
                                      9.34528527171957607540E2,   1.02755188689515710272E3,  5.57535335369399327526E2};
 
-        constexpr double ndtr_Q[] = {
-            /* 1.00000000000000000000E0, */
-            1.32281951154744992508E1, 8.67072140885989742329E1, 3.54937778887819891062E2, 9.75708501743205489753E2,
-            1.82390916687909736289E3, 2.24633760818710981792E3, 1.65666309194161350182E3, 5.57535340817727675546E2
+        constexpr double ndtr_Q[] = {/* 1.00000000000000000000E0, */
+                                     1.32281951154744992508E1, 8.67072140885989742329E1, 3.54937778887819891062E2,
+                                     9.75708501743205489753E2, 1.82390916687909736289E3, 2.24633760818710981792E3,
+                                     1.65666309194161350182E3, 5.57535340817727675546E2
         };
 
         constexpr double ndtr_R[] = {5.64189583547755073984E-1, 1.27536670759978104416E0, 5.01905042251180477414E0,
                                      6.16021097993053585195E0,  7.40974269950448939160E0, 2.97886665372100240670E0};
 
-        constexpr double ndtr_S[] = {
-            /* 1.00000000000000000000E0, */
-            2.26052863220117276590E0, 9.39603524938001434673E0, 1.20489539808096656605E1,
-            1.70814450747565897222E1, 9.60896809063285878198E0, 3.36907645100081516050E0
+        constexpr double ndtr_S[] = {/* 1.00000000000000000000E0, */
+                                     2.26052863220117276590E0, 9.39603524938001434673E0, 1.20489539808096656605E1,
+                                     1.70814450747565897222E1, 9.60896809063285878198E0, 3.36907645100081516050E0
         };
 
         constexpr double ndtr_T[] = {
@@ -184,9 +183,9 @@ namespace cephes {
     XSF_HOST_DEVICE inline double erfc(double a) {
         double p, q, x, y, z;
 
-        if (std::isnan(a)) {
+        if (cxx::isnan(a)) {
             set_error("erfc", SF_ERROR_DOMAIN, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         if (a < 0.0) {
@@ -205,7 +204,7 @@ namespace cephes {
             goto under;
         }
 
-        z = std::exp(z);
+        z = cxx::exp(z);
 
         if (x < 8.0) {
             p = polevl(x, detail::ndtr_P, 8);
@@ -236,16 +235,16 @@ namespace cephes {
     XSF_HOST_DEVICE inline double erf(double x) {
         double y, z;
 
-        if (std::isnan(x)) {
+        if (cxx::isnan(x)) {
             set_error("erf", SF_ERROR_DOMAIN, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         if (x < 0.0) {
             return -erf(-x);
         }
 
-        if (std::abs(x) > 1.0) {
+        if (cxx::abs(x) > 1.0) {
             return (1.0 - erfc(x));
         }
         z = x * x;
@@ -257,13 +256,13 @@ namespace cephes {
     XSF_HOST_DEVICE inline double ndtr(double a) {
         double x, y, z;
 
-        if (std::isnan(a)) {
+        if (cxx::isnan(a)) {
             set_error("ndtr", SF_ERROR_DOMAIN, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         x = a * M_SQRT1_2;
-        z = std::abs(x);
+        z = cxx::abs(x);
 
         if (z < 1.0) {
             y = 0.5 + 0.5 * erf(x);

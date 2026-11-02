@@ -91,10 +91,10 @@ namespace cephes {
         /* test for overflow */
         if (x == 0.0) {
             set_error("yn", SF_ERROR_SINGULAR, NULL);
-            return -std::numeric_limits<double>::infinity() * sign;
+            return -cxx::numeric_limits<double>::infinity() * sign;
         } else if (x < 0.0) {
             set_error("yn", SF_ERROR_DOMAIN, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         /* forward recurrence on n */
@@ -109,7 +109,7 @@ namespace cephes {
             anm1 = an;
             r += 2.0;
             ++k;
-        } while (k < n && std::isfinite(an));
+        } while (k < n && cxx::isfinite(an));
 
         return (sign * an);
     }

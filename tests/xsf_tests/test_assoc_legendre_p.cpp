@@ -1,6 +1,6 @@
 #include "../testing_utils.h"
 #include <tuple>
-#include <xsf/legendre.h>
+#include <xsf/cpu/legendre.h>
 
 TEST_CASE("assoc_legendre_p scipy/gh-23101", "[assoc_legendre_p][xsf_tests]") {
     using test_case = std::tuple<int, int, double, double, double>;

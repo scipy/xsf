@@ -1,6 +1,6 @@
 #include "../testing_utils.h"
 
-#include <xsf/legendre.h>
+#include <xsf/cpu/legendre.h>
 
 // backport of std::mdspan (since C++23)
 #define MDSPAN_USE_PAREN_OPERATOR 1

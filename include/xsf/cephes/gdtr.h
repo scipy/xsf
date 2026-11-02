@@ -112,7 +112,7 @@ namespace cephes {
 
         if (x < 0.0) {
             set_error("gdtr", SF_ERROR_DOMAIN, NULL);
-            return (std::numeric_limits<double>::quiet_NaN());
+            return (cxx::numeric_limits<double>::quiet_NaN());
         }
         return (igam(b, a * x));
     }
@@ -121,7 +121,7 @@ namespace cephes {
 
         if (x < 0.0) {
             set_error("gdtrc", SF_ERROR_DOMAIN, NULL);
-            return (std::numeric_limits<double>::quiet_NaN());
+            return (cxx::numeric_limits<double>::quiet_NaN());
         }
         return (igamc(b, a * x));
     }
@@ -130,7 +130,7 @@ namespace cephes {
 
         if ((y < 0.0) || (y > 1.0) || (a <= 0.0) || (b < 0.0)) {
             set_error("gdtri", SF_ERROR_DOMAIN, NULL);
-            return (std::numeric_limits<double>::quiet_NaN());
+            return (cxx::numeric_limits<double>::quiet_NaN());
         }
 
         return (igamci(b, 1.0 - y) / a);

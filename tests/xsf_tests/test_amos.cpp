@@ -1,5 +1,5 @@
 #include "../testing_utils.h"
-#include <xsf/amos/amos.h>
+#include <xsf/cpu/amos/amos.h>
 
 TEST_CASE("amos besj vectorized", "[amos][xsf_tests]") {
     // tests the functionality of amos to return multiple consecutive orders for besj

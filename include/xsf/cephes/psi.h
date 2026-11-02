@@ -99,7 +99,7 @@ namespace cephes {
             1.0
         };
 
-        XSF_HOST_DEVICE double digamma_imp_1_2(double x) {
+        XSF_HOST_DEVICE inline double digamma_imp_1_2(double x) {
             /*
              * Rational approximation on [1, 2] taken from Boost.
              *
@@ -124,7 +124,7 @@ namespace cephes {
             return g * psi_Y + g * r;
         }
 
-        XSF_HOST_DEVICE double psi_asy(double x) {
+        XSF_HOST_DEVICE inline double psi_asy(double x) {
             double y, z;
 
             if (x < 1.0e17) {
@@ -134,37 +134,37 @@ namespace cephes {
                 y = 0.0;
             }
 
-            return std::log(x) - (0.5 / x) - y;
+            return cxx::log(x) - (0.5 / x) - y;
         }
     } // namespace detail
 
-    XSF_HOST_DEVICE double psi(double x) {
+    XSF_HOST_DEVICE inline double psi(double x) {
         double y = 0.0;
         double q, r;
         int i, n;
 
-        if (std::isnan(x)) {
+        if (cxx::isnan(x)) {
             return x;
-        } else if (x == std::numeric_limits<double>::infinity()) {
+        } else if (x == cxx::numeric_limits<double>::infinity()) {
             return x;
-        } else if (x == -std::numeric_limits<double>::infinity()) {
-            return std::numeric_limits<double>::quiet_NaN();
+        } else if (x == -cxx::numeric_limits<double>::infinity()) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         } else if (x == 0) {
             set_error("psi", SF_ERROR_SINGULAR, NULL);
-            return std::copysign(std::numeric_limits<double>::infinity(), -x);
+            return cxx::copysign(cxx::numeric_limits<double>::infinity(), -x);
         } else if (x < 0.0) {
             /* argument reduction before evaluating tan(pi * x) */
-            r = std::modf(x, &q);
+            r = cxx::modf(x, &q);
             if (r == 0.0) {
                 set_error("psi", SF_ERROR_SINGULAR, NULL);
-                return std::numeric_limits<double>::quiet_NaN();
+                return cxx::numeric_limits<double>::quiet_NaN();
             }
-            y = -M_PI / std::tan(M_PI * r);
+            y = -M_PI / cxx::tan(M_PI * r);
             x = 1.0 - x;
         }
 
         /* check for positive integer up to 10 */
-        if ((x <= 10.0) && (x == std::floor(x))) {
+        if ((x <= 10.0) && (x == cxx::floor(x))) {
             n = static_cast<int>(x);
             for (i = 1; i < n; i++) {
                 y += 1.0 / i;

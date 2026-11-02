@@ -82,18 +82,18 @@ namespace cephes {
         int i;
 
         /* Check for special cases */
-        if (m > 1.0 || std::isnan(m)) {
+        if (m > 1.0 || cxx::isnan(m)) {
             set_error("ellpj", SF_ERROR_DOMAIN, NULL);
-            *sn = std::numeric_limits<double>::quiet_NaN();
-            *cn = std::numeric_limits<double>::quiet_NaN();
-            *ph = std::numeric_limits<double>::quiet_NaN();
-            *dn = std::numeric_limits<double>::quiet_NaN();
+            *sn = cxx::numeric_limits<double>::quiet_NaN();
+            *cn = cxx::numeric_limits<double>::quiet_NaN();
+            *ph = cxx::numeric_limits<double>::quiet_NaN();
+            *dn = cxx::numeric_limits<double>::quiet_NaN();
             return (-1);
         }
         /* Handle negative m by transformation (DLMF 22.17) */
         if (m < 0.0) {
             double m1 = -m / (1.0 - m);
-            double sqrt_1_minus_m = std::sqrt(1.0 - m);
+            double sqrt_1_minus_m = cxx::sqrt(1.0 - m);
             double u1 = sqrt_1_minus_m * u;
             double sn_p, cn_p, dn_p, ph_p;
 
@@ -104,13 +104,13 @@ namespace cephes {
             *sn = sn_p / (sqrt_1_minus_m * dn_p);
             *cn = cn_p / dn_p;
             *dn = 1.0 / dn_p;
-            double ph0 = std::atan2(sn_p, sqrt_1_minus_m * cn_p);
-            *ph = ph0 + M_PI * std::round((ph_p - ph0) / M_PI);
+            double ph0 = cxx::atan2(sn_p, sqrt_1_minus_m * cn_p);
+            *ph = ph0 + M_PI * cxx::round((ph_p - ph0) / M_PI);
             return (0);
         }
         if (m < 1.0e-9) {
-            t = std::sin(u);
-            b = std::cos(u);
+            t = cxx::sin(u);
+            b = cxx::cos(u);
             ai = 0.25 * m * (u - t * b);
             *sn = t - ai * b;
             *cn = b + ai * t;
@@ -120,12 +120,12 @@ namespace cephes {
         }
         if (m >= 0.9999999999) {
             ai = 0.25 * (1.0 - m);
-            b = std::cosh(u);
-            t = std::tanh(u);
+            b = cxx::cosh(u);
+            t = cxx::tanh(u);
             phi = 1.0 / b;
-            twon = b * std::sinh(u);
+            twon = b * cxx::sinh(u);
             *sn = t + ai * (twon - u) / (b * b);
-            *ph = 2.0 * std::atan(exp(u)) - M_PI_2 + ai * (twon - u) / b;
+            *ph = 2.0 * cxx::atan(exp(u)) - M_PI_2 + ai * (twon - u) / b;
             ai *= t * phi;
             *cn = phi - ai * (twon - u);
             *dn = phi + ai * (twon + u);
@@ -134,12 +134,12 @@ namespace cephes {
 
         /* A. G. M. scale. See DLMF 22.20(ii) */
         a[0] = 1.0;
-        b = std::sqrt(1.0 - m);
-        c[0] = std::sqrt(m);
+        b = cxx::sqrt(1.0 - m);
+        c[0] = cxx::sqrt(m);
         twon = 1.0;
         i = 0;
 
-        while (std::abs(c[i] / a[i]) > detail::MACHEP) {
+        while (cxx::abs(c[i] / a[i]) > detail::MACHEP) {
             if (i > 7) {
                 set_error("ellpj", SF_ERROR_OVERFLOW, NULL);
                 goto done;
@@ -147,7 +147,7 @@ namespace cephes {
             ai = a[i];
             ++i;
             c[i] = (ai - b) / 2.0;
-            t = std::sqrt(ai * b);
+            t = cxx::sqrt(ai * b);
             a[i] = (ai + b) / 2.0;
             b = t;
             twon *= 2.0;
@@ -157,18 +157,18 @@ namespace cephes {
         /* backward recurrence */
         phi = twon * a[i] * u;
         do {
-            t = c[i] * std::sin(phi) / a[i];
+            t = c[i] * cxx::sin(phi) / a[i];
             b = phi;
-            phi = (std::asin(t) + phi) / 2.0;
+            phi = (cxx::asin(t) + phi) / 2.0;
         } while (--i);
 
-        *sn = std::sin(phi);
-        t = std::cos(phi);
+        *sn = cxx::sin(phi);
+        t = cxx::cos(phi);
         *cn = t;
-        dnfac = std::cos(phi - b);
+        dnfac = cxx::cos(phi - b);
         /* See discussion after DLMF 22.20.5 */
-        if (std::abs(dnfac) < 0.1) {
-            *dn = std::sqrt(1 - m * (*sn) * (*sn));
+        if (cxx::abs(dnfac) < 0.1) {
+            *dn = cxx::sqrt(1 - m * (*sn) * (*sn));
         } else {
             *dn = t / dnfac;
         }

@@ -1,6 +1,6 @@
 #include "../testing_utils.h"
 
-#include <xsf/sphd_wave.h>
+#include <xsf/cpu/sphd_wave.h>
 
 namespace fs = std::filesystem;
 

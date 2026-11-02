@@ -80,6 +80,7 @@
 
 #include "../config.h"
 #include "chbevl.h"
+#include "const.h"
 
 namespace xsf {
 namespace cephes {
@@ -127,12 +128,17 @@ namespace cephes {
     XSF_HOST_DEVICE inline double i1(double x) {
         double y, z;
 
-        z = std::abs(x);
+        z = cxx::abs(x);
         if (z <= 8.0) {
             y = (z / 2.0) - 2.0;
-            z = chbevl(y, detail::i1_A, 29) * z * std::exp(z);
+            z = chbevl(y, detail::i1_A, 29) * z * cxx::exp(z);
+        } else if (z > detail::MAXLOG) {
+            /* exp(z) overflows here even though i1(z) is still finite up to z ~ 713.99,
+             * so evaluate the exponential in two halves. */
+            double e = cxx::exp(z / 2.0);
+            z = e * chbevl(32.0 / z - 2.0, detail::i1_B, 25) / cxx::sqrt(z) * e;
         } else {
-            z = std::exp(z) * chbevl(32.0 / z - 2.0, detail::i1_B, 25) / std::sqrt(z);
+            z = cxx::exp(z) * chbevl(32.0 / z - 2.0, detail::i1_B, 25) / cxx::sqrt(z);
         }
         if (x < 0.0)
             z = -z;
@@ -144,12 +150,12 @@ namespace cephes {
     XSF_HOST_DEVICE inline double i1e(double x) {
         double y, z;
 
-        z = std::abs(x);
+        z = cxx::abs(x);
         if (z <= 8.0) {
             y = (z / 2.0) - 2.0;
             z = chbevl(y, detail::i1_A, 29) * z;
         } else {
-            z = chbevl(32.0 / z - 2.0, detail::i1_B, 25) / std::sqrt(z);
+            z = chbevl(32.0 / z - 2.0, detail::i1_B, 25) / cxx::sqrt(z);
         }
         if (x < 0.0)
             z = -z;

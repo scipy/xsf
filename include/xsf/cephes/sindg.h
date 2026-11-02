@@ -108,7 +108,7 @@ namespace cephes {
 
         /* make argument positive but save the sign */
         sign = 1;
-        if (std::signbit(x)) {
+        if (cxx::signbit(x)) {
             x = -x;
             sign = -1;
         }
@@ -118,12 +118,12 @@ namespace cephes {
             return (0.0);
         }
 
-        y = std::floor(x / 45.0); /* integer part of x/M_PI_4 */
+        y = cxx::floor(x / 45.0); /* integer part of x/M_PI_4 */
 
         /* strip high bits of integer part to prevent integer overflow */
-        z = std::ldexp(y, -4);
-        z = std::floor(z);        /* integer part of y/8 */
-        z = y - std::ldexp(z, 4); /* y - 16 * (y/16) */
+        z = cxx::ldexp(y, -4);
+        z = cxx::floor(z);        /* integer part of y/8 */
+        z = y - cxx::ldexp(z, 4); /* y - 16 * (y/16) */
 
         j = z; /* convert to integer for tests on the phase angle */
         /* map zeros to origin */
@@ -168,10 +168,10 @@ namespace cephes {
             return (0.0);
         }
 
-        y = std::floor(x / 45.0);
-        z = std::ldexp(y, -4);
-        z = std::floor(z);        /* integer part of y/8 */
-        z = y - std::ldexp(z, 4); /* y - 16 * (y/16) */
+        y = cxx::floor(x / 45.0);
+        z = cxx::ldexp(y, -4);
+        z = cxx::floor(z);        /* integer part of y/8 */
+        z = y - cxx::ldexp(z, 4); /* y - 16 * (y/16) */
 
         /* integer and fractional part modulo one octant */
         j = z;

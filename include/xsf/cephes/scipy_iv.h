@@ -93,9 +93,9 @@ namespace cephes {
             double sum, term, prefactor, factor;
             int k;
 
-            prefactor = std::exp(x) / std::sqrt(2 * M_PI * x);
+            prefactor = cxx::exp(x) / cxx::sqrt(2 * M_PI * x);
 
-            if (prefactor == std::numeric_limits<double>::infinity()) {
+            if (prefactor == cxx::numeric_limits<double>::infinity()) {
                 return prefactor;
             }
 
@@ -114,7 +114,7 @@ namespace cephes {
                 term *= -factor;
                 sum += term;
                 ++k;
-            } while (std::abs(term) > MACHEP * std::abs(sum));
+            } while (cxx::abs(term) > MACHEP * cxx::abs(sum));
             return sum * prefactor;
         }
 
@@ -383,14 +383,14 @@ namespace cephes {
             }
 
             z = x / v;
-            t = 1 / std::sqrt(1 + z * z);
+            t = 1 / cxx::sqrt(1 + z * z);
             t2 = t * t;
-            eta = std::sqrt(1 + z * z) + std::log(z / (1 + 1 / t));
+            eta = cxx::sqrt(1 + z * z) + cxx::log(z / (1 + 1 / t));
 
-            i_prefactor = std::sqrt(t / (2 * M_PI * v)) * std::exp(v * eta);
+            i_prefactor = cxx::sqrt(t / (2 * M_PI * v)) * cxx::exp(v * eta);
             i_sum = 1.0;
 
-            k_prefactor = std::sqrt(M_PI * t / (2 * v)) * std::exp(-v * eta);
+            k_prefactor = cxx::sqrt(M_PI * t / (2 * v)) * cxx::exp(-v * eta);
             k_sum = 1.0;
 
             divisor = v;
@@ -417,18 +417,18 @@ namespace cephes {
                 k_sum += (n % 2 == 0) ? term : -term;
 
                 /* Check convergence */
-                if (std::abs(term) < MACHEP) {
+                if (cxx::abs(term) < MACHEP) {
                     break;
                 }
 
                 divisor *= v;
             }
 
-            if (std::abs(term) > 1e-3 * std::abs(i_sum)) {
+            if (cxx::abs(term) > 1e-3 * cxx::abs(i_sum)) {
                 /* Didn't converge */
                 set_error("ikv_asymptotic_uniform", SF_ERROR_NO_RESULT, NULL);
             }
-            if (std::abs(term) > MACHEP * std::abs(i_sum)) {
+            if (cxx::abs(term) > MACHEP * cxx::abs(i_sum)) {
                 /* Some precision lost */
                 set_error("ikv_asymptotic_uniform", SF_ERROR_LOSS, NULL);
             }
@@ -463,7 +463,7 @@ namespace cephes {
         XSF_HOST_DEVICE inline int temme_ik_series(double v, double x, double *K, double *K1) {
             double f, h, p, q, coef, sum, sum1, tolerance;
             double a, b, c, d, sigma, gamma1, gamma2;
-            std::uint64_t k;
+            cxx::uint64_t k;
             double gp;
             double gm;
 
@@ -471,24 +471,24 @@ namespace cephes {
              * |x| <= 2, Temme series converge rapidly
              * |x| > 2, the larger the |x|, the slower the convergence
              */
-            XSF_ASSERT(std::abs(x) <= 2);
-            XSF_ASSERT(std::abs(v) <= 0.5f);
+            XSF_ASSERT(cxx::abs(x) <= 2);
+            XSF_ASSERT(cxx::abs(v) <= 0.5f);
 
             gp = xsf::cephes::Gamma(v + 1) - 1;
             gm = xsf::cephes::Gamma(-v + 1) - 1;
 
-            a = std::log(x / 2);
-            b = std::exp(v * a);
+            a = cxx::log(x / 2);
+            b = cxx::exp(v * a);
             sigma = -a * v;
-            c = std::abs(v) < MACHEP ? 1 : xsf::cephes::sinpi(v) / (v * M_PI);
-            d = std::abs(sigma) < MACHEP ? 1 : std::sinh(sigma) / sigma;
-            gamma1 = std::abs(v) < MACHEP ? -SCIPY_EULER : (0.5 / v) * (gp - gm) * c;
+            c = cxx::abs(v) < MACHEP ? 1 : xsf::cephes::sinpi(v) / (v * M_PI);
+            d = cxx::abs(sigma) < MACHEP ? 1 : cxx::sinh(sigma) / sigma;
+            gamma1 = cxx::abs(v) < MACHEP ? -SCIPY_EULER : (0.5 / v) * (gp - gm) * c;
             gamma2 = (2 + gp + gm) * c / 2;
 
             /* initial values */
             p = (gp + 1) / (2 * b);
             q = (1 + gm) * b / 2;
-            f = (std::cosh(sigma) * gamma1 + d * (-a) * gamma2) / c;
+            f = (cxx::cosh(sigma) * gamma1 + d * (-a) * gamma2) / c;
             h = p;
             coef = 1;
             sum = coef * f;
@@ -504,7 +504,7 @@ namespace cephes {
                 coef *= x * x / (4 * k);
                 sum += coef * f;
                 sum1 += coef * h;
-                if (std::abs(coef * f) < std::abs(sum) * tolerance) {
+                if (cxx::abs(coef * f) < cxx::abs(sum) * tolerance) {
                     break;
                 }
             }
@@ -522,7 +522,7 @@ namespace cephes {
          * Abramowitz and Stegun, Handbook of Mathematical Functions, 1972, 9.1.73 */
         XSF_HOST_DEVICE inline int CF1_ik(double v, double x, double *fv) {
             double C, D, f, a, b, delta, tiny, tolerance;
-            std::uint64_t k;
+            cxx::uint64_t k;
 
             /*
              * |x| <= |v|, CF1_ik converges rapidly
@@ -534,7 +534,7 @@ namespace cephes {
              * Lentz, Applied Optics, vol 15, 668 (1976)
              */
             tolerance = 2 * MACHEP;
-            tiny = 1 / std::sqrt(std::numeric_limits<double>::max());
+            tiny = 1 / cxx::sqrt(cxx::numeric_limits<double>::max());
             C = f = tiny; /* b0 = 0, replace with tiny */
             D = 0;
             for (k = 1; k < MAXITER; k++) {
@@ -551,7 +551,7 @@ namespace cephes {
                 D = 1 / D;
                 delta = C * D;
                 f *= delta;
-                if (std::abs(delta - 1) <= tolerance) {
+                if (cxx::abs(delta - 1) <= tolerance) {
                     break;
                 }
             }
@@ -572,14 +572,14 @@ namespace cephes {
         XSF_HOST_DEVICE inline int CF2_ik(double v, double x, double *Kv, double *Kv1) {
 
             double S, C, Q, D, f, a, b, q, delta, tolerance, current, prev;
-            std::uint64_t k;
+            cxx::uint64_t k;
 
             /*
              * |x| >= |v|, CF2_ik converges rapidly
              * |x| -> 0, CF2_ik fails to converge
              */
 
-            XSF_ASSERT(std::abs(x) > 1);
+            XSF_ASSERT(cxx::abs(x) > 1);
 
             /*
              * Steed's algorithm, see Thompson and Barnett,
@@ -611,7 +611,7 @@ namespace cephes {
                 S += Q * delta;
 
                 /* S converges slower than f */
-                if (std::abs(Q * delta) < std::abs(S) * tolerance) {
+                if (cxx::abs(Q * delta) < cxx::abs(S) * tolerance) {
                     break;
                 }
             }
@@ -619,7 +619,7 @@ namespace cephes {
                 set_error("ikv_temme(CF2_ik)", SF_ERROR_NO_RESULT, NULL);
             }
 
-            *Kv = std::sqrt(M_PI / (2 * x)) * std::exp(-x) / S;
+            *Kv = cxx::sqrt(M_PI / (2 * x)) * cxx::exp(-x) / S;
             *Kv1 = *Kv * (0.5 + v + x + (v * v - 0.25) * f) / x;
 
             return 0;
@@ -654,14 +654,14 @@ namespace cephes {
                 v = -v; /* v is non-negative from here */
                 kind |= ikv_temme_need_k;
             }
-            n = std::round(v);
+            n = cxx::round(v);
             u = v - n; /* -1/2 <= u < 1/2 */
 
             if (x < 0) {
                 if (Iv_p != NULL)
-                    *Iv_p = std::numeric_limits<double>::quiet_NaN();
+                    *Iv_p = cxx::numeric_limits<double>::quiet_NaN();
                 if (Kv_p != NULL)
-                    *Kv_p = std::numeric_limits<double>::quiet_NaN();
+                    *Kv_p = cxx::numeric_limits<double>::quiet_NaN();
                 set_error("ikv_temme", SF_ERROR_DOMAIN, NULL);
                 return;
             }
@@ -669,16 +669,16 @@ namespace cephes {
                 Iv = (v == 0) ? 1 : 0;
                 if (kind & ikv_temme_need_k) {
                     set_error("ikv_temme", SF_ERROR_OVERFLOW, NULL);
-                    Kv = std::numeric_limits<double>::infinity();
+                    Kv = cxx::numeric_limits<double>::infinity();
                 } else {
-                    Kv = std::numeric_limits<double>::quiet_NaN(); /* any value will do */
+                    Kv = cxx::numeric_limits<double>::quiet_NaN(); /* any value will do */
                 }
 
                 if (reflect && (kind & ikv_temme_need_i)) {
                     double z = (u + n % 2);
 
-                    Iv = xsf::cephes::sinpi(z) == 0 ? Iv : std::numeric_limits<double>::infinity();
-                    if (std::isinf(Iv)) {
+                    Iv = xsf::cephes::sinpi(z) == 0 ? Iv : cxx::numeric_limits<double>::infinity();
+                    if (cxx::isinf(Iv)) {
                         set_error("ikv_temme", SF_ERROR_OVERFLOW, NULL);
                     }
                 }
@@ -727,7 +727,7 @@ namespace cephes {
                     Iv = W / (Kv * fv + Kv1); /* Wronskian relation */
                 }
             } else {
-                Iv = std::numeric_limits<double>::quiet_NaN(); /* any value will do */
+                Iv = cxx::numeric_limits<double>::quiet_NaN(); /* any value will do */
             }
 
             if (reflect) {
@@ -756,12 +756,12 @@ namespace cephes {
         int sign;
         double t, ax, res;
 
-        if (std::isnan(v) || std::isnan(x)) {
-            return std::numeric_limits<double>::quiet_NaN();
+        if (cxx::isnan(v) || cxx::isnan(x)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         /* If v is a negative integer, invoke symmetry */
-        t = std::floor(v);
+        t = cxx::floor(v);
         if (v < 0.0) {
             if (t == v) {
                 v = -v; /* symmetry */
@@ -773,9 +773,9 @@ namespace cephes {
         if (x < 0.0) {
             if (t != v) {
                 set_error("iv", SF_ERROR_DOMAIN, NULL);
-                return (std::numeric_limits<double>::quiet_NaN());
+                return (cxx::numeric_limits<double>::quiet_NaN());
             }
-            if (v != 2.0 * std::floor(v / 2.0)) {
+            if (v != 2.0 * cxx::floor(v / 2.0)) {
                 sign = -1;
             }
         }
@@ -787,13 +787,13 @@ namespace cephes {
             }
             if (v < 0.0) {
                 set_error("iv", SF_ERROR_OVERFLOW, NULL);
-                return std::numeric_limits<double>::infinity();
+                return cxx::numeric_limits<double>::infinity();
             } else
                 return 0.0;
         }
 
-        ax = std::abs(x);
-        if (std::abs(v) > 50) {
+        ax = cxx::abs(x);
+        if (cxx::abs(v) > 50) {
             /*
              * Uniform asymptotic expansion for large orders.
              *
@@ -803,8 +803,8 @@ namespace cephes {
             detail::ikv_asymptotic_uniform(v, ax, &res, NULL);
         } else {
             /* Check for tiny x to avoid Wronskian overflow in ikv_temme */
-            if (ax * ax < std::abs(v + 1.0) * detail::MACHEP) {
-                res = std::pow(0.5 * ax, v) * rgamma(v + 1.0);
+            if (ax * ax < cxx::abs(v + 1.0) * detail::MACHEP) {
+                res = cxx::pow(0.5 * ax, v) * rgamma(v + 1.0);
             } else {
                 /* Otherwise: Temme's method */
                 detail::ikv_temme(v, ax, &res, NULL);

@@ -106,16 +106,16 @@ namespace cephes {
         if (x < 1.0) {
         domerr:
             set_error("zeta", SF_ERROR_DOMAIN, NULL);
-            return (std::numeric_limits<double>::quiet_NaN());
+            return (cxx::numeric_limits<double>::quiet_NaN());
         }
 
         if (q <= 0.0) {
             if (q == floor(q)) {
                 set_error("zeta", SF_ERROR_SINGULAR, NULL);
             retinf:
-                return (std::numeric_limits<double>::infinity());
+                return (cxx::numeric_limits<double>::infinity());
             }
-            if (x != std::floor(x))
+            if (x != cxx::floor(x))
                 goto domerr; /* because q^-x not defined */
         }
 
@@ -123,7 +123,7 @@ namespace cephes {
          * https://dlmf.nist.gov/25.11#E43
          */
         if (q > 1e8) {
-            return (1 / (x - 1) + 1 / (2 * q)) * std::pow(q, 1 - x);
+            return (1 / (x - 1) + 1 / (2 * q)) * cxx::pow(q, 1 - x);
         }
 
         /* Euler-Maclaurin summation formula */
@@ -133,16 +133,16 @@ namespace cephes {
          * If q<0 and x is an integer, there is a relation to
          * the polyGamma function.
          */
-        s = std::pow(q, -x);
+        s = cxx::pow(q, -x);
         a = q;
         i = 0;
         b = 0.0;
         while ((i < 9) || (a <= 9.0)) {
             i += 1;
             a += 1.0;
-            b = std::pow(a, -x);
+            b = cxx::pow(a, -x);
             s += b;
-            if (std::abs(b / s) < detail::MACHEP)
+            if (cxx::abs(b / s) < detail::MACHEP)
                 goto done;
         }
 
@@ -156,7 +156,7 @@ namespace cephes {
             b /= w;
             t = a * b / detail::zeta_A[i];
             s = s + t;
-            t = std::abs(t / s);
+            t = cxx::abs(t / s);
             if (t < detail::MACHEP)
                 goto done;
             k += 1.0;

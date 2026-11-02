@@ -172,24 +172,24 @@ namespace cephes {
         if (x > detail::MAXAIRY) {
             *ai = 0;
             *aip = 0;
-            *bi = std::numeric_limits<double>::infinity();
-            *bip = std::numeric_limits<double>::infinity();
+            *bi = cxx::numeric_limits<double>::infinity();
+            *bip = cxx::numeric_limits<double>::infinity();
             return (-1);
         }
 
         if (x < -2.09) {
             domflg = 15;
-            t = std::sqrt(-x);
+            t = cxx::sqrt(-x);
             zeta = -2.0 * x * t / 3.0;
-            t = std::sqrt(t);
+            t = cxx::sqrt(t);
             k = detail::SQRT1OPI / t;
             z = 1.0 / zeta;
             zz = z * z;
             uf = 1.0 + zz * polevl(zz, detail::airy_AFN, 8) / p1evl(zz, detail::airy_AFD, 9);
             ug = z * polevl(zz, detail::airy_AGN, 10) / p1evl(zz, detail::airy_AGD, 10);
             theta = zeta + 0.25 * M_PI;
-            f = std::sin(theta);
-            g = std::cos(theta);
+            f = cxx::sin(theta);
+            g = cxx::cos(theta);
             *ai = k * (f * uf - g * ug);
             *bi = k * (g * uf + f * ug);
             uf = 1.0 + zz * polevl(zz, detail::airy_APFN, 8) / p1evl(zz, detail::airy_APFD, 9);
@@ -202,10 +202,10 @@ namespace cephes {
 
         if (x >= 2.09) { /* cbrt(9) */
             domflg = 5;
-            t = std::sqrt(x);
+            t = cxx::sqrt(x);
             zeta = 2.0 * x * t / 3.0;
-            g = std::exp(zeta);
-            t = std::sqrt(t);
+            g = cxx::exp(zeta);
+            t = cxx::sqrt(t);
             k = 2.0 * t * g;
             z = 1.0 / zeta;
             f = polevl(z, detail::airy_AN, 7) / polevl(z, detail::airy_AD, 7);
@@ -243,7 +243,7 @@ namespace cephes {
             k += 1.0;
             ug /= k;
             g += ug;
-            t = std::abs(uf / f);
+            t = cxx::abs(uf / f);
         }
         uf = detail::airy_c1 * f;
         ug = detail::airy_c2 * g;
@@ -275,7 +275,7 @@ namespace cephes {
             uf /= k;
             g += ug;
             k += 1.0;
-            t = std::abs(ug / g);
+            t = cxx::abs(ug / g);
         }
 
         uf = detail::airy_c1 * f;

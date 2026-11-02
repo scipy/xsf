@@ -78,6 +78,8 @@
 #include "../config.h"
 #include "../error.h"
 
+#include "const.h"
+
 namespace xsf {
 namespace cephes {
 
@@ -89,7 +91,7 @@ namespace cephes {
             int sign;
 
             /* make argument positive but save the sign */
-            if (std::signbit(xx)) {
+            if (cxx::signbit(xx)) {
                 x = -xx;
                 sign = -1;
             } else {
@@ -103,7 +105,7 @@ namespace cephes {
             }
 
             /* modulo 180 */
-            double k = std::floor(x / 180.0);
+            double k = cxx::floor(x / 180.0);
             x = x - 180.0 * k;
             if (cotflg) {
                 if (x <= 90.0) {
@@ -130,10 +132,10 @@ namespace cephes {
                 if (static_cast<long long>(k) & 1) {
                     sign *= -1;
                 }
-                return sign * std::numeric_limits<double>::infinity();
+                return sign * cxx::numeric_limits<double>::infinity();
             }
             /* x is now transformed into [0, 90) */
-            return sign * std::tan(x * detail::PI180);
+            return sign * cxx::tan(x * detail::PI180);
         }
 
     } // namespace detail

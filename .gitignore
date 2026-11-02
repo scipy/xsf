@@ -1,4 +1,5 @@
 .cache
+.ccache
 
 # Prerequisites
 *.d
@@ -45,3 +46,7 @@ build/
 
 # xsref
 xsref/
+
+# documentation build
+doc/_build/
+doc/source/api/generated/

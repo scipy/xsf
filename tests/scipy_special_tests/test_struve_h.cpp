@@ -1,6 +1,6 @@
 #include "../testing_utils.h"
 
-#include <xsf/struve.h>
+#include <xsf/cpu/struve.h>
 
 namespace fs = std::filesystem;
 

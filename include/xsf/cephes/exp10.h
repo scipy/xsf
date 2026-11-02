@@ -92,11 +92,11 @@ namespace cephes {
         double px, xx;
         short n;
 
-        if (std::isnan(x)) {
+        if (cxx::isnan(x)) {
             return (x);
         }
         if (x > detail::exp10_MAXL10) {
-            return (std::numeric_limits<double>::infinity());
+            return (cxx::numeric_limits<double>::infinity());
         }
 
         if (x < -detail::exp10_MAXL10) { /* Would like to use MINLOG but can't */
@@ -108,7 +108,7 @@ namespace cephes {
          *   = 10**g 10**( n log10(2) )
          *   = 10**( g + n log10(2) )
          */
-        px = std::floor(detail::exp10_LOG210 * x + 0.5);
+        px = cxx::floor(detail::exp10_LOG210 * x + 0.5);
         n = px;
         x -= px * detail::exp10_LG102A;
         x -= px * detail::exp10_LG102B;
@@ -120,10 +120,10 @@ namespace cephes {
         xx = x * x;
         px = x * polevl(xx, detail::exp10_P, 3);
         x = px / (p1evl(xx, detail::exp10_Q, 3) - px);
-        x = 1.0 + std::ldexp(x, 1);
+        x = 1.0 + cxx::ldexp(x, 1);
 
         /* multiply by power of 2 */
-        x = std::ldexp(x, n);
+        x = cxx::ldexp(x, n);
 
         return (x);
     }
