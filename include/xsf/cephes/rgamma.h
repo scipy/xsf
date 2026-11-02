@@ -85,6 +85,11 @@ namespace cephes {
             return 0.0;
         }
 
+        if (-178.0 < x && x < -170.0) {
+            // Gamma(x) underflows here, so use 1/Gamma(x) = x/Gamma(x + 1).
+            return x * rgamma(x + 1.0);
+        }
+
         if (cxx::abs(x) > 4.0) {
             return 1.0 / Gamma(x);
         }
