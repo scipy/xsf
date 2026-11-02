@@ -1,7 +1,9 @@
 #include "../testing_utils.h"
 #include <complex>
 #include <tuple>
+#include <xsf/gamma.h>
 #include <xsf/trigamma.h>
+#include <xsf/zeta.h>
 
 TEST_CASE("trigamma real", "[trigamma][xsf_tests]") {
     double rtol = 1e-14;
@@ -30,6 +32,17 @@ TEST_CASE("trigamma real poles", "[trigamma][xsf_tests]") {
     double result_trigamma = xsf::trigamma(z);
     CAPTURE(z, result_trigamma);
     REQUIRE(std::isinf(result_trigamma));
+}
+
+TEST_CASE("trigamma gamma-zeta consistency", "[trigamma][xsf_tests]") {
+    const double rtol = 1e-14;
+    auto x = GENERATE(-7.5, -3.2, -0.5, 1e-6, 0.1, 0.5, 1.0, 2.0, 10.0, 100.0, 1e6);
+    double result_trigamma = xsf::trigamma(x);
+    double ref_trigamma = xsf::gamma(2.0) * xsf::zeta(2.0, x);
+    double rel_err_trigamma = xsf::extended_relative_error(result_trigamma, ref_trigamma);
+
+    CAPTURE(x, result_trigamma, ref_trigamma, rel_err_trigamma, rtol);
+    REQUIRE(rel_err_trigamma <= rtol);
 }
 
 TEST_CASE("trigamma complex", "[trigamma][xsf_tests]") {
