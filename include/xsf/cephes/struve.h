@@ -158,7 +158,7 @@ namespace cephes {
             if (is_h) {
                 sum += xsf::cyl_bessel_y(v, z);
             } else {
-                sum += xsf::cephes::iv(v, z);
+                sum += xsf::cephes::iv(-v, z);
             }
 
             /*
