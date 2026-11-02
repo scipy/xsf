@@ -58,3 +58,33 @@ TEST_CASE("trigamma complex", "[trigamma][xsf_tests]") {
     CAPTURE(z, result_trigamma, ref_trigamma, rel_err_trigamma, rtol);
     REQUIRE(rel_err_trigamma <= rtol);
 }
+
+TEST_CASE("trigamma float overloads", "[trigamma][xsf_tests]") {
+    const double rtol = 1e-6;
+
+    SECTION("real") {
+        using test_case = std::tuple<float, double>;
+        // Reference values from the double-precision tests above.
+        auto [z, ref_trigamma] = GENERATE(
+            test_case{0.5f, M_PI * M_PI / 2}, test_case{10.0f, 0.10516633568168565}, test_case{-7.5f, 9.744766282170433}
+        );
+        float result_trigamma = xsf::trigamma(z);
+        double rel_err_trigamma = xsf::extended_relative_error(static_cast<double>(result_trigamma), ref_trigamma);
+        CAPTURE(z, result_trigamma, ref_trigamma, rel_err_trigamma, rtol);
+        REQUIRE(rel_err_trigamma <= rtol);
+    }
+
+    SECTION("complex") {
+        using test_case = std::tuple<std::complex<float>, std::complex<double>>;
+        // Reference values from the double-precision tests above.
+        auto [z, ref_trigamma] = GENERATE(
+            test_case{{0.0f, 8.0f}, {-0.0078125, -0.12467345030312763}},
+            test_case{{-3.2f, 0.1f}, {15.207350644973363, 15.708103885511357}}
+        );
+        std::complex<float> result_trigamma = xsf::trigamma(z);
+        double rel_err_trigamma =
+            xsf::extended_relative_error(static_cast<std::complex<double>>(result_trigamma), ref_trigamma);
+        CAPTURE(z, result_trigamma, ref_trigamma, rel_err_trigamma, rtol);
+        REQUIRE(rel_err_trigamma <= rtol);
+    }
+}
