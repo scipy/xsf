@@ -1,6 +1,6 @@
 #include "../testing_utils.h"
 
-#include <xsf/kelvin.h>
+#include <xsf/cpu/kelvin.h>
 
 // Wronskian of the Kelvin equation, in the complex form the functions come in:
 //
