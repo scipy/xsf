@@ -255,7 +255,7 @@ namespace cephes {
                 }
                 if (t > MAXLOG) {
                     set_error("Jv", SF_ERROR_OVERFLOW, NULL);
-                    return (cxx::numeric_limits<double>::infinity());
+                    return sgngam * cxx::numeric_limits<double>::infinity();
                 }
                 y = sgngam * cxx::exp(t);
             }
