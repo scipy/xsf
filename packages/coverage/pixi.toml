@@ -29,11 +29,11 @@ build-dependencies = {
 }
 host-dependencies = {
   catch2 = "*",
-  libarrow-all = "*",
+  libarrow-all = ">=22,<23", # Arrow 23 requires C++20; tests must use C++17.
 }
 run-dependencies = {
   cmake = "*",
-  lcov = "*",
+  lcov = "==1.16",
   "if(linux)" = {
     gcc = "16.*", # for gcov
   }

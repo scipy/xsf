@@ -7,7 +7,7 @@
 #include <cmath>
 #include <limits>
 #include <tuple>
-#include <xsf/hyperu.h>
+#include <xsf/cpu/hyperu.h>
 
 TEST_CASE("hyperu negative x", "[hyperu][xsf_tests]") {
     const double nan = std::numeric_limits<double>::quiet_NaN();

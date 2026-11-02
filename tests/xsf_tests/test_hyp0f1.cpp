@@ -10,7 +10,7 @@
 #include <cmath>
 #include <complex>
 #include <tuple>
-#include <xsf/hyp0f1.h>
+#include <xsf/cpu/hyp0f1.h>
 
 TEST_CASE("hyp0f1 basic real values", "[hyp0f1][xsf_tests]") {
     using test_case = std::tuple<double, double, double>;

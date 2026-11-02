@@ -55,7 +55,7 @@ namespace cephes {
 
         z = 1.0 + x;
         if ((z < M_SQRT1_2) || (z > M_SQRT2))
-            return (std::log(z));
+            return (cxx::log(z));
         z = x * x;
         z = -0.5 * z + x * (z * polevl(x, detail::unity_LP, 6) / p1evl(x, detail::unity_LQ, 6));
         return (x + z);
@@ -63,7 +63,7 @@ namespace cephes {
 
     /* log(1 + x) - x */
     XSF_HOST_DEVICE inline double log1pmx(double x) {
-        if (std::abs(x) < 0.5) {
+        if (cxx::abs(x) < 0.5) {
             uint64_t n;
             double xfac = x;
             double term;
@@ -73,7 +73,7 @@ namespace cephes {
                 xfac *= -x;
                 term = xfac / n;
                 res += term;
-                if (std::abs(term) < detail::MACHEP * std::abs(res)) {
+                if (cxx::abs(term) < detail::MACHEP * cxx::abs(res)) {
                     break;
                 }
             }
@@ -109,8 +109,8 @@ namespace cephes {
     XSF_HOST_DEVICE inline double expm1(double x) {
         double r, xx;
 
-        if (!std::isfinite(x)) {
-            if (std::isnan(x)) {
+        if (!cxx::isfinite(x)) {
+            if (cxx::isnan(x)) {
                 return x;
             } else if (x > 0) {
                 return x;
@@ -119,7 +119,7 @@ namespace cephes {
             }
         }
         if ((x < -0.5) || (x > 0.5))
-            return (std::exp(x) - 1.0);
+            return (cxx::exp(x) - 1.0);
         xx = x * x;
         r = x * polevl(xx, detail::unity_EP, 2);
         r = r / (polevl(xx, detail::unity_EQ, 3) - r);
@@ -141,7 +141,7 @@ namespace cephes {
         double xx;
 
         if ((x < -M_PI_4) || (x > M_PI_4))
-            return (std::cos(x) - 1.0);
+            return (cxx::cos(x) - 1.0);
         xx = x * x;
         xx = -0.5 * xx + xx * xx * polevl(xx, detail::unity_coscof, 6);
         return xx;
@@ -162,7 +162,7 @@ namespace cephes {
                 xfac *= -x;
                 coeff = xsf::cephes::zeta(n, 1) * xfac / n;
                 res += coeff;
-                if (std::abs(coeff) < detail::MACHEP * std::abs(res)) {
+                if (cxx::abs(coeff) < detail::MACHEP * cxx::abs(res)) {
                     break;
                 }
             }
@@ -173,10 +173,10 @@ namespace cephes {
 
     /* Compute lgam(x + 1). */
     XSF_HOST_DEVICE inline double lgam1p(double x) {
-        if (std::abs(x) <= 0.5) {
+        if (cxx::abs(x) <= 0.5) {
             return detail::lgam1p_taylor(x);
-        } else if (std::abs(x - 1) < 0.5) {
-            return std::log(x) + detail::lgam1p_taylor(x - 1);
+        } else if (cxx::abs(x - 1) < 0.5) {
+            return cxx::log(x) + detail::lgam1p_taylor(x - 1);
         } else {
             return lgam(x + 1);
         }

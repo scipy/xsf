@@ -1,6 +1,6 @@
 #include "../testing_utils.h"
 
-#include <xsf/specfun.h>
+#include <xsf/cpu/specfun.h>
 
 namespace fs = std::filesystem;
 

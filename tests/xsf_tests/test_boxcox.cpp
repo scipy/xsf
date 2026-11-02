@@ -191,3 +191,17 @@ TEST_CASE("inv_boxcox premature overflow", "[boxcox][xsf_tests]") {
     CAPTURE(x, lmbda, y1p, output, expected, rtol, rel_error);
     REQUIRE(rel_error <= rtol);
 }
+
+TEST_CASE("inv_boxcox1p small lambda", "[boxcox][xsf_tests]") {
+    using test_case = std::tuple<double, double, double>;
+    // Reference values were computed with the Python library mpmath.
+    auto [x, lmbda, expected] = GENERATE(
+        test_case{1.0, 1e-160, 1.7182818284590453}, test_case{10.0, 1e-300, 22025.465794806718},
+        test_case{-1.0, 1e-200, -0.6321205588285577}
+    );
+    constexpr double rtol = 1e-14;
+    const auto output = xsf::inv_boxcox1p(x, lmbda);
+    const auto rel_error = xsf::extended_relative_error(output, expected);
+    CAPTURE(x, lmbda, output, expected, rtol, rel_error);
+    REQUIRE(rel_error <= rtol);
+}

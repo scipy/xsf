@@ -87,10 +87,10 @@ XSF_HOST_DEVICE XSF_HOST_DEVICE inline double ndtr(double x) { return cephes::nd
 
 XSF_HOST_DEVICE XSF_HOST_DEVICE inline float ndtr(float x) { return ndtr(static_cast<double>(x)); }
 
-XSF_HOST_DEVICE inline std::complex<double> ndtr(std::complex<double> z) { return 0.5 * erfc(-z * M_SQRT1_2); }
+XSF_HOST_DEVICE inline cxx::complex<double> ndtr(cxx::complex<double> z) { return 0.5 * erfc(-z * M_SQRT1_2); }
 
-XSF_HOST_DEVICE inline std::complex<float> ndtr(std::complex<float> z) {
-    return static_cast<std::complex<float>>(ndtr(static_cast<std::complex<double>>(z)));
+XSF_HOST_DEVICE inline cxx::complex<float> ndtr(cxx::complex<float> z) {
+    return static_cast<cxx::complex<float>>(ndtr(static_cast<cxx::complex<double>>(z)));
 }
 
 /*
@@ -133,11 +133,11 @@ XSF_HOST_DEVICE inline float log_ndtr(float x) { return log_ndtr(static_cast<dou
  * This implementation uses $\erfc(z) = \exp(-z^2) w(iz)$ taking special care to select
  * the principal branch of the log function log( exp(-z^2) w(i z) )
  */
-XSF_HOST_DEVICE inline std::complex<double> log_ndtr(std::complex<double> z) {
+XSF_HOST_DEVICE inline cxx::complex<double> log_ndtr(cxx::complex<double> z) {
     if (z.real() > 6) {
         // Underflow. Close to the real axis, expand the log in log(1 - ndtr(-z)).
-        std::complex<double> w = -0.5 * erfc(z * M_SQRT1_2);
-        if (std::abs(w) < 1e-8) {
+        cxx::complex<double> w = -0.5 * erfc(z * M_SQRT1_2);
+        if (cxx::abs(w) < 1e-8) {
             return w;
         }
     }
@@ -158,10 +158,10 @@ XSF_HOST_DEVICE inline std::complex<double> log_ndtr(std::complex<double> z) {
         im -= 2.0 * M_PI;
     }
 
-    std::complex<double> val1 = std::complex<double>(mRe_z2, im);
+    cxx::complex<double> val1 = cxx::complex<double>(mRe_z2, im);
 
-    std::complex<double> val2 = std::log(xsf::wofz(complex<double>(-y, x)));
-    std::complex<double> result = val1 + val2 - M_LN2;
+    cxx::complex<double> val2 = cxx::log(xsf::wofz(complex<double>(-y, x)));
+    cxx::complex<double> result = val1 + val2 - M_LN2;
 
     /* Again, select the principal branch: log(z) = log|z| + i arg(z), thus
      * the imaginary part of the result should belong to [-pi, pi].
@@ -177,8 +177,8 @@ XSF_HOST_DEVICE inline std::complex<double> log_ndtr(std::complex<double> z) {
     return {result.real(), im};
 }
 
-XSF_HOST_DEVICE inline std::complex<float> log_ndtr(std::complex<float> z) {
-    return static_cast<std::complex<float>>(log_ndtr(static_cast<std::complex<double>>(z)));
+XSF_HOST_DEVICE inline cxx::complex<float> log_ndtr(cxx::complex<float> z) {
+    return static_cast<cxx::complex<float>>(log_ndtr(static_cast<cxx::complex<double>>(z)));
 }
 
 XSF_HOST_DEVICE inline double nbdtr(int k, int n, double p) { return cephes::nbdtr(k, n, p); }
@@ -204,14 +204,14 @@ XSF_HOST_DEVICE inline double ndtri(double x) { return cephes::ndtri(x); }
 XSF_HOST_DEVICE inline float ndtri(float x) { return static_cast<float>(cephes::ndtri(x)); }
 
 XSF_HOST_DEVICE XSF_HOST_DEVICE inline double nrdtrimn(double p, double std, double x) {
-    if (std::isnan(std) || std <= 0) {
-        return std::numeric_limits<double>::quiet_NaN();
+    if (cxx::isnan(std) || std <= 0) {
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
-    if (std::isnan(p) || p <= 0 || p >= 1) {
-        return std::numeric_limits<double>::quiet_NaN();
+    if (cxx::isnan(p) || p <= 0 || p >= 1) {
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
-    if (std::isnan(x)) {
-        return std::numeric_limits<double>::quiet_NaN();
+    if (cxx::isnan(x)) {
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     return x - std * cephes::ndtri(p);
 }
@@ -221,11 +221,11 @@ XSF_HOST_DEVICE XSF_HOST_DEVICE inline float nrdtrimn(float p, float std, float 
 }
 
 XSF_HOST_DEVICE XSF_HOST_DEVICE inline double nrdtrisd(double mean, double p, double x) {
-    if (std::isnan(mean) || std::isnan(p) || std::isnan(x)) {
-        return std::numeric_limits<double>::quiet_NaN();
+    if (cxx::isnan(mean) || cxx::isnan(p) || cxx::isnan(x)) {
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     if (p <= 0 || p >= 1) {
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     return (x - mean) / cephes::ndtri(p);
 }
@@ -332,7 +332,7 @@ XSF_HOST_DEVICE inline void poisson_binom_cdf_all(InputMat p, OutputMat res) {
 
     detail::poisson_binom_pmf_all_impl(p, res);
     for (decltype(n) i = 1; i < n; i++) {
-        res(i) = std::min(res(i) + res(i - 1), T(1));
+        res(i) = cxx::min(res(i) + res(i - 1), T(1));
     }
     res(n) = T(1);
 }
@@ -425,7 +425,7 @@ XSF_HOST_DEVICE inline void wilcoxon_cdf_all(int n, OutputMat res) {
 
     detail::wilcoxon_pmf_all_impl(n, res);
     for (long long int i = 1; i < out_size - 1; ++i) {
-        res(i) = std::min(res(i) + res(i - 1), T(1.0));
+        res(i) = cxx::min(res(i) + res(i - 1), T(1.0));
     }
     res(out_size - 1) = T(1.0);
 }
@@ -439,8 +439,8 @@ XSF_HOST_DEVICE inline typename InputMat::value_type wilcoxon_pmf(long long int 
 template <typename InputMat>
 XSF_HOST_DEVICE inline typename InputMat::value_type wilcoxon_pmf(double k, InputMat pmf) {
     using T = typename InputMat::value_type;
-    if (std::isnan(k)) {
-        return std::numeric_limits<T>::quiet_NaN();
+    if (cxx::isnan(k)) {
+        return cxx::numeric_limits<T>::quiet_NaN();
     }
     return wilcoxon_pmf(static_cast<long long int>(k), pmf);
 }
@@ -454,8 +454,8 @@ XSF_HOST_DEVICE inline typename InputMat::value_type wilcoxon_cdf(long long int 
 template <typename InputMat>
 XSF_HOST_DEVICE inline typename InputMat::value_type wilcoxon_cdf(double k, InputMat cdf) {
     using T = typename InputMat::value_type;
-    if (std::isnan(k)) {
-        return std::numeric_limits<T>::quiet_NaN();
+    if (cxx::isnan(k)) {
+        return cxx::numeric_limits<T>::quiet_NaN();
     }
     return wilcoxon_cdf(static_cast<long long int>(k), cdf);
 }
@@ -470,8 +470,8 @@ XSF_HOST_DEVICE inline typename InputMat::value_type wilcoxon_sf(long long int k
 template <typename InputMat>
 XSF_HOST_DEVICE inline typename InputMat::value_type wilcoxon_sf(double k, InputMat cdf) {
     using T = typename InputMat::value_type;
-    if (std::isnan(k)) {
-        return std::numeric_limits<T>::quiet_NaN();
+    if (cxx::isnan(k)) {
+        return cxx::numeric_limits<T>::quiet_NaN();
     }
     return wilcoxon_sf(static_cast<long long int>(k), cdf);
 }
@@ -481,10 +481,10 @@ namespace detail {
     XSF_HOST_DEVICE inline double von_mises_cdf_series(double k, double x, unsigned int p) {
         double s, c, sn, cn, r, v;
         unsigned int n;
-        s = std::sin(x);
-        c = std::cos(x);
-        sn = std::sin(p * x);
-        cn = std::cos(p * x);
+        s = cxx::sin(x);
+        c = cxx::cos(x);
+        sn = cxx::sin(p * x);
+        cn = cxx::cos(p * x);
         r = 0;
         v = 0;
         for (n = p - 1; n > 0; --n) {
@@ -500,7 +500,7 @@ namespace detail {
 
     XSF_HOST_DEVICE inline double von_mises_cdf_normalapprox(double k, double x) {
         double b = xsf::cephes::detail::SQRT2OPI / cephes::i0e(k);
-        double z = b * std::sin(x / 2.0);
+        double z = b * cxx::sin(x / 2.0);
         return ndtr(z);
     }
 
@@ -522,10 +522,10 @@ XSF_HOST_DEVICE inline double von_mises_cdf(double k, double x) {
 
     if (k < 0) {
         set_error("von_mises_cdf", SF_ERROR_DOMAIN, NULL);
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
 
-    double ix = std::round(x / (2 * M_PI));
+    double ix = cxx::round(x / (2 * M_PI));
     x -= ix * 2.0 * M_PI;
 
     // These values should give 12 decimal digits
@@ -535,7 +535,7 @@ XSF_HOST_DEVICE inline double von_mises_cdf(double k, double x) {
     if (k < ck) {
         unsigned int p = static_cast<unsigned int>(1 + a1 + a2 * k - a3 / (k + a4));
         result = detail::von_mises_cdf_series(k, x, p);
-        result = std::min(std::max(result, 0.0), 1.0);
+        result = cxx::min(cxx::max(result, 0.0), 1.0);
     } else {
         result = detail::von_mises_cdf_normalapprox(k, x);
     }

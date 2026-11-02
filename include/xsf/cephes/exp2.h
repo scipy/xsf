@@ -87,11 +87,11 @@ namespace cephes {
         double px, xx;
         short n;
 
-        if (std::isnan(x)) {
+        if (cxx::isnan(x)) {
             return (x);
         }
         if (x > detail::exp2_MAXL2) {
-            return (std::numeric_limits<double>::infinity());
+            return (cxx::numeric_limits<double>::infinity());
         }
 
         if (x < detail::exp2_MINL2) {
@@ -100,7 +100,7 @@ namespace cephes {
 
         xx = x; /* save x */
         /* separate into integer and fractional parts */
-        px = std::floor(x + 0.5);
+        px = cxx::floor(x + 0.5);
         n = px;
         x = x - px;
 
@@ -111,10 +111,10 @@ namespace cephes {
         xx = x * x;
         px = x * polevl(xx, detail::exp2_P, 2);
         x = px / (p1evl(xx, detail::exp2_Q, 2) - px);
-        x = 1.0 + std::ldexp(x, 1);
+        x = 1.0 + cxx::ldexp(x, 1);
 
         /* scale by power of 2 */
-        x = std::ldexp(x, n);
+        x = cxx::ldexp(x, n);
         return (x);
     }
 

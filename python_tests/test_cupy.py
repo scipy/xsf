@@ -151,6 +151,27 @@ class TestCuPy:
         )
 
     @pytest.mark.parametrize(
+        "tables_paths", get_tables_for_func("gamma")
+    )
+    def test_gamma(self, tables_paths):
+        input_path, output_path, tol_path = tables_paths
+        gamma = cupy._core.create_ufunc(
+            'cupyx_scipy_special_gamma',
+            ('f->f', 'd->d', 'F->F', 'D->D'),
+            'out0 = xsf::gamma(in0)',
+            preamble=get_preamble("xsf/gamma.h"),
+        )
+
+        x = get_cols_as_cupy(input_path)
+        out = cupy.asnumpy(gamma(x))
+
+        desired = get_cols_as_numpy(output_path)
+        rtol = get_cols_as_numpy(tol_path)
+        assert np.all(
+            extended_relative_error(out, desired) <= self._adjust_tol(rtol)
+        )
+
+    @pytest.mark.parametrize(
         "tables_paths", get_tables_for_func("digamma")
     )
     def test_digamma(self, tables_paths):

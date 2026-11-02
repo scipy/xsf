@@ -29,23 +29,23 @@ namespace cephes {
         if (n == v) {
             y = yn(n, x);
             return (y);
-        } else if (v == std::floor(v)) {
+        } else if (v == cxx::floor(v)) {
             /* Zero in denominator. */
             set_error("yv", SF_ERROR_DOMAIN, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         t = M_PI * v;
-        y = (std::cos(t) * jv(v, x) - jv(-v, x)) / std::sin(t);
+        y = (cxx::cos(t) * jv(v, x) - jv(-v, x)) / cxx::sin(t);
 
-        if (std::isinf(y)) {
+        if (cxx::isinf(y)) {
             if (v > 0) {
                 set_error("yv", SF_ERROR_OVERFLOW, NULL);
-                return -std::numeric_limits<double>::infinity();
+                return -cxx::numeric_limits<double>::infinity();
             } else if (v < -1e10) {
                 /* Whether it's +inf or -inf is numerically ill-defined. */
                 set_error("yv", SF_ERROR_DOMAIN, NULL);
-                return std::numeric_limits<double>::quiet_NaN();
+                return cxx::numeric_limits<double>::quiet_NaN();
             }
         }
 

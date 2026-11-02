@@ -93,9 +93,9 @@ namespace detail {
     };
 
     // Complex log of expansion coefficients for Euler-Maclaurin summation formula.
-    XSF_HOST_DEVICE inline std::complex<double> zeta_em_log_coeff(std::size_t n) {
-        std::complex<double> J(0.0, 1.0);
-        std::complex<double> result;
+    XSF_HOST_DEVICE inline cxx::complex<double> zeta_em_log_coeff(cxx::size_t n) {
+        cxx::complex<double> J(0.0, 1.0);
+        cxx::complex<double> result;
         if (n < 50) {
             result = zeta_em_log_abs_coeff_lookup[n];
         } else {
@@ -103,7 +103,7 @@ namespace detail {
              * Uses https://dlmf.nist.gov/24.11#E1 to approximate B_{2n} and
              * Stirling's approximation for (2n)!.
              */
-            result = std::log(2.0) - 2.0 * n * std::log(2 * M_PI);
+            result = cxx::log(2.0) - 2.0 * n * cxx::log(2 * M_PI);
         }
         if (n % 2 == 0) {
             /* B_{2n}/(2n)! is negative for even n. This contributes a term
@@ -116,24 +116,24 @@ namespace detail {
     /* Compute riemann_zeta for complex input z using the Euler-Maclaurin formula.
      * Computation of individual terms in expansion are logarithmized to avoid
      * overflow. TODO: only logarithmize when necessary. */
-    XSF_HOST_DEVICE inline std::complex<double> zeta_euler_maclaurin(std::complex<double> z) {
+    XSF_HOST_DEVICE inline cxx::complex<double> zeta_euler_maclaurin(cxx::complex<double> z) {
         if (z == 1.0) {
             /* Return NaN at pole since value depends on how z approaches 1.0. */
-            return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+            return {cxx::numeric_limits<double>::quiet_NaN(), cxx::numeric_limits<double>::quiet_NaN()};
         }
-        std::size_t n = static_cast<std::size_t>(std::max(std::abs(z.imag()) / 4.0, 50.0));
-        std::size_t m = n;
-        std::complex<double> result = 0.0;
-        for (std::size_t i = 1; i < n; i++) {
-            std::complex<double> term = std::pow(static_cast<double>(i), -z);
+        cxx::size_t n = static_cast<cxx::size_t>(cxx::max(cxx::abs(z.imag()) / 4.0, 50.0));
+        cxx::size_t m = n;
+        cxx::complex<double> result = 0.0;
+        for (cxx::size_t i = 1; i < n; i++) {
+            cxx::complex<double> term = cxx::pow(static_cast<double>(i), -z);
             result += term;
             // When z.real() > 1, series converges and we can consider early termination
-            if (z.real() > 1 && std::abs(term) / std::abs(result) <= std::numeric_limits<double>::epsilon()) {
+            if (z.real() > 1 && cxx::abs(term) / cxx::abs(result) <= cxx::numeric_limits<double>::epsilon()) {
                 return result;
             }
         }
         double N = static_cast<double>(n);
-        std::complex<double> b = std::pow(n, -z);
+        cxx::complex<double> b = cxx::pow(N, -z);
         result += b * (0.5 + N / (z - 1.0));
         /* The terms of the Euler-Maclaurin
          * expansion below are T(k, n) = B2k/(2k)! * n^(1 - z - 2k) * z(z+1)...(z+2k-2).
@@ -144,32 +144,32 @@ namespace detail {
          * These are updated one extra time after the loop completes for use in the
          * Euler-Maclaurin error estimate.
          */
-        std::complex<double> log_poch = std::log(z);
-        std::complex<double> log_factor = -(z + 1.0) * std::log(N);
-        for (std::size_t k = 1; k <= m; k++) {
-            std::complex<double> term = std::exp(zeta_em_log_coeff(k) + log_factor + log_poch);
+        cxx::complex<double> log_poch = cxx::log(z);
+        cxx::complex<double> log_factor = -(z + 1.0) * cxx::log(N);
+        for (cxx::size_t k = 1; k <= m; k++) {
+            cxx::complex<double> term = cxx::exp(zeta_em_log_coeff(k) + log_factor + log_poch);
             result += term;
-            if (std::abs(term) / std::abs(result) <= std::numeric_limits<double>::epsilon()) {
+            if (cxx::abs(term) / cxx::abs(result) <= cxx::numeric_limits<double>::epsilon()) {
                 return result;
             }
-            log_poch += std::log(z + static_cast<double>(2 * k - 1)) + std::log(z + static_cast<double>(2 * k));
-            log_factor -= 2 * std::log(N);
+            log_poch += cxx::log(z + static_cast<double>(2 * k - 1)) + cxx::log(z + static_cast<double>(2 * k));
+            log_factor -= 2 * cxx::log(N);
         }
         /* Euler-maclaurin absolute error estimate.
          * The error is bounded above by |(z + 2m + 1)/(z.real + 2m + 1) * T(m+1, n)|
          * See https://en.wikipedia.org/wiki/Riemann_zeta_function#Numerical_algorithms
          */
         double error;
-        error = std::abs(std::exp(zeta_em_log_coeff(m + 1) + log_factor + log_poch));
-        error *= std::abs((z + 2.0 * m + 1.0) / (z.real() + 2.0 * m + 1.0));
+        error = cxx::abs(cxx::exp(zeta_em_log_coeff(m + 1) + log_factor + log_poch));
+        error *= cxx::abs((z + 2.0 * m + 1.0) / (z.real() + 2.0 * m + 1.0));
         // convert to relative error estimate
-        error /= std::abs(result);
+        error /= cxx::abs(result);
         if (error > 1e-8) {
             if (error > 1e-1) {
                 /* If error estimate predicts we don't even get 1 digit of precision, return NaN
                  * and signal no result */
                 set_error("zeta", SF_ERROR_NO_RESULT, NULL);
-                return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+                return {cxx::numeric_limits<double>::quiet_NaN(), cxx::numeric_limits<double>::quiet_NaN()};
             }
             // Signal reduced precision.
             set_error("zeta", SF_ERROR_LOSS, NULL);
@@ -220,47 +220,47 @@ namespace detail {
     };
 
     /* Compute riemann_zeta for complex input z using Algorithm 2 from Borwein 1995. */
-    XSF_HOST_DEVICE inline std::complex<double> zeta_borwein(std::complex<double> z) {
-        std::complex<double> result = 0.0;
+    XSF_HOST_DEVICE inline cxx::complex<double> zeta_borwein(cxx::complex<double> z) {
+        cxx::complex<double> result = 0.0;
         // Sum in reverse order because smaller terms come later.
         for (int k = 49; k >= 0; k--) {
-            double sign = std::pow(-1.0, k);
-            std::complex<double> den = std::pow(k + 1, z);
-            std::complex<double> term = sign * (zeta_borwein_coeff[k] - 1.0) / den;
+            double sign = cxx::pow(-1.0, k);
+            cxx::complex<double> den = cxx::pow(static_cast<double>(k + 1), z);
+            cxx::complex<double> term = sign * (zeta_borwein_coeff[k] - 1.0) / den;
             result += term;
         }
-        return result * -1.0 / (1.0 - std::pow(2.0, 1.0 - z));
+        return result * -1.0 / (1.0 - cxx::pow(2.0, 1.0 - z));
     }
 
     /* Compute riemann zeta for complex z and real part >= 0 */
-    XSF_HOST_DEVICE inline std::complex<double> zeta_right_halfplane(std::complex<double> z) {
+    XSF_HOST_DEVICE inline cxx::complex<double> zeta_right_halfplane(cxx::complex<double> z) {
         if (z == 1.0) {
-            return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+            return {cxx::numeric_limits<double>::quiet_NaN(), cxx::numeric_limits<double>::quiet_NaN()};
         }
         /* Cutoff for using Euler-MacLaurin chosen based on cursory empirical search.
          * TODO: Choose cutoffs in a more principled way. */
-        if (z.real() < 50.0 && std::abs(z.imag()) > 50.0) {
-            if (z.real() >= 0.0 && z.real() < 2.5 && std::abs(z.imag()) > 1e9) {
+        if (z.real() < 50.0 && cxx::abs(z.imag()) > 50.0) {
+            if (z.real() >= 0.0 && z.real() < 2.5 && cxx::abs(z.imag()) > 1e9) {
                 /* Euler-MacLaurin summation starts to take an unreasonable amount of time in this
                  * region, so just give up and return NaN instead. */
                 set_error("zeta", SF_ERROR_NO_RESULT, NULL);
-                return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+                return {cxx::numeric_limits<double>::quiet_NaN(), cxx::numeric_limits<double>::quiet_NaN()};
             }
             return zeta_euler_maclaurin(z);
         }
         return zeta_borwein(z);
     }
 
-    XSF_HOST_DEVICE inline std::complex<double> exppi(std::complex<double> z) {
+    XSF_HOST_DEVICE inline cxx::complex<double> exppi(cxx::complex<double> z) {
         // exp(pi*z) for complex z.
         double x = z.real();
         double y = z.imag();
-        std::complex<double> factor1(xsf::cospi(y), xsf::sinpi(y));
-        double factor2 = std::exp(M_PI * x);
+        cxx::complex<double> factor1(xsf::cospi(y), xsf::sinpi(y));
+        double factor2 = cxx::exp(M_PI * x);
         return factor1 * factor2;
     }
 
-    XSF_HOST_DEVICE inline std::complex<double> logsinpi(std::complex<double> z) {
+    XSF_HOST_DEVICE inline cxx::complex<double> logsinpi(cxx::complex<double> z) {
         /* log(sinpi(z)) using sin(z) = (exp(i*pi*z) - exp(-i*pi*z)) / 2i
          *
          * No attempt is made to choose any particular branch of the logarithm.
@@ -269,14 +269,14 @@ namespace detail {
          * will then be exponentiated, making the choice of a specific branch
          * unnecessary.
          */
-        std::complex<double> result = std::log(xsf::sinpi(z));
+        cxx::complex<double> result = cxx::log(xsf::sinpi(z));
         // If it doesn't overflow, just do the regular calculation.
-        if (std::isfinite(result.real()) && !std::isfinite(result.imag())) {
+        if (cxx::isfinite(result.real()) && !cxx::isfinite(result.imag())) {
             return result;
         }
         /* Otherwise factor before taking log. This is where we may end up
          * taking a branch other than the principal branch. */
-        std::complex<double> J(0.0, 1.0);
+        cxx::complex<double> J(0.0, 1.0);
         /* Calculating log((exp(i*pi*z) - exp(-i*pi*z)) / 2i). Factor out term
          * with larger magnitude before taking log. */
         if (z.imag() > 0) {
@@ -285,11 +285,11 @@ namespace detail {
              * log(exp(-i*pi*z)*((exp(2*i*pi*z) - 1.0)/(2i)) =
              * log(exp(-i*pi*z)) + log((exp(2*i*pi*z) - 1.0)/(2i)) =
              * -i*pi*z + log((exp(2*i*pi*z) - 1.0)/(2i)) */
-            return -J * M_PI * z + std::log((exppi(2.0 * z * J) - 1.0) / (2.0 * J));
+            return -J * M_PI * z + cxx::log((exppi(2.0 * z * J) - 1.0) / (2.0 * J));
         }
         /* if z.imag() < 0 then, exp(i*pi*z) has greatest magnitude. Factor similarly
          * to above */
-        return J * M_PI * z + std::log((1.0 - exppi(-2.0 * z * J)) / (2.0 * J));
+        return J * M_PI * z + cxx::log((1.0 - exppi(-2.0 * z * J)) / (2.0 * J));
     }
 
     /* Leading factor in reflection formula for zeta function.
@@ -299,22 +299,22 @@ namespace detail {
      * Computation is logarithimized to prevent overflow.
      * TODO: Complexify the cephes zeta_reflection implementation, which uses
      * the lanczos approximation for the gamma function. */
-    XSF_HOST_DEVICE inline std::complex<double> zeta_reflection_factor_with_logs(std::complex<double> z) {
-        std::complex<double> t1 = z * M_LN2;
-        std::complex<double> t2 = (z - 1.0) * xsf::cephes::detail::LOGPI;
-        std::complex<double> t3 = logsinpi(z / 2.0);
-        std::complex<double> t4 = xsf::loggamma(1.0 - z);
-        std::complex<double> factor = std::exp(t1 + t2 + t3 + t4);
+    XSF_HOST_DEVICE inline cxx::complex<double> zeta_reflection_factor_with_logs(cxx::complex<double> z) {
+        cxx::complex<double> t1 = z * M_LN2;
+        cxx::complex<double> t2 = (z - 1.0) * xsf::cephes::detail::LOGPI;
+        cxx::complex<double> t3 = logsinpi(z / 2.0);
+        cxx::complex<double> t4 = xsf::loggamma(1.0 - z);
+        cxx::complex<double> factor = cxx::exp(t1 + t2 + t3 + t4);
         return factor;
     }
 
-    XSF_HOST_DEVICE inline std::complex<double> zeta_reflection(std::complex<double> z) {
-        std::complex<double> factor = 2.0 * std::pow(2 * M_PI, z - 1.0) * xsf::sinpi(z / 2.0) * xsf::gamma(1.0 - z);
-        if (!std::isfinite(factor.real()) || !std::isfinite(factor.imag())) {
+    XSF_HOST_DEVICE inline cxx::complex<double> zeta_reflection(cxx::complex<double> z) {
+        cxx::complex<double> factor = 2.0 * cxx::pow(2 * M_PI, z - 1.0) * xsf::sinpi(z / 2.0) * xsf::gamma(1.0 - z);
+        if (!cxx::isfinite(factor.real()) || !cxx::isfinite(factor.imag())) {
             // Try again with logs if standard calculation had overflow.
             factor = zeta_reflection_factor_with_logs(z);
         }
-        std::complex<double> result = zeta_right_halfplane(1.0 - z);
+        cxx::complex<double> result = zeta_right_halfplane(1.0 - z);
         /* zeta tends to 1.0 as real part tends to +inf. In cases where
          * the real part of zeta tends to -inf, then zeta(1 - z) in the
          * reflection formula will tend to 1.0. Factor overflows then,
@@ -327,7 +327,7 @@ namespace detail {
     }
 } // namespace detail
 
-XSF_HOST_DEVICE inline std::complex<double> riemann_zeta(std::complex<double> z) {
+XSF_HOST_DEVICE inline cxx::complex<double> riemann_zeta(cxx::complex<double> z) {
     if (z.imag() == 0.0) {
         return cephes::riemann_zeta(z.real());
     }
@@ -337,8 +337,8 @@ XSF_HOST_DEVICE inline std::complex<double> riemann_zeta(std::complex<double> z)
     return detail::zeta_reflection(z);
 }
 
-XSF_HOST_DEVICE inline std::complex<float> riemann_zeta(std::complex<float> z) {
-    return static_cast<std::complex<float>>(riemann_zeta(static_cast<std::complex<double>>(z)));
+XSF_HOST_DEVICE inline cxx::complex<float> riemann_zeta(cxx::complex<float> z) {
+    return static_cast<cxx::complex<float>>(riemann_zeta(static_cast<cxx::complex<double>>(z)));
 }
 
 XSF_HOST_DEVICE inline double riemann_zeta(double x) { return cephes::riemann_zeta(x); }
@@ -359,7 +359,7 @@ XSF_HOST_DEVICE inline float zeta(float x, float q) {
     return zeta(static_cast<double>(x), static_cast<double>(q));
 }
 
-XSF_HOST_DEVICE inline std::complex<double> zeta(std::complex<double> z, double q) {
+XSF_HOST_DEVICE inline cxx::complex<double> zeta(cxx::complex<double> z, double q) {
     if (q == 1.0) {
         return riemann_zeta(z);
     }
@@ -368,11 +368,11 @@ XSF_HOST_DEVICE inline std::complex<double> zeta(std::complex<double> z, double 
     }
     // Complex input for Hurwitz Zeta is not currently supported.
     set_error("zeta", SF_ERROR_DOMAIN, NULL);
-    return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+    return {cxx::numeric_limits<double>::quiet_NaN(), cxx::numeric_limits<double>::quiet_NaN()};
 }
 
-XSF_HOST_DEVICE inline std::complex<float> zeta(std::complex<float> z, float q) {
-    return static_cast<std::complex<float>>(zeta(static_cast<std::complex<double>>(z), static_cast<float>(q)));
+XSF_HOST_DEVICE inline cxx::complex<float> zeta(cxx::complex<float> z, float q) {
+    return static_cast<cxx::complex<float>>(zeta(static_cast<cxx::complex<double>>(z), static_cast<float>(q)));
 }
 
 XSF_HOST_DEVICE inline double zetac(double x) { return cephes::zetac(x); }

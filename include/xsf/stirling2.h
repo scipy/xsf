@@ -43,7 +43,7 @@ namespace detail {
         constexpr int max_array_size = 26;
         if (arraySize > max_array_size) {
             set_error("stirling2", SF_ERROR_OTHER, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         double curr[max_array_size];
@@ -55,9 +55,9 @@ namespace detail {
             for (int i = 1; i < ni - ki + 1; i++) {
                 for (int j = 1; j < ki; j++) {
                     curr[j] = (j + 1) * curr[j] + curr[j - 1];
-                    if (std::isinf(curr[j])) {
+                    if (cxx::isinf(curr[j])) {
                         set_error("stirling2", SF_ERROR_OVERFLOW, NULL);
-                        return std::numeric_limits<double>::infinity();
+                        return cxx::numeric_limits<double>::infinity();
                     }
                 }
             }
@@ -65,9 +65,9 @@ namespace detail {
             for (int i = 1; i < ki; i++) {
                 for (int j = 1; j < ni - ki + 1; j++) {
                     curr[j] = (i + 1) * curr[j - 1] + curr[j];
-                    if (std::isinf(curr[j])) {
+                    if (cxx::isinf(curr[j])) {
                         set_error("stirling2", SF_ERROR_OVERFLOW, NULL);
-                        return std::numeric_limits<double>::infinity();
+                        return cxx::numeric_limits<double>::infinity();
                     }
                 }
             }
@@ -86,15 +86,15 @@ namespace detail {
         }
 
         double mu = k / n;
-        double d = std::exp(-1.0 / mu) / mu;
-        std::complex<double> delta(-d, 0.0);
+        double d = cxx::exp(-1.0 / mu) / mu;
+        cxx::complex<double> delta(-d, 0.0);
 
         // lambertw returns complex; we only need the real part (branch k=0)
-        std::complex<double> lwv = xsf::lambertw(delta, 0, 1e-8);
+        cxx::complex<double> lwv = xsf::lambertw(delta, 0, 1e-8);
         double x0 = lwv.real() + 1.0 / mu;
         double t0 = 1.0 / mu - 1.0;
-        double F = std::sqrt(t0 / ((1.0 + t0) * (x0 - t0)));
-        double A = -n * std::log(x0) + k * std::log(std::exp(x0) - 1.0) - k * t0 + (n - k) * std::log(t0);
+        double F = cxx::sqrt(t0 / ((1.0 + t0) * (x0 - t0)));
+        double A = -n * cxx::log(x0) + k * cxx::log(cxx::exp(x0) - 1.0) - k * t0 + (n - k) * cxx::log(t0);
 
         // F1 correction term (Horner scheme applied to numerator)
         double xt = x0 * t0;
@@ -105,7 +105,7 @@ namespace detail {
         double denom = 24.0 * F * (1.0 + t0) * (1.0 + t0) * (x0 - t0) * (x0 - t0) * (x0 - t0) * (x0 - t0);
         double F1 = num / denom;
 
-        return std::exp(A) * std::pow(k, n - k) * xsf::binom(n, k) * (F - F1 / k);
+        return cxx::exp(A) * cxx::pow(k, n - k) * xsf::binom(n, k) * (F - F1 / k);
     }
 
     XSF_HOST_DEVICE inline double stirling2(double n, double k) {

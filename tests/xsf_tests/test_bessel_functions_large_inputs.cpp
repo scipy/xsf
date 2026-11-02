@@ -1,7 +1,7 @@
 #include "../testing_utils.h"
-#include <xsf/bessel.h>
 #include <xsf/cephes/j0.h>
 #include <xsf/cephes/j1.h>
+#include <xsf/cpu/bessel.h>
 
 TEST_CASE("j0 right tail gh-large-input", "[j0][xsf_tests]") {
     using test_case = std::tuple<double, double, double>;

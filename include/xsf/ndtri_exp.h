@@ -114,13 +114,13 @@ namespace detail {
         double x;
         // sqrt(-2 * y) is faster and has more precision but overflows when
         // y < -DBL_MAX * 0.5
-        if (y >= -std::numeric_limits<double>::max() * 0.5) {
-            x = std::sqrt(-2.0 * y);
+        if (y >= -cxx::numeric_limits<double>::max() * 0.5) {
+            x = cxx::sqrt(-2.0 * y);
         } else {
-            x = M_SQRT2 * std::sqrt(-y);
+            x = M_SQRT2 * cxx::sqrt(-y);
         }
 
-        const double x0 = x - std::log(x) / x;
+        const double x0 = x - cxx::log(x) / x;
         const double z = 1.0 / x;
         double x1;
         if (x < 8.0) {
@@ -135,16 +135,16 @@ namespace detail {
 
 // Inverse of the logarithm of the normal CDF.
 XSF_HOST_DEVICE inline double ndtri_exp(double y) {
-    if (y < -std::numeric_limits<double>::max()) {
-        return -std::numeric_limits<double>::infinity();
+    if (y < -cxx::numeric_limits<double>::max()) {
+        return -cxx::numeric_limits<double>::infinity();
     }
     if (y < -2.0) {
         return detail::ndtri_exp_small_y(y);
     }
     if (y > -0.14541345786885906) { // log1p(-exp(-2))
-        return -cephes::ndtri(-std::expm1(y));
+        return -cephes::ndtri(-cxx::expm1(y));
     }
-    return cephes::ndtri(std::exp(y));
+    return cephes::ndtri(cxx::exp(y));
 }
 
 XSF_HOST_DEVICE inline float ndtri_exp(float y) { return ndtri_exp(static_cast<double>(y)); }

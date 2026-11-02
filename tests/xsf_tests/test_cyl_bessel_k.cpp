@@ -1,7 +1,7 @@
 #include "../testing_utils.h"
 #include <complex>
 #include <tuple>
-#include <xsf/bessel.h>
+#include <xsf/cpu/bessel.h>
 
 TEST_CASE("cyl_bessel_k gh-46", "[cyl_bessel_k][xsf_tests]") {
     using test_case = std::tuple<double, std::complex<double>, std::complex<double>, double>;

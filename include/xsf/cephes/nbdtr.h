@@ -173,7 +173,7 @@ namespace cephes {
         if (k < 0) {
         domerr:
             set_error("nbdtr", SF_ERROR_DOMAIN, NULL);
-            return (std::numeric_limits<double>::quiet_NaN());
+            return (cxx::numeric_limits<double>::quiet_NaN());
         }
 
         dk = k + 1;
@@ -190,7 +190,7 @@ namespace cephes {
         if (k < 0) {
         domerr:
             set_error("nbdtr", SF_ERROR_DOMAIN, NULL);
-            return (std::numeric_limits<double>::quiet_NaN());
+            return (cxx::numeric_limits<double>::quiet_NaN());
         }
         dk = k + 1;
         dn = n;
@@ -206,7 +206,7 @@ namespace cephes {
         if (k < 0) {
         domerr:
             set_error("nbdtri", SF_ERROR_DOMAIN, NULL);
-            return (std::numeric_limits<double>::quiet_NaN());
+            return (cxx::numeric_limits<double>::quiet_NaN());
         }
         dk = k + 1;
         dn = n;

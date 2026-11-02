@@ -174,7 +174,7 @@ XSF_HOST_DEVICE inline double cosine_cdf(double x) {
     if (x < -1.6) {
         return detail::cosine_cdf_pade_approx_at_neg_pi(x);
     }
-    return 0.5 + (x + std::sin(x)) / (2 * detail::M_PI64);
+    return 0.5 + (x + cxx::sin(x)) / (2 * detail::M_PI64);
 }
 
 XSF_HOST_DEVICE inline float cosine_cdf(float x) { return cosine_cdf(static_cast<double>(x)); }
@@ -185,7 +185,7 @@ XSF_HOST_DEVICE inline double cosine_invcdf(double p) {
     int sgn = 1;
 
     if ((p < 0) || (p > 1)) {
-        return std::numeric_limits<double>::quiet_NaN();
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
     if (p <= 1e-48) {
         return -detail::M_PI64;
@@ -216,9 +216,9 @@ XSF_HOST_DEVICE inline double cosine_invcdf(double p) {
         //    f'(x)  = 1 + cos(x),
         //    f''(x) = -sin(x)
         // where y = 2*pi*p.
-        double f0 = detail::M_PI64 + x + std::sin(x) - 2 * detail::M_PI64 * p;
-        double f1 = 1 + std::cos(x);
-        double f2 = -std::sin(x);
+        double f0 = detail::M_PI64 + x + cxx::sin(x) - 2 * detail::M_PI64 * p;
+        double f1 = 1 + cxx::cos(x);
+        double f2 = -cxx::sin(x);
         x = x - 2 * f0 * f1 / (2 * f1 * f1 - f0 * f2);
     }
 

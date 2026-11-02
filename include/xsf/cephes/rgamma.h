@@ -72,7 +72,7 @@ namespace cephes {
 
     } // namespace detail
 
-    XSF_HOST_DEVICE double rgamma(double x) {
+    XSF_HOST_DEVICE inline double rgamma(double x) {
         double w, y, z;
 
         if (x == 0) {
@@ -80,12 +80,12 @@ namespace cephes {
             return x;
         }
 
-        if (x < 0 && x == std::floor(x)) {
+        if (x < 0 && x == cxx::floor(x)) {
             // Gamma poles.
             return 0.0;
         }
 
-        if (std::abs(x) > 4.0) {
+        if (cxx::abs(x) > 4.0) {
             return 1.0 / Gamma(x);
         }
 

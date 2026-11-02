@@ -162,15 +162,15 @@ namespace cephes {
 
     XSF_HOST_DEVICE inline double bdtrc(double k, int n, double p) {
         double dk, dn;
-        double fk = std::floor(k);
+        double fk = cxx::floor(k);
 
-        if (std::isnan(p) || std::isnan(k)) {
-            return std::numeric_limits<double>::quiet_NaN();
+        if (cxx::isnan(p) || cxx::isnan(k)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         if (p < 0.0 || p > 1.0 || n < fk) {
             set_error("bdtrc", SF_ERROR_DOMAIN, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         if (fk < 0) {
@@ -184,9 +184,9 @@ namespace cephes {
         dn = n - fk;
         if (k == 0) {
             if (p < .01)
-                dk = -expm1(dn * std::log1p(-p));
+                dk = -expm1(dn * cxx::log1p(-p));
             else
-                dk = 1.0 - std::pow(1.0 - p, dn);
+                dk = 1.0 - cxx::pow(1.0 - p, dn);
         } else {
             dk = fk + 1;
             dk = incbet(dk, dn, p);
@@ -196,15 +196,15 @@ namespace cephes {
 
     XSF_HOST_DEVICE inline double bdtr(double k, int n, double p) {
         double dk, dn;
-        double fk = std::floor(k);
+        double fk = cxx::floor(k);
 
-        if (std::isnan(p) || std::isnan(k)) {
-            return std::numeric_limits<double>::quiet_NaN();
+        if (cxx::isnan(p) || cxx::isnan(k)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         if (p < 0.0 || p > 1.0 || fk < 0 || n < fk) {
             set_error("bdtr", SF_ERROR_DOMAIN, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         if (fk == n) {
@@ -213,7 +213,7 @@ namespace cephes {
 
         dn = n - fk;
         if (fk == 0) {
-            dk = std::pow(1.0 - p, dn);
+            dk = cxx::pow(1.0 - p, dn);
         } else {
             dk = fk + 1.;
             dk = incbet(dn, dk, 1.0 - p);
@@ -223,15 +223,15 @@ namespace cephes {
 
     XSF_HOST_DEVICE inline double bdtri(double k, int n, double y) {
         double p, dn, dk;
-        double fk = std::floor(k);
+        double fk = cxx::floor(k);
 
-        if (std::isnan(k)) {
-            return std::numeric_limits<double>::quiet_NaN();
+        if (cxx::isnan(k)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         if (y < 0.0 || y > 1.0 || fk < 0.0 || n <= fk) {
             set_error("bdtri", SF_ERROR_DOMAIN, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         dn = n - fk;
@@ -242,9 +242,9 @@ namespace cephes {
 
         if (fk == 0) {
             if (y > 0.8) {
-                p = -expm1(std::log1p(y - 1.0) / dn);
+                p = -expm1(cxx::log1p(y - 1.0) / dn);
             } else {
-                p = 1.0 - std::pow(y, 1.0 / dn);
+                p = 1.0 - cxx::pow(y, 1.0 / dn);
             }
         } else {
             dk = fk + 1;

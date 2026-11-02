@@ -120,7 +120,7 @@ namespace cephes {
     XSF_HOST_DEVICE inline double ratevl(double x, const double num[], int M, const double denom[], int N) {
         int i, dir;
         double y, num_ans, denom_ans;
-        double absx = std::abs(x);
+        double absx = cxx::abs(x);
         const double *p;
 
         if (absx > 1) {
@@ -158,7 +158,7 @@ namespace cephes {
 
         if (absx > 1) {
             i = M - N;
-            return std::pow(x, i) * num_ans / denom_ans;
+            return cxx::pow(x, i) * num_ans / denom_ans;
         } else {
             return num_ans / denom_ans;
         }

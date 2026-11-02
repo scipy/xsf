@@ -81,7 +81,7 @@ namespace cephes {
 
         if (x < 0.0) {
             set_error("spence", SF_ERROR_DOMAIN, NULL);
-            return (std::numeric_limits<double>::quiet_NaN());
+            return (cxx::numeric_limits<double>::quiet_NaN());
         }
 
         if (x == 1.0) {
@@ -112,11 +112,11 @@ namespace cephes {
         y = -w * polevl(w, detail::spence_A, 7) / polevl(w, detail::spence_B, 7);
 
         if (flag & 1) {
-            y = (M_PI * M_PI) / 6.0 - std::log(x) * std::log(1.0 - x) - y;
+            y = (M_PI * M_PI) / 6.0 - cxx::log(x) * cxx::log(1.0 - x) - y;
         }
 
         if (flag & 2) {
-            z = std::log(x);
+            z = cxx::log(x);
             y = -0.5 * z * z - y;
         }
 

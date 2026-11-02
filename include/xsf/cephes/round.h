@@ -47,7 +47,7 @@ namespace cephes {
         double y, r;
 
         /* Largest integer <= x */
-        y = std::floor(x);
+        y = cxx::floor(x);
 
         /* Fractional part */
         r = x - y;
@@ -59,7 +59,7 @@ namespace cephes {
 
         /* Round to even */
         if (r == 0.5) {
-            r = y - 2.0 * std::floor(0.5 * y);
+            r = y - 2.0 * cxx::floor(0.5 * y);
             if (r == 1.0) {
             rndup:
                 y += 1.0;

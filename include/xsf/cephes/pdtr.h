@@ -144,12 +144,12 @@ namespace cephes {
 
         if (k < 0.0 || m < 0.0) {
             set_error("pdtrc", SF_ERROR_DOMAIN, NULL);
-            return (std::numeric_limits<double>::quiet_NaN());
+            return (cxx::numeric_limits<double>::quiet_NaN());
         }
         if (m == 0.0) {
             return 0.0;
         }
-        v = std::floor(k) + 1;
+        v = cxx::floor(k) + 1;
         return (igam(v, m));
     }
 
@@ -158,12 +158,12 @@ namespace cephes {
 
         if (k < 0 || m < 0) {
             set_error("pdtr", SF_ERROR_DOMAIN, NULL);
-            return (std::numeric_limits<double>::quiet_NaN());
+            return (cxx::numeric_limits<double>::quiet_NaN());
         }
         if (m == 0.0) {
             return 1.0;
         }
-        v = std::floor(k) + 1;
+        v = cxx::floor(k) + 1;
         return (igamc(v, m));
     }
 
@@ -172,7 +172,7 @@ namespace cephes {
 
         if ((k < 0) || (y < 0.0) || (y >= 1.0)) {
             set_error("pdtri", SF_ERROR_DOMAIN, NULL);
-            return (std::numeric_limits<double>::quiet_NaN());
+            return (cxx::numeric_limits<double>::quiet_NaN());
         }
         v = k + 1;
         v = igamci(v, y);

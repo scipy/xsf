@@ -116,14 +116,14 @@ namespace cephes {
         int code;
 
         if (y0 == 0.0) {
-            return -std::numeric_limits<double>::infinity();
+            return -cxx::numeric_limits<double>::infinity();
         }
         if (y0 == 1.0) {
-            return std::numeric_limits<double>::infinity();
+            return cxx::numeric_limits<double>::infinity();
         }
         if (y0 < 0.0 || y0 > 1.0) {
             set_error("ndtri", SF_ERROR_DOMAIN, NULL);
-            return std::numeric_limits<double>::quiet_NaN();
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
         code = 1;
         y = y0;
@@ -140,8 +140,8 @@ namespace cephes {
             return (x);
         }
 
-        x = std::sqrt(-2.0 * std::log(y));
-        x0 = x - std::log(x) / x;
+        x = cxx::sqrt(-2.0 * cxx::log(y));
+        x0 = x - cxx::log(x) / x;
 
         z = 1.0 / x;
         if (x < 8.0) { /* y > exp(-32) = 1.2664165549e-14 */

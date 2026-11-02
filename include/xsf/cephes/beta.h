@@ -69,11 +69,20 @@ namespace cephes {
          */
         XSF_HOST_DEVICE inline double lbeta_asymp(double a, double b, int *sgn) {
             double r = lgam_sgn(b, sgn);
-            r -= b * std::log(a);
+            r -= b * cxx::log(a);
 
-            r += b * (1 - b) / (2 * a);
-            r += b * (1 - b) * (1 - 2 * b) / (12 * a * a);
-            r += -b * b * (1 - b) * (1 - b) / (12 * a * a * a);
+            /*
+             * Evaluate the correction terms through the small ratios b/a and (1-b)/a
+             * instead of the products b*(1-b), b*b*(1-b)*(1-b) and a*a*a, which overflow
+             * for |b| > ~1e77 or a > ~5.6e102 and turned the result into NaN (inf/inf)
+             * for e.g. lbeta(1e100, 1e107) although log|B| is an ordinary finite number.
+             */
+            double t = b / a;
+            double u = (1 - b) / a;
+
+            r += t * (1 - b) / 2;
+            r += t * u * (1 - 2 * b) / 12;
+            r += -t * t * u * (1 - b) / 12;
 
             return r;
         }
@@ -89,7 +98,7 @@ namespace cephes {
                 return sgn * xsf::cephes::beta(1 - a - b, b);
             } else {
                 set_error("lbeta", SF_ERROR_OVERFLOW, NULL);
-                return std::numeric_limits<double>::infinity();
+                return cxx::numeric_limits<double>::infinity();
             }
         }
 
@@ -100,7 +109,7 @@ namespace cephes {
                 return r;
             } else {
                 set_error("lbeta", SF_ERROR_OVERFLOW, NULL);
-                return std::numeric_limits<double>::infinity();
+                return cxx::numeric_limits<double>::infinity();
             }
         }
     } // namespace detail
@@ -110,7 +119,7 @@ namespace cephes {
         int sign = 1;
 
         if (a <= 0.0) {
-            if (a == std::floor(a)) {
+            if (a == cxx::floor(a)) {
                 if (a == static_cast<int>(a)) {
                     return detail::beta_negint(static_cast<int>(a), b);
                 } else {
@@ -120,7 +129,7 @@ namespace cephes {
         }
 
         if (b <= 0.0) {
-            if (b == std::floor(b)) {
+            if (b == cxx::floor(b)) {
                 if (b == static_cast<int>(b)) {
                     return detail::beta_negint(static_cast<int>(b), a);
                 } else {
@@ -129,20 +138,20 @@ namespace cephes {
             }
         }
 
-        if (std::abs(a) < std::abs(b)) {
+        if (cxx::abs(a) < cxx::abs(b)) {
             y = a;
             a = b;
             b = y;
         }
 
-        if (std::abs(a) > detail::beta_ASYMP_FACTOR * std::abs(b) && a > detail::beta_ASYMP_FACTOR) {
+        if (cxx::abs(a) > detail::beta_ASYMP_FACTOR * cxx::abs(b) && a > detail::beta_ASYMP_FACTOR) {
             /* Avoid loss of precision in lgam(a + b) - lgam(a) */
             y = detail::lbeta_asymp(a, b, &sign);
-            return sign * std::exp(y);
+            return sign * cxx::exp(y);
         }
 
         y = a + b;
-        if (std::abs(y) > detail::MAXGAM || std::abs(a) > detail::MAXGAM || std::abs(b) > detail::MAXGAM) {
+        if (cxx::abs(y) > detail::MAXGAM || cxx::abs(a) > detail::MAXGAM || cxx::abs(b) > detail::MAXGAM) {
             int sgngam;
             y = detail::lgam_sgn(y, &sgngam);
             sign *= sgngam; /* keep track of the sign */
@@ -153,17 +162,17 @@ namespace cephes {
             if (y > detail::MAXLOG) {
                 goto overflow;
             }
-            return (sign * std::exp(y));
+            return (sign * cxx::exp(y));
         }
 
         y = rgamma(y);
         a = Gamma(a);
         b = Gamma(b);
-        if (std::isinf(y)) {
+        if (cxx::isinf(y)) {
             goto overflow;
         }
 
-        if (std::abs(std::abs(a * y) - 1.0) > std::abs(std::abs(b * y) - 1.0)) {
+        if (cxx::abs(cxx::abs(a * y) - 1.0) > cxx::abs(cxx::abs(b * y) - 1.0)) {
             y = b * y;
             y *= a;
         } else {
@@ -175,7 +184,7 @@ namespace cephes {
 
     overflow:
         set_error("beta", SF_ERROR_OVERFLOW, NULL);
-        return (sign * std::numeric_limits<double>::infinity());
+        return (sign * cxx::numeric_limits<double>::infinity());
     }
 
     /* Natural log of |beta|. */
@@ -187,7 +196,7 @@ namespace cephes {
         sign = 1;
 
         if (a <= 0.0) {
-            if (a == std::floor(a)) {
+            if (a == cxx::floor(a)) {
                 if (a == static_cast<int>(a)) {
                     return detail::lbeta_negint(static_cast<int>(a), b);
                 } else {
@@ -197,7 +206,7 @@ namespace cephes {
         }
 
         if (b <= 0.0) {
-            if (b == std::floor(b)) {
+            if (b == cxx::floor(b)) {
                 if (b == static_cast<int>(b)) {
                     return detail::lbeta_negint(static_cast<int>(b), a);
                 } else {
@@ -206,20 +215,20 @@ namespace cephes {
             }
         }
 
-        if (std::abs(a) < std::abs(b)) {
+        if (cxx::abs(a) < cxx::abs(b)) {
             y = a;
             a = b;
             b = y;
         }
 
-        if (std::abs(a) > detail::beta_ASYMP_FACTOR * std::abs(b) && a > detail::beta_ASYMP_FACTOR) {
+        if (cxx::abs(a) > detail::beta_ASYMP_FACTOR * cxx::abs(b) && a > detail::beta_ASYMP_FACTOR) {
             /* Avoid loss of precision in lgam(a + b) - lgam(a) */
             y = detail::lbeta_asymp(a, b, &sign);
             return y;
         }
 
         y = a + b;
-        if (std::abs(y) > detail::MAXGAM || std::abs(a) > detail::MAXGAM || std::abs(b) > detail::MAXGAM) {
+        if (cxx::abs(y) > detail::MAXGAM || cxx::abs(a) > detail::MAXGAM || cxx::abs(b) > detail::MAXGAM) {
             int sgngam;
             y = detail::lgam_sgn(y, &sgngam);
             sign *= sgngam; /* keep track of the sign */
@@ -233,13 +242,13 @@ namespace cephes {
         y = rgamma(y);
         a = Gamma(a);
         b = Gamma(b);
-        if (std::isinf(y)) {
+        if (cxx::isinf(y)) {
         over:
             set_error("lbeta", SF_ERROR_OVERFLOW, NULL);
-            return (sign * std::numeric_limits<double>::infinity());
+            return (sign * cxx::numeric_limits<double>::infinity());
         }
 
-        if (std::abs(std::abs(a * y) - 1.0) > std::abs(std::abs(b * y) - 1.0)) {
+        if (cxx::abs(cxx::abs(a * y) - 1.0) > cxx::abs(cxx::abs(b * y) - 1.0)) {
             y = b * y;
             y *= a;
         } else {
@@ -251,7 +260,7 @@ namespace cephes {
             y = -y;
         }
 
-        return (std::log(y));
+        return (cxx::log(y));
     }
 } // namespace cephes
 } // namespace xsf
