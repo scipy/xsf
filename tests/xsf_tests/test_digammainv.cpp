@@ -1,5 +1,6 @@
 #include "../testing_utils.h"
 #include "xsf/config.h"
+#include <random>
 #include <xsf/cephes/psi.h>
 #include <xsf/digammainv.h>
 
@@ -44,4 +45,28 @@ TEST_CASE("digammainv precision", "[digammainv][xsf_tests]") {
 
     CAPTURE(x, ref_digamma, x_result, rel_error);
     REQUIRE(rel_error <= 1e-13);
+}
+
+TEST_CASE("random_inputs", "[digammainv][xsf_tests]") {
+    // round trip test with random values of y in [0, 40]
+    const double y_min = 0.0;
+    const double y_max = 40.0;
+    std::mt19937 gen(42088764423867);
+    std::uniform_real_distribution<double> dist(y_min, y_max);
+    for (int i = 0; i < 10000; i++) {
+        double y = dist(gen);
+        double x = xsf::digammainv(y);
+        double y_check = xsf::cephes::psi(x);
+        CAPTURE(y, x, y_check);
+        REQUIRE(xsf::extended_relative_error(y_check, y) <= 1e-13);
+    }
+}
+
+TEST_CASE("gh-361", "[digammainv][xsf_tests]") {
+    // gh-361 reported that digammainv yielded nan for certain inputs
+    const double y = 9.220027678716601;
+    const double x = xsf::digammainv(y);
+    const double y_check = xsf::cephes::psi(x);
+    CAPTURE(y, x, y_check);
+    REQUIRE(xsf::extended_relative_error(y_check, y) <= 1e-14);
 }
