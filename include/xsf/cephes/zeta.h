@@ -144,7 +144,7 @@ namespace cephes {
             a += 1.0;
             b = cxx::pow(a, -x);
             s += b;
-            // the dropped tail is about b * a / (x - 1)
+            // stop only if the corrections below, b * a / (x - 1) and -b / 2, are negligible
             if (cxx::abs(b / s) < detail::MACHEP && cxx::abs(b * a / ((x - 1) * s)) < detail::MACHEP)
                 goto done;
         }
