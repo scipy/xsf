@@ -17,3 +17,10 @@ TEST_CASE("zetac large x", "[zetac][xsf_tests]") {
     CAPTURE(x, out, desired, error, rtol);
     REQUIRE(error <= rtol);
 }
+
+TEST_CASE("zetac underflows to 0 for x >= 1076", "[zetac][xsf_tests]") {
+    auto x = GENERATE(1076.0, 1e300);
+    const double out = xsf::zetac(x);
+    CAPTURE(x, out);
+    REQUIRE(out == 0.0);
+}
