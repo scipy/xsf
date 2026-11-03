@@ -438,7 +438,7 @@ namespace detail {
 
     template <typename Function>
     XSF_HOST_DEVICE inline cxx::pair<double, NewtonRootFinderStatus> find_root_newton(
-        Function func, double x, double rtol = 100 * cxx::numeric_limits<double>::epsilon(), double atol = 0.0,
+        Function func, double x, double rtol = 4 * cxx::numeric_limits<double>::epsilon(), double atol = 0.0,
         cxx::uint64_t maxiter = 100
     ) {
         if (maxiter == 0) {
@@ -447,6 +447,7 @@ namespace detail {
         if (cxx::isinf(x)) {
             return {x, NewtonRootFinderStatus::INITIAL_GUESS_RETURNED_INF};
         }
+        double x_previous = x;
         for (cxx::uint64_t i = 0; i < maxiter; i++) {
             auto [f, df] = func(x);
             if (cxx::isnan(f) || cxx::isnan(df)) {
@@ -469,6 +470,11 @@ namespace detail {
             if (x == x_next || cxx::abs(step) <= rtol * cxx::abs(x) + atol) {
                 return {x_next, NewtonRootFinderStatus::SUCCESS};
             }
+            if (i > 0 && x_next == x_previous) {
+                set_error("find_root_newton", SF_ERROR_LOSS, NULL);
+                return {x, NewtonRootFinderStatus::SUCCESS};
+            }
+            x_previous = x;
             x = x_next;
         }
         return {x, NewtonRootFinderStatus::MAX_ITERATIONS_EXCEEDED};
