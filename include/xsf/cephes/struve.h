@@ -159,8 +159,9 @@ namespace cephes {
                 // H_v = Struve K_v + Y_v, DLMF 11.2.5
                 sum += xsf::cyl_bessel_y(v, z);
             } else {
-                // L_v = M_v + I_v (DLMF 11.2.6), but with I_{-v}, which differs by the exponentially small
-                // (2/pi) sin(pi v) K_v(z) (DLMF 10.27.2) and is more accurate near half-integer v
+                // L_v = M_v + I_v (DLMF 11.2.6), but use I_{-v}: then the full series is exact at
+                // half-integer v (DLMF 11.4.2, 11.4.4). I_{-v} - I_v = (2/pi) sin(pi v) K_v(z)
+                // (DLMF 10.27.2) can matter at finite z.
                 sum += xsf::cephes::iv(-v, z);
             }
 
