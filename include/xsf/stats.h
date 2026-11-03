@@ -1,5 +1,6 @@
 #pragma once
 
+#include "binom.h"
 #include "cephes/bdtr.h"
 #include "cephes/chdtr.h"
 #include "cephes/const.h"
@@ -13,7 +14,6 @@
 #include "cephes/ndtri.h"
 #include "cephes/owens_t.h"
 #include "cephes/pdtr.h"
-#include "binom.h"
 #include "cephes/tukey.h"
 #include "config.h"
 #include "erf.h"
@@ -416,8 +416,8 @@ inline double compute_outer_prob_inside_method(int64_t m, int64_t n, int64_t g, 
     return A[maxj - minj - 1];
 }
 
-inline std::tuple<bool, double, double> attempt_exact_2kssamp(int64_t n1, int64_t n2, int64_t g, double d,
-                                                              bool two_sided) {
+inline std::tuple<bool, double, double>
+attempt_exact_2kssamp(int64_t n1, int64_t n2, int64_t g, double d, bool two_sided) {
     /* Attempt to compute the exact two-sample Kolmogorov-Smirnov p-value.
      *
      * n1, n2 are the sample sizes
