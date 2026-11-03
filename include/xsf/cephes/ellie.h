@@ -208,6 +208,14 @@ namespace cephes {
         if (cxx::fmod(cxx::abs(npio2), 2.0) == 1.0)
             npio2 += 1;
         lphi = lphi - npio2 * M_PI_2;
+        /* Huge phi can leave a residual outside [-pi, pi]: reduce it exactly, DLMF 19.2.10 */
+        if (cxx::abs(lphi) > M_PI) {
+            double r = cxx::fmod(lphi, M_PI);
+            E = ellpe(m);
+            temp = npio2 * E;
+            /* avoid inf - inf */
+            return cxx::isfinite(temp) ? ellie(r, m) + (lphi - r) / M_PI_2 * E + temp : temp;
+        }
         if (lphi < 0.0) {
             lphi = -lphi;
             sign = -1;

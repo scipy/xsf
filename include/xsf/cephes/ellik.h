@@ -190,6 +190,11 @@ namespace cephes {
         if (npio2 != 0.0) {
             K = ellpk(a);
             phi = phi - npio2 * M_PI_2;
+            /* Huge phi can leave a residual outside [-pi, pi]: reduce it exactly, DLMF 19.2.10 */
+            if (cxx::abs(phi) > M_PI) {
+                double r = cxx::fmod(phi, M_PI);
+                return ellik(r, m) + (phi - r) / M_PI_2 * K + npio2 * K;
+            }
         } else
             K = 0.0;
         if (phi < 0.0) {
