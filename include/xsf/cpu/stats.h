@@ -56,6 +56,10 @@ namespace cpu {
         if (x <= 0) {
             return 0.0;
         }
+        if (x >= 8) {
+            // 1 - cdf < 1e-18 here, and the series loses accuracy or never ends for huge x
+            return 1.0;
+        }
 
         double total = 0.0;
         int k = 0;
@@ -126,7 +130,7 @@ namespace cpu {
             double gamma_kp1 = gamma(k + 1.0);
             double z = -psi1_term(k, x) / (M_PI * gamma_kp1);
             tot += z;
-            if (std::abs(z) < 1e-7) {
+            if (!(std::abs(z) >= 1e-7)) { // also stop on NaN
                 break;
             }
             ++k;
