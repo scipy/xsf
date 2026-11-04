@@ -614,7 +614,7 @@ namespace specfun {
         // ===================================================
 
         int i, j, k, la, m, n, nl, ns;
-        double a0, a1, phi, x0, x, y;
+        double a0, a1, x0, y;
         std::complex<double> cfac, cg1, cg2, cg3, chg, chg1, chg2, chw, cr, cr1, cr2, cs1, cs2, crg, cy0, cy1, z0;
         const double pi = 3.141592653589793;
         const std::complex<double> ci(0.0, 1.0);
@@ -695,10 +695,9 @@ namespace specfun {
                         cs1 += cr1;
                         cs2 += cr2;
                     }
-                    x = z.real();
                     y = z.imag();
-                    phi = std::atan2(y, x);
-                    ns = (phi > -0.5 * pi) ? 1 : -1;
+                    // DLMF 13.7.2, with the sign of ph z (Re z >= 0 here)
+                    ns = (y > 0.0) ? 1 : -1;
                     cfac = std::exp(static_cast<double>(ns) * ci * pi * a);
                     if (y == 0.0) {
                         cfac = cos(pi * a);
