@@ -203,19 +203,16 @@ namespace cephes {
             return -m;
         if (m == 0.0)
             return (phi);
+        /* From about 2^53 on, the reduction below loses the residual.
+         * E(phi, m) = 2 phi E(m) / pi + O(E(m)), DLMF 19.2.10 */
+        if (cxx::abs(phi) > 9e15) {
+            return phi / M_PI_2 * ellpe(m);
+        }
         lphi = phi;
         npio2 = cxx::floor(lphi / M_PI_2);
         if (cxx::fmod(cxx::abs(npio2), 2.0) == 1.0)
             npio2 += 1;
         lphi = lphi - npio2 * M_PI_2;
-        /* Huge phi can leave a residual outside [-pi, pi]: reduce it exactly, DLMF 19.2.10 */
-        if (cxx::abs(lphi) > M_PI) {
-            double r = cxx::fmod(lphi, M_PI);
-            E = ellpe(m);
-            temp = npio2 * E;
-            /* avoid inf - inf */
-            return cxx::isfinite(temp) ? ellie(r, m) + (lphi - r) / M_PI_2 * E + temp : temp;
-        }
         if (lphi < 0.0) {
             lphi = -lphi;
             sign = -1;

@@ -184,17 +184,17 @@ namespace cephes {
             /* DLMF 19.6.8, and 4.23.42 */
             return cxx::asinh(cxx::tan(phi));
         }
+        /* From about 2^53 on, the reduction below loses the residual.
+         * F(phi, m) = 2 phi K(m) / pi + O(K(m)), DLMF 19.2.10 */
+        if (cxx::abs(phi) > 9e15) {
+            return phi / M_PI_2 * ellpk(a);
+        }
         npio2 = floor(phi / M_PI_2);
         if (cxx::fmod(cxx::abs(npio2), 2.0) == 1.0)
             npio2 += 1;
         if (npio2 != 0.0) {
             K = ellpk(a);
             phi = phi - npio2 * M_PI_2;
-            /* Huge phi can leave a residual outside [-pi, pi]: reduce it exactly, DLMF 19.2.10 */
-            if (cxx::abs(phi) > M_PI) {
-                double r = cxx::fmod(phi, M_PI);
-                return ellik(r, m) + (phi - r) / M_PI_2 * K + npio2 * K;
-            }
         } else
             K = 0.0;
         if (phi < 0.0) {
