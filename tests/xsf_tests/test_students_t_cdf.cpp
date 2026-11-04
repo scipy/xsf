@@ -3,16 +3,13 @@
 
 TEST_CASE("students t CDF test", "[students_t_cdf][xsf_tests]") {
 
-    SECTION("students t CDF t = 0 special case") {
-        REQUIRE(xsf::students_t_cdf(1.0, 0.0) == 0.5);
-    }
+    SECTION("students t CDF t = 0 special case") { REQUIRE(xsf::students_t_cdf(1.0, 0.0) == 0.5); }
 
     SECTION("students t CDF large t inputs") {
         // test cases with large inputs
         using test_case = std::tuple<double, double, double, double>;
         auto [nu, t, expected, rtol] = GENERATE(
-            test_case{1.0, 1e200, 1.0, 1e-13},
-            test_case{1.0, -1e200, 0.0, 1e-13},
+            test_case{1.0, 1e200, 1.0, 1e-13}, test_case{1.0, -1e200, 0.0, 1e-13},
             test_case{1.0, std::numeric_limits<double>::infinity(), 1.0, 1e-13},
             test_case{1.0, -std::numeric_limits<double>::infinity(), 0.0, 1e-13}
         );
@@ -23,10 +20,10 @@ TEST_CASE("students t CDF test", "[students_t_cdf][xsf_tests]") {
     }
 
     SECTION("students t CDF large degrees of freedom") {
-            double nu = GENERATE(1e16, 1e100, std::numeric_limits<double>::infinity());
-            double t = GENERATE(-5.0, -1.0, 1.0, 5.0);
-            CAPTURE(nu, t);
-            REQUIRE(xsf::students_t_cdf(nu, t) == xsf::ndtr(t));
+        double nu = GENERATE(1e16, 1e100, std::numeric_limits<double>::infinity());
+        double t = GENERATE(-5.0, -1.0, 1.0, 5.0);
+        CAPTURE(nu, t);
+        REQUIRE(xsf::students_t_cdf(nu, t) == xsf::ndtr(t));
     }
 
     SECTION("students t CDF scipy reference values") {
