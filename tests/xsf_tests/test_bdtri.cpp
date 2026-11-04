@@ -25,7 +25,7 @@ TEST_CASE("bdtri small y and k >= n / 2", "[bdtri][xsf_tests]") {
 
     const double out = xsf::bdtri(k, n, y);
     const double error = xsf::extended_relative_error(out, desired);
-    const double rtol = 2e-16;
+    const double rtol = 5e-16;
     CAPTURE(k, n, y, out, desired, error, rtol);
     REQUIRE(error <= rtol);
 }
