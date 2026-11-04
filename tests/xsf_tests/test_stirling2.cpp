@@ -126,3 +126,26 @@ TEST_CASE("stirling2 temme approximation accuracy", "[stirling2][xsf_tests]") {
         }
     }
 }
+
+// Regression test for gh-378: relative error up to 2e-5 for n > 50.
+// Exact references, computed in Python with
+//
+//     from math import comb, factorial
+//
+//     def S(n, k):
+//         return sum((-1) ** j * comb(k, j) * (k - j) ** n for j in range(k + 1)) // factorial(k)
+//
+//     for n, k in [(51, 7), (60, 30), (100, 50), (219, 110)]:
+//         print(n, k, repr(float(S(n, k))))
+TEST_CASE("stirling2 gh-378", "[stirling2][xsf_tests]") {
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double>;
+    auto [n, k, expected] = GENERATE(
+        test_case{51.0, 7.0, 2.4911342878123612e+39}, test_case{60.0, 30.0, 9.563528855094403e+53},
+        test_case{100.0, 50.0, 4.3098323700936636e+101}, test_case{219.0, 110.0, 2.071041889974642e+260}
+    );
+    const double result = xsf::stirling2(n, k);
+    const auto rel_error = xsf::extended_relative_error(result, expected);
+    CAPTURE(n, k, result, expected, rel_error);
+    REQUIRE(rel_error <= 1e-14);
+}

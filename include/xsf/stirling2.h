@@ -26,7 +26,7 @@ namespace xsf {
 namespace detail {
 
     // Dynamic programming method for small n.
-    // Only valid for n <= 50; the stack array is sized accordingly (max 25 elements).
+    // Only valid for n <= 219; the stack array is sized accordingly (max 110 elements).
     XSF_HOST_DEVICE inline double stirling2_dp(double n, double k) {
         if ((n == 0 && k == 0) || (n == 1 && k == 1)) {
             return 1.0;
@@ -39,8 +39,8 @@ namespace detail {
         int ki = static_cast<int>(k);
         int arraySize = ki <= ni - ki + 1 ? ki : ni - ki + 1;
 
-        // Maximum arraySize for n <= 50 is 25. Guard against misuse.
-        constexpr int max_array_size = 26;
+        // Maximum arraySize for n <= 219 is 110. Guard against misuse.
+        constexpr int max_array_size = 111;
         if (arraySize > max_array_size) {
             set_error("stirling2", SF_ERROR_OTHER, NULL);
             return cxx::numeric_limits<double>::quiet_NaN();
@@ -109,7 +109,9 @@ namespace detail {
     }
 
     XSF_HOST_DEVICE inline double stirling2(double n, double k) {
-        if (n <= 50) {
+        // 219 is the largest n for which no S(n, k) overflows.
+        // Keep k < 1 and NaN k with n > 50 out of the DP (gh-354).
+        if (n <= 50 || (n <= 219 && k >= 1)) {
             return detail::stirling2_dp(n, k);
         }
         return detail::stirling2_temme(n, k);
