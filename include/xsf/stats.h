@@ -210,7 +210,7 @@ XSF_HOST_DEVICE inline double students_t_cdf(double nu, double t) {
     // t: the upper limit of integration
     //
     // The following code originates from the Boost C++ library,
-    // from file `boost/math/distributions/students_t.hpp with
+    // from file `boost/math/distributions/students_t.hpp` with
     // minor changes.
 
     if (cxx::isnan(nu) || cxx::isnan(t) || nu <= 0) {
