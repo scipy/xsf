@@ -229,7 +229,8 @@ TEST_CASE("bivariate normal CDF test", "[bivariate_normal_cdf][xsf_tests]") {
         );
         const double output = xsf::bivariate_normal_cdf(dh, dk, r);
         const auto rel_error = xsf::extended_relative_error(output, expected);
-        constexpr double rtol = 3e-14;
+        // exp(-620) for the first case: rounding in the exponent costs ~620 eps
+        constexpr double rtol = 3e-13;
         CAPTURE(dh, dk, r, output, expected, rtol, rel_error);
         REQUIRE(rel_error <= rtol);
     }
