@@ -625,8 +625,8 @@ void pbdv(T v, T x, T &pdf, T &pdd) {
         pdf = std::numeric_limits<T>::quiet_NaN();
         pdd = std::numeric_limits<T>::quiet_NaN();
     } else {
-        /* NB. Indexing of DV/DP in specfun.f:PBDV starts from 0, hence +2 */
-        num = std::abs((int)v) + 2;
+        /* NB. Indexing of DV/DP in specfun.f:PBDV starts from 0 and |v| + 1 can round up, hence +3 */
+        num = std::abs((int)v) + 3;
         dv = (T *)malloc(sizeof(T) * 2 * num);
         if (dv == NULL) {
             set_error("pbdv", SF_ERROR_MEMORY, "memory allocation error");
@@ -650,8 +650,8 @@ void pbvv(T v, T x, T &pvf, T &pvd) {
         pvf = std::numeric_limits<T>::quiet_NaN();
         pvd = std::numeric_limits<T>::quiet_NaN();
     } else {
-        /* NB. Indexing of DV/DP in specfun.f:PBVV starts from 0, hence +2 */
-        num = std::abs((int)v) + 2;
+        /* NB. Indexing of VV/VP in specfun.f:PBVV starts from 0 and |v| + 1 can round up, hence +3 */
+        num = std::abs((int)v) + 3;
         vv = (T *)malloc(sizeof(T) * 2 * num);
         if (vv == NULL) {
             set_error("pbvv", SF_ERROR_MEMORY, "memory allocation error");
