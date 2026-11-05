@@ -141,7 +141,18 @@ namespace cephes {
             double ax, fac, res, num;
 
             if (cxx::abs(a - x) > 0.4 * cxx::abs(a)) {
-                ax = a * cxx::log(x) - x - xsf::cephes::lgam(a);
+                if (a >= igam_LARGE) {
+                    // Rearrange Stirling's formula to avoid cancellation of terms of size a * log(a).
+                    double ratio = (x - a) / a;
+                    double log_term = ratio > -0.5 ? xsf::cephes::log1pmx(ratio) : cxx::log(x / a) - ratio;
+                    double inv_a = 1.0 / a;
+                    double inv_a_sq = inv_a * inv_a;
+                    // The omitted a^-7 term is below 5e-20 for a >= 200.
+                    double correction = ((1.0 / 1260.0 * inv_a_sq - 1.0 / 360.0) * inv_a_sq + 1.0 / 12.0) * inv_a;
+                    ax = a * log_term + 0.5 * cxx::log(a) - LS2PI - correction;
+                } else {
+                    ax = a * cxx::log(x) - x - xsf::cephes::lgam(a);
+                }
                 if (ax < -MAXLOG) {
                     set_error("igam", SF_ERROR_UNDERFLOW, NULL);
                     return 0.0;
