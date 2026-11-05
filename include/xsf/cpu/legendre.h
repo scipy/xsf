@@ -369,15 +369,31 @@ void assoc_legendre_p_pm1(NormPolicy norm, int n, int m, dual<T, Order> z, int b
             } else if (m == 4) {
                 res[2] = T(n + 4) * T(n + 3) * T(n + 2) * T(n + 1) * T(n) * T(n - 1) * T(n - 2) * T(n - 3) / T(48);
             } else if (m == -4) {
-                res[2] = 0;
+                res[2] = std::pow(z[0], T(n)) / T(48);
             } else if (m == -3) {
                 res[2] = -std::numeric_limits<remove_complex_t<T>>::infinity();
             } else if (m == -2) {
-                res[2] = -T(1) / T(4);
+                res[2] = -branch_cut_sign * T((n + 1) * n - 3) * std::pow(z[0], T(n)) / T(12);
             } else if (m == -1) {
                 res[2] = -std::numeric_limits<remove_complex_t<T>>::infinity();
             } else {
                 res[2] = 0;
+            }
+        }
+
+        // The closed forms above are for the unnormalized polynomial
+        if (cxx::is_same_v<NormPolicy, assoc_legendre_norm_policy> && abs(m) <= n) {
+            T fac = T(2 * n + 1) / T(2);
+            for (int k = n - m + 1; k <= n + m; ++k) {
+                fac /= T(k);
+            }
+            for (int k = n + m + 1; k <= n - m; ++k) {
+                fac *= T(k);
+            }
+            fac = sqrt(fac);
+
+            for (size_t i = 1; i <= Order; ++i) {
+                res[i] *= fac;
             }
         }
     }
