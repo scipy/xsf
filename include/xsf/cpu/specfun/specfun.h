@@ -1299,7 +1299,7 @@ namespace specfun {
                 r0 = ra;
                 hu += r;
             }
-            *id = (int)fabs(log10(ra));
+            *id = (ra == 0.0) ? 15 : (int)fabs(log10(ra));
             hu *= pow(x, -a);
         }
         return hu;
