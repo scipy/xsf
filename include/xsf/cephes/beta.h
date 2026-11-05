@@ -71,9 +71,18 @@ namespace cephes {
             double r = lgam_sgn(b, sgn);
             r -= b * cxx::log(a);
 
-            r += b * (1 - b) / (2 * a);
-            r += b * (1 - b) * (1 - 2 * b) / (12 * a * a);
-            r += -b * b * (1 - b) * (1 - b) / (12 * a * a * a);
+            /*
+             * Evaluate the correction terms through the small ratios b/a and (1-b)/a
+             * instead of the products b*(1-b), b*b*(1-b)*(1-b) and a*a*a, which overflow
+             * for |b| > ~1e77 or a > ~5.6e102 and turned the result into NaN (inf/inf)
+             * for e.g. lbeta(1e100, 1e107) although log|B| is an ordinary finite number.
+             */
+            double t = b / a;
+            double u = (1 - b) / a;
+
+            r += t * (1 - b) / 2;
+            r += t * u * (1 - 2 * b) / 12;
+            r += -t * t * u * (1 - b) / 12;
 
             return r;
         }

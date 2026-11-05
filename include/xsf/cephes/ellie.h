@@ -203,6 +203,11 @@ namespace cephes {
             return -m;
         if (m == 0.0)
             return (phi);
+        /* From about 2^53 on, the reduction below loses the residual.
+         * E(phi, m) = 2 phi E(m) / pi + O(E(m)), DLMF 19.2.10 */
+        if (cxx::abs(phi) > 9e15) {
+            return phi / M_PI_2 * ellpe(m);
+        }
         lphi = phi;
         npio2 = cxx::floor(lphi / M_PI_2);
         if (cxx::fmod(cxx::abs(npio2), 2.0) == 1.0)

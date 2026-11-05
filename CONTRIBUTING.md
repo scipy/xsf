@@ -65,6 +65,18 @@ following <https://cmake.org/cmake/help/latest/manual/ctest.1.html#cmdoption-cte
 
 Run `pixi info` for a full list of environments and their tasks.
 
+## Documentation
+
+Build the documentation with:
+
+```bash
+pixi run docs
+```
+
+The HTML output is written to `doc/_build/html`.
+Use `pixi run docs-open` to build and open it in a web browser,
+and `pixi run docs-clean` to remove the generated output.
+
 ## Pull requests
 
 Run the relevant tests and formatting checks before opening a pull request.

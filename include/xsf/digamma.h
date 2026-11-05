@@ -206,7 +206,7 @@ XSF_HOST_DEVICE inline cxx::complex<double> digamma(cxx::complex<double> z) {
         res += detail::digamma_backward_recurrence(z + n, init, n);
     } else {
         // z.real() < 0, absz < smallabsz, and z.imag() > smallimag
-        double n = cxx::trunc(smallabsz - absz) - 1;
+        double n = cxx::fmax(cxx::trunc(smallabsz - absz) - 1, 0.0);
         cxx::complex<double> init = detail::digamma_asymptotic_series(z - n);
         res += detail::digamma_forward_recurrence(z - n, init, n);
     }

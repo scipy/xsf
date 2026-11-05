@@ -105,7 +105,7 @@ namespace cephes {
 
         /*
          * Large-z expansion for Struve H and L
-         * https://dlmf.nist.gov/11.6.1
+         * https://dlmf.nist.gov/11.6.1, https://dlmf.nist.gov/11.6.2
          */
         XSF_HOST_DEVICE inline double struve_asymp_large_z(double v, double z, int is_h, double *err) {
             int n, sgn, maxiter;
@@ -156,9 +156,13 @@ namespace cephes {
             }
 
             if (is_h) {
+                // H_v = Struve K_v + Y_v, DLMF 11.2.5
                 sum += xsf::cyl_bessel_y(v, z);
             } else {
-                sum += xsf::cephes::iv(v, z);
+                // L_v = M_v + I_v (DLMF 11.2.6), but use I_{-v}: then the full series is exact at
+                // half-integer v (DLMF 11.4.2, 11.4.4). I_{-v} - I_v = (2/pi) sin(pi v) K_v(z)
+                // (DLMF 10.27.2) can matter at finite z.
+                sum += xsf::cephes::iv(-v, z);
             }
 
             /*

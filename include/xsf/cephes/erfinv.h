@@ -4,6 +4,7 @@
 #include "../config.h"
 #include "../error.h"
 
+#include "../ndtri_exp.h"
 #include "ndtri.h"
 
 namespace xsf {
@@ -58,6 +59,11 @@ namespace cephes {
         constexpr double domain_ub = 2;
 
         if ((domain_lb < y) && (y < domain_ub)) {
+            if (y < 2 * cxx::numeric_limits<double>::min()) {
+                /* 0.5 * y can lose precision (or underflow to 0) for these y:
+                 * ndtri(0.5 * y) = ndtri_exp(log(y) - log(2)). */
+                return -ndtri_exp(cxx::log(y) - M_LN2) * M_SQRT1_2;
+            }
             return -ndtri(0.5 * y) * M_SQRT1_2;
         } else if (y == domain_lb) {
             return cxx::numeric_limits<double>::infinity();
