@@ -51,3 +51,19 @@ TEST_CASE("pbdv and pbvv derivative when |v| + 1 rounds up", "[pbdv][pbvv][xsf_t
     CAPTURE(is_pbdv, v, x, d, desired, error, rtol);
     REQUIRE(error <= rtol);
 }
+
+TEST_CASE("pbdv and pbvv at v = -0.0", "[pbdv][pbvv][xsf_tests]") {
+    // Regression test for gh-418: v = -0.0 took the negative-order path.
+    SET_FP_FORMAT()
+    double f_pos, d_pos, f_neg, d_neg;
+
+    xsf::pbdv(0.0, 50.0, f_pos, d_pos);
+    xsf::pbdv(-0.0, 50.0, f_neg, d_neg);
+    CHECK(f_neg == f_pos);
+    CHECK(d_neg == d_pos);
+
+    xsf::pbvv(0.0, 5.0, f_pos, d_pos);
+    xsf::pbvv(-0.0, 5.0, f_neg, d_neg);
+    CHECK(f_neg == f_pos);
+    CHECK(d_neg == d_pos);
+}

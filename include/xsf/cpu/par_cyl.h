@@ -224,7 +224,7 @@ namespace detail {
 
         xa = fabs(x);
         vh = v;
-        v += copysign(1.0, v);
+        v += (v < 0) ? -1.0 : 1.0;
         nv = (int)v;
         v0 = v - nv;
         na = abs(nv);
@@ -359,7 +359,7 @@ namespace detail {
 
         xa = fabs(x);
         vh = v;
-        v += copysign(1.0, v);
+        v += (v < 0) ? -1.0 : 1.0;
         nv = (int)v;
         v0 = v - nv;
         na = abs(nv);
