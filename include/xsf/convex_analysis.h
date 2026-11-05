@@ -2,6 +2,7 @@
 // Original implementation by argriffing.
 #pragma once
 
+#include "cephes/unity.h"
 #include "config.h"
 
 namespace xsf {
@@ -20,21 +21,6 @@ XSF_HOST_DEVICE inline double entr(double x) {
 }
 
 XSF_HOST_DEVICE inline float entr(float x) { return entr(static_cast<double>(x)); }
-
-// Elementwise function for computing Kullback-Leibler divergence.
-XSF_HOST_DEVICE inline double kl_div(double x, double y) {
-    if (cxx::isnan(x) || cxx::isnan(y)) {
-        return cxx::numeric_limits<double>::quiet_NaN();
-    } else if (x > 0 && y > 0) {
-        return x * cxx::log(x / y) - x + y;
-    } else if (x == 0 && y >= 0) {
-        return y;
-    } else {
-        return cxx::numeric_limits<double>::infinity();
-    }
-}
-
-XSF_HOST_DEVICE inline float kl_div(float x, float y) { return kl_div(static_cast<double>(x), static_cast<double>(y)); }
 
 // Elementwise function for computing relative entropy.
 XSF_HOST_DEVICE inline double rel_entr(double x, double y) {
@@ -66,6 +52,29 @@ XSF_HOST_DEVICE inline double rel_entr(double x, double y) {
 XSF_HOST_DEVICE inline float rel_entr(float x, float y) {
     return rel_entr(static_cast<double>(x), static_cast<double>(y));
 }
+
+// Elementwise function for computing Kullback-Leibler divergence.
+XSF_HOST_DEVICE inline double kl_div(double x, double y) {
+    if (cxx::isnan(x) || cxx::isnan(y)) {
+        return cxx::numeric_limits<double>::quiet_NaN();
+    } else if (x > 0 && y > 0) {
+        // With x = y (1 + e), this is y ((1 + e) log(1 + e) - e), which avoids cancellation near x = y
+        double e = (x - y) / y;
+        if (e == 0) {
+            return 0;
+        }
+        if (-0.5 <= e && e < 1) {
+            return y * (cephes::log1pmx(e) + e * cxx::log1p(e));
+        }
+        return rel_entr(x, y) - x + y;
+    } else if (x == 0 && y >= 0) {
+        return y;
+    } else {
+        return cxx::numeric_limits<double>::infinity();
+    }
+}
+
+XSF_HOST_DEVICE inline float kl_div(float x, float y) { return kl_div(static_cast<double>(x), static_cast<double>(y)); }
 
 // Huber loss function.
 XSF_HOST_DEVICE inline double huber(double delta, double r) {
