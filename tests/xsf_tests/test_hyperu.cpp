@@ -85,3 +85,32 @@ TEST_CASE("hyperu gh-15650 sanity", "[hyperu][xsf_tests]") {
         }
     }
 }
+
+TEST_CASE("hyperu tiny a", "[hyperu][xsf_tests]") {
+    // Regression test for gh-350: the first (tiny a) or second (a near -1)
+    // term of the large-x series rounds to 0, and log10(0) was converted to
+    // int, so this returned NaN.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 30
+
+    for a, b, x in [(1e-17, 0.5, 100.0), (-1e-17, 0.5, 100.0), (-1 + 2**-53, 0.5, 200.0)]:
+        print(f"hyperu({a!r}, {b!r}, {x!r}) = {float(mpmath.hyperu(a, b, x))!r}")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double, double>;
+    auto [a, b, x, desired] = GENERATE(
+        test_case{1e-17, 0.5, 100.0, 1.0}, test_case{-1e-17, 0.5, 100.0, 1.0},
+        test_case{-0.9999999999999999, 0.5, 200.0, 199.4999999999999}
+    );
+
+    const double out = xsf::hyperu(a, b, x);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 5e-16;
+    CAPTURE(a, b, x, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
