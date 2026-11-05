@@ -40,7 +40,8 @@ TEST_CASE("cyl_bessel_k and cyl_bessel_ke near DBL_MAX", "[cyl_bessel_k][cyl_bes
     const double ke = xsf::cyl_bessel_ke(v, x);
     const double k_error = xsf::extended_relative_error(k, desired_k);
     const double ke_error = xsf::extended_relative_error(ke, desired_ke);
-    const double rtol = 5e-15;
+    // AMOS itself is only accurate to a few 1e-14 here, and other libms differ
+    const double rtol = 5e-14;
     CAPTURE(v, x, k, ke, desired_k, desired_ke, k_error, ke_error, rtol);
     REQUIRE(k_error <= rtol);
     REQUIRE(ke_error <= rtol);
