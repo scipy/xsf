@@ -8,30 +8,27 @@
 
 #include <xsf/beta.h>
 
-TEST_CASE("betaln large arguments with ratio above the asymptotic threshold", "[betaln][xsf_tests]") {
-    // Before the fix lbeta_asymp overflowed b*(1-b), b*b*(1-b)*(1-b) or a*a*a
-    // and returned NaN (inf/inf) for every case in the first group.
+TEST_CASE("betaln large arguments precision and stability", "[betaln][xsf_tests]") {
     constexpr double rtol = 1e-13;
     struct Case {
         double a, b, expected;
     };
-    // Reference values: lgamma(a) + lgamma(b) - lgamma(a + b) with mpmath 1.3.0,
-    // computed at a precision where a + b is exact, e.g. for the first case
-    //     mp.dps = 80
-    //     mp.loggamma(mpf(1e100)) + mp.loggamma(mpf(1e107)) - mp.loggamma(mpf(1e100) + mpf(1e107))
-    //     = -1.711809570095832...e+101
-    // (dps = 50 + log10(max(a, b) / min(a, b)) + 10 for each case), then rounded
-    // to double.  The inputs are powers of ten that are exact in double.
     const std::vector<Case> cases = {
+        // Cases that formerly returned NaN due to intermediate overflow
         {1e100, 1e107, -1.711809570095832e+101},
         {1e150, 1e157, -1.711809570095832e+151},
         {1e200, 1e230, -7.007755278982136e+201},
         {1e7, 1e100, -2151404143.624572},
-        // ratio below the threshold: the non-asymptotic path, unchanged by the fix
+        // Cases that formerly suffered from catastrophic cancellation (~1e-9 error)
+        {2.2350235285263674e+123, 3.029877315654731e+117, -4.396727951061843e+118},
+        {1.724473080349204e+106, 7.006411699535731e+100, -9.39812631468069e+101},
         {1e10, 1e20, -240258509310.49857},
         {1e20, 1e30, -2.4025850929990457e+21},
+        // Standard range sanity check
         {2.0, 3.0, -2.4849066497880004},
+        {1e5, 1e5, -1.386339270613481e+05},
     };
+
     for (const auto &c : cases) {
         const auto output = xsf::betaln(c.a, c.b);
         const auto rel_error = xsf::extended_relative_error(output, c.expected);
