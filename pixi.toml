@@ -87,7 +87,7 @@ cupy-tests = {
     xsf.path = ".",
     xsref = {
       git = "https://github.com/scipy/xsref",
-      rev = "b511621d228fdc660f3471f2855fd9955652f34d",
+      rev = "47cb6b3d6d80bc1a74e884642b254f7afd9406ab",
     },
     cupy = "*",
     pytest-forked = "*",

@@ -19,3 +19,11 @@ TEST_CASE("iv tiny inputs", "[bessel][xsf_tests]") {
     CAPTURE(n, z, result, ref, rel_err, rtol);
     REQUIRE(rel_err <= rtol);
 }
+
+TEST_CASE("jv power series overflow keeps the sign", "[bessel][xsf_tests]") {
+    // Regression test for gh-341: the first case returned +inf.
+    // mpmath.besselj(v, x) is -4.2372e+431 and 1.6148e+428, respectively.
+    const double inf = std::numeric_limits<double>::infinity();
+    REQUIRE(xsf::cyl_bessel_j(-123.57388919180612, 0.028605192190944706) == -inf);
+    REQUIRE(xsf::cyl_bessel_j(-124.68311766689978, 0.032989216721374115) == inf);
+}

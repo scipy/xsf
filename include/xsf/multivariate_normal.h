@@ -66,6 +66,18 @@ XSF_HOST_DEVICE inline double bivariate_normal_cdf(double dh, double dk, double 
     // see license information in LICENSES_bundled.txt.
     // In the comments, phid is the CDF of the standard normal distribution.
 
+    if (cxx::isnan(dh) || cxx::isnan(dk) || cxx::isnan(r)) {
+        return cxx::numeric_limits<double>::quiet_NaN();
+    }
+    // phid(-40) underflows to 0, so |dh|, |dk| > 40 act as infinite (and can't overflow h*k below).
+    const double inf = cxx::numeric_limits<double>::infinity();
+    if (cxx::abs(dh) > 40) {
+        dh = cxx::copysign(inf, dh);
+    }
+    if (cxx::abs(dk) > 40) {
+        dk = cxx::copysign(inf, dk);
+    }
+
     // By symmetry, the CDF at (dh, dk) is the upper-tail probability at (-dh, -dk).
     dh = -dh;
     dk = -dk;

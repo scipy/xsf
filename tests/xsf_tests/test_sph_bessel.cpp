@@ -313,3 +313,21 @@ TEST_CASE("spherical_k_jac reflection derivative complex", "[spherical_bessel][x
     CAPTURE(n, z, result_spherical_k_jac, ref_spherical_k_jac, rel_err_spherical_k_jac, rtol);
     REQUIRE(rel_err_spherical_k_jac <= rtol);
 }
+
+// Regression test for gh-359: j_n(x) underflowed to 0 for tiny x.
+TEST_CASE("spherical_j tiny inputs", "[spherical_bessel][xsf_tests]") {
+    SET_FP_FORMAT()
+    using test_case = std::tuple<long, double, double>;
+
+    // Reference values: float(mpmath.besselj(n + 0.5, x) * mpmath.sqrt(mpmath.pi / (2 * x))), mp.dps = 50.
+    auto [n, x, ref] = GENERATE(
+        test_case{1, 1.166e-222, 3.886666666666666e-223}, test_case{2, 1e-150, 6.666666666666666e-302},
+        test_case{1, 1e-300, 3.3333333333333334e-301}
+    );
+
+    double result = xsf::sph_bessel_j(n, x);
+    double rel_err = xsf::extended_relative_error(result, ref);
+
+    CAPTURE(n, x, result, ref, rel_err);
+    REQUIRE(rel_err <= 1e-15);
+}

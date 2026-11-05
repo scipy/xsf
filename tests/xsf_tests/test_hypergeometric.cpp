@@ -54,3 +54,30 @@ TEST_CASE("hyp1f1(nan, nan, complex('nan')) / gh-94", "[hyp1f1][xsf_tests]") {
     REQUIRE(std::isnan(result.real()));
     REQUIRE(std::isnan(result.imag()));
 }
+
+TEST_CASE("hyp1f1(a, b, z) large |z| with ph z < 0 after Kummer", "[hyp1f1][xsf_tests]") {
+    // Regression test for gh-398: the asymptotic expansion used e^{+pi i a}
+    // for Im z < 0 (after Kummer's transformation).
+    /*
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for a, b, z in [(0.5, 1.5, 5 - 25j), (0.5, 1.0, -5 + 25j), (2.5, 4.0, 1 - 40j)]:
+        print(complex(mpmath.hyp1f1(a, b, z)))
+    */
+    SET_FP_FORMAT()
+    using cd = std::complex<double>;
+    using test_case = std::tuple<double, double, cd, cd>;
+    auto [a, b, z, desired] = GENERATE(
+        test_case{0.5, 1.5, {5, -25}, {0.24299529873403347, 2.780418451436882}},
+        test_case{0.5, 1.0, {-5, 25}, {0.08623955921134369, 0.07114671464042453}},
+        test_case{2.5, 4.0, {1, -40}, {0.047946430070203216, -0.001373279980288495}}
+    );
+
+    const cd out = xsf::hyp1f1(a, b, z);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 2e-8; // limited by the 8-term asymptotic series
+    CAPTURE(a, b, z, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}

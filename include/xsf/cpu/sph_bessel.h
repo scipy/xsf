@@ -34,6 +34,20 @@ Translated to C++ by SciPy developers in 2024.
 
 namespace xsf {
 
+namespace detail {
+
+    // Leading term x^n / (2n + 1)!! of j_n(x) and i_n(x) as x -> 0, https://dlmf.nist.gov/10.52.E1
+    template <typename T>
+    T sph_bessel_tiny(long n, T x) {
+        T res = 1;
+        for (long k = 1; k <= n && res != 0; ++k) {
+            res *= x / (2 * static_cast<T>(k) + 1);
+        }
+        return res;
+    }
+
+} // namespace detail
+
 template <typename T>
 T sph_bessel_j(long n, T x) {
     if (std::isnan(x)) {
@@ -64,6 +78,13 @@ T sph_bessel_j(long n, T x) {
         }
 
         return 0;
+    }
+
+    // Avoid underflow of J_{n + 1/2}(x) as in sph_bessel_i; the first correction term,
+    // -x^2 / (4n + 6) (https://dlmf.nist.gov/10.53.E1), is below eps / 4 here.
+    // x < 1 keeps the product from overflowing for huge n.
+    if (x < 1 && x * x < (static_cast<T>(n) + static_cast<T>(1.5)) * std::numeric_limits<T>::epsilon()) {
+        return detail::sph_bessel_tiny(n, x);
     }
 
     if ((n > 0) && (n >= x)) {
@@ -291,11 +312,7 @@ T sph_bessel_i(long n, T x) {
     // term of the power series i_n(x) = x^n / (2n + 1)!! * (1 + O(x^2)).
     // The cutoff bounds the omitted first correction by roughly eps / 4.
     if (x * x < (static_cast<T>(n) + static_cast<T>(1.5)) * std::numeric_limits<T>::epsilon()) {
-        T res = 1;
-        for (long k = 1; k <= n && res != 0; ++k) {
-            res *= x / (2 * static_cast<T>(k) + 1);
-        }
-        return res;
+        return detail::sph_bessel_tiny(n, x);
     }
 
     return sqrt(static_cast<T>(M_PI_2) / x) * cyl_bessel_i(n + 1 / static_cast<T>(2), x);
