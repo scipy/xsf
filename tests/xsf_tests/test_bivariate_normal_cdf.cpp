@@ -206,4 +206,31 @@ TEST_CASE("bivariate normal CDF test", "[bivariate_normal_cdf][xsf_tests]") {
         REQUIRE(xsf::bivariate_normal_cdf(1e70, 38.0, 0.97) == 1.0);
         REQUIRE(xsf::bivariate_normal_cdf(-1e200, -1e200, 0.5) == 0.0);
     }
+
+    SECTION("bivariate normal CDF tails") {
+        // Regression test for gh-360 (part 3): loss of relative accuracy in the tails.
+        // Reference values computed with mpmath (they agree with Plackett's identity integrated by mp.quad):
+        //
+        // from mpmath import mp, mpf, quad, ncdf, npdf, sqrt, inf
+        // mp.dps = 50
+        //
+        // def bvn(h, k, r):
+        //     h, k, r = mpf(h), mpf(k), mpf(r)
+        //     f = lambda x: npdf(x) * ncdf((k - r * x) / sqrt(1 - r * r))
+        //     c = f(h)  # mp.quad's tolerance is absolute: scale the integrand to O(1)
+        //     return c * quad(lambda x: f(x) / c, [-inf] + [h - mpf(2) ** -j for j in range(-6, 12)] + [h])
+        //
+        // for h, k, r in [(-9.7, -5.1, -0.91), (-9.7, -8.9, 0.29), (-9.96, -1.37, 0.277)]:
+        //     print(repr(float(bvn(h, k, r))))
+        using test_case = std::tuple<double, double, double, double>;
+        auto [dh, dk, r, expected] = GENERATE(
+            test_case{-9.7, -5.1, -0.91, 2.024467204119687e-270}, test_case{-9.7, -8.9, 0.29, 1.8914162120002424e-32},
+            test_case{-9.96, -1.37, 0.277, 1.0601088525088668e-23}
+        );
+        const double output = xsf::bivariate_normal_cdf(dh, dk, r);
+        const auto rel_error = xsf::extended_relative_error(output, expected);
+        constexpr double rtol = 3e-14;
+        CAPTURE(dh, dk, r, output, expected, rtol, rel_error);
+        REQUIRE(rel_error <= rtol);
+    }
 }
