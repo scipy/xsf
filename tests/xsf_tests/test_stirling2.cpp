@@ -155,4 +155,5 @@ TEST_CASE("stirling2 gh-354", "[stirling2][xsf_tests]") {
     CHECK(xsf::stirling2(5.0, 0.5) == 0.0);
     CHECK(xsf::stirling2(100.0, 0.5) == 0.0);
     CHECK(std::isnan(xsf::stirling2(5.0, std::numeric_limits<double>::quiet_NaN())));
+    CHECK(std::isnan(xsf::stirling2(300.0, std::numeric_limits<double>::quiet_NaN())));
 }
