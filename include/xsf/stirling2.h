@@ -31,8 +31,11 @@ namespace detail {
         if ((n == 0 && k == 0) || (n == 1 && k == 1)) {
             return 1.0;
         }
-        if (k <= 0 || k > n || n < 0) {
+        if (k < 1 || k > n || n < 0) {
             return 0.0;
+        }
+        if (cxx::isnan(k)) {
+            return cxx::numeric_limits<double>::quiet_NaN();
         }
 
         int ni = static_cast<int>(n);
@@ -110,8 +113,7 @@ namespace detail {
 
     XSF_HOST_DEVICE inline double stirling2(double n, double k) {
         // 219 is the largest n for which no S(n, k) overflows.
-        // Keep k < 1 and NaN k with n > 50 out of the DP (gh-354).
-        if (n <= 50 || (n <= 219 && k >= 1)) {
+        if (n <= 219) {
             return detail::stirling2_dp(n, k);
         }
         return detail::stirling2_temme(n, k);
