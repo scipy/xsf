@@ -584,10 +584,16 @@ XSF_HOST_DEVICE inline cxx::complex<double> hyp2f1(double a, double b, double c,
     cxx::complex<double> result;
     bool c_minus_a_neg_int = c - a == cxx::trunc(c - a) && c - a < 0;
     bool c_minus_b_neg_int = c - b == cxx::trunc(c - b) && c - b < 0;
+    /* Skip the Euler transforms below when they cancel 3 to 300 digits:
+     * with c - a and c - b of opposite sign the transformed series
+     * alternates, while the plain one has positive terms. See gh-371. */
+    double euler_loss = (c - a - b) * cxx::log10(cxx::abs(1.0 - z));
+    bool euler_costly = a > 0 && b > 0 && c > 0 && z.imag() == 0 && z.real() > 0 && z.real() < 0.9 &&
+                        (c - a) * (c - b) < 0 && euler_loss > 3.0 && euler_loss < 300.0;
     /* If one of c - a or c - b is a negative integer, reduces to evaluating
      * a polynomial through an Euler hypergeometric transformation.
      * (DLMF 15.8.1) */
-    if (c_minus_a_neg_int || c_minus_b_neg_int) {
+    if ((c_minus_a_neg_int || c_minus_b_neg_int) && !euler_costly) {
         max_degree = c_minus_b_neg_int ? cxx::abs(c - b) : cxx::abs(c - a);
         if (max_degree <= (double)UINT64_MAX) {
             result = cxx::pow(1.0 - z, c - a - b);
@@ -620,7 +626,7 @@ XSF_HOST_DEVICE inline cxx::complex<double> hyp2f1(double a, double b, double c,
      * to determine when this transformation should be applied. As it
      * stands, this hurts precision in some cases. */
     if (z_abs < 0.9 && z.real() >= 0) {
-        if (c - a < a && c - b < b) {
+        if (c - a < a && c - b < b && !euler_costly) {
             result = cxx::pow(1.0 - z, c - a - b);
             auto series_generator = detail::HypergeometricSeriesGenerator(c - a, c - b, c, z);
             result *= detail::series_eval(
