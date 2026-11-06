@@ -119,6 +119,14 @@ rg(const T& x, const T& y, const T& z, const double& rerr, T& res)
 {
     typedef typing::decplx_t<T> RT;
 
+    int shift = util::scaling_exponent({x, y, z}, std::numeric_limits<RT>::min());
+    if (shift != 0)
+    {
+        ExitStatus status = rg(util::scale_pow2(x, shift), util::scale_pow2(y, shift), util::scale_pow2(z, shift), rerr, res);
+        res = util::scale_pow2(res, -1 * shift / 2);
+        return status;
+    }
+
     ExitStatus status = ExitStatus::success;
 #ifndef ELLINT_NO_VALIDATE_RELATIVE_ERROR_BOUND
     if ( argcheck::invalid_rerr(rerr, 1.0e-4) )

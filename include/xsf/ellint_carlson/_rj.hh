@@ -321,6 +321,8 @@ rj_asym_conf(const T& x, const T& y, const T& z, const T& p,
     if ( abs_close_zero(p) || ( (x != 0.0) && asymp_zero(p / x) ) )
     {
 	conf.f = std::sqrt(x * y * z);
+        if (!std::isnormal(conf.f) || !std::isnormal(x * y))
+            conf.f = std::sqrt(x) * std::sqrt(y) * std::sqrt(z);
 	return AsymFlag::tinyp;
     }
 
@@ -413,6 +415,16 @@ rj(const T& x, const T& y, const T& z, const T& p, const double& rerr, T& res,
    bool noasymp)
 {
     typedef typing::decplx_t<T> RT;
+
+    int shift = util::scaling_exponent({x, y, z, p}, 0x1p-254);
+    if (shift != 0)
+    {
+        ExitStatus status = rj(util::scale_pow2(x, shift), util::scale_pow2(y, shift),
+                               util::scale_pow2(z, shift), util::scale_pow2(p, shift),
+                               rerr, res, noasymp);
+        res = util::scale_pow2(res, 3 * shift / 2);
+        return status;
+    }
 
     rjimpl::ArgCases classify;
     T cct1[6];
@@ -510,7 +522,17 @@ rj(const T& x, const T& y, const T& z, const T& p, const double& rerr, T& res,
 		alpha = alpha * alpha;
 		RT beta = pr + lamt;
 		beta = beta * beta * pr;
-		status_tmp = rc(alpha, beta, r, xct2[0]);
+		if (std::isnormal(alpha) && std::isnormal(beta))
+		{
+		    status_tmp = rc(alpha, beta, r, xct2[0]);
+		} else {
+		    // R_C(a^2, p b^2) = (s / b) R_C((s a / b)^2, s^2 p).
+		    RT b = pr + lamt;
+		    RT t = (pr * ((xct1[0] + xct1[1] + xct1[2]) / b) +
+			    xct1[1] * (xct1[2] * (xct1[0] / b))) * 0x1p64;
+		    status_tmp = rc(t * t, 0x1p128 * pr, r, xct2[0]);
+		    xct2[0] *= 0x1p64 / b;
+		}
 		status = rj(xr + lamt, yr + lamt, zr + lamt, pr + lamt, r,
 		            xct2[1]);
 		if ( status_tmp != ExitStatus::success )
