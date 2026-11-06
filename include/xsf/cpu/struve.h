@@ -5,6 +5,37 @@
 namespace xsf {
 namespace detail {
 
+    // Integrals of H0(t) and H0(t)/t from 0 to x, for 0.5 <= x < 40. This integrates
+    // H0(t) = 4/pi sum_k J_{2k+1}(t) / (2k+1) (DLMF 11.4.21) term by term with
+    //   int_0^x J_{2k+1}(t) dt = 2 sum_{j > k} J_{2j}(x),
+    //   int_0^x J_{2k+1}(t) / t dt = (2 sum_{j >= k} J_{2j+1}(x) - J_{2k+1}(x)) / (2k+1)
+    // (both from DLMF 10.6.1), with J_n(x) from Miller's backward recurrence normalized by DLMF 10.12.4.
+    inline void itsh0_neumann(double x, double *th0, double *tth0) {
+        const double pi = 3.141592653589793;
+        double n = 2.0 * floor(0.5 * x) + 51.0; // odd, and J_n(x) < 1e-22
+        double jp = 0.0, j = 1.0, jn;           // J_{n+1}(x) and J_n(x), unnormalized
+        double te = 0.0, to = 0.0, se = 0.0, so = 0.0;
+        for (;;) {
+            to += j;      // sum of J_{2k+1}(x) with 2k+1 >= n
+            se += te / n; // te: sum of J_{2k}(x) with 2k > n
+            so += (2.0 * to - j) / (n * n);
+            jn = 2.0 * n / x * j - jp;
+            jp = j;
+            j = jn;
+            if (n < 2.0) {
+                break;
+            }
+            te += j;
+            jn = 2.0 * (n - 1.0) / x * j - jp;
+            jp = j;
+            j = jn;
+            n -= 2.0;
+        }
+        const double norm = j + 2.0 * te; // J_0(x) + 2 J_2(x) + 2 J_4(x) + ... = 1
+        *th0 = 8.0 / pi * se / norm;
+        *tth0 = 4.0 / pi * so / norm;
+    }
+
     inline double itth0(double x) {
 
         // ===========================================================
@@ -17,6 +48,11 @@ namespace detail {
         int k;
         double f0, g0, r, s, t, tth, tty, xt;
         const double pi = 3.141592653589793;
+        if (x >= 0.5 && x < 40.0) {
+            double th0, tth0;
+            itsh0_neumann(x, &th0, &tth0);
+            return pi / 2.0 - tth0;
+        }
         s = 1.0;
         r = 1.0;
         if (x < 24.5) {
@@ -64,6 +100,11 @@ namespace detail {
         const double pi = 3.141592653589793;
         const double el = 0.57721566490153;
 
+        if (x >= 0.5 && x < 40.0) {
+            double tth0;
+            itsh0_neumann(x, &th0, &tth0);
+            return th0;
+        }
         r = 1.0;
         if (x <= 30.0) {
             s = 0.5;
