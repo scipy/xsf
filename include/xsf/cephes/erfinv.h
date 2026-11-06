@@ -21,19 +21,23 @@ namespace cephes {
         constexpr double domain_lb = -1;
         constexpr double domain_ub = 1;
 
-        constexpr double thresh = 1e-7;
+        constexpr double thresh = 1e-8;
 
         /*
          * For small arguments, use the Taylor expansion
          * erf(y) = 2/\sqrt{\pi} (y - y^3 / 3 + O(y^5)),    y\to 0
          * where we only retain the linear term.
-         * Otherwise, y + 1 loses precision for |y| << 1.
          */
         if ((-thresh < y) && (y < thresh)) {
             return y / M_2_SQRTPI;
         }
-        if ((domain_lb < y) && (y < domain_ub)) {
+        if ((-0.5 < y) && (y < 0.5)) {
+            return detail::ndtri_central(0.5 * y) * M_SQRT1_2;
+        }
+        if ((domain_lb < y) && (y < 0)) {
             return ndtri(0.5 * (y + 1)) * M_SQRT1_2;
+        } else if ((0 < y) && (y < domain_ub)) {
+            return -ndtri(0.5 * (1 - y)) * M_SQRT1_2;
         } else if (y == domain_lb) {
             return -cxx::numeric_limits<double>::infinity();
         } else if (y == domain_ub) {
