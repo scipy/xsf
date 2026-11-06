@@ -62,6 +62,7 @@ namespace detail {
      * at a reasonable level of accuracy. We've bumped the iteration limit to 3000,
      * and may adjust it again based on further analysis. */
     constexpr cxx::uint64_t hyp2f1_MAXITER = 3000;
+    constexpr cxx::uint64_t hyp2f1_MAXITER_FIXED = 1 << 20;
 
     XSF_HOST_DEVICE inline double four_gammas_lanczos(double u, double v, double w, double x) {
         /* Compute ratio of gamma functions using lanczos approximation.
@@ -461,6 +462,10 @@ namespace detail {
 
     XSF_HOST_DEVICE inline cxx::complex<double>
     hyp2f1_transform1_limiting_case(double a, double b, double c, double m, cxx::complex<double> z) {
+        if (!(cxx::abs(m) <= hyp2f1_MAXITER_FIXED)) {
+            set_error("hyp2f1", SF_ERROR_NO_RESULT, NULL);
+            return {cxx::numeric_limits<double>::quiet_NaN(), cxx::numeric_limits<double>::quiet_NaN()};
+        }
         /* 1 - z transform in limiting case where c - a - b approaches an integer m. */
         cxx::complex<double> result = 0.0;
         if (m >= 0) {
@@ -496,6 +501,10 @@ namespace detail {
 
     XSF_HOST_DEVICE inline cxx::complex<double>
     hyp2f1_transform2_limiting_case(double a, double b, double c, double m, cxx::complex<double> z) {
+        if (!(cxx::abs(m) <= hyp2f1_MAXITER_FIXED)) {
+            set_error("hyp2f1", SF_ERROR_NO_RESULT, NULL);
+            return {cxx::numeric_limits<double>::quiet_NaN(), cxx::numeric_limits<double>::quiet_NaN()};
+        }
         /* 1 / z transform in limiting case where a - b approaches a non-negative integer m. Negative integer case
          * can be handled by swapping a and b. */
         auto series_generator1 = Hyp2f1Transform2LimitFinitePartGenerator(b, c, m, z);
@@ -542,6 +551,13 @@ XSF_HOST_DEVICE inline cxx::complex<double> hyp2f1(double a, double b, double c,
             return cxx::complex<double>{cxx::numeric_limits<double>::quiet_NaN(), 0};
         }
     }
+    // For large positive c, the Gauss series has small terms throughout its convergence disk.
+    if (z_abs < 1 && cxx::isfinite(c) && c > detail::hyp2f1_MAXITER * (1 + cxx::abs(a)) * (1 + cxx::abs(b))) {
+        auto series_generator = detail::HypergeometricSeriesGenerator(a, b, c, z);
+        return detail::series_eval(
+            series_generator, cxx::complex<double>{0.0, 0.0}, detail::hyp2f1_EPS, detail::hyp2f1_MAXITER, "hyp2f1"
+        );
+    }
     bool a_neg_int = a == cxx::trunc(a) && a < 0;
     bool b_neg_int = b == cxx::trunc(b) && b < 0;
     bool c_non_pos_int = c == cxx::trunc(c) && c <= 0;
@@ -567,7 +583,7 @@ XSF_HOST_DEVICE inline cxx::complex<double> hyp2f1(double a, double b, double c,
         } else {
             max_degree = cxx::abs(b);
         }
-        if (max_degree <= (double)UINT64_MAX) {
+        if (max_degree + 1 <= detail::hyp2f1_MAXITER_FIXED) {
             auto series_generator = detail::HypergeometricSeriesGenerator(a, b, c, z);
             return detail::series_eval_fixed_length(series_generator, cxx::complex<double>{0.0, 0.0}, max_degree + 1);
         } else {
@@ -588,8 +604,12 @@ XSF_HOST_DEVICE inline cxx::complex<double> hyp2f1(double a, double b, double c,
      * a polynomial through an Euler hypergeometric transformation.
      * (DLMF 15.8.1) */
     if (c_minus_a_neg_int || c_minus_b_neg_int) {
-        max_degree = c_minus_b_neg_int ? cxx::abs(c - b) : cxx::abs(c - a);
-        if (max_degree <= (double)UINT64_MAX) {
+        if (c_minus_a_neg_int && c_minus_b_neg_int) {
+            max_degree = c - a > c - b ? cxx::abs(c - a) : cxx::abs(c - b);
+        } else {
+            max_degree = c_minus_b_neg_int ? cxx::abs(c - b) : cxx::abs(c - a);
+        }
+        if (max_degree + 2 <= detail::hyp2f1_MAXITER_FIXED) {
             result = cxx::pow(1.0 - z, c - a - b);
             auto series_generator = detail::HypergeometricSeriesGenerator(c - a, c - b, c, z);
             result *=
