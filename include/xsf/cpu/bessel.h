@@ -806,7 +806,14 @@ T cyl_bessel_ke(T v, T x) {
         return std::numeric_limits<T>::infinity();
     }
 
-    return std::real(cyl_bessel_ke(v, std::complex(x)));
+    T ke = std::real(cyl_bessel_ke(v, std::complex(x)));
+    if (std::isinf(ke) && std::abs(v) > 1) {
+        // AMOS overflows above about 1e304; recur from lower orders (DLMF 10.29.1)
+        T w = std::abs(v);
+        ke = std::real(cyl_bessel_ke(w - 2, std::complex(x))) +
+             2 * (w - 1) / x * std::real(cyl_bessel_ke(w - 1, std::complex(x)));
+    }
+    return ke;
 }
 
 inline std::complex<double> cyl_hankel_1e(double v, std::complex<double> z) {
@@ -1123,7 +1130,14 @@ T cyl_bessel_k(T v, T z) {
         return 0;
     }
 
-    return std::real(cyl_bessel_k(v, std::complex(z)));
+    T k = std::real(cyl_bessel_k(v, std::complex(z)));
+    if (std::isinf(k) && std::abs(v) > 1) {
+        // AMOS overflows above about 1e304; recur from lower orders (DLMF 10.29.1)
+        T w = std::abs(v);
+        k = std::real(cyl_bessel_k(w - 2, std::complex(z))) +
+            2 * (w - 1) / z * std::real(cyl_bessel_k(w - 1, std::complex(z)));
+    }
+    return k;
 }
 
 inline double cyl_bessel_k0(double x) { return cephes::k0(x); }
