@@ -183,6 +183,66 @@ XSF_HOST_DEVICE inline cxx::complex<float> log_ndtr(cxx::complex<float> z) {
 
 XSF_HOST_DEVICE inline double nbdtr(int k, int n, double p) { return cephes::nbdtr(k, n, p); }
 
+XSF_HOST_DEVICE inline bool students_t_cdf_boundary(double nu, double t, double &p) {
+    // Handles boundary cases for students_t_cdf
+    // Returns true and sets p if a boundary case applies
+    if (t == 0) {
+        p = 0.5;
+        return true;
+    }
+    // handle large degrees of freedom > 1 / eps
+    if (nu > 1 / cxx::numeric_limits<double>::epsilon()) {
+        p = ndtr(t);
+        return true;
+    }
+    // check for large t-values (and both ends of infinity)
+    if (cxx::abs(t) > cxx::sqrt(cxx::numeric_limits<double>::max())) {
+        p = t < 0 ? 0.0 : 1.0;
+        return true;
+    }
+    return false;
+}
+
+XSF_HOST_DEVICE inline double students_t_cdf(double nu, double t) {
+    // Cumulative distribution function of Student's t distribution.
+    //
+    // nu: the number of degrees of freedom
+    // t: the upper limit of integration
+    //
+    // The following code originates from the Boost C++ library,
+    // from file `boost/math/distributions/students_t.hpp` with
+    // minor changes.
+
+    if (cxx::isnan(nu) || cxx::isnan(t) || nu <= 0) {
+        return cxx::numeric_limits<double>::quiet_NaN();
+    }
+
+    double p;
+    if (students_t_cdf_boundary(nu, t, p)) {
+        return p;
+    }
+
+    double tt = t * t;
+    double probability;
+    // To reduce rounding error, compute the lower tail directly or by
+    // subtraction, using the identity formula
+    //
+    //  I[x](a,b) = 1 - I[1-x](b,a)
+    //
+    // with x = nu/(nu + t*t), so 1 - x = t*t/(nu + t*t).
+    if (nu > 2 * t * t) {
+        // for a small |t|: compute lower tail = (1 - middle) / 2
+        double x = tt / (nu + tt);
+        probability = 0.5 * (1 - cephes::incbet(0.5, nu / 2, x));
+
+    } else {
+        // for a large |t|: compute lower tail = area of both tails / 2
+        double x = nu / (nu + tt);
+        probability = 0.5 * cephes::incbet(nu / 2, 0.5, x);
+    }
+    return t > 0 ? 1 - probability : probability;
+}
+
 XSF_HOST_DEVICE inline float nbdtr(int k, int n, float p) {
     return static_cast<float>(nbdtr(k, n, static_cast<double>(p)));
 }
