@@ -2819,7 +2819,7 @@ namespace specfun {
             if (ip == 0) {
                 gd0 += (2.0 * k - 1.0) * bk[k - 1] * pow(x, 2.0 * k - 2.0);
             } else {
-                gd0 += 2.0 * k * bk[k - 1] * pow(x, 2.0 * k - 1.0);
+                gd0 += 2.0 * k * bk[k] * pow(x, 2.0 * k - 1.0);
             }
             if ((fabs((gd0 - gw) / gd0) < eps) && (k >= 10)) {
                 break;
@@ -4985,9 +4985,9 @@ namespace specfun {
             }
             ap[i] = -r * s;
         }
-        qs0 = ap[m - 1];
+        qs0 = ap[m];
 
-        for (l = 1; l < m; l++) {
+        for (l = 1; l <= m; l++) {
             r = 1.0;
             for (k = 1; k <= l; ++k) {
                 r = r * (2.0 * k + ip) * (2.0 * k - 1.0 + ip) / pow(2.0 * k, 2);
