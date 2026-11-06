@@ -2,8 +2,12 @@
 #define ELLINT_COMMON_HH_INCLUDED
 
 
-#include <cstddef>
+#include <algorithm>
+#include <cmath>
 #include <complex>
+#include <cstddef>
+#include <initializer_list>
+#include <limits>
 
 
 /* Namespace skeletons, to be populated in individual headers. */
@@ -115,6 +119,46 @@ namespace ellint_carlson
 
     namespace util
     {
+        template<typename T>
+        static inline T scale_pow2(const T& x, int exponent)
+        {
+            return std::scalbn(x, exponent);
+        }
+
+        template<typename T>
+        static inline std::complex<T> scale_pow2(const std::complex<T>& x,
+                                                int exponent)
+        {
+            return {std::scalbn(x.real(), exponent),
+                    std::scalbn(x.imag(), exponent)};
+        }
+
+        /* Even exponents preserve the square roots in the homogeneity law.
+         * Keep each nonzero component above the caller's lower bound. */
+        template<typename T>
+        static inline int scaling_exponent(std::initializer_list<T> args,
+                                           decltype(std::real(T{})) lower_bound)
+        {
+            using RT = decltype(std::real(T{}));
+            RT amax = 0.0, amin = std::numeric_limits<RT>::infinity();
+            for (const T& a : args)
+            {
+                for (RT part : {std::abs(std::real(a)), std::abs(std::imag(a))})
+                {
+                    if (!std::isfinite(part)) return 0;
+                    amax = std::max(amax, part);
+                    if (part > 0.0) amin = std::min(amin, part);
+                }
+            }
+            if (amax == 0.0) return 0;
+            int exponent = std::ilogb(amax);
+            if (-256 <= exponent && exponent <= 256) return 0;
+            int shift = 2 * ((254 - exponent) / 2);
+            while (shift < 0 && std::scalbn(amin, shift) < lower_bound)
+                shift += 2;
+            return shift;
+        }
+
 	/* Comparison function based on absolute value. */
 	template<typename T>
 	static inline bool abscmp(const T& a, const T& b)

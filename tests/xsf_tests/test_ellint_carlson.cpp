@@ -254,3 +254,48 @@ TEST_CASE("Legendre-Carlson Km1 identity", "[ellint_carlson][xsf_tests]") {
         REQUIRE(error <= 1e-7);
     }
 }
+
+TEST_CASE("Carlson integrals at extreme common scales", "[ellint_carlson][xsf_tests]") {
+    const int exponent = GENERATE(-600, -400, 400, 600);
+    const double x = std::ldexp(1.0, exponent);
+    const double y = std::ldexp(2.0, exponent);
+    const double z = std::ldexp(3.0, exponent);
+    const double p = std::ldexp(4.0, exponent);
+    // Reference values computed with mpmath at 120 digits, then scaled by homogeneity.
+    const double rd = std::ldexp(0.29046028102899063, -3 * exponent / 2);
+    const double rg = std::ldexp(1.4018470999908952, exponent / 2);
+    const double rj = std::ldexp(0.23984809974956775, -3 * exponent / 2);
+    const C root = std::sqrt(C{1.0, 1.0});
+    const C cube = root * root * root;
+    CAPTURE(exponent);
+    check_close(xsf::cpu::elliprd(x, y, z), rd, 2e-14);
+    check_close(xsf::cpu::elliprd(C{x, x}, C{y, y}, C{z, z}), rd / cube, 2e-14);
+    check_close(xsf::cpu::elliprg(x, y, z), rg, 2e-14);
+    check_close(xsf::cpu::elliprg(C{x, x}, C{y, y}, C{z, z}), rg * root, 2e-14);
+    check_close(xsf::cpu::elliprj(x, y, z, p), rj, 2e-14);
+    check_close(xsf::cpu::elliprj(C{x, x}, C{y, y}, C{z, z}, C{p, p}), rj / cube, 2e-14);
+}
+
+TEST_CASE("Carlson RJ with tiny p and mixed magnitudes", "[ellint_carlson][xsf_tests]") {
+    using test_case = std::tuple<double, double, double, double, double>;
+    auto [x, y, z, p, expected] = GENERATE(
+        test_case{0x1p-540, 0x1p-540, 0x1p250, 0x1p-550, 8.80621417294652e125},
+        test_case{1e-276, 1e-48, 1e-276, 1e-276, 1.4999999999999998e300},
+        test_case{1e-200, 1e-120, 1e100, 1e-220, 7.115699433150121e111}
+    );
+    CAPTURE(x, y, z, p);
+    check_close(xsf::cpu::elliprj(x, y, z, p), expected, 2e-14);
+    check_close(xsf::cpu::elliprj(C{x}, C{y}, C{z}, C{p}), C{expected}, 2e-14);
+}
+
+TEST_CASE("Carlson RG with mixed magnitudes", "[ellint_carlson][xsf_tests]") {
+    const double x = 5.17e139, y = 2.97e11, z = 1.55e225;
+    const double expected = 1.9685019685029527e112;
+    check_close(xsf::cpu::elliprg(x, y, z), expected, 2e-14);
+    check_close(xsf::cpu::elliprg(C{x}, C{y}, C{z}), C{expected}, 2e-14);
+}
+
+TEST_CASE("Carlson RD returns infinity on overflow", "[ellint_carlson][xsf_tests]") {
+    CHECK(xsf::cpu::elliprd(1e-290, 1e-70, 1e-290) == std::numeric_limits<double>::infinity());
+    CHECK(xsf::cpu::elliprd(C{1e-290}, C{1e-70}, C{1e-290}).real() == std::numeric_limits<double>::infinity());
+}
