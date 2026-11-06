@@ -27,3 +27,41 @@ TEST_CASE("itairy", "[itairy][xsf_tests]") {
     REQUIRE(rel_error_ant <= rtol);
     REQUIRE(rel_error_bnt <= rtol);
 }
+
+TEST_CASE("itairy 2 < x < 17", "[itairy][xsf_tests]") {
+    // Regression test for gh-448 (https://github.com/scipy/xsf/issues/448):
+    // the power series cancelled for x <= 9.25 and the asymptotic expansions were
+    // inaccurate above it, e.g. the relative error of apt at x = 9.155 was 3e-8.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for x in [5.0, 9.155, 9.53]:
+        x = mpmath.mpf(x)
+        apt = mpmath.airyai(x, derivative=-1)
+        bpt = mpmath.airybi(x, derivative=-1)
+        ant = -mpmath.airyai(-x, derivative=-1)
+        bnt = -mpmath.airybi(-x, derivative=-1)
+        print(f"{float(x)!r}, {float(apt)!r}, {float(bpt)!r}, {float(ant)!r}, {float(bnt)!r}")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double, double, double>;
+    auto [x, ref_apt, ref_bpt, ref_ant, ref_bnt] = GENERATE(
+        test_case{5.0, 0.33328759030591787, 321.47831857046515, 0.7178822045478277, 0.15873093858143864},
+        test_case{9.155, 0.333333332836206, 11608489.354594182, 0.5670209089127424, 0.03891040264214433},
+        test_case{9.53, 0.33333333317976455, 35364368.47804174, 0.6614182140962547, 0.10369185654666309}
+    );
+    double apt, bpt, ant, bnt;
+    xsf::itairy(x, apt, bpt, ant, bnt);
+
+    const double rtol = 2e-14;
+    CAPTURE(x, apt, ref_apt, bpt, ref_bpt, ant, ref_ant, bnt, ref_bnt, rtol);
+    REQUIRE(xsf::extended_relative_error(apt, ref_apt) <= rtol);
+    REQUIRE(xsf::extended_relative_error(bpt, ref_bpt) <= rtol);
+    REQUIRE(xsf::extended_relative_error(ant, ref_ant) <= rtol);
+    REQUIRE(xsf::extended_relative_error(bnt, ref_bnt) <= rtol);
+}
