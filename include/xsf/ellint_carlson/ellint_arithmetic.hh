@@ -305,6 +305,53 @@ namespace ellint_carlson { namespace arithmetic
     {
 	return std::sqrt(std::cbrt(x));
     }
+
+
+    /* (sx + sy) * t, given sx = sqrt(x) and sy = sqrt(y), with
+     * sx + sy = (x - y) / (sx - sy) if the sum cancels. */
+    template<typename T>
+    inline T
+    sqrt_sum_mul(const T& x, const T& y, const T& sx, const T& sy, const T& t)
+    {
+	typedef typing::decplx_t<T> RT;
+
+	T s = sx + sy;
+	if ( std::abs(s) >= std::abs(sx) )
+	{
+	    return s * t;
+	}
+	T r = t / (sx - sy);
+	T d = x - y;
+	if ( std::isinf(std::abs(d)) )
+	{
+	    return (x * (RT)0.5 - y * (RT)0.5) * r * (RT)2.0;
+	}
+	return d * r;
+    }
+
+    /* x + lam in the duplication step (DLMF 19.26.18), where
+     * lam = sx * sy + sy * sz + sz * sx (DLMF 19.26.19) and sx = sqrt(x) etc.
+     * If the sum cancels, use x + lam = (sx + sy) * (sx + sz) instead, with
+     * the cancelling root sum applied last, so that it cannot underflow. */
+    template<typename T>
+    inline T
+    add_lam(const T& x, const T& y, const T& z,
+            const T& sx, const T& sy, const T& sz, const T& lam)
+    {
+	T xl = x + lam;
+	if ( std::abs(xl) < std::abs(x) )
+	{
+	    if ( std::abs(sx + sz) < std::abs(sx) )
+	    {
+		xl = sqrt_sum_mul(x, z, sx, sz,
+		                  sqrt_sum_mul(x, y, sx, sy, (T)1.0));
+	    } else {
+		xl = sqrt_sum_mul(x, y, sx, sy,
+		                  sqrt_sum_mul(x, z, sx, sz, (T)1.0));
+	    }
+	}
+	return xl;
+    }
 }}  /* namespace ellint_carlson::arithmetic  */
 
 

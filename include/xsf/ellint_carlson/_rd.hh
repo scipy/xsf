@@ -98,17 +98,20 @@ rd(const T& x, const T& y, const T& z, const double& rerr, T& res)
 	cct1[1] = cct2[0] = std::sqrt(ym);
 	cct1[2] = cct2[1] = std::sqrt(zm);
 	T lam = arithmetic::ndot2(cct1, cct2, 3);
+	T xl = arithmetic::add_lam(xm, ym, zm, cct1[0], cct1[1], cct1[2], lam);
+	T yl = arithmetic::add_lam(ym, zm, xm, cct1[1], cct1[2], cct1[0], lam);
+	T zl = arithmetic::add_lam(zm, xm, ym, cct1[2], cct1[0], cct1[1], lam);
 
 	/* The cumulative sum term in Ref. [2], Eq. (41), implemented by
 	 * accumulating the summation term into adt with compensation
 	 * term ade */
-	tmp = d4m / (cct1[2] * (zm + lam));
+	tmp = d4m / (cct1[2] * zl);
 	arithmetic::sum2_acc(tmp, adt, ade);
 
         Am = (Am + lam) * (RT)0.25;
-        xm = (xm + lam) * (RT)0.25;
-        ym = (ym + lam) * (RT)0.25;
-        zm = (zm + lam) * (RT)0.25;
+        xm = xl * (RT)0.25;
+        ym = yl * (RT)0.25;
+        zm = zl * (RT)0.25;
         xxm *= (RT)0.25;
         yym *= (RT)0.25;
         fterm *= (RT)0.25;
