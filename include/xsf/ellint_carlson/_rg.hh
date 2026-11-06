@@ -119,7 +119,13 @@ rg(const T& x, const T& y, const T& z, const double& rerr, T& res)
 {
     typedef typing::decplx_t<T> RT;
 
-    int shift = util::scaling_exponent({x, y, z}, std::numeric_limits<RT>::min());
+    RT lower_bound = std::numeric_limits<RT>::min();
+    if constexpr (std::is_floating_point<T>::value)
+    {
+        // Real nonnegative RG is continuous when an argument tends to zero.
+        if (x >= 0 && y >= 0 && z >= 0) lower_bound = 0;
+    }
+    int shift = util::scaling_exponent({x, y, z}, lower_bound);
     if (shift != 0)
     {
         ExitStatus status = rg(util::scale_pow2(x, shift), util::scale_pow2(y, shift), util::scale_pow2(z, shift), rerr, res);

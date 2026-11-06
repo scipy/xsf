@@ -295,6 +295,13 @@ TEST_CASE("Carlson RG with mixed magnitudes", "[ellint_carlson][xsf_tests]") {
     check_close(xsf::cpu::elliprg(C{x}, C{y}, C{z}), C{expected}, 2e-14);
 }
 
+TEST_CASE("real Carlson RG with a negligible small argument", "[ellint_carlson][xsf_tests]") {
+    check_close(
+        xsf::cpu::elliprg(1.0156301119911794e-283, 4.727014801691197e168, 8.397647379843984e266),
+        1.4489347276399293e133, 2e-14
+    );
+}
+
 TEST_CASE("Carlson RD returns infinity on overflow", "[ellint_carlson][xsf_tests]") {
     CHECK(xsf::cpu::elliprd(1e-290, 1e-70, 1e-290) == std::numeric_limits<double>::infinity());
     CHECK(xsf::cpu::elliprd(C{1e-290}, C{1e-70}, C{1e-290}).real() == std::numeric_limits<double>::infinity());
