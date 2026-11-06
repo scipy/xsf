@@ -835,7 +835,10 @@ void lqn(std::complex<T> z, OutputVec1 cqn, OutputVec2 cqd) {
         if (abs(z) > 1.1) {
             km = 40 + n;
         } else {
-            km = (int)((40 + n) * floor(-1.0 - 1.8 * log(abs(z - static_cast<T>(1)))));
+            // Increase the recurrence depth near either branch point. Away
+            // from both, the estimate can be negative, so retain the baseline.
+            T distance = std::min(abs(z - static_cast<T>(1)), abs(z + static_cast<T>(1)));
+            km = (40 + n) * std::max(1, static_cast<int>(floor(-1.0 - 1.8 * log(distance))));
         }
 
         cqf2 = 0.0;
