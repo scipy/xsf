@@ -65,7 +65,7 @@ TEST_CASE("Hurwitz zeta at negative shifts and large orders", "[zeta][xsf_tests]
     using test_case = std::tuple<double, double, double>;
     const double inf = std::numeric_limits<double>::infinity();
     // Values from 150-digit finite sums and positive-argument Hurwitz zeta tails.
-    auto [x, q, desired] = GENERATE(
+    auto [x, q, desired] = GENERATE_COPY(
         test_case{2.0, -0.75, 18.975106932284888}, test_case{3.0, -0.75, 62.29349959839809},
         test_case{31.0, -7.5, 1.5931355392154464e-29}, test_case{2.0, -10000000000.5, 9.869604400989358},
         test_case{3.0, -10000000000.5, 4.999999999e-21}, test_case{31.0, -0.49999999999999994, -1.1305221409216952e-05},
