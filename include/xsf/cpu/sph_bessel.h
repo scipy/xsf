@@ -40,8 +40,8 @@ namespace detail {
     template <typename T>
     T sph_bessel_tiny(long n, T x) {
         T res = 1;
-        for (long k = 1; k <= n && res != 0; ++k) {
-            res *= x / (2 * static_cast<T>(k) + 1);
+        for (long k = 1; k <= n && res != static_cast<T>(0); ++k) {
+            res *= x / (2 * static_cast<remove_complex_t<T>>(k) + 1);
         }
         return res;
     }
@@ -166,13 +166,13 @@ T sph_bessel_j_jac(long n, T z) {
         return -sph_bessel_j(1, z);
     }
 
-    if (z == static_cast<T>(0)) {
-        // DLMF 10.51.2 doesn't work, so use 10.51.1 to get the exact value
-        if (n == 1) {
-            return static_cast<T>(1) / static_cast<T>(3);
-        }
-
-        return 0;
+    // Leading term n z^(n - 1) / (2n + 1)!! of the derivative of https://dlmf.nist.gov/10.52.E1,
+    // as DLMF 10.51.2 fails when j_n(z) underflows; the first correction term is below eps / 2 here.
+    // |z| < 1 keeps the product from overflowing for huge n, as in sph_bessel_j.
+    using R = remove_complex_t<T>;
+    if (std::abs(z) < 1 &&
+        std::norm(z) < (static_cast<R>(n) + static_cast<R>(0.5)) * std::numeric_limits<R>::epsilon()) {
+        return static_cast<R>(n) / (2 * static_cast<R>(n) + 1) * detail::sph_bessel_tiny(n - 1, z);
     }
 
     // DLMF 10.51.2
@@ -271,7 +271,15 @@ T sph_bessel_y_jac(long n, T x) {
         return -sph_bessel_y(1, x);
     }
 
-    return sph_bessel_y(n - 1, x) - static_cast<T>(n + 1) * sph_bessel_y(n, x) / x;
+    // DLMF 10.51.2; for real x, y_{n-1}(x) is negligible if the second term overflows, so avoid inf - inf.
+    T res = -static_cast<T>(n + 1) * sph_bessel_y(n, x) / x;
+    if constexpr (cxx::is_floating_point_v<T>) {
+        if (std::isinf(res)) {
+            return res;
+        }
+    }
+
+    return sph_bessel_y(n - 1, x) + res;
 }
 
 template <typename T>
@@ -366,12 +374,13 @@ T sph_bessel_i_jac(long n, T z) {
         return sph_bessel_i(1, z);
     }
 
-    if (z == static_cast<T>(0)) {
-        if (n == 1) {
-            return 1. / 3.;
-        } else {
-            return 0;
-        }
+    // Leading term n z^(n - 1) / (2n + 1)!! of the derivative of https://dlmf.nist.gov/10.52.E1,
+    // as DLMF 10.51.5 fails when i_n(z) underflows; the first correction term is below eps / 2 here.
+    // |z| < 1 keeps the product from overflowing for huge n, as in sph_bessel_j.
+    using R = remove_complex_t<T>;
+    if (std::abs(z) < 1 &&
+        std::norm(z) < (static_cast<R>(n) + static_cast<R>(0.5)) * std::numeric_limits<R>::epsilon()) {
+        return static_cast<R>(n) / (2 * static_cast<R>(n) + 1) * detail::sph_bessel_tiny(n - 1, z);
     }
 
     return sph_bessel_i(n - 1, z) - static_cast<T>(n + 1) * sph_bessel_i(n, z) / z;

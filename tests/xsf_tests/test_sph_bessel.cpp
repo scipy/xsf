@@ -331,3 +331,59 @@ TEST_CASE("spherical_j tiny inputs", "[spherical_bessel][xsf_tests]") {
     CAPTURE(n, x, result, ref, rel_err);
     REQUIRE(rel_err <= 1e-15);
 }
+
+// Regression test for gh-373: j_n'(z) and i_n'(z) lost the cancelling j_n(z) / z term when j_n(z)
+// underflowed for tiny z, and y_n'(x) was inf - inf = nan when y_n(x) overflowed.
+/*
+import mpmath
+from mpmath import mpf, mpc
+
+mpmath.mp.dps = 30
+
+# Exact derivative of j_n(z) = z^n / (2n + 1)!! * 0F1(; n + 3/2; s z^2 / 4), with s = -1 (s = 1 for i_n).
+def jac(n, z, s):
+    b = n + mpf(3) / 2
+    w = s * z**2 / 4
+    f = n * mpmath.hyp0f1(b, w) + 2 * w / b * mpmath.hyp0f1(b + 1, w)
+    return z ** (n - 1) / mpmath.fac2(2 * n + 1) * f
+
+for n, z in [(2, mpf("7.5e-179")), (3, mpf("-1e-110")), (2, mpc(0, "1e-300"))]:
+    print(n, z, repr(complex(jac(n, z, -1))), repr(complex(jac(n, z, 1))))
+*/
+TEST_CASE("spherical_j_jac and spherical_i_jac tiny inputs", "[spherical_bessel][xsf_tests]") {
+    SET_FP_FORMAT()
+    using test_case = std::tuple<long, double, double>;
+
+    // The leading term n z^(n - 1) / (2n + 1)!! is the same for j_n' and i_n'.
+    auto [n, x, ref] = GENERATE(test_case{2, 7.5e-179, 1e-179}, test_case{3, -1e-110, 2.857142857142857e-222});
+
+    double result_j = xsf::sph_bessel_j_jac(n, x);
+    double result_i = xsf::sph_bessel_i_jac(n, x);
+    double rel_err_j = xsf::extended_relative_error(result_j, ref);
+    double rel_err_i = xsf::extended_relative_error(result_i, ref);
+
+    CAPTURE(n, x, result_j, result_i, ref, rel_err_j, rel_err_i);
+    REQUIRE(rel_err_j <= 1e-15);
+    REQUIRE(rel_err_i <= 1e-15);
+}
+
+TEST_CASE("spherical_j_jac and spherical_i_jac tiny complex input", "[spherical_bessel][xsf_tests]") {
+    SET_FP_FORMAT()
+    std::complex<double> z{0, 1e-300}, ref{0, 1.3333333333333333e-301};
+
+    std::complex<double> result_j = xsf::sph_bessel_j_jac(2, z);
+    std::complex<double> result_i = xsf::sph_bessel_i_jac(2, z);
+    double rel_err_j = xsf::extended_relative_error(result_j, ref);
+    double rel_err_i = xsf::extended_relative_error(result_i, ref);
+
+    CAPTURE(result_j, result_i, ref, rel_err_j, rel_err_i);
+    REQUIRE(rel_err_j <= 1e-15);
+    REQUIRE(rel_err_i <= 1e-15);
+}
+
+TEST_CASE("spherical_y_jac overflow", "[spherical_bessel][xsf_tests]") {
+    // y_n'(-x) = (-1)^n y_n'(x), from https://dlmf.nist.gov/10.47.E14
+    REQUIRE(xsf::sph_bessel_y_jac(8, 7e-46) == std::numeric_limits<double>::infinity());
+    REQUIRE(xsf::sph_bessel_y_jac(7, -7e-46) == -std::numeric_limits<double>::infinity());
+    REQUIRE(xsf::sph_bessel_y_jac(1, 0.0) == std::numeric_limits<double>::infinity());
+}
