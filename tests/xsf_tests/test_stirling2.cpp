@@ -149,3 +149,11 @@ TEST_CASE("stirling2 gh-378", "[stirling2][xsf_tests]") {
     CAPTURE(n, k, result, expected, rel_error);
     REQUIRE(rel_error <= 1e-14);
 }
+
+// Regression test for gh-354: out-of-bounds read for 0 < k < 1 and NaN k.
+TEST_CASE("stirling2 gh-354", "[stirling2][xsf_tests]") {
+    CHECK(xsf::stirling2(5.0, 0.5) == 0.0);
+    CHECK(xsf::stirling2(100.0, 0.5) == 0.0);
+    CHECK(std::isnan(xsf::stirling2(5.0, std::numeric_limits<double>::quiet_NaN())));
+    CHECK(std::isnan(xsf::stirling2(300.0, std::numeric_limits<double>::quiet_NaN())));
+}
