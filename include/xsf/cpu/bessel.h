@@ -761,7 +761,12 @@ T cyl_bessel_ie(T v, T x) {
         return std::numeric_limits<T>::quiet_NaN();
     }
 
-    return std::real(cyl_bessel_ie(v, std::complex(x)));
+    T res = std::real(cyl_bessel_ie(v, std::complex(x)));
+    if (res == 0 && x != 0 && std::abs(x) < 1 && (v >= 0 || v == floor(v))) {
+        // For small real x, Cephes avoids the AMOS underflow cutoff.
+        return cephes::iv(v, x) * std::exp(-std::abs(x));
+    }
+    return res;
 }
 
 inline std::complex<double> cyl_bessel_ke(double v, std::complex<double> z) {

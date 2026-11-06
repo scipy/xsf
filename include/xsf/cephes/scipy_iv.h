@@ -804,11 +804,34 @@ namespace cephes {
         } else {
             /* Check for tiny x to avoid Wronskian overflow in ikv_temme */
             if (ax * ax < cxx::abs(v + 1.0) * detail::MACHEP) {
-                res = cxx::pow(0.5 * ax, v) * rgamma(v + 1.0);
+                if (v > 0 && 0.5 * ax == 0) {
+                    // Keep a subnormal argument from rounding to zero when halved.
+                    res = cxx::pow(ax, v) * cxx::pow(0.5, v) * rgamma(v + 1.0);
+                } else {
+                    res = cxx::pow(0.5 * ax, v) * rgamma(v + 1.0);
+                }
             } else {
                 /* Otherwise: Temme's method */
                 detail::ikv_temme(v, ax, &res, NULL);
             }
+        }
+        if (ax < 1 && ((res == 0 && v >= 0) || cxx::isinf(res))) {
+            // The I-series does not require the overflowing companion K value.
+            double y = 0.25 * ax * ax, term = 1.0, sum = 1.0;
+            for (int k = 1; k < 500 && cxx::abs(term) > detail::MACHEP * cxx::abs(sum); ++k) {
+                term *= y / (k * (v + k));
+                sum += term;
+            }
+            double prefactor = cxx::pow(0.5 * ax, v);
+            if (cxx::isinf(prefactor)) {
+                // Combine the power and Gamma before exponentiating to avoid intermediate overflow.
+                double sine = sinpi(v + 1.0);
+                double log_prefactor = v * (cxx::log(ax) - M_LN2) + lgam(-v) + cxx::log(cxx::abs(sine)) - detail::LOGPI;
+                prefactor = cxx::copysign(cxx::exp(log_prefactor), sine);
+            } else {
+                prefactor *= rgamma(v + 1.0);
+            }
+            res = prefactor * sum;
         }
         res *= sign;
         return res;
