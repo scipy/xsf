@@ -1,0 +1,75 @@
+# Doxygen configuration for the xsf C++ headers.
+# Generates XML output for Breathe/Sphinx consumption. Paths are relative to
+# the doc/ directory, from which the Makefile runs Doxygen.
+
+#---------------------------------------------------------------------------
+# Project information
+#---------------------------------------------------------------------------
+PROJECT_NAME           = xsf
+PROJECT_BRIEF          = "Header-only special function implementations"
+OUTPUT_DIRECTORY       = _build/doxygen
+
+#---------------------------------------------------------------------------
+# Input files
+#---------------------------------------------------------------------------
+# The API consists of the top-level headers and the CPU-only headers in cpu/.
+# The other subdirectories (cephes, cpu/amos, cpu/specfun, ellint_carlson,
+# third_party) hold implementation details.
+INPUT                  = ../include/xsf ../include/xsf/cpu
+INPUT_ENCODING         = UTF-8
+FILE_PATTERNS          = *.h
+RECURSIVE              = NO
+
+# Keep the directory in file names so that headers sharing a base name
+# (e.g. xsf/stats.h and xsf/cpu/stats.h) can be referenced unambiguously.
+FULL_PATH_NAMES        = YES
+STRIP_FROM_PATH        = ../include
+
+#---------------------------------------------------------------------------
+# Parsing options
+#---------------------------------------------------------------------------
+JAVADOC_AUTOBRIEF      = YES
+
+# Most public functions are not documented yet, so list every declaration and
+# hide internal namespaces instead.
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = NO
+EXCLUDE_SYMBOLS        = detail \
+                         cephes \
+                         amos \
+                         specfun \
+                         numpy \
+                         lambertw_real \
+                         std
+
+# Macro handling
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
+PREDEFINED             = XSF_HOST_DEVICE=
+
+#---------------------------------------------------------------------------
+# Output formats - only XML for Breathe
+#---------------------------------------------------------------------------
+GENERATE_HTML          = NO
+GENERATE_LATEX         = NO
+GENERATE_XML           = YES
+XML_OUTPUT             = xml
+XML_PROGRAMLISTING     = NO
+HAVE_DOT               = NO
+
+#---------------------------------------------------------------------------
+# Aliases for reST embedding
+#---------------------------------------------------------------------------
+ALIASES                = "rst=\verbatim embed:rst:leading-asterisk"
+ALIASES               += "endrst=\endverbatim"
+
+#---------------------------------------------------------------------------
+# Warnings
+#---------------------------------------------------------------------------
+QUIET                  = YES
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = NO
+WARN_IF_DOC_ERROR      = YES
+WARN_NO_PARAMDOC       = NO

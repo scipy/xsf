@@ -49,10 +49,52 @@ std::vector<double> gegenbauer_coefficients(int n, double alpha) {
     return out;
 }
 
+// Monomial coefficients (lowest degree first) of P_n(x), or of P_n(2x - 1) if shifted.
+std::vector<double> legendre_coefficients(int n, bool shifted = false) {
+    std::vector<double> out(n + 1, 0.0);
+    if (shifted) {
+        for (int k = 0; k <= n; ++k) {
+            out[k] = std::pow(-1.0, n + k) * binom_int(n, k) * binom_int(n + k, k);
+        }
+    } else {
+        for (int k = 0; k <= n / 2; ++k) {
+            out[n - 2 * k] = std::pow(-1.0, k) * binom_int(n, k) * binom_int(2 * n - 2 * k, n) / std::pow(2.0, n);
+        }
+    }
+    return out;
+}
+
 std::vector<double> linear_power(double c0, double c1, int n) {
     std::vector<double> out(n + 1, 0.0);
     for (int j = 0; j <= n; ++j) {
         out[j] = binom_int(n, j) * std::pow(c0, n - j) * std::pow(c1, j);
+    }
+    return out;
+}
+
+// Monomial coefficients (lowest degree first) of scale * P_n(slope * x + offset), with P_n = U_n or T_n:
+//   U_n(y) = sum_k (-1)^k binom(n - k, k) (2y)^(n - 2k),  T_n(y) = same with extra factor n / (2 (n - k)).
+// With T_n = eval_chebyt and U_n = eval_chebyu:
+//   S_n(x)  = U_n(x / 2)    (eval_chebys)
+//   C_n(x)  = 2 T_n(x / 2)  (eval_chebyc)
+//   T*_n(x) = T_n(2x - 1)   (eval_sh_chebyt)
+//   U*_n(x) = U_n(2x - 1)   (eval_sh_chebyu)
+std::vector<double>
+chebyshev_coefficients(int n, bool second_kind, double slope = 1.0, double offset = 0.0, double scale = 1.0) {
+    if (n == 0) {
+        return {scale}; // avoid 0 / 0 in the T_n factor
+    }
+    std::vector<double> out(n + 1, 0.0);
+    for (int k = 0; k <= n / 2; ++k) {
+        const int power = n - 2 * k;
+        double c = scale * std::pow(-1.0, k) * binom_int(n - k, k) * std::pow(2.0, power);
+        if (!second_kind) {
+            c = c * n / (2.0 * (n - k));
+        }
+        const auto term = linear_power(offset, slope, power);
+        for (int j = 0; j <= power; ++j) {
+            out[j] += c * term[j];
+        }
     }
     return out;
 }
@@ -836,4 +878,288 @@ TEST_CASE("eval_gegenbauer supports noninteger degrees", "[eval_gegenbauer][xsf_
     CAPTURE(n, alpha, x, z);
     REQUIRE(xsf::extended_relative_error(xsf::eval_gegenbauer(n, alpha, x), expected) < 1e-12);
     REQUIRE(xsf::extended_relative_error(xsf::eval_gegenbauer(n, alpha, z), complex_expected) < 1e-12);
+}
+
+TEST_CASE("eval_legendre matches constructed polynomials", "[eval_legendre][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L117-L119
+    check_poly(
+        [](int n, const std::vector<double> &) { return legendre_coefficients(n, false); },
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_legendre(n, x); }, {}, {-1.0, 1.0}, 1e-8
+    );
+}
+
+TEST_CASE("eval_legendre recurrence overload", "[eval_legendre][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L222-L224
+    check_recurrence(
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_legendre(n, x); },
+        [](double n, const std::vector<double> &, double x) { return xsf::eval_legendre(n, x); }, {}, {-1.0, 1.0}
+    );
+}
+
+TEST_CASE("eval_legendre supports complex inputs", "[eval_legendre][xsf_tests]") {
+    // Extend the polynomial checks to complex inputs.
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L117-L119
+    check_complex_poly(
+        [](int n, const std::vector<double> &) { return legendre_coefficients(n, false); },
+        [](double n, const std::vector<double> &, std::complex<double> x) { return xsf::eval_legendre(n, x); }, {},
+        {{-0.75, -0.25}, {0.0, -0.5}, {0.5, 0.25}, {2.0, -1.0}}, 1e-8
+    );
+}
+
+TEST_CASE("eval_sh_legendre matches constructed polynomials", "[eval_sh_legendre][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L121-L124
+    check_poly(
+        [](int n, const std::vector<double> &) { return legendre_coefficients(n, true); },
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_sh_legendre(n, x); }, {}, {0.0, 1.0}, 1e-8
+    );
+}
+
+TEST_CASE("eval_sh_legendre recurrence overload", "[eval_sh_legendre][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L226-L228
+    check_recurrence(
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_sh_legendre(n, x); },
+        [](double n, const std::vector<double> &, double x) { return xsf::eval_sh_legendre(n, x); }, {}, {0.0, 1.0}
+    );
+}
+
+TEST_CASE("eval_sh_legendre supports complex inputs", "[eval_sh_legendre][xsf_tests]") {
+    // Extend the polynomial checks to complex inputs.
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L121-L124
+    check_complex_poly(
+        [](int n, const std::vector<double> &) { return legendre_coefficients(n, true); },
+        [](double n, const std::vector<double> &, std::complex<double> x) { return xsf::eval_sh_legendre(n, x); }, {},
+        {{-0.75, -0.25}, {0.0, -0.5}, {0.5, 0.25}, {2.0, -1.0}}, 1e-8
+    );
+}
+
+TEST_CASE("eval_legendre preserves accuracy near zero", "[eval_legendre][xsf_tests]") {
+    // Exercise both parities of the power series used near zero.
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/orthogonal_eval.pxd#L351-L370
+    for (int n = 0; n <= 11; ++n) {
+        const auto coefficients = legendre_coefficients(n);
+        for (double x : {-1e-6, 0.0, 1e-20, 1e-6}) {
+            const double expected = polyval(coefficients, x);
+            const double out = xsf::eval_legendre(n, x);
+            CAPTURE(n, x, out, expected);
+            REQUIRE(std::abs(out - expected) <= 1e-14 * std::abs(expected));
+        }
+    }
+}
+
+TEST_CASE("Legendre evaluators support negative integer degrees", "[eval_legendre][eval_sh_legendre][xsf_tests]") {
+    // The Legendre polynomials satisfy the following symmetry relation for negative integer degrees:
+    // P_{-n-1}(x) = P_n(x),  n = 0, 1, 2, ...
+    for (int n : {-1, -2, -3, -4, -11, -12}) {
+        for (double x : {0.0, 1e-6, 0.5, 1.0}) {
+            CAPTURE(n, x);
+            REQUIRE(xsf::eval_legendre(n, x) == xsf::eval_legendre(-n - 1, x));
+            REQUIRE(xsf::eval_sh_legendre(n, x) == xsf::eval_sh_legendre(-n - 1, x));
+        }
+    }
+}
+
+TEST_CASE("Legendre evaluators propagate NaN inputs", "[eval_legendre][eval_sh_legendre][xsf_tests]") {
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const float nan_float = std::numeric_limits<float>::quiet_NaN();
+    for (int n : {-3, -2, -1, 0, 1, 2, 3}) {
+        CAPTURE(n);
+        REQUIRE(std::isnan(xsf::eval_legendre(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_sh_legendre(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_legendre(n, nan_float)));
+        REQUIRE(std::isnan(xsf::eval_sh_legendre(n, nan_float)));
+    }
+    for (double n : {-3.0, -2.0, -1.0, 0.0, 0.5, 1.0, 2.0, 3.0}) {
+        CAPTURE(n);
+        REQUIRE(std::isnan(xsf::eval_legendre(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_sh_legendre(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_legendre(static_cast<float>(n), nan_float)));
+        REQUIRE(std::isnan(xsf::eval_sh_legendre(static_cast<float>(n), nan_float)));
+    }
+}
+
+TEST_CASE("Legendre float overloads", "[eval_legendre][eval_sh_legendre][xsf_tests]") {
+    // Extend the polynomial checks to float and complex<float> overloads.
+    // P_3(x) = (5x^3 - 3x)/2.
+    const std::complex<float> z{0.5f, 0.5f};
+    REQUIRE(std::abs(xsf::eval_legendre(3, 0.5f) + 0.4375f) < 1e-6f);
+    REQUIRE(std::abs(xsf::eval_legendre(3.0f, 0.5f) + 0.4375f) < 1e-6f);
+    REQUIRE(std::abs(xsf::eval_legendre(3.0f, z) - std::complex<float>{-1.375f, -0.125f}) < 1e-6f);
+    REQUIRE(std::abs(xsf::eval_sh_legendre(3, 0.5f)) < 1e-6f);
+    REQUIRE(std::abs(xsf::eval_sh_legendre(3.0f, 0.5f)) < 1e-6f);
+    REQUIRE(std::abs(xsf::eval_sh_legendre(3.0f, z) - std::complex<float>{0.0f, -4.0f}) < 1e-6f);
+}
+
+TEST_CASE("eval_chebyt matches constructed polynomials", "[eval_chebyt][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L92-L94
+    check_poly(
+        [](int n, const std::vector<double> &) { return chebyshev_coefficients(n, false); },
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_chebyt(n, x); }, {}, {-1.0, 1.0}, 1e-8
+    );
+}
+
+TEST_CASE("eval_chebyt recurrence overload", "[eval_chebyt][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L198-L200
+    check_recurrence(
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_chebyt(n, x); },
+        [](double n, const std::vector<double> &, double x) { return xsf::eval_chebyt(n, x); }, {}, {-1.0, 1.0}
+    );
+}
+
+TEST_CASE("eval_chebyu matches constructed polynomials", "[eval_chebyu][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L96-L98
+    check_poly(
+        [](int n, const std::vector<double> &) { return chebyshev_coefficients(n, true); },
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_chebyu(n, x); }, {}, {-1.0, 1.0}, 1e-8
+    );
+}
+
+TEST_CASE("eval_chebyu recurrence overload", "[eval_chebyu][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L202-L204
+    check_recurrence(
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_chebyu(n, x); },
+        [](double n, const std::vector<double> &, double x) { return xsf::eval_chebyu(n, x); }, {}, {-1.0, 1.0}
+    );
+}
+
+TEST_CASE("eval_chebys matches constructed polynomials", "[eval_chebys][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L100-L102
+    check_poly(
+        [](int n, const std::vector<double> &) { return chebyshev_coefficients(n, true, 0.5); },
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_chebys(n, x); }, {}, {-2.0, 2.0}, 1e-8
+    );
+}
+
+TEST_CASE("eval_chebys recurrence overload", "[eval_chebys][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L206-L208
+    check_recurrence(
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_chebys(n, x); },
+        [](double n, const std::vector<double> &, double x) { return xsf::eval_chebys(n, x); }, {}, {-2.0, 2.0}
+    );
+}
+
+TEST_CASE("eval_chebyc matches constructed polynomials", "[eval_chebyc][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L104-L106
+    check_poly(
+        [](int n, const std::vector<double> &) { return chebyshev_coefficients(n, false, 0.5, 0.0, 2.0); },
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_chebyc(n, x); }, {}, {-2.0, 2.0}, 1e-8
+    );
+}
+
+TEST_CASE("eval_chebyc recurrence overload", "[eval_chebyc][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L210-L212
+    check_recurrence(
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_chebyc(n, x); },
+        [](double n, const std::vector<double> &, double x) { return xsf::eval_chebyc(n, x); }, {}, {-2.0, 2.0}
+    );
+}
+
+TEST_CASE("eval_sh_chebyt matches constructed polynomials", "[eval_sh_chebyt][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L108-L111
+    check_poly(
+        [](int n, const std::vector<double> &) { return chebyshev_coefficients(n, false, 2.0, -1.0); },
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_sh_chebyt(n, x); }, {}, {0.0, 1.0}, 1e-8
+    );
+}
+
+TEST_CASE("eval_sh_chebyt recurrence overload", "[eval_sh_chebyt][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L214-L216
+    check_recurrence(
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_sh_chebyt(n, x); },
+        [](double n, const std::vector<double> &, double x) { return xsf::eval_sh_chebyt(n, x); }, {}, {0.0, 1.0}
+    );
+}
+
+TEST_CASE("eval_sh_chebyu matches constructed polynomials", "[eval_sh_chebyu][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L113-L115
+    check_poly(
+        [](int n, const std::vector<double> &) { return chebyshev_coefficients(n, true, 2.0, -1.0); },
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_sh_chebyu(n, x); }, {}, {0.0, 1.0}, 1e-8
+    );
+}
+
+TEST_CASE("eval_sh_chebyu recurrence overload", "[eval_sh_chebyu][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L218-L220
+    check_recurrence(
+        [](int n, const std::vector<double> &, double x) { return xsf::eval_sh_chebyu(n, x); },
+        [](double n, const std::vector<double> &, double x) { return xsf::eval_sh_chebyu(n, x); }, {}, {0.0, 1.0}
+    );
+}
+
+TEST_CASE("eval_chebyt preserves high-order accuracy", "[eval_chebyt][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L10-L15
+    const double x = 0.125;
+    for (long n = 0; n < 10000; n += 7) {
+        CAPTURE(n);
+        const double expected = std::cos(n * std::acos(x));
+        REQUIRE(std::abs(xsf::eval_chebyt(n, x) - expected) <= 2e-11);
+    }
+}
+
+TEST_CASE("eval_chebyt complex regression gh-20129", "[eval_chebyt][xsf_tests]") {
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L18-L20
+    REQUIRE(xsf::eval_chebyt(7.0, std::complex<double>{2.0, 0.0}) == std::complex<double>{5042.0, 0.0});
+}
+
+TEST_CASE("Chebyshev evaluators support negative integer degrees", "[eval_chebyt][eval_chebyu][xsf_tests]") {
+    // Symmetries in the translated integer-degree implementations.
+    // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/orthogonal_eval.pxd#L224-L280
+    REQUIRE(xsf::eval_chebyt(-3, 0.5) == -1.0);
+    REQUIRE(xsf::eval_chebyu(-1, 0.5) == 0.0);
+    REQUIRE(xsf::eval_chebyu(-2, 0.5) == -1.0);
+    REQUIRE(xsf::eval_chebyu(-3, 0.5) == -1.0);
+    REQUIRE(xsf::eval_chebyu(-4, 0.5) == 0.0);
+}
+
+TEST_CASE("Chebyshev integer-degree evaluators propagate NaN inputs", "[chebyshev][xsf_tests]") {
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const float nan_float = std::numeric_limits<float>::quiet_NaN();
+    for (int n : {-3, -2, -1, 0, 1, 2, 3}) {
+        CAPTURE(n);
+        REQUIRE(std::isnan(xsf::eval_chebyt(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_chebyu(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_chebyc(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_chebys(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_sh_chebyt(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_sh_chebyu(n, nan)));
+        REQUIRE(std::isnan(xsf::eval_chebyt(n, nan_float)));
+        REQUIRE(std::isnan(xsf::eval_chebyu(n, nan_float)));
+        REQUIRE(std::isnan(xsf::eval_chebyc(n, nan_float)));
+        REQUIRE(std::isnan(xsf::eval_chebys(n, nan_float)));
+        REQUIRE(std::isnan(xsf::eval_sh_chebyt(n, nan_float)));
+        REQUIRE(std::isnan(xsf::eval_sh_chebyu(n, nan_float)));
+    }
+}
+
+TEST_CASE("Chebyshev evaluators support noninteger degrees", "[eval_chebyt][eval_chebyu][xsf_tests]") {
+    // T_nu(cos t) = cos(nu t), U_nu(cos t) = sin((nu + 1) t) / sin t.
+    for (double nu : {0.5, 1.3, 2.5, 4.7, 7.25}) {
+        for (double x : {-0.9, -0.3, 0.0, 0.4, 0.95}) {
+            const double t = std::acos(x);
+            const double expected_t = std::cos(nu * t);
+            const double expected_u = std::sin((nu + 1.0) * t) / std::sin(t);
+            CAPTURE(nu, x);
+            REQUIRE(xsf::extended_absolute_error(xsf::eval_chebyt(nu, x), expected_t) <= 1e-8);
+            REQUIRE(xsf::extended_absolute_error(xsf::eval_chebyu(nu, x), expected_u) <= 1e-8);
+        }
+    }
+}
+
+TEST_CASE("Chebyshev float overloads", "[chebyshev][xsf_tests]") {
+    // Extend the polynomial checks to float and complex<float> overloads.
+    // T_3(x) = 4x^3 - 3x; U_3(x) = 8x^3 - 4x.
+    using test_case = std::tuple<
+        float (*)(int, float), float (*)(float, float), std::complex<float> (*)(float, std::complex<float>), float,
+        std::complex<float>>;
+    auto [integer_eval, real_eval, complex_eval, expected, complex_expected] = GENERATE(
+        test_case{xsf::eval_chebyt, xsf::eval_chebyt, xsf::eval_chebyt, -1.0f, {-2.5f, -0.5f}},
+        test_case{xsf::eval_chebyu, xsf::eval_chebyu, xsf::eval_chebyu, -1.0f, {-4.0f, 0.0f}},
+        test_case{xsf::eval_chebyc, xsf::eval_chebyc, xsf::eval_chebyc, -1.375f, {-1.75f, -1.25f}},
+        test_case{xsf::eval_chebys, xsf::eval_chebys, xsf::eval_chebys, -0.875f, {-1.25f, -0.75f}},
+        test_case{xsf::eval_sh_chebyt, xsf::eval_sh_chebyt, xsf::eval_sh_chebyt, 0.0f, {0.0f, -7.0f}},
+        test_case{xsf::eval_sh_chebyu, xsf::eval_sh_chebyu, xsf::eval_sh_chebyu, 0.0f, {0.0f, -12.0f}}
+    );
+    CAPTURE(expected, complex_expected);
+    REQUIRE(std::abs(integer_eval(3, 0.5f) - expected) < 1e-6f);
+    REQUIRE(std::abs(real_eval(3.0f, 0.5f) - expected) < 1e-6f);
+    REQUIRE(std::abs(complex_eval(3.0f, {0.5f, 0.5f}) - complex_expected) < 1e-5f);
 }

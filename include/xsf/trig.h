@@ -46,6 +46,7 @@ XSF_HOST_DEVICE cxx::complex<T> sinpi(cxx::complex<T> z) {
      *
      * so we can compute exp(y/2), scale by the right factor of sin/cos
      * and then multiply by exp(y/2) to avoid overflow. */
+    T sgn_cospix = cxx::copysign(T(1.0), piy) * cospix;
     T exphpiy = cxx::exp(abspiy / 2);
     T coshfac;
     T sinhfac;
@@ -56,17 +57,17 @@ XSF_HOST_DEVICE cxx::complex<T> sinpi(cxx::complex<T> z) {
         } else {
             coshfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), sinpix);
         }
-        if (cospix == T(0.0)) {
+        if (sgn_cospix == T(0.0)) {
             // Preserve the sign of zero.
-            sinhfac = cxx::copysign(T(0.0), cospix);
+            sinhfac = cxx::copysign(T(0.0), sgn_cospix);
         } else {
-            sinhfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), cospix);
+            sinhfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), sgn_cospix);
         }
         return {coshfac, sinhfac};
     }
 
     coshfac = T(0.5) * sinpix * exphpiy;
-    sinhfac = T(0.5) * cospix * exphpiy;
+    sinhfac = T(0.5) * sgn_cospix * exphpiy;
     return {coshfac * exphpiy, sinhfac * exphpiy};
 }
 
@@ -88,27 +89,28 @@ XSF_HOST_DEVICE cxx::complex<T> cospi(cxx::complex<T> z) {
     }
 
     // See csinpi(z) for an idea of what's going on here.
+    T sgn_sinpix = -cxx::copysign(T(1.0), piy) * sinpix;
     T exphpiy = cxx::exp(abspiy / 2);
     T coshfac;
     T sinhfac;
     if (exphpiy == cxx::numeric_limits<T>::infinity()) {
-        if (sinpix == T(0.0)) {
+        if (cospix == T(0.0)) {
             // Preserve the sign of zero.
             coshfac = cxx::copysign(T(0.0), cospix);
         } else {
             coshfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), cospix);
         }
-        if (cospix == T(0.0)) {
+        if (sgn_sinpix == T(0.0)) {
             // Preserve the sign of zero.
-            sinhfac = cxx::copysign(T(0.0), sinpix);
+            sinhfac = cxx::copysign(T(0.0), sgn_sinpix);
         } else {
-            sinhfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), sinpix);
+            sinhfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), sgn_sinpix);
         }
         return {coshfac, sinhfac};
     }
 
     coshfac = T(0.5) * cospix * exphpiy;
-    sinhfac = T(0.5) * sinpix * exphpiy;
+    sinhfac = T(0.5) * sgn_sinpix * exphpiy;
     return {coshfac * exphpiy, sinhfac * exphpiy};
 }
 
