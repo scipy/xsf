@@ -607,7 +607,11 @@ namespace cephes {
         y = cxx::abs(x);
 
         if (y * y < cxx::abs(n + 1) * detail::MACHEP) {
-            return cxx::pow(0.5 * x, n) * rgamma(n + 1);
+            if (n > 0 && x != 0 && 0.5 * x == 0) {
+                // Keep a subnormal argument from rounding to zero when halved.
+                return sign * cxx::pow(x, n) * cxx::pow(0.5, n) * rgamma(n + 1);
+            }
+            return sign * cxx::pow(0.5 * x, n) * rgamma(n + 1);
         }
 
         k = 3.6 * cxx::sqrt(y);
