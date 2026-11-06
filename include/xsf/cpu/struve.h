@@ -127,8 +127,10 @@ namespace detail {
         // Output:  TL0 --- Integration of L0(t) from 0 to x
         // ===========================================================
 
+        // Number of terms of the asymptotic expansion for x > 40, where the last one is at most 2.2e-16
+        constexpr int na = 25;
         int k;
-        double a[25], a0, a1, af, r, rd, s, s0, ti, tl0;
+        double a[na], a0, a1, af, r, rd, s, s0, ti, tl0;
         const double pi = 3.141592653589793;
         const double el = 0.57721566490153;
         r = 1.0;
@@ -159,7 +161,7 @@ namespace detail {
             a0 = 1.0;
             a1 = 5.0 / 8.0;
             a[0] = a1;
-            for (k = 1; k < 25; k++) {
+            for (k = 1; k < na; k++) {
                 af = ((1.5 * (k + .50) * (k + 5.0 / 6.0) * a1 - 0.5 * pow(k + 0.5, 2) * (k - 0.5) * a0)) / (k + 1.0);
                 a[k] = af;
                 a0 = a1;
@@ -167,7 +169,7 @@ namespace detail {
             }
             ti = 1.0;
             r = 1.0;
-            for (k = 1; k < 26; k++) {
+            for (k = 1; k <= na; k++) {
                 r = r / x;
                 ti += a[k - 1] * r;
             }
