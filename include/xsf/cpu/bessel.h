@@ -644,7 +644,12 @@ T cyl_bessel_je(T v, T x) {
         return std::numeric_limits<T>::quiet_NaN();
     }
 
-    return std::real(cyl_bessel_je(v, std::complex(x)));
+    T res = std::real(cyl_bessel_je(v, std::complex(x)));
+    if (res == 0 && x != 0 && (v >= 0 || v == floor(v))) {
+        // Real-axis scaling is one, and Cephes can recover AMOS underflow.
+        return cephes::jv(v, x);
+    }
+    return res;
 }
 
 inline double cyl_bessel_y0(double x) { return cephes::y0(x); }
@@ -929,8 +934,8 @@ T cyl_bessel_j(T v, T x) {
     }
 
     std::complex<T> res = cyl_bessel_j(v, std::complex(x));
-    if (std::real(res) != std::real(res)) {
-        /* AMOS returned NaN, possibly due to overflow */
+    if (std::real(res) != std::real(res) || (std::real(res) == 0 && x != 0 && (v >= 0 || v == floor(v)))) {
+        /* Recover real values lost to AMOS overflow or premature underflow. */
         return cephes::jv(v, x);
     }
 
