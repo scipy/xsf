@@ -3418,7 +3418,7 @@ namespace specfun {
             return;
         }
 
-        if ((x <= 300.0) || (n > (int)(0.9 * x))) {
+        if ((x <= 300.0) || (n > 0.9 * x)) {
             // Backward recurrence for Jn
             if (n == 0) {
                 *nm = 1;
@@ -4065,7 +4065,7 @@ namespace specfun {
             return;
         }
 
-        if (n >= 2 && n <= (int)(0.9 * x)) {
+        if (n >= 2 && n <= 0.9 * x) {
             f0 = bjv0;
             f1 = bjv1;
 
