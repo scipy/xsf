@@ -115,8 +115,36 @@ namespace cephes {
             retinf:
                 return (cxx::numeric_limits<double>::infinity());
             }
-            if (x != cxx::floor(x))
+            if (x != cxx::floor(x) || cxx::isinf(x))
                 goto domerr; /* because q^-x not defined */
+
+            double r = q - cxx::floor(q);
+            double t = cxx::ceil(q) - q;
+            bool odd = cxx::fmod(x, 2.0) != 0.0;
+            if (odd && r == t) {
+                return zeta(x, 1 - q);
+            }
+            double leading;
+            if (odd) {
+                double lo = r < t ? r : t;
+                double hi = r < t ? t : r;
+                // The midpoint difference retains the distance when r or t rounds to 0.5.
+                double delta = 2 * cxx::abs(q - (cxx::floor(q) + 0.5));
+                double factor = -cxx::expm1(x * cxx::log1p(-delta / hi));
+                leading = cxx::pow(lo, -x);
+                leading = cxx::isinf(leading) ? cxx::exp(-x * cxx::log(lo) + cxx::log(factor)) : leading * factor;
+                if (r > t) {
+                    leading = -leading;
+                }
+            } else {
+                leading = cxx::pow(r, -x) + cxx::pow(t, -x);
+            }
+            // Pair the nearest poles before adding the positive-argument tails (DLMF 25.11.4).
+            double sign = odd ? -1.0 : 1.0;
+            return leading + (zeta(x, 1 + r) + sign * zeta(x, 1 + t)) - sign * zeta(x, 1 - q);
+        }
+        if (cxx::isinf(x)) {
+            return cxx::pow(q, -x);
         }
 
         /* Asymptotic expansion
@@ -130,11 +158,6 @@ namespace cephes {
 
         /* Euler-Maclaurin summation formula */
 
-        /* Permit negative q but continue sum until n+q > +9 .
-         * This case should be handled by a reflection formula.
-         * If q<0 and x is an integer, there is a relation to
-         * the polyGamma function.
-         */
         s = cxx::pow(q, -x);
         a = q;
         i = 0;
@@ -144,6 +167,9 @@ namespace cephes {
             a += 1.0;
             b = cxx::pow(a, -x);
             s += b;
+            if (b == 0.0) {
+                return s;
+            }
             // stop only if the corrections below, b * a / (x - 1) and -b / 2, are negligible
             if (cxx::abs(b / s) < detail::MACHEP && cxx::abs(b * a / ((x - 1) * s)) < detail::MACHEP)
                 goto done;
