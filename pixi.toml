@@ -8,6 +8,7 @@ authors = [
   "Florian Bourgey <bourgeyflorian@gmail.com>",
   "Lucas Colley <lucas.colley8@gmail.com>",
   "Daniel Schmitz <danielschmitzsiegen@googlemail.com>",
+  "Jake Bowhay <jb9.bowhay@gmail.com>",
 ]
 platforms = [
   "linux-64",
@@ -87,7 +88,7 @@ cupy-tests = {
     xsf.path = ".",
     xsref = {
       git = "https://github.com/scipy/xsref",
-      rev = "b511621d228fdc660f3471f2855fd9955652f34d",
+      rev = "bf5d59d86cc880052cdd7e58dd3abec1eee0d027",
     },
     cupy = "*",
     pytest-forked = "*",

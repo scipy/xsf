@@ -150,7 +150,7 @@ namespace cephes {
     namespace detail {
         /* Compute lgam(x + 1) around x = 0 using its Taylor series. */
         XSF_HOST_DEVICE inline double lgam1p_taylor(double x) {
-            int n;
+            uint64_t n;
             double xfac, coeff, res;
 
             if (x == 0) {
@@ -158,11 +158,11 @@ namespace cephes {
             }
             res = -SCIPY_EULER * x;
             xfac = -x;
-            for (n = 2; n < 42; n++) {
+            for (n = 2; n < detail::MAXITER; n++) {
                 xfac *= -x;
                 coeff = xsf::cephes::zeta(n, 1) * xfac / n;
                 res += coeff;
-                if (cxx::abs(coeff) < detail::MACHEP * cxx::abs(res)) {
+                if (cxx::abs(coeff) <= detail::MACHEP * cxx::abs(res)) {
                     break;
                 }
             }
