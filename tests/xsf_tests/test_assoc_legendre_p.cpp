@@ -1,4 +1,5 @@
 #include "../testing_utils.h"
+#include <cmath>
 #include <tuple>
 #include <xsf/cpu/legendre.h>
 
@@ -46,4 +47,16 @@ TEST_CASE("assoc_legendre_p norm m0 gh-78", "[assoc_legendre_p][xsf_tests]") {
             REQUIRE(rel_error <= 1e-8);
         }
     }
+}
+
+TEST_CASE("normalized Legendre recurrences avoid integer overflow", "[legendre][xsf_tests]") {
+    const int n = 646;
+    const int m = 0;
+    const double theta = 1.0;
+
+    const double spherical = xsf::sph_legendre_p(n, m, theta);
+    const double associated = xsf::assoc_legendre_p(xsf::assoc_legendre_norm, n, m, std::cos(theta), 1);
+
+    REQUIRE(std::isfinite(spherical));
+    REQUIRE(std::isfinite(associated));
 }
