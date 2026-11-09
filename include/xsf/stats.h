@@ -160,7 +160,7 @@ XSF_HOST_DEVICE inline cxx::complex<double> log_ndtr(cxx::complex<double> z) {
 
     cxx::complex<double> val1 = cxx::complex<double>(mRe_z2, im);
 
-    cxx::complex<double> val2 = cxx::log(xsf::wofz(complex<double>(-y, x)));
+    cxx::complex<double> val2 = cxx::log(xsf::wofz(cxx::complex<double>(-y, x)));
     cxx::complex<double> result = val1 + val2 - M_LN2;
 
     /* Again, select the principal branch: log(z) = log|z| + i arg(z), thus
