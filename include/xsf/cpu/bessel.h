@@ -1207,7 +1207,34 @@ inline std::complex<float> cyl_hankel_2(float v, std::complex<float> z) {
     return static_cast<std::complex<float>>(cyl_hankel_2(static_cast<double>(v), static_cast<std::complex<double>>(z)));
 }
 
-inline double besselpoly(double a, double lambda, double nu) { return cephes::besselpoly(a, lambda, nu); }
+namespace detail {
+
+    // int_0^1 t^lambda J_nu(2a t) dt as the Neumann series DLMF 10.22.10 with x = 2a
+    inline double besselpoly_neumann(double a, double lambda, double nu) {
+        double b = 2.0 * a, c0 = (lambda + nu + 1.0) / 2.0, c1 = c0 - lambda;
+        double f = 1.0, g = 0.0, sum = 0.0; // J_mu(b), J_(mu+1)(b) up to a common factor
+        for (int k = (specfun::msta2(b, static_cast<int>(std::ceil(nu + 1.0)), 15) - nu) / 2; k >= 0; k--) {
+            double mu = nu + 1.0 + 2.0 * k;
+            for (int j = 2; j >= 1; j--) { // J_(mu+j-1) = 2(mu+j)/b J_(mu+j) - J_(mu+j+1)
+                double t = f;
+                f = 2.0 * (mu + j) / b * f - g;
+                g = t;
+            }
+            sum = mu * f + (c1 + k) / (c0 + k + 1.0) * sum;
+        }
+        return sum * (cephes::jv(nu + 1.0, b) * f + cephes::jv(nu + 2.0, b) * g) / (f * f + g * g) / b / c0;
+    }
+
+} // namespace detail
+
+inline double besselpoly(double a, double lambda, double nu) {
+    double n = (nu < 0 && std::floor(nu) == nu) ? -nu : nu; // J_(-n) = (-1)^n J_n
+    if (a >= 1.5 && a < 500.0 && n > -1.0 && n < a * a - 1.0 && lambda >= -1.0 && std::isfinite(lambda)) {
+        double s = detail::besselpoly_neumann(a, lambda, n);
+        return (n != nu && std::fmod(n, 2.0) == 1.0) ? -s : s;
+    }
+    return cephes::besselpoly(a, lambda, nu);
+}
 
 inline float besselpoly(float a, float lambda, float nu) {
     return besselpoly(static_cast<double>(a), static_cast<double>(lambda), static_cast<double>(nu));
