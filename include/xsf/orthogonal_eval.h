@@ -10,6 +10,14 @@ namespace xsf {
 
 namespace detail {
 
+    // binom(n + alpha, n) = 1 / (n B(alpha + 1, n)) (DLMF 5.12.1), keeping the digits of alpha + 1 for alpha near -1
+    XSF_HOST_DEVICE inline double binom_alpha(double n, double alpha) {
+        if (alpha < -0.5 && n >= 1) {
+            return 1.0 / n / beta(alpha + 1.0, n);
+        }
+        return binom(n + alpha, n);
+    }
+
     template <typename T>
     XSF_HOST_DEVICE inline T eval_jacobi(double n, double alpha, double beta, T x) {
         double a, b, c, d;
@@ -125,7 +133,7 @@ namespace detail {
             d = -x / (k + alpha + 1.0) * p + (k / (k + alpha + 1.0)) * d;
             p = d + p;
         }
-        return binom(n + alpha, n) * p;
+        return binom_alpha(n, alpha) * p;
     }
 
     // Integer-degree C_n^(alpha)(x). For |x| >= 1e-5, forward recurrence on the normalized values
