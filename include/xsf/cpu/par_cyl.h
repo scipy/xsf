@@ -600,7 +600,7 @@ namespace detail {
         wf = u.real();
         wd = du.real();
 
-        int n = ceil(2.0 * (x0 - x));
+        int n = static_cast<int>(ceil(2.0 * (x0 - x)));
         T h = (x - x0) / n;
         for (int i = 0; i < n; i++) {
             // b[m + 2] = c_m h^m are the terms of W(xi + h), with
