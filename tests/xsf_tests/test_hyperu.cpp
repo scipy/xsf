@@ -143,3 +143,31 @@ TEST_CASE("hyperu small a small-x series", "[hyperu][xsf_tests]") {
     CAPTURE(a, b, x, out, desired, error, rtol);
     REQUIRE(error <= rtol);
 }
+
+TEST_CASE("hyperu tiny a and integer b", "[hyperu][xsf_tests]") {
+    // Regression test for gh-459: the terminating series in `chgul` computed
+    // `a + 1 - 1.0`, which is 0 for tiny `a`.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for a, b, x in [(1e-20, 10.0, 0.01), (-1e-20, 15.0, 0.1), (1e-40, 20.0, 0.002)]:
+        print(f"hyperu({a!r}, {b!r}, {x!r}) = {float(mpmath.hyperu(a, b, x))!r}")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double, double>;
+    auto [a, b, x, desired] = GENERATE(
+        test_case{1e-20, 10.0, 0.01, 408.76202110315756}, test_case{-1e-20, 15.0, 0.1, -6934.305358080271},
+        test_case{1e-40, 20.0, 0.002, 1.223736600747381e+27}
+    );
+
+    const double out = xsf::hyperu(a, b, x);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 1e-14;
+    CAPTURE(a, b, x, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
