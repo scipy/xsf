@@ -837,8 +837,11 @@ T cyl_bessel_ke(T v, T x) {
     if (std::isinf(ke) && std::abs(v) > 1) {
         // AMOS overflows above about 1e304; recur from lower orders (DLMF 10.29.1)
         T w = std::abs(v);
-        ke = std::real(cyl_bessel_ke(w - 2, std::complex(x))) +
-             2 * (w - 1) / x * std::real(cyl_bessel_ke(w - 1, std::complex(x)));
+        T r = std::real(cyl_bessel_ke(w - 2, std::complex(x))) +
+              2 * (w - 1) / x * std::real(cyl_bessel_ke(w - 1, std::complex(x)));
+        if (!std::isnan(r)) { // keep inf where the lower orders aren't available either
+            ke = r;
+        }
     }
     return ke;
 }
@@ -1172,8 +1175,11 @@ T cyl_bessel_k(T v, T z) {
     if (std::isinf(k) && std::abs(v) > 1) {
         // AMOS overflows above about 1e304; recur from lower orders (DLMF 10.29.1)
         T w = std::abs(v);
-        k = std::real(cyl_bessel_k(w - 2, std::complex(z))) +
-            2 * (w - 1) / z * std::real(cyl_bessel_k(w - 1, std::complex(z)));
+        T r = std::real(cyl_bessel_k(w - 2, std::complex(z))) +
+              2 * (w - 1) / z * std::real(cyl_bessel_k(w - 1, std::complex(z)));
+        if (!std::isnan(r)) { // keep inf where the lower orders aren't available either
+            k = r;
+        }
     }
     return k;
 }
