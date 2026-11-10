@@ -176,7 +176,7 @@ T sph_bessel_j_jac(long n, T z) {
     }
 
     // DLMF 10.51.2
-    return sph_bessel_j(n - 1, z) - static_cast<T>(n + 1) * sph_bessel_j(n, z) / z;
+    return sph_bessel_j(n - 1, z) - static_cast<T>(n + 1UL) * sph_bessel_j(n, z) / z;
 }
 
 template <typename T>
@@ -273,7 +273,7 @@ T sph_bessel_y_jac(long n, T x) {
     }
 
     // DLMF 10.51.2; for real x, y_{n-1}(x) is negligible if the second term overflows, so avoid inf - inf.
-    T res = -static_cast<T>(n + 1) * sph_bessel_y(n, x) / x;
+    T res = -static_cast<T>(n + 1UL) * sph_bessel_y(n, x) / x;
     if constexpr (cxx::is_floating_point_v<T>) {
         if (std::isinf(res)) {
             return res;
@@ -384,7 +384,7 @@ T sph_bessel_i_jac(long n, T z) {
         return static_cast<R>(n) / (2 * static_cast<R>(n) + 1) * detail::sph_bessel_tiny(n - 1, z);
     }
 
-    return sph_bessel_i(n - 1, z) - static_cast<T>(n + 1) * sph_bessel_i(n, z) / z;
+    return sph_bessel_i(n - 1, z) - static_cast<T>(n + 1UL) * sph_bessel_i(n, z) / z;
 }
 
 template <typename T>
@@ -463,7 +463,7 @@ T sph_bessel_k_jac(long n, T x) {
         return -sph_bessel_k(1, x);
     }
 
-    return -sph_bessel_k(n - 1, x) - static_cast<T>(n + 1) * sph_bessel_k(n, x) / x;
+    return -sph_bessel_k(n - 1, x) - static_cast<T>(n + 1UL) * sph_bessel_k(n, x) / x;
 }
 
 } // namespace xsf
