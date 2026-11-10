@@ -646,7 +646,7 @@ namespace specfun {
             cr = 1.0;
             chg = 1.0;
             for (k = 1; k < (m + 1); k++) {
-                cr = cr * (a + k - 1.0) / static_cast<double>(k) / (b + k - 1.0) * z;
+                cr = cr * (a + (k - 1)) / static_cast<double>(k) / (b + (k - 1)) * z;
                 chg += cr;
             }
         } else {
@@ -673,7 +673,7 @@ namespace specfun {
                     chw = 0.0;
                     crg = 1.0;
                     for (j = 1; j < 501; j++) {
-                        crg = crg * (a + j - 1.0) / (j * (b + j - 1.0)) * z;
+                        crg = crg * (a + (j - 1)) / (j * (b + (j - 1))) * z;
                         chg += crg;
                         if (std::abs((chg - chw) / chg) < 1e-15) {
                             break;
@@ -848,7 +848,7 @@ namespace specfun {
                 hg = 1.0;
                 rg = 1.0;
                 for (j = 1; j < 501; j++) {
-                    rg = rg * (a + j - 1.0) / (j * (b + j - 1.0)) * x;
+                    rg = rg * (a + (j - 1)) / (j * (b + (j - 1))) * x;
                     hg += rg;
                     if ((hg != 0.0) && (fabs(rg / hg) < 1e-15)) {
                         // DLMF 13.2.39 (cf. above)
