@@ -896,6 +896,8 @@ namespace amos {
         bb = std::numeric_limits<int>::max() * 0.5;
         aa = (aa > bb ? bb : aa);
         aa = std::pow(aa, tth);
+        // As in besj and besh: for abs(zeta) > 0.5 / tol, with zeta = 2/3 z**1.5, all significance is lost by
+        // argument reduction. The INT_MAX / 2 in aa is not needed here, since z is never converted to int.
         if (az > std::pow(0.5 / tol, tth)) {
             *ierr = 4;
             *nz = 0;
@@ -1706,6 +1708,8 @@ namespace amos {
         aa = 0.5 / tol;
         bb = std::numeric_limits<int>::max() * 0.5;
         aa = std::fmin(aa, bb);
+        // As in besj and besh: for abs(z) > 0.5 / tol all significance is lost by argument reduction. INT_MAX / 2
+        // is only needed for the order, which is converted to int.
         if ((az > 0.5 / tol) || (fn > aa)) {
             *ierr = 4;
             return 0;
@@ -2241,6 +2245,8 @@ namespace amos {
         aa = 0.5 / tol;
         bb = std::numeric_limits<int>::max() * 0.5;
         aa = std::fmin(aa, bb);
+        // As in besj and besh: for abs(z) > 0.5 / tol all significance is lost by argument reduction. INT_MAX / 2
+        // is only needed for the order, which is converted to int.
         if ((az > 0.5 / tol) || (fn > aa)) {
             *ierr = 4;
             return 0;
@@ -3027,6 +3033,8 @@ namespace amos {
         bb = std::numeric_limits<int>::max() * 0.5;
         aa = std::fmin(aa, bb);
         aa = std::pow(aa, tth);
+        // As in besj and besh: for abs(zeta) > 0.5 / tol, with zeta = 2/3 z**1.5, all significance is lost by
+        // argument reduction. The INT_MAX / 2 in aa is not needed here, since z is never converted to int.
         if (az > std::pow(0.5 / tol, tth)) {
             *ierr = 4;
             return 0.0;
