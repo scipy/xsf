@@ -387,3 +387,14 @@ TEST_CASE("spherical_y_jac overflow", "[spherical_bessel][xsf_tests]") {
     REQUIRE(xsf::sph_bessel_y_jac(7, -7e-46) == -std::numeric_limits<double>::infinity());
     REQUIRE(xsf::sph_bessel_y_jac(1, 0.0) == std::numeric_limits<double>::infinity());
 }
+
+// Regression test for gh-487: y_n(x) was nan for n >= 2 and 0 < |x| < 1 / DBL_MAX.
+// y_n(x) ~ -(2n - 1)!! / x^(n + 1) overflows there (https://dlmf.nist.gov/10.52.E2), e.g. with mp.dps = 30,
+// mpmath.bessely(2.5, mpf(5e-324)) * mpmath.sqrt(mpmath.pi / (2 * mpf(5e-324))) is about -2.5e+970.
+TEST_CASE("spherical_y tiny inputs", "[spherical_bessel][xsf_tests]") {
+    // y_n(-x) = (-1)^(n + 1) y_n(x), from https://dlmf.nist.gov/10.47.E14
+    REQUIRE(xsf::sph_bessel_y(2, 5e-324) == -std::numeric_limits<double>::infinity());
+    REQUIRE(xsf::sph_bessel_y(2, -5e-324) == std::numeric_limits<double>::infinity());
+    REQUIRE(xsf::sph_bessel_y(3, 1e-310) == -std::numeric_limits<double>::infinity());
+    REQUIRE(xsf::sph_bessel_y_jac(2, 5e-324) == std::numeric_limits<double>::infinity());
+}

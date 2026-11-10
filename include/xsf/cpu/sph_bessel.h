@@ -212,7 +212,8 @@ T sph_bessel_y(long n, T x) {
     }
 
     s1 = (s0 - sin(x)) / x;
-    if (n == 1) {
+    // If s1 overflows (tiny x), so does y_n(x); if s0 does too, the recurrence would give inf - inf.
+    if (n == 1 || std::isinf(s1)) {
         return s1;
     }
 
