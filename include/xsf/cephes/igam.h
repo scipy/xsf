@@ -142,7 +142,8 @@ namespace cephes {
 
             if (cxx::abs(a - x) > 0.4 * cxx::abs(a)) {
                 ax = a * cxx::log(x) - x - xsf::cephes::lgam(a);
-                if (ax < -MAXLOG) {
+                // ax < log(sqrt(a)) - a / 16 here (DLMF 5.6.1), but a * log(x) can overflow for huge a
+                if (ax < -MAXLOG || a >= cxx::numeric_limits<double>::max() / MAXLOG) {
                     set_error("igam", SF_ERROR_UNDERFLOW, NULL);
                     return 0.0;
                 }
