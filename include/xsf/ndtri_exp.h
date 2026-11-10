@@ -99,6 +99,7 @@
 
 #include "cephes/ndtri.h"
 #include "config.h"
+#include "erf.h"
 
 namespace xsf {
 
@@ -128,7 +129,17 @@ namespace detail {
         } else {
             x1 = z * cephes::polevl(z, cephes::detail::ndtri_P2, 8) / cephes::p1evl(z, cephes::detail::ndtri_Q2, 8);
         }
-        return x1 - x0;
+        const double r = x1 - x0;
+
+        // P2/Q2 are fitted for 8 <= x <= 64 and inaccurate up to x ~ 2^18, so refine with a Newton step
+        // (DLMF 3.8.4) on log_ndtr(r) = log(erfcx(t) / 2) - t^2, with t = -r/sqrt(2), whose derivative is
+        // sqrt(2/pi) / erfcx(t) (DLMF 7.2.2)
+        if (x > 64.0 && x < 262144.0) {
+            const double t = -r * M_SQRT1_2;
+            const double e = erfcx(t);
+            return r - (cxx::log(e / 2) - t * t - y) * e / cephes::detail::SQRT2OPI;
+        }
+        return r;
     }
 
 } // namespace detail

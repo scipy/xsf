@@ -58,3 +58,24 @@ TEST_CASE("ndtri_exp asymptotes", "[ndtri_exp][xsf_tests]") {
 }
 
 TEST_CASE("ndtri_exp outside domain", "[ndtri_exp][xsf_tests]") { REQUIRE(std::isnan(xsf::ndtri_exp(1.0))); }
+
+TEST_CASE("ndtri_exp -2^35 < y < -2048", "[ndtri_exp][xsf_tests]") {
+    // Regression test for gh-458: relative error up to 6.6e-13.
+    // Reference values from mpmath:
+    //
+    //     from mpmath import mp, findroot, log, ncdf, sqrt
+    //     mp.dps = 50
+    //     for y in [-2e5, -1e6, -1e7]:
+    //         print(repr(float(findroot(lambda x: log(ncdf(x)) - y, -sqrt(-2 * y)))))
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double>;
+    auto [y, desired] = GENERATE(
+        test_case{-2e5, -632.443881253468}, test_case{-1e6, -1414.2077829910174}, test_case{-1e7, -4472.133869964196}
+    );
+
+    const double out = xsf::ndtri_exp(y);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 2e-15;
+    CAPTURE(y, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
