@@ -27,3 +27,41 @@ TEST_CASE("itairy", "[itairy][xsf_tests]") {
     REQUIRE(rel_error_ant <= rtol);
     REQUIRE(rel_error_bnt <= rtol);
 }
+
+TEST_CASE("itairy overflow", "[itairy][xsf_tests]") {
+    // Regression test for gh-448 (https://github.com/scipy/xsf/issues/448):
+    // bpt overflowed for 104.2 < x <= 104.66, and x > 5.9e204 gave NaNs instead of the limits.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for x in [104.5]:
+        x = mpmath.mpf(x)
+        apt = mpmath.airyai(x, derivative=-1)
+        bpt = mpmath.airybi(x, derivative=-1)
+        ant = -mpmath.airyai(-x, derivative=-1)
+        bnt = -mpmath.airybi(-x, derivative=-1)
+        print(f"{float(x)!r}, {float(apt)!r}, {float(bpt)!r}, {float(ant)!r}, {float(bnt)!r}")
+    */
+    SET_FP_FORMAT()
+    const double inf = std::numeric_limits<double>::infinity();
+    using test_case = std::tuple<double, double, double, double, double>;
+    auto [x, ref_apt, ref_bpt, ref_ant, ref_bnt] = GENERATE_COPY(
+        test_case{104.5, 0.3333333333333333, 3.3773949845225984e+307, 0.683625159831577, 0.0032219271426297096},
+        // the limits, DLMF 9.10.11, 9.10.12
+        test_case{1e205, 1.0 / 3.0, inf, 2.0 / 3.0, 0.0}, test_case{inf, 1.0 / 3.0, inf, 2.0 / 3.0, 0.0}
+    );
+    double apt, bpt, ant, bnt;
+    xsf::itairy(x, apt, bpt, ant, bnt);
+
+    const double rtol = 1e-12;
+    CAPTURE(x, apt, ref_apt, bpt, ref_bpt, ant, ref_ant, bnt, ref_bnt, rtol);
+    REQUIRE(xsf::extended_relative_error(apt, ref_apt) <= rtol);
+    REQUIRE(xsf::extended_relative_error(bpt, ref_bpt) <= rtol);
+    REQUIRE(xsf::extended_relative_error(ant, ref_ant) <= rtol);
+    REQUIRE(xsf::extended_relative_error(bnt, ref_bnt) <= rtol);
+}
