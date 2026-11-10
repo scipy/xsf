@@ -18,3 +18,14 @@ TEST_CASE("cyl_bessel_k gh-46", "[cyl_bessel_k][xsf_tests]") {
     CAPTURE(v, z, w, ref, rtol, rel_error);
     REQUIRE(rel_error <= rtol);
 }
+
+TEST_CASE("cyl_bessel_k and cyl_bessel_ke huge order", "[cyl_bessel_k][cyl_bessel_ke][xsf_tests]") {
+    // Regression test for gh-499: these returned NaN instead of inf.
+    SET_FP_FORMAT()
+    const double inf = std::numeric_limits<double>::infinity();
+    auto [v, x] = GENERATE(std::tuple{0x1p30, 1.0}, std::tuple{-1e12, 1.0}, std::tuple{1e300, 1e200});
+    CAPTURE(v, x);
+    REQUIRE(xsf::cyl_bessel_k(v, x) == inf);
+    REQUIRE(xsf::cyl_bessel_ke(v, x) == inf);
+    REQUIRE(xsf::cyl_bessel_k(v, std::complex<double>(x)) == std::complex<double>(inf, 0.0));
+}
