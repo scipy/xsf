@@ -398,3 +398,17 @@ TEST_CASE("spherical_y tiny inputs", "[spherical_bessel][xsf_tests]") {
     REQUIRE(xsf::sph_bessel_y(3, 1e-310) == -std::numeric_limits<double>::infinity());
     REQUIRE(xsf::sph_bessel_y_jac(2, 5e-324) == std::numeric_limits<double>::infinity());
 }
+
+// Regression test for gh-498: n + 1 overflowed for n = LONG_MAX and flipped the sign of the (n + 1) term.
+TEST_CASE("spherical_y_jac and spherical_k_jac n = LONG_MAX", "[spherical_bessel][xsf_tests]") {
+    constexpr long n = std::numeric_limits<long>::max();
+    constexpr double inf = std::numeric_limits<double>::infinity();
+
+    // y_n(1) overflows to -inf for huge n (https://dlmf.nist.gov/10.19.E2); n is odd, so y_n'(-x) = -y_n'(x).
+    REQUIRE(xsf::sph_bessel_y_jac(n, 1.0) == inf);
+    REQUIRE(xsf::sph_bessel_y_jac(n, -1.0) == -inf);
+    // k_n'(x) < 0 for x > 0, so k_n'(inf) = -0, as for small n.
+    double k_jac = xsf::sph_bessel_k_jac(n, inf);
+    REQUIRE(k_jac == 0);
+    REQUIRE(std::signbit(k_jac));
+}
