@@ -1281,7 +1281,7 @@ namespace specfun {
             hu = 1.0;
             r = 1.0;
             for (k = 1; k <= nm; k++) {
-                r = -r * (a + k - 1.0) * (a - b + k) / (k * x);
+                r = -r * (a + (k - 1)) * (a - b + k) / (k * x);
                 hu += r;
             }
             hu *= pow(x, -a);
