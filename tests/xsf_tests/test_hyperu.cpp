@@ -200,3 +200,32 @@ TEST_CASE("hyperu b near 0", "[hyperu][xsf_tests]") {
     CAPTURE(a, b, x, out, desired, error, rtol);
     REQUIRE(error <= rtol);
 }
+
+TEST_CASE("hyperu terminating series overflow", "[hyperu][xsf_tests]") {
+    // Regression test for gh-506: the terminating series in `chgul` or x^-a
+    // overflowed, so this returned inf or NaN.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for a, b, x in [(1.5, 1001.5, 230.0), (1e-20, 1000.0, 215.0), (-20.0, 3.0, 1e-20), (-50.0, 2.0, 1e-07)]:
+        print(f"hyperu({a!r}, {b!r}, {x!r}) = {float(mpmath.hyperu(a, b, x))!r}")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double, double>;
+    auto [a, b, x, desired] = GENERATE(
+        test_case{1.5, 1001.5, 230.0, 1.2002838126014522e+303}, test_case{1e-20, 1000.0, 215.0, 9.501070751404895e+304},
+        test_case{-20.0, 3.0, 1e-20, 5.6200036388880384e+20}, test_case{-50.0, 2.0, 1e-07, 1.5511148754936659e+66}
+    );
+
+    const double out = xsf::hyperu(a, b, x);
+    const double error = xsf::extended_relative_error(out, desired);
+    // x^-a is applied in logarithms for the last two
+    const double rtol = 1e-12;
+    CAPTURE(a, b, x, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}

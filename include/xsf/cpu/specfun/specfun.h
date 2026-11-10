@@ -1278,13 +1278,28 @@ namespace specfun {
         // IL1: DLMF 13.2.7 with k=-s-a
         // IL2: DLMF 13.2.8
         if (il1 || il2) {
+            // the terms and x^-a can overflow even if U is finite, so the sum is kept as hu * 2^e
+            double e = 0.0, p = pow(x, -a), t;
             hu = 1.0;
             r = 1.0;
             for (k = 1; k <= nm; k++) {
-                r = -r * (a + (k - 1)) * (a - b + k) / (k * x);
+                t = -r * (a + (k - 1)) * (a - b + k) / (k * x);
+                while (std::isfinite(hu) && !std::isfinite(hu + t) && std::isfinite(a - b)) {
+                    r = ldexp(r, -600);
+                    hu = ldexp(hu, -600);
+                    e += 600;
+                    t = -r * (a + (k - 1)) * (a - b + k) / (k * x);
+                }
+                r = t;
                 hu += r;
             }
-            hu *= pow(x, -a);
+            if (std::isnormal(p) && e < 2048) {
+                int q;
+                p = frexp(p, &q);
+                hu = ldexp(hu * p, (int)e + q);
+            } else {
+                hu = copysign(exp(log(fabs(hu)) + e * log(2.0) - a * log(x)), hu);
+            }
             *id = 10;
         } else {
             // DLMF 13.7.3
