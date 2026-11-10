@@ -896,7 +896,7 @@ namespace amos {
         bb = std::numeric_limits<int>::max() * 0.5;
         aa = (aa > bb ? bb : aa);
         aa = std::pow(aa, tth);
-        if (az > aa) {
+        if (az > std::pow(0.5 / tol, tth)) {
             *ierr = 4;
             *nz = 0;
             return 0.;
@@ -1706,7 +1706,7 @@ namespace amos {
         aa = 0.5 / tol;
         bb = std::numeric_limits<int>::max() * 0.5;
         aa = std::fmin(aa, bb);
-        if ((az > aa) || (fn > aa)) {
+        if ((az > 0.5 / tol) || (fn > aa)) {
             *ierr = 4;
             return 0;
         }
@@ -2241,7 +2241,7 @@ namespace amos {
         aa = 0.5 / tol;
         bb = std::numeric_limits<int>::max() * 0.5;
         aa = std::fmin(aa, bb);
-        if ((az > aa) || (fn > aa)) {
+        if ((az > 0.5 / tol) || (fn > aa)) {
             *ierr = 4;
             return 0;
         }
@@ -3027,7 +3027,7 @@ namespace amos {
         bb = std::numeric_limits<int>::max() * 0.5;
         aa = std::fmin(aa, bb);
         aa = std::pow(aa, tth);
-        if (az > aa) {
+        if (az > std::pow(0.5 / tol, tth)) {
             *ierr = 4;
             return 0.0;
         }
