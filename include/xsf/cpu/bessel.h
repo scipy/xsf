@@ -409,7 +409,7 @@ namespace detail {
      */
     inline bool cyl_bessel_k_overflows(double v, std::complex<double> z, bool scaled) {
         double x = std::real(z);
-        if (v <= std::numeric_limits<int>::max() * 0.5 || std::imag(z) != 0 || !(x > 0 && x <= v)) {
+        if (v <= std::numeric_limits<int>::max() * 0.5 || std::imag(z) != 0 || !(x > 0)) {
             return false;
         }
         double logk = v * (std::log(v / x * 2) - 1) - x / (v - 1) * x / 4 - std::log(v / M_PI_2) / 2;
