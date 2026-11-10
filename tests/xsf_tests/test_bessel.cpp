@@ -27,3 +27,21 @@ TEST_CASE("jv power series overflow keeps the sign", "[bessel][xsf_tests]") {
     REQUIRE(xsf::cyl_bessel_j(-123.57388919180612, 0.028605192190944706) == -inf);
     REQUIRE(xsf::cyl_bessel_j(-124.68311766689978, 0.032989216721374115) == inf);
 }
+
+TEST_CASE("iv large v where u_1(t) vanishes", "[bessel][xsf_tests]") {
+    // Regression test for gh-468: x = |v| * sqrt(2/3), where u_1(t) = 0.
+    // from mpmath import mp, mpf, besseli
+    // mp.dps = 50
+    // float(besseli(v, mpf(x)))
+    using test_case = std::tuple<double, double, double>;
+    auto [v, x, ref] = GENERATE(
+        test_case{100, 81.6496580927726, 6392289838.26386}, test_case{-100.5, 82.05790638323647, 7258961449.952213}
+    );
+
+    double result = xsf::cyl_bessel_i(v, x);
+    double rel_err = xsf::extended_relative_error(result, ref);
+
+    SET_FP_FORMAT()
+    CAPTURE(v, x, result, ref, rel_err);
+    REQUIRE(rel_err <= 1e-13);
+}
