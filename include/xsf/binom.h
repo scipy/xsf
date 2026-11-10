@@ -11,6 +11,7 @@
 
 #include "cephes/beta.h"
 #include "cephes/gamma.h"
+#include "cephes/poch.h"
 #include "cephes/trig.h"
 
 namespace xsf {
@@ -76,6 +77,35 @@ XSF_HOST_DEVICE inline double binom(double n, double k) {
             return 0;
         }
         return num * cxx::sin(k * M_PI);
+    }
+    if (cxx::abs(k) > 2E4 && cxx::abs(n) < 170 && cxx::isfinite(k)) {
+        // beta loses ~|k| eps here, so use the reflection formula
+        // binom(n, k) = Gamma(1 + n) sin(pi (n - k + 1)) / (pi poch(a, n + 1)) with a = k - n,
+        // or with a = -k and sin(-pi k) for k < 0 (DLMF 5.5.3)
+        double a, s;
+        if (k > 0) {
+            a = k - n;
+            // sin(pi (n - k + 1)) = (-1)^kx sin(pi ((k - kx) - n)), where k - kx is exact
+            kx = cxx::round(a);
+            sgn = (cxx::fmod(kx, 2.0) == 0) ? 1 : -1;
+            s = sgn * cephes::sinpi((k - kx) - n);
+        } else {
+            a = -k;
+            s = cephes::sinpi(-k);
+        }
+        if (s == 0) {
+            return 0;
+        }
+        // poch(a, n + 1) = poch(a, n) (a + n), avoiding the rounding of n + 1
+        num = cephes::poch(a, n);
+        den = num * (a + n);
+        if (cxx::abs(num) >= cxx::numeric_limits<double>::min() && cxx::isfinite(den)) {
+            return cephes::Gamma(1 + n) / den * (s / M_PI);
+        }
+        // split poch(a, n) if it over- or underflows
+        num = cephes::poch(a, n / 2);
+        den = cephes::poch(a + n / 2, n / 2) * (a + n);
+        return cephes::Gamma(1 + n) / num * (s / M_PI) / den;
     }
     return 1 / (n + 1) / cephes::beta(1 + n - k, 1 + k);
 }
