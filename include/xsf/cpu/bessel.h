@@ -31,6 +31,10 @@ namespace detail {
         T c = cospi(v);
         T s = sinpi(v);
 
+        if (c == 0) {
+            // half-integer v: c * j is 0, but NaN if j overflowed
+            return -s * y;
+        }
         return c * j - s * y;
     }
 
@@ -626,6 +630,9 @@ inline std::complex<double> cyl_bessel_je(double v, std::complex<double> z) {
         if (!detail::reflect_jy(&cy_j, v)) {
             nz = amos::besy(z, v, kode, n, &cy_y, &ierr);
             set_error_and_nan("jve(yve):", ierr_to_sferr(nz, ierr), cy_y);
+            if (ierr == 2 && z.real() >= 0 && z.imag() == 0) {
+                cy_y = -INFINITY;
+            }
             cy_j = detail::rotate_jy(cy_j, cy_y, v);
         }
     }
@@ -679,7 +686,7 @@ inline std::complex<double> cyl_bessel_ye(double v, std::complex<double> z) {
     if (ierr == 2) {
         if (z.real() >= 0 && z.imag() == 0) {
             /* overflow */
-            cy_y.real(INFINITY);
+            cy_y.real(-INFINITY);
             cy_y.imag(0);
         }
     }
@@ -911,6 +918,9 @@ inline std::complex<double> cyl_bessel_j(double v, std::complex<double> z) {
         if (!detail::reflect_jy(&cy_j, v)) {
             nz = amos::besy(z, v, kode, n, &cy_y, &ierr);
             set_error_and_nan("jv(yv):", ierr_to_sferr(nz, ierr), cy_y);
+            if (ierr == 2 && z.real() >= 0 && z.imag() == 0) {
+                cy_y = -INFINITY;
+            }
             cy_j = detail::rotate_jy(cy_j, cy_y, v);
         }
     }
@@ -928,10 +938,13 @@ T cyl_bessel_j(T v, T x) {
         return std::numeric_limits<T>::quiet_NaN();
     }
 
-    std::complex<T> res = cyl_bessel_j(v, std::complex(x));
-    if (std::real(res) != std::real(res)) {
-        /* AMOS returned NaN, possibly due to overflow */
-        return cephes::jv(v, x);
+    std::complex<double> res = cyl_bessel_j(static_cast<double>(v), std::complex<double>(x));
+    if (!std::isfinite(std::real(res))) {
+        /* AMOS returned NaN or inf, possibly due to overflow */
+        T r = cephes::jv(v, x);
+        if (!std::isnan(r)) {
+            return r;
+        }
     }
 
     return std::real(res);

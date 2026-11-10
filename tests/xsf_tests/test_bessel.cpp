@@ -45,3 +45,23 @@ TEST_CASE("iv large v where u_1(t) vanishes", "[bessel][xsf_tests]") {
     CAPTURE(v, x, result, ref, rel_err);
     REQUIRE(rel_err <= 1e-13);
 }
+
+TEST_CASE("jv and yv for negative v on overflow", "[bessel][xsf_tests]") {
+    // Regression test for gh-383: the first four returned inf, NaN, -inf, and NaN,
+    // and the last one must keep using the finite cephes::jv fallback.
+    // from mpmath import mp, mpf, besselj, bessely
+    // mp.dps = 50
+    // bessely(10.25, mpf(1e-100))  # -2.4778e+1033
+    // besselj(-10.25, mpf(1e-100))  # 1.7521e+1033
+    // bessely(-200.5, 1)  # 3.9331e-437
+    // besselj(-1611.5, 200)  # -3.8575e+1246
+    // float(besselj(mpf(-10.001), mpf(1e-30)))
+    const double inf = std::numeric_limits<double>::infinity();
+    CHECK(xsf::cyl_bessel_ye(10.25, 1e-100) == -inf);
+    CHECK(xsf::cyl_bessel_je(-10.25, 1e-100) == inf);
+    CHECK(xsf::cyl_bessel_y(-200.5, 1.0) == 0);
+    CHECK(xsf::cyl_bessel_j(-1611.5, 200.0) == -inf);
+
+    double rel_err = xsf::extended_relative_error(xsf::cyl_bessel_j(-10.001, 1e-30), 3.993385638016181e+305);
+    CHECK(rel_err <= 1e-13);
+}
