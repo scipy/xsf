@@ -1229,6 +1229,13 @@ namespace detail {
 
 inline double besselpoly(double a, double lambda, double nu) {
     double n = (nu < 0 && std::floor(nu) == nu) ? -nu : nu; // J_(-n) = (-1)^n J_n
+    // Use the Neumann series where the power series cancels badly, and where the Neumann series is accurate:
+    // - a >= 1.5 and n < a^2 - 1: otherwise the power series terms grow to at most ~e^3, or decrease from the start.
+    // - n > -1: all orders n + 2k + 1 are positive, where Miller's backward recurrence gives J.
+    // - lambda >= -1: then c0 > -1/2 and |c1 + k| <= c0 + k + 1, so the coefficients don't grow.
+    // - a < 500: the recurrence isn't rescaled, and f * f overflows from about a = 800.
+    // For lambda + n + 1 <= 0 the integral diverges, but the Neumann series (like the power series) still
+    // converges, since J_(n+2k+1)(2a) decays rapidly in k, to the same analytic continuation in lambda.
     if (a >= 1.5 && a < 500.0 && n > -1.0 && n < a * a - 1.0 && lambda >= -1.0 && std::isfinite(lambda)) {
         double s = detail::besselpoly_neumann(a, lambda, n);
         return (n != nu && std::fmod(n, 2.0) == 1.0) ? -s : s;
