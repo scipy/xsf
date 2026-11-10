@@ -115,7 +115,10 @@ rf(const T& x, const T& y, const T& z, const double& rerr, T& res)
 	    status = rf0(ym, zm, rerr * (RT)0.5, tmpres);
 	    /* Correction for non-zero x, see Eq. 19.27.3 in
 	     * https://dlmf.nist.gov/19.27.E3 */
-	    res = tmpres - std::sqrt(xm / (ym * zm));
+	    T yz = ym * zm;
+	    res = tmpres - (argcheck::too_small(yz) ?
+	                    std::sqrt(xm) / (std::sqrt(ym) * std::sqrt(zm)) :
+	                    std::sqrt(xm / yz));
 	    return status;
 	}
     }
