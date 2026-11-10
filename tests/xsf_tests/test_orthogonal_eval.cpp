@@ -464,6 +464,100 @@ TEST_CASE("eval_jacobi alpha=-1 beta=-1", "[eval_jacobi][xsf_tests]") {
     }
 }
 
+TEST_CASE("eval_jacobi negative integer parameters", "[eval_jacobi][xsf_tests]") {
+    // https://github.com/scipy/scipy/issues/7001
+    // P_n^{(alpha, beta)}(x) is a polynomial in alpha, beta and x, but the hypergeometric representation
+    // and the recurrence are singular when alpha or alpha + beta take certain negative integer values.
+    // Expected values were computed in exact rational arithmetic from
+    //   P_n^{(alpha, beta)}(x)
+    //     = sum_s binom(n + alpha, n - s) binom(n + beta, s) ((x - 1) / 2)^s ((x + 1) / 2)^(n - s).
+    // The cases cover integer alpha in [-n, -1], integer alpha < -n, and noninteger alpha with alpha + beta
+    // a negative integer.
+    using test_case = std::tuple<int, double, double, double, double>;
+    auto [n, alpha, beta, x, expected] = GENERATE(
+        test_case{1, -1.0, -1.0, 0.0, 0.0}, test_case{2, -1.0, -1.0, 0.0, -0.25},
+        test_case{3, -1.0, -1.0, 0.5, -0.1875}, test_case{2, -1.0, 0.0, 0.25, -0.328125},
+        test_case{4, -1.0, 2.5, -0.75, 7.646917343139648}, test_case{4, -2.0, 0.5, -0.25, -0.39353370666503906},
+        test_case{5, -5.0, 1.5, 0.75, -0.0003579854965209961}, test_case{6, -3.0, -2.0, 0.5, -0.019775390625},
+        test_case{3, -3.0, -3.0, 0.25, 0.0}, test_case{5, -2.0, -7.0, 1.5, 0.140625},
+        test_case{0, -6.0, -6.0, 0.25, 1.0}, test_case{2, -3.0, 1.0, -0.75, 2.640625},
+        test_case{3, -4.0, -4.0, 0.0, 0.0}, test_case{4, -7.0, 2.5, 0.5, 16.406341552734375},
+        test_case{5, -8.0, -9.0, -0.5, 7.423828125}, test_case{4, -5.0, -1.0, -0.75, 0.125},
+        test_case{4, -4.5, 2.5, 0.25, 1.501708984375}, test_case{6, -1.5, -1.5, 0.75, 0.0445404052734375},
+        test_case{5, 0.5, -4.5, -0.25, -0.11431884765625}
+    );
+
+    const double tol = 1e-14 + 1e-12 * std::abs(expected);
+
+    const double out_int = xsf::eval_jacobi(n, alpha, beta, x);
+    const double error_int = xsf::extended_absolute_error(out_int, expected);
+    CAPTURE(n, alpha, beta, x, out_int, expected, error_int, tol);
+    REQUIRE(error_int <= tol);
+
+    const double out_double = xsf::eval_jacobi(static_cast<double>(n), alpha, beta, x);
+    const double error_double = xsf::extended_absolute_error(out_double, expected);
+    CAPTURE(n, alpha, beta, x, out_double, expected, error_double, tol);
+    REQUIRE(error_double <= tol);
+
+    const auto out_complex = xsf::eval_jacobi(static_cast<double>(n), alpha, beta, std::complex<double>(x, 0.0));
+    const double error_complex = xsf::extended_absolute_error(out_complex, std::complex<double>(expected, 0.0));
+    CAPTURE(n, alpha, beta, x, out_complex, expected, error_complex, tol);
+    REQUIRE(error_complex <= tol);
+}
+
+TEST_CASE("eval_jacobi negative integer parameters complex<double>", "[eval_jacobi][xsf_tests]") {
+    // https://github.com/scipy/scipy/issues/7001
+    // Expected values were computed in exact rational arithmetic, as in the real case above.
+    using test_case = std::tuple<double, double, double, std::complex<double>, std::complex<double>>;
+    auto [n, alpha, beta, x, expected] = GENERATE(
+        test_case{2.0, -1.0, -1.0, {0.25, -0.5}, {-0.296875, -0.0625}},
+        test_case{4.0, -2.0, -6.0, {0.25, -0.75}, {-0.2109375, 1.0546875}},
+        test_case{3.0, -5.0, -6.0, {-0.5, 0.25}, {2.31640625, -2.064453125}},
+        test_case{5.0, -3.0, 1.5, {1.5, 0.5}, {-2.7427825927734375, 0.5040435791015625}}
+    );
+
+    const auto out = xsf::eval_jacobi(n, alpha, beta, x);
+    const double error = xsf::extended_absolute_error(out, expected);
+    const double tol = 1e-14 + 1e-12 * std::abs(expected);
+    CAPTURE(n, alpha, beta, x, out, expected, error, tol);
+    REQUIRE(error <= tol);
+}
+
+TEST_CASE("eval_jacobi integer and half-integer parameters", "[eval_jacobi][xsf_tests]") {
+    // https://github.com/scipy/scipy/issues/7001
+    // Sweep over parameters for which alpha, beta or alpha + beta are often negative integers, and compare with
+    //   P_n^{(alpha, beta)}(x)
+    //     = sum_s binom(n + alpha, n - s) binom(n + beta, s) ((x - 1) / 2)^s ((x + 1) / 2)^(n - s),
+    // which has no singularities. The tolerance is loose because the recurrence loses digits close to x = -1
+    // for negative beta; the purpose here is to catch nan, inf and grossly wrong values.
+    for (int n = 0; n <= 8; ++n) {
+        for (int ia = -20; ia <= 4; ++ia) {
+            for (int ib = -20; ib <= 4; ++ib) {
+                const double alpha = 0.5 * ia;
+                const double beta = 0.5 * ib;
+                for (const double x : {-1.0, -0.6, -0.1, 0.35, 0.8, 1.0}) {
+                    double expected = 0.0;
+                    for (int s = 0; s <= n; ++s) {
+                        const double powers = std::pow(0.5 * (x - 1.0), s) * std::pow(0.5 * (x + 1.0), n - s);
+                        expected += binom_int(n + alpha, n - s) * binom_int(n + beta, s) * powers;
+                    }
+                    const double tol = 1e-9 * (1.0 + std::abs(expected));
+
+                    const double out_int = xsf::eval_jacobi(n, alpha, beta, x);
+                    const double error_int = xsf::extended_absolute_error(out_int, expected);
+                    CAPTURE(n, alpha, beta, x, out_int, expected, error_int, tol);
+                    REQUIRE(error_int <= tol);
+
+                    const double out_double = xsf::eval_jacobi(static_cast<double>(n), alpha, beta, x);
+                    const double error_double = xsf::extended_absolute_error(out_double, expected);
+                    CAPTURE(n, alpha, beta, x, out_double, expected, error_double, tol);
+                    REQUIRE(error_double <= tol);
+                }
+            }
+        }
+    }
+}
+
 TEST_CASE("eval_hermitenorm matches constructed polynomials", "[eval_hermitenorm][xsf_tests]") {
     // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L138-L140
     check_poly(
