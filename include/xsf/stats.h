@@ -438,7 +438,8 @@ attempt_exact_2kssamp(int64_t n1, int64_t n2, int64_t g, double d, bool two_side
         return {false, d, qnan};
     }
     const int64_t lcm = (n1 / g) * n2;
-    const int64_t h = static_cast<int64_t>(cxx::round(d * static_cast<double>(lcm)));
+    // Round half to even, like np.round in SciPy (e.g. d = 0.5, lcm = 21 gives h = 10).
+    const int64_t h = static_cast<int64_t>(cxx::nearbyint(d * static_cast<double>(lcm)));
     d = static_cast<double>(h) / static_cast<double>(lcm);
     if (h == 0) {
         return {true, d, 1.0};
