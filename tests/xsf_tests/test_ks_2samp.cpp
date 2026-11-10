@@ -1,6 +1,18 @@
 #include "../testing_utils.h"
+#include <algorithm>
 #include <numeric>
 #include <xsf/stats.h>
+#include <xsf/third_party/kokkos/mdspan.hpp>
+
+namespace {
+
+// The path counting functions take a caller-provided work array of length
+// at least min(m, n) + 1.
+std::vector<double> make_work(int64_t m, int64_t n) {
+    return std::vector<double>(static_cast<std::size_t>(std::min(m, n) + 1));
+}
+
+} // namespace
 
 /*
 # Reference values computed with scipy.stats._stats_py and scipy.stats._stats_pythran
@@ -114,7 +126,9 @@ TEST_CASE("attempt_exact_2kssamp test", "[attempt_exact_2kssamp][xsf_tests]") {
 
     for (const auto &c : cases) {
         const int64_t g = std::gcd(c.n1, c.n2);
-        const auto [success, d, prob] = xsf::attempt_exact_2kssamp(c.n1, c.n2, g, c.d, c.two_sided);
+        auto work = make_work(c.n1, c.n2);
+        const auto [success, d, prob] =
+            xsf::attempt_exact_2kssamp(c.n1, c.n2, g, c.d, c.two_sided, std::mdspan(work.data(), work.size()));
         const auto rel_error = xsf::extended_relative_error(prob, c.expected_prob);
         CAPTURE(c.n1, c.n2, c.d, c.two_sided, success, d, prob, c.expected_prob, c.rtol, rel_error);
         REQUIRE(success == c.expected_success);
@@ -152,7 +166,9 @@ TEST_CASE("compute_outer_prob_inside_method test", "[compute_outer_prob_inside_m
     };
 
     for (const auto &c : cases) {
-        const double result = xsf::compute_outer_prob_inside_method(c.m, c.n, c.g, c.h);
+        auto work = make_work(c.m, c.n);
+        const double result =
+            xsf::compute_outer_prob_inside_method(c.m, c.n, c.g, c.h, std::mdspan(work.data(), work.size()));
         const auto rel_error = xsf::extended_relative_error(result, c.expected);
         CAPTURE(c.m, c.n, c.g, c.h, result, c.expected, rtol, rel_error);
         REQUIRE(rel_error <= rtol);
@@ -170,15 +186,23 @@ TEST_CASE("count_paths_outside_method test", "[count_paths_outside_method][xsf_t
     };
 
     for (const auto &c : cases) {
-        const double result = xsf::count_paths_outside_method(c.m, c.n, c.g, c.h);
+        auto work = make_work(c.m, c.n);
+        const double result =
+            xsf::count_paths_outside_method(c.m, c.n, c.g, c.h, std::mdspan(work.data(), work.size()));
         const auto rel_error = xsf::extended_relative_error(result, c.expected);
         CAPTURE(c.m, c.n, c.g, c.h, result, c.expected, c.rtol, rel_error);
         REQUIRE(rel_error <= c.rtol);
     }
 
     // The path count overflows; the caller is expected to check for a finite answer.
-    REQUIRE_FALSE(std::isfinite(xsf::count_paths_outside_method(1100, 1099, 1, 1)));
-    REQUIRE_FALSE(std::isfinite(xsf::count_paths_outside_method(2000, 1000, 1, 1)));
+    auto work = make_work(1100, 1099);
+    REQUIRE_FALSE(
+        std::isfinite(xsf::count_paths_outside_method(1100, 1099, 1, 1, std::mdspan(work.data(), work.size())))
+    );
+    work = make_work(2000, 1000);
+    REQUIRE_FALSE(
+        std::isfinite(xsf::count_paths_outside_method(2000, 1000, 1, 1, std::mdspan(work.data(), work.size())))
+    );
 }
 
 /*
@@ -256,7 +280,9 @@ TEST_CASE("attempt_exact_2kssamp scipy ks_2samp cases", "[attempt_exact_2kssamp]
 
     for (const auto &c : cases) {
         const int64_t g = std::gcd(c.n1, c.n2);
-        const auto [success, d, prob] = xsf::attempt_exact_2kssamp(c.n1, c.n2, g, c.d, c.two_sided);
+        auto work = make_work(c.n1, c.n2);
+        const auto [success, d, prob] =
+            xsf::attempt_exact_2kssamp(c.n1, c.n2, g, c.d, c.two_sided, std::mdspan(work.data(), work.size()));
         const bool expected_success = !std::isnan(c.expected_prob);
         CAPTURE(c.test_name, c.n1, c.n2, c.d, c.two_sided, success, d, prob, c.expected_prob, rtol, atol);
         REQUIRE(success == expected_success);
