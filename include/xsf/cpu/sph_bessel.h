@@ -102,7 +102,7 @@ T sph_bessel_j(long n, T x) {
     }
 
     T sn;
-    for (int i = 0; i < n - 1; ++i) {
+    for (long long i = 0; i < n - 1; ++i) {
         sn = (2 * i + 3) * s1 / x - s0;
         s0 = s1;
         s1 = sn;
@@ -182,7 +182,7 @@ T sph_bessel_j_jac(long n, T z) {
 template <typename T>
 T sph_bessel_y(long n, T x) {
     T s0, s1, sn;
-    int idx;
+    long long idx;
 
     if (std::isnan(x)) {
         return x;
