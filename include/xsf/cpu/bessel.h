@@ -405,6 +405,21 @@ namespace detail {
         return;
     }
 
+    /* AMOS rejects orders above INT_MAX / 2. For real z = x > 0, check if K_v(x)
+     * (times exp(x) if scaled) overflows, with the lower bound
+     * K_v(x) >= sqrt(pi / (2 v)) (2 v / (e x))^v exp(-x^2 / (4 (v - 1))),
+     * from Jensen's inequality on https://dlmf.nist.gov/10.32.E10 and
+     * https://dlmf.nist.gov/5.6.E1.
+     */
+    inline bool cyl_bessel_k_overflows(double v, std::complex<double> z, bool scaled) {
+        double x = std::real(z);
+        if (v <= std::numeric_limits<int>::max() * 0.5 || std::imag(z) != 0 || !(x > 0)) {
+            return false;
+        }
+        double logk = v * (std::log(v / x * 2) - 1) - x / (v - 1) * x / 4 - std::log(v / M_PI_2) / 2;
+        return logk + (scaled ? x : 0) > std::log(std::numeric_limits<double>::max());
+    }
+
 } // namespace detail
 
 /* Integrals of bessel functions */
@@ -782,6 +797,11 @@ inline std::complex<double> cyl_bessel_ke(double v, std::complex<double> z) {
         v = -v;
     }
 
+    if (detail::cyl_bessel_k_overflows(v, z, true)) {
+        set_error("kve", SF_ERROR_OVERFLOW, nullptr);
+        return INFINITY;
+    }
+
     int n = 1;
     int kode = 2;
     int ierr;
@@ -1097,6 +1117,11 @@ inline std::complex<double> cyl_bessel_k(double v, std::complex<double> z) {
     if (v < 0) {
         /* K_v == K_{-v} even for non-integer v */
         v = -v;
+    }
+
+    if (detail::cyl_bessel_k_overflows(v, z, false)) {
+        set_error("kv", SF_ERROR_OVERFLOW, nullptr);
+        return INFINITY;
     }
 
     int n = 1;
