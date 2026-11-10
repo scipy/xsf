@@ -23,11 +23,9 @@ namespace cephes {
      */
     XSF_HOST_DEVICE inline double yv(double v, double x) {
         double y, t;
-        int n;
 
-        n = v;
-        if (n == v) {
-            y = yn(n, x);
+        if (v == cxx::floor(v) && cxx::fabs(v) <= cxx::numeric_limits<int>::max()) {
+            y = yn(static_cast<int>(v), x);
             return (y);
         } else if (v == cxx::floor(v)) {
             /* Zero in denominator. */

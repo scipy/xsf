@@ -87,3 +87,20 @@ TEST_CASE("ive for negative non-integer v and large Im(z)", "[bessel][xsf_tests]
     CAPTURE(v, y, result, ref, rel_err);
     REQUIRE(rel_err <= 1e-12);
 }
+
+TEST_CASE("orders above 2**30", "[bessel][xsf_tests]") {
+    // Regression test for gh-503: the first three returned NaN, the last two had the wrong phase.
+    // For odd v, J_v(-x) = -J_v(x) and H1_v(-x) = H2_v(x) = J_v(x) - i Y_v(x) (DLMF 10.11.1, 10.11.5).
+    // from mpmath import mp, mpf, airyai, airybi, cbrt
+    // mp.dps = 50
+    // v = mpf(10)**15 + 1
+    // # J_v(v) and Y_v(v) from DLMF 10.19.8 with a = 0, up to a relative O(v**(-4/3))
+    // float(cbrt(2) * airyai(0) / cbrt(v)), float(-cbrt(2) * airybi(0) / cbrt(v))
+    using C = std::complex<double>;
+    const double v = 1e15 + 1, j = 4.473073183964722e-06, y = -7.747590020600784e-06;
+    CHECK(xsf::cyl_bessel_ie(0x1p30, 1.0) == 0);
+    CHECK(xsf::cyl_bessel_k(0x1p30, 0x1p30 - 1) == 0);
+    CHECK(xsf::cyl_bessel_j(0x1p31, -1.0) == 0);
+    CHECK(xsf::extended_relative_error(xsf::cyl_bessel_j(v, C(-v)), C(-j)) <= 1e-13);
+    CHECK(xsf::extended_relative_error(xsf::cyl_hankel_1(v, C(-v)), C(j, -y)) <= 1e-13);
+}

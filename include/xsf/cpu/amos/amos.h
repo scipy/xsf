@@ -1291,7 +1291,8 @@ namespace amos {
         std::complex<double> zn, zt, csgn;
         double aa, alim, aln, arg, az, cpn, dig, elim, fmm, fn, fnul, rhpi, rl, r1m5, sgn, spn, tol, xn, xx, yn, yy, bb,
             ascle, rtol, atol;
-        int i, inu, inuh, ir, k, k1, k2, mm, mr, nn, nuf, nw, nz;
+        int i, k, k1, k2, mm, mr, nn, nuf, nw, nz;
+        long long inu, inuh, ir;
 
         nz = 0;
         xx = std::real(z);
@@ -1474,7 +1475,7 @@ namespace amos {
         // CALCULATE EXP(FNU*HPI*I) TO MINIMIZE LOSSES OF SIGNIFICANCE
         // WHEN FNU IS LARGE
         //
-        inu = (int)fnu;
+        inu = (long long)fnu;
         inuh = inu / 2;
         ir = inu - 2 * inuh;
         arg = (fnu - (inu - ir)) * sgn;
@@ -1657,7 +1658,8 @@ namespace amos {
 
         std::complex<double> csgn, zn;
         double aa, alim, arg, atol, ascle, az, bb, dig, elim, fn, fnul, rl, rtol, r1m5, tol, xx, yy;
-        int i, inu, k, k1, k2, nn, nz;
+        int i, k, k1, k2, nn, nz;
+        long long inu;
         *ierr = 0;
         nz = 0;
         if (fnu < 0.0) {
@@ -1706,7 +1708,7 @@ namespace amos {
         aa = 0.5 / tol;
         bb = std::numeric_limits<int>::max() * 0.5;
         aa = std::fmin(aa, bb);
-        if ((az > aa) || (fn > aa)) {
+        if ((az > aa) || (fn > 0.5 / tol)) {
             *ierr = 4;
             return 0;
         }
@@ -1725,7 +1727,7 @@ namespace amos {
             // CALCULATE CSGN=EXP(FNU*PI*I) TO MINIMIZE LOSSES OF SIGNIFICANCE
             // WHEN FNU IS LARGE
             //
-            inu = (int)fnu;
+            inu = (long long)fnu;
             arg = (fnu - inu) * M_PI;
             if (yy < 0.0) {
                 arg = -arg;
@@ -1920,7 +1922,8 @@ namespace amos {
 
         std::complex<double> ci, csgn, zn;
         double aa, alim, arg, dig, elim, fnul, rl, r1, r1m5, r2, tol, yy, az, fn, bb, ascle, rtol, atol;
-        int i, inu, inuh, ir, k1, k2, nl, nz, k;
+        int i, k1, k2, nl, nz, k;
+        long long inu, inuh, ir;
 
         *ierr = 0;
         nz = 0;
@@ -1982,7 +1985,7 @@ namespace amos {
         // WHEN FNU IS LARGE
         //
         ci.imag(1);
-        inu = (int)fnu;
+        inu = (long long)fnu;
         inuh = inu / 2;
         ir = inu - 2 * inuh;
         arg = (fnu - (inu - ir)) * M_PI_2;
@@ -2241,7 +2244,7 @@ namespace amos {
         aa = 0.5 / tol;
         bb = std::numeric_limits<int>::max() * 0.5;
         aa = std::fmin(aa, bb);
-        if ((az > aa) || (fn > aa)) {
+        if ((az > aa) || (fn > 0.5 / tol)) {
             *ierr = 4;
             return 0;
         }
@@ -2714,7 +2717,7 @@ namespace amos {
             //
             // INCREMENT FNU+NN-1 UP TO FNUL, COMPUTE AND RECUR BACKWARD
             //
-            nui = (int)(fnul - dfnu) + 1;
+            nui = (int)std::fmax(fnul - dfnu, -1.0) + 1;
             nui = (nui > 0 ? nui : 0);
             nw = buni(z, fnu, kode, nn, cy, nui, &nlast, fnul, tol, elim, alim);
             if (nw < 0) {
@@ -5103,7 +5106,8 @@ namespace amos {
         std::complex<double> ai, arg, asum, bsum, cfn, cid, crsc, cscl, c1, c2, dai, phi, rz, s1, s2, zb, zeta1, zeta2,
             zn, zar;
         double aarg, ang, aphi, ascle, ay, c2i, c2m, c2r, fn, rs1, yy;
-        int i, iflag, in, inu, j, k, nai, nd, ndai, nn, nuf, idum;
+        int i, iflag, in, j, k, nai, nd, ndai, nn, nuf, idum;
+        long long inu;
         double aic = 1.265512123484645396; /* log(2 sqrt(pi)) */
         std::complex<double> cip[4] = {1.0, std::complex<double>(0, 1), -1.0, -std::complex<double>(0, 1)};
         std::complex<double> ci = std::complex<double>(0, 1);
@@ -5128,12 +5132,11 @@ namespace amos {
         zn = -z * ci;
         zb = z;
         cid = -ci;
-        inu = (int)fnu;
+        inu = (long long)fnu;
         ang = M_PI_2 * (fnu - inu);
         c2 = std::complex<double>(std::cos(ang), std::sin(ang));
         zar = c2;
-        in = inu + n - 1;
-        in = in % 4;
+        in = (inu + n - 1) % 4;
         c2 *= cip[in];
         if (yy <= 0.0) {
             zn = std::conj(-zn);
@@ -5439,7 +5442,8 @@ namespace amos {
         std::complex<double> cfn, ck, crsc, cs, cscl, csgn, cspn, c1, c2, rz, s1, s2, zr, phid, zeta1d = 0.0,
                                                                                                 zeta2d = 0.0, sumd;
         double ang, aphi, asc, ascle, c2i, c2m, c2r, fmr, fn, fnf, rs1, sgn, x;
-        int i, ib, iflag = 0, ifn, il, inu, iuf, k, kdflg, kflag, kk, m, nw, nz, j, jc, ipard, initd = 0, ic;
+        int i, ib, iflag = 0, il, iuf, k, kdflg, kflag, kk, m, nw, nz, j, jc, ipard, initd = 0, ic;
+        long long ifn, inu;
 
         cscl = 1.0 / tol;
         crsc = tol;
@@ -5636,7 +5640,7 @@ namespace amos {
         // CSPN AND CSGN ARE COEFF OF K AND I FUNCIONS RESP.
         //
         csgn = std::complex<double>(0.0, sgn);
-        inu = (int)fnu;
+        inu = (long long)fnu;
         fnf = fnu - inu;
         ifn = inu + n - 1;
         ang = fnf * sgn;
@@ -5825,7 +5829,8 @@ namespace amos {
             zeta2d, asumd, bsumd;
         double aarg, ang, aphi, asc, ascle, car, cpn, c2i, c2m, c2r, crsc, cscl, fmr, fn, fnf, rs1, sar, sgn, spn, x,
             yy;
-        int i, ib, iflag = 0, ifn, il, in, inu, iuf, k, kdflg, kflag, kk, nai, ndai, nw, nz, idum, j, ipard, ic;
+        int i, ib, iflag = 0, il, in, iuf, k, kdflg, kflag, kk, nai, ndai, nw, nz, idum, j, ipard, ic;
+        long long ifn, inu;
 
         std::complex<double> cr1 = std::complex<double>(1.0, 1.73205080756887729);      /*   1 + sqrt(3)i  */
         std::complex<double> cr2 = std::complex<double>(-0.5, -8.66025403784438647e-1); /*      0.5 cr1    */
@@ -5860,7 +5865,7 @@ namespace amos {
         yy = std::imag(zr);
         zn = -zr * std::complex<double>(0, 1);
         zb = zr;
-        inu = (int)fnu;
+        inu = (long long)fnu;
         fnf = fnu - inu;
         ang = -M_PI_2 * fnf;
         car = std::cos(ang);
