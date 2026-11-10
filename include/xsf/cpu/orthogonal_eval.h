@@ -14,7 +14,7 @@ namespace detail {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
-        const double d = binom(n + alpha, n);
+        const double d = binom_alpha(n, alpha);
         return d * hyp1f1(-n, alpha + 1.0, x);
     }
 

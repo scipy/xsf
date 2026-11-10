@@ -726,6 +726,26 @@ TEST_CASE("Laguerre evaluators support noninteger degrees", "[eval_genlaguerre][
     REQUIRE(xsf::extended_relative_error(xsf::eval_laguerre(n, z), complex_expected) < 1e-12);
 }
 
+TEST_CASE("eval_genlaguerre alpha near -1", "[eval_genlaguerre][xsf_tests]") {
+    // Regression test for gh-457: binom(n + alpha, n) lost the digits of alpha + 1.
+    // import mpmath as mp
+    // mp.mp.dps = 50
+    // for n, alpha, x in [(2, -1 + 1e-14, 0.5), (3, -1 + 2**-52, 2.0)]:
+    //     print(repr(alpha), repr(float(mp.laguerre(n, alpha, x))))
+    SET_FP_FORMAT()
+    using test_case = std::tuple<int, double, double, double>;
+    auto [n, alpha, x, desired] = GENERATE(
+        test_case{2, -0.99999999999999, 0.5, -0.375}, test_case{3, -0.9999999999999998, 2.0, 0.6666666666666665}
+    );
+
+    const double out_int = xsf::eval_genlaguerre(n, alpha, x);
+    const double out_double = xsf::eval_genlaguerre(static_cast<double>(n), alpha, x);
+    const double rtol = 1e-14;
+    CAPTURE(n, alpha, x, out_int, out_double, desired, rtol);
+    REQUIRE(xsf::extended_relative_error(out_int, desired) <= rtol);
+    REQUIRE(xsf::extended_relative_error(out_double, desired) <= rtol);
+}
+
 TEST_CASE("eval_gegenbauer matches constructed polynomials", "[eval_gegenbauer][xsf_tests]") {
     // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_orthogonal_eval.py#L87-L90
     check_poly(
