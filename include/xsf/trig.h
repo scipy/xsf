@@ -55,19 +55,19 @@ XSF_HOST_DEVICE cxx::complex<T> sinpi(cxx::complex<T> z) {
             // Preserve the sign of zero.
             coshfac = cxx::copysign(T(0.0), sinpix);
         } else {
-            coshfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), sinpix);
+            coshfac = sinpix * cxx::numeric_limits<T>::infinity();
         }
         if (sgn_cospix == T(0.0)) {
             // Preserve the sign of zero.
             sinhfac = cxx::copysign(T(0.0), sgn_cospix);
         } else {
-            sinhfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), sgn_cospix);
+            sinhfac = sgn_cospix * cxx::numeric_limits<T>::infinity();
         }
         return {coshfac, sinhfac};
     }
 
-    coshfac = T(0.5) * sinpix * exphpiy;
-    sinhfac = T(0.5) * sgn_cospix * exphpiy;
+    coshfac = sinpix * exphpiy * T(0.5);
+    sinhfac = sgn_cospix * exphpiy * T(0.5);
     return {coshfac * exphpiy, sinhfac * exphpiy};
 }
 
@@ -98,19 +98,19 @@ XSF_HOST_DEVICE cxx::complex<T> cospi(cxx::complex<T> z) {
             // Preserve the sign of zero.
             coshfac = cxx::copysign(T(0.0), cospix);
         } else {
-            coshfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), cospix);
+            coshfac = cospix * cxx::numeric_limits<T>::infinity();
         }
         if (sgn_sinpix == T(0.0)) {
             // Preserve the sign of zero.
             sinhfac = cxx::copysign(T(0.0), sgn_sinpix);
         } else {
-            sinhfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), sgn_sinpix);
+            sinhfac = sgn_sinpix * cxx::numeric_limits<T>::infinity();
         }
         return {coshfac, sinhfac};
     }
 
-    coshfac = T(0.5) * cospix * exphpiy;
-    sinhfac = T(0.5) * sgn_sinpix * exphpiy;
+    coshfac = cospix * exphpiy * T(0.5);
+    sinhfac = sgn_sinpix * exphpiy * T(0.5);
     return {coshfac * exphpiy, sinhfac * exphpiy};
 }
 

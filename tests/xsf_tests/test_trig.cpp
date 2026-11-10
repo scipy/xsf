@@ -139,3 +139,44 @@ TEST_CASE("cospi complex imaginary part overflow sign", "[cospi][xsf_tests]") {
     REQUIRE(w.real() == inf);
     REQUIRE(w.imag() == 0.0);
 }
+
+TEST_CASE("sinpi and cospi complex non-finite real part and huge imaginary part", "[sinpi][cospi][xsf_tests]") {
+    // Regression test for gh-469: this returned +-inf instead of NaN.
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const double inf = std::numeric_limits<double>::infinity();
+    const std::complex<double> z = GENERATE_COPY(std::complex<double>(nan, 1000.0), std::complex<double>(inf, -1000.0));
+
+    const std::complex<double> s = xsf::sinpi(z);
+    const std::complex<double> c = xsf::cospi(z);
+    CAPTURE(z, s, c);
+    REQUIRE(std::isnan(s.real()));
+    REQUIRE(std::isnan(s.imag()));
+    REQUIRE(std::isnan(c.real()));
+    REQUIRE(std::isnan(c.imag()));
+}
+
+TEST_CASE("sinpi and cospi complex subnormal real part and large imaginary part", "[sinpi][cospi][xsf_tests]") {
+    // Regression test for gh-469: 0.5 * sinpi(x) lost precision for subnormal sinpi(x).
+    // x = 113 * 2**-1074, so that sinpi(x) ~ 355 * 2**-1074 is accurate to 1e-7.
+    /*
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    x = 113 * 2.0**-1074
+    print(repr(float(mpmath.sinpi(mpmath.mpc(x, 225)).real)))
+    print(repr(float(mpmath.cospi(mpmath.mpc(x, 225)).imag)))
+    */
+    SET_FP_FORMAT()
+    const std::complex<double> z(5.6e-322, 225.0);
+    const double desired = 8.465694494121489e-15;
+    const double rtol = 1e-6;
+
+    const double s = xsf::sinpi(z).real();
+    const double c = xsf::cospi(z).imag();
+    const double error_s = xsf::extended_relative_error(s, desired);
+    const double error_c = xsf::extended_relative_error(c, -desired);
+    CAPTURE(z, s, c, desired, error_s, error_c, rtol);
+    REQUIRE(error_s <= rtol);
+    REQUIRE(error_c <= rtol);
+}
