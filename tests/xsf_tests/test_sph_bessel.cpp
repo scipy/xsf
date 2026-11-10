@@ -412,3 +412,25 @@ TEST_CASE("spherical_y_jac and spherical_k_jac n = LONG_MAX", "[spherical_bessel
     REQUIRE(k_jac == 0);
     REQUIRE(std::signbit(k_jac));
 }
+
+// Regression test for gh-491: for real z, complex y_n(z), y_n'(z) and k_n'(z) had a nan imaginary part
+// where they overflow. Reference values (all overflow), with y_n(-x) = (-1)^(n + 1) y_n(x) (DLMF 10.47.14):
+/*
+from mpmath import mp, mpf, sqrt, pi, bessely, besselk
+mp.dps = 30
+y = lambda n, x: sqrt(pi / (2 * x)) * bessely(n + mpf(1) / 2, x)
+k = lambda n, x: sqrt(pi / (2 * x)) * besselk(n + mpf(1) / 2, x)
+x = mpf(1e-300)
+print(y(1, x), y(2, x), y(50, mpf(1e-10)))  # -1e+600, -3e+900, -2.7e+588
+print(y(0, x) - 2 / x * y(1, x), -k(0, x) - 2 / x * k(1, x))  # DLMF 10.51.2, 10.51.5: 2e+900, -3.1e+900
+*/
+TEST_CASE("spherical_y, spherical_y_jac and spherical_k_jac complex overflow", "[spherical_bessel][xsf_tests]") {
+    using C = std::complex<double>;
+    const double inf = std::numeric_limits<double>::infinity();
+
+    REQUIRE(xsf::sph_bessel_y(1, C(1e-300, 0)) == C(-inf, 0));
+    REQUIRE(xsf::sph_bessel_y(2, C(-1e-300, 0)) == C(inf, 0));
+    REQUIRE(xsf::sph_bessel_y(50, C(1e-10, 0)) == C(-inf, 0));
+    REQUIRE(xsf::sph_bessel_y_jac(1, C(1e-300, 0)) == C(inf, 0));
+    REQUIRE(xsf::sph_bessel_k_jac(1, C(1e-300, 0)) == C(-inf, 0));
+}

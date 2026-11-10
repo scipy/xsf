@@ -257,10 +257,8 @@ std::complex<T> sph_bessel_y(long n, std::complex<T> z) {
         return std::complex<T>(1, 1) * std::numeric_limits<T>::infinity();
     }
 
-    // y_n(-z) = (-1)^(n+1) * y_n(z); see sph_bessel_j note above.
-    if (std::imag(z) == 0 && std::real(z) < 0) {
-        std::complex<T> r = sph_bessel_y(n, std::complex<T>{-std::real(z), static_cast<T>(0)});
-        return (n % 2 == 0) ? -r : r;
+    if (std::imag(z) == 0) {
+        return {sph_bessel_y(n, std::real(z)), 0};
     }
 
     return std::sqrt(static_cast<T>(M_PI_2) / z) * cyl_bessel_y(n + 1 / static_cast<T>(2), z);
@@ -268,6 +266,13 @@ std::complex<T> sph_bessel_y(long n, std::complex<T> z) {
 
 template <typename T>
 T sph_bessel_y_jac(long n, T x) {
+    // Real z: avoid nan + nan j where y_n(z) overflows; complex 0 still gives nan.
+    if constexpr (!cxx::is_floating_point_v<T>) {
+        if (std::imag(x) == 0 && std::real(x) != 0) {
+            return {sph_bessel_y_jac(n, std::real(x)), 0};
+        }
+    }
+
     if (n == 0) {
         return -sph_bessel_y(1, x);
     }
@@ -459,6 +464,13 @@ std::complex<T> sph_bessel_k(long n, std::complex<T> z) {
 
 template <typename T>
 T sph_bessel_k_jac(long n, T x) {
+    // Real z: avoid nan + nan j where k_n(z) overflows; complex 0 still gives nan.
+    if constexpr (!cxx::is_floating_point_v<T>) {
+        if (std::imag(x) == 0 && std::real(x) != 0) {
+            return {sph_bessel_k_jac(n, std::real(x)), 0};
+        }
+    }
+
     if (n == 0) {
         return -sph_bessel_k(1, x);
     }
