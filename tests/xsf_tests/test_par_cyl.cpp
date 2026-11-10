@@ -100,3 +100,23 @@ TEST_CASE("pbwa accuracy", "[pbwa][xsf_tests]") {
     CHECK(error_f <= rtol);
     CHECK(error_d <= rtol);
 }
+
+TEST_CASE("pbwa accuracy float", "[pbwa][xsf_tests]") {
+    // The same values as above (gh-450), for the float instantiation.
+    SET_FP_FORMAT()
+    using test_case = std::tuple<float, float, double, double>;
+    auto [a, x, desired_f, desired_d] = GENERATE(
+        test_case{5.0f, 4.5f, 0.00025418079605278414, -0.0002554687616971141},
+        test_case{0.0f, -5.0f, 0.6599633712356283, -1.7552224081475016},
+        test_case{0.0f, 0.25f, 0.9004707748272274, -0.49008286316884153}
+    );
+
+    float f, d;
+    xsf::pbwa(a, x, f, d);
+    const double error_f = xsf::extended_relative_error(static_cast<double>(f), desired_f);
+    const double error_d = xsf::extended_relative_error(static_cast<double>(d), desired_d);
+    const double rtol = 1e-5;
+    CAPTURE(a, x, f, desired_f, error_f, d, desired_d, error_d, rtol);
+    CHECK(error_f <= rtol);
+    CHECK(error_d <= rtol);
+}
