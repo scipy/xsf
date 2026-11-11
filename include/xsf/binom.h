@@ -63,14 +63,11 @@ XSF_HOST_DEVICE inline double binom(double n, double k) {
         num = cephes::Gamma(1 + n) / cxx::abs(k) + cephes::Gamma(1 + n) * n / (2 * k * k); // + ...
         num /= M_PI * cxx::pow(cxx::abs(k), n);
         if (k > 0) {
+            // sin((k - n) pi) = (-1)^kx sin((dk - n) pi) with kx = floor(k). kx can be far beyond
+            // the range of int, so take its parity in double.
             kx = cxx::floor(k);
-            if (static_cast<int>(kx) == kx) {
-                dk = k - kx;
-                sgn = (static_cast<int>(kx) % 2 == 0) ? 1 : -1;
-            } else {
-                dk = k;
-                sgn = 1;
-            }
+            dk = k - kx;
+            sgn = (cxx::fmod(kx, 2.0) == 0) ? 1 : -1;
             return num * cxx::sin((dk - n) * M_PI) * sgn;
         }
         kx = cxx::floor(k);
