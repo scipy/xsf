@@ -4522,8 +4522,8 @@ namespace amos {
                 *s1 = 0.;
                 as1 = 0.;
                 if (aln >= -alim) {
-                    c1 = std::log(s1d) - zr - zr;
-                    *s1 = std::exp(c1);
+                    c1 = std::log(s1d) - xx - xx;
+                    *s1 = std::exp(c1) * std::polar(1.0, -2 * std::imag(zr));
                     as1 = std::abs(*s1);
                     *iuf += 1;
                 }

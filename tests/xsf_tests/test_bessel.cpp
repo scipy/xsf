@@ -1,4 +1,5 @@
 #include "../testing_utils.h"
+#include <complex>
 #include <tuple>
 #include <xsf/cpu/bessel.h>
 
@@ -86,4 +87,42 @@ TEST_CASE("ive for negative non-integer v and large Im(z)", "[bessel][xsf_tests]
 
     CAPTURE(v, y, result, ref, rel_err);
     REQUIRE(rel_err <= 1e-12);
+}
+
+TEST_CASE(
+    "cyl_hankel_1e, cyl_hankel_2e and cyl_bessel_ke near the axes",
+    "[cyl_hankel_1e][cyl_hankel_2e][cyl_bessel_ke][xsf_tests]"
+) {
+    // Regression test for gh-516: the phase exp(-2i*Im(z)) was applied with an error of ~eps*abs(z).
+    /*
+    import mpmath as mp
+
+    mp.mp.dps = 40
+    h1e = mp.hankel1(0, mp.mpc(1e15, -1)) * mp.exp(-1j * mp.mpc(1e15, -1))
+    h2e = mp.hankel2(0.25, mp.mpc(-1e15, 0)) * mp.exp(1j * mp.mpc(-1e15, 0))
+    kve = mp.besselk(0, mp.mpc(-1, 1e9)) * mp.exp(mp.mpc(-1, 1e9))
+    */
+    using std::complex;
+    const double rtol = 1e-13;
+    {
+        const complex<double> z{1e15, -1.0}, ref{1.784124116152772e-08, -1.7841241161527706e-08};
+        const complex<double> w = xsf::cyl_hankel_1e(0.0, z);
+        const double err = xsf::extended_relative_error(w, ref);
+        CAPTURE(z, w, ref, err);
+        CHECK(err <= rtol);
+    }
+    {
+        const complex<double> z{-1e15, 0.0}, ref{-1.2192465936490278e-08, -1.3228340439591988e-08};
+        const complex<double> w = xsf::cyl_hankel_2e(0.25, z);
+        const double err = xsf::extended_relative_error(w, ref);
+        CAPTURE(z, w, ref, err);
+        CHECK(err <= rtol);
+    }
+    {
+        const complex<double> z{-1.0, 1e9}, ref{2.8024956071480284e-05, -2.8024956092499003e-05};
+        const complex<double> w = xsf::cyl_bessel_ke(0.0, z);
+        const double err = xsf::extended_relative_error(w, ref);
+        CAPTURE(z, w, ref, err);
+        CHECK(err <= rtol);
+    }
 }
