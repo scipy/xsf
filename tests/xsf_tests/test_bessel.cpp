@@ -65,3 +65,25 @@ TEST_CASE("jv and yv for negative v on overflow", "[bessel][xsf_tests]") {
     double rel_err = xsf::extended_relative_error(xsf::cyl_bessel_j(-10.001, 1e-30), 3.993385638016181e+305);
     CHECK(rel_err <= 1e-13);
 }
+
+TEST_CASE("ive for negative non-integer v and large Im(z)", "[bessel][xsf_tests]") {
+    // Regression test for gh-517: the relative error was up to eps * Im(z).
+    // from mpmath import mp, mpc, besseli
+    // mp.dps = 50
+    // besseli(-7.25, mpc(0, 10**9))   # 1.7732342063040383e-06+4.2809660701231e-06j
+    // besseli(-0.5, mpc(0, 10**9))    # 1.494894726886609e-05-1.494894726886609e-05j
+    // besseli(-7.25, mpc(0, 10**8))   # 3.052711541179276e-05+7.369897604727882e-05j
+    using test_case = std::tuple<double, double, std::complex<double>>;
+    auto [v, y, ref] = GENERATE(
+        test_case{-7.25, 1e9, {1.7732342063040383e-06, 4.2809660701231e-06}},
+        test_case{-0.5, 1e9, {1.494894726886609e-05, -1.494894726886609e-05}},
+        test_case{-7.25, 1e8, {3.052711541179276e-05, 7.369897604727882e-05}}
+    );
+    SET_FP_FORMAT();
+
+    std::complex<double> result = xsf::cyl_bessel_ie(v, std::complex<double>(0.0, y));
+    double rel_err = xsf::extended_relative_error(result, ref);
+
+    CAPTURE(v, y, result, ref, rel_err);
+    REQUIRE(rel_err <= 1e-12);
+}

@@ -758,7 +758,7 @@ inline std::complex<double> cyl_bessel_ie(double v, std::complex<double> z) {
             nz = amos::besk(z, v, kode, n, &cy_k, &ierr);
             set_error_and_nan("ive(kv):", ierr_to_sferr(nz, ierr), cy_k);
             /* adjust scaling to match zbesi */
-            cy_k = detail::rotate(cy_k, -z.imag() / M_PI);
+            cy_k *= std::complex<double>(std::cos(z.imag()), -std::sin(z.imag()));
             if (z.real() > 0) {
                 cy_k.real(cy_k.real() * exp(-2 * z.real()));
                 cy_k.imag(cy_k.imag() * exp(-2 * z.real()));
