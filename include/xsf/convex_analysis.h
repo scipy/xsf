@@ -89,13 +89,15 @@ XSF_HOST_DEVICE inline double pseudo_huber(double delta, double r) {
     } else if (delta == 0 || r == 0) {
         return 0;
     } else {
-        double u = delta;
-        double v = r / delta;
-        // The formula is u*u*(sqrt(1 + v*v) - 1), but to maintain
-        // precision with small v, we use
-        //   sqrt(1 + v*v) - 1  =  exp(0.5*log(1 + v*v)) - 1
-        //                      =  expm1(0.5*log1p(v*v))
-        return u * u * cxx::expm1(0.5 * cxx::log1p(v * v));
+        // delta^2 (sqrt(1 + v^2) - 1) = r^2 / (sqrt(1 + v^2) + 1) with v = r / delta,
+        // scaled by the larger of |r| and delta to avoid over- and underflow
+        r = cxx::fabs(r);
+        if (r <= delta) {
+            double v = r / delta;
+            return r * (r / (cxx::sqrt(1 + v * v) + 1));
+        }
+        double w = delta / r;
+        return r * (delta / (cxx::sqrt(1 + w * w) + w));
     }
 }
 
