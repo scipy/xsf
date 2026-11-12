@@ -87,3 +87,27 @@ TEST_CASE("ive for negative non-integer v and large Im(z)", "[bessel][xsf_tests]
     CAPTURE(v, y, result, ref, rel_err);
     REQUIRE(rel_err <= 1e-12);
 }
+
+TEST_CASE("ive for negative non-integer v and real x", "[bessel][xsf_tests]") {
+    // Regression test for gh-383: these returned 1.95e+285, 1.33e-289, and NaN.
+    // from mpmath import mp, mpf, besseli, exp
+    // mp.dps = 50
+    // ive = lambda v, x: besseli(v, mpf(x)) * exp(-mpf(x))
+    // float(ive(-2.0000000000000004, 1e-150))
+    // float(ive(-800.25, 400))
+    // float(ive(-1700.25, 800))
+    // float(ive(-855.25, 400))
+    // ive(-10.25, 1e-30)  # 5.5405e+315
+    SET_FP_FORMAT();
+    const double inf = std::numeric_limits<double>::infinity();
+    CHECK(
+        xsf::extended_relative_error(xsf::cyl_bessel_ie(-2.0000000000000004, 1e-150), 1.7763568394005237e+285) <= 1e-11
+    );
+    CHECK(xsf::extended_relative_error(xsf::cyl_bessel_ie(-800.25, 400.0), 6.920296896730293e-63) <= 1e-11);
+    CHECK(xsf::extended_relative_error(xsf::cyl_bessel_ie(-1700.25, 800.0), 9.616569430183331e-60) <= 1e-11);
+    CHECK(xsf::cyl_bessel_ie(-10.25, 1e-30) == inf);
+
+    // ive(-1700.25, 800) underflows in float
+    CHECK(xsf::extended_relative_error(xsf::cyl_bessel_ie(-855.25f, 400.0f), -1.0943142289153625e-27f) <= 1e-5f);
+    CHECK(xsf::cyl_bessel_ie(-10.25f, 1e-30f) == static_cast<float>(inf));
+}
