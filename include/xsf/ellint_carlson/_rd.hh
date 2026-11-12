@@ -30,6 +30,14 @@ rd(const T& x, const T& y, const T& z, const double& rerr, T& res)
 {
     typedef typing::decplx_t<T> RT;
 
+    int shift = util::scaling_exponent({x, y, z}, std::numeric_limits<RT>::min());
+    if (shift != 0)
+    {
+        ExitStatus status = rd(util::scale_pow2(x, shift), util::scale_pow2(y, shift), util::scale_pow2(z, shift), rerr, res);
+        res = util::scale_pow2(res, 3 * shift / 2);
+        return status;
+    }
+
     T cct1[6];
     T cct2[6];
 
@@ -115,6 +123,14 @@ rd(const T& x, const T& y, const T& z, const double& rerr, T& res)
         d4m *= (RT)0.25;
 
         ++m;
+    }
+    if (std::isinf(std::abs(adt * (RT)3.0)) &&
+        std::max({std::abs(x), std::abs(y), std::abs(z)}) < 1.0)
+    {
+        status = rd(x * (RT)0x1p128, y * (RT)0x1p128, z * (RT)0x1p128,
+                    rerr, res);
+        res = util::scale_pow2(res, 192);
+        return status;
     }
     /* Burn some extra cycles re-balancing Am as the "true" centroid */
     cct1[0] = xm;
