@@ -1,5 +1,6 @@
 #pragma once
 
+#include "binom.h"
 #include "cephes/bdtr.h"
 #include "cephes/chdtr.h"
 #include "cephes/const.h"
@@ -260,6 +261,220 @@ XSF_HOST_DEVICE inline double tukeylambdacdf(double x, double lmbda) { return ce
 
 XSF_HOST_DEVICE inline float tukeylambdacdf(float x, float lmbda) {
     return static_cast<float>(tukeylambdacdf(static_cast<double>(x), static_cast<double>(lmbda)));
+}
+
+// Null distribution of the two-sample Kolmogorov-Smirnov statistic. Translated from
+// scipy.stats._stats_py and scipy.stats._stats_pythran.
+//
+// The path counting methods need a work array. To keep these functions usable on
+// device, no allocation is done here. Instead, as with poisson_binom_pmf_all, the
+// caller passes a 1d std::mdspan view (or any type supporting work(i) and
+// work.extent(0)) of a double array of length at least min(m, n) + 1.
+//
+// We generally follow Hodges' treatment of Drion/Gnedenko/Korolyuk.
+// Hodges, J.L. Jr.,
+// "The Significance Probability of the Smirnov Two-Sample Test,"
+// Arkiv fiur Matematik, 3, No. 43 (1958), 469-86.
+
+XSF_HOST_DEVICE inline double compute_prob_outside_square(int64_t n, int64_t h) {
+    /* Compute the proportion of paths that pass outside the two diagonal lines
+     * x - y = +/-h, i.e. Pr(D_{n,n} >= h/n). Requires n > 0 and 0 < h <= n.
+     *
+     * Prob = 2 * (binom(2n, n-h) - binom(2n, n-2h) + binom(2n, n-3h) - ...) / binom(2n, n)
+     * This formulation exhibits subtractive cancellation. Instead divide each term by
+     * binom(2n, n), then factor common terms and use a Horner-like algorithm
+     * P = 2 * A0 * (1 - A1*(1 - A2*(1 - A3*(1 - A4*(...)))))
+     */
+    double P = 0.0;
+    for (int64_t k = n / h; k >= 0; --k) {
+        double p1 = 1.0;
+        // Each of the Ai terms has numerator and denominator with h simple terms.
+        for (int64_t j = 0; j < h; ++j) {
+            p1 = static_cast<double>(n - k * h - j) * p1 / static_cast<double>(n + k * h + j + 1);
+        }
+        P = p1 * (1.0 - P);
+    }
+    return 2 * P;
+}
+
+template <typename WorkVec>
+XSF_HOST_DEVICE inline double count_paths_outside_method(int64_t m, int64_t n, int64_t g, int64_t h, WorkVec work) {
+    /* Count the integer lattice paths from (0, 0) to (m, n), which at some point
+     * (x, y) along the path, satisfy m*y <= n*x - h*g. The paths make steps of
+     * size +1 in either positive x or positive y directions.
+     *
+     * Requires m > 0, n > 0, g = gcd(m, n) and 0 <= h <= lcm(m, n).
+     * work must have length at least min(m, n) + 1.
+     * The calculation may overflow - the caller must check for a finite answer.
+     */
+    // Compute #paths which stay lower than x/m-y/n = h/lcm(m,n)
+    // B(x, y) = #{paths from (0,0) to (x,y) without previously crossing the boundary}
+    //         = binom(x, y) - #{paths which already reached the boundary}
+    // Multiply by the number of path extensions going from (x, y) to (m, n), and sum.
+
+    // Probability is symmetrical in m, n. Computation below assumes m >= n.
+    if (m < n) {
+        cxx::swap(m, n);
+    }
+    const int64_t mg = m / g;
+    const int64_t ng = n / g;
+
+    // Not every x needs to be considered. xj(j) gives the x values to be
+    // checked: wherever n*x/m + ng*h crosses an integer.
+    // (mg - h) may be negative, so use floor division as in Python.
+    const int64_t q = (mg - h) / mg;
+    const int64_t lxj = n + (((mg - h) % mg != 0 && (mg - h) < 0) ? q - 1 : q);
+    if (lxj <= 0) {
+        return binom(static_cast<double>(m + n), static_cast<double>(n));
+    }
+    XSF_ASSERT(static_cast<int64_t>(work.extent(0)) >= lxj);
+    auto xj = [h, mg, ng](int64_t j) -> int64_t { return (h + mg * j + ng - 1) / ng; };
+    // work(j) == B(x_j, j)
+    work(0) = 1.0;
+    for (int64_t j = 1; j < lxj; ++j) {
+        const int64_t xjj = xj(j);
+        double Bj = binom(static_cast<double>(xjj + j), static_cast<double>(j));
+        for (int64_t i = 0; i < j; ++i) {
+            Bj -= binom(static_cast<double>(xjj - xj(i) + j - i), static_cast<double>(j - i)) * work(i);
+        }
+        work(j) = Bj;
+    }
+    // Compute the number of path extensions.
+    double num_paths = 0.0;
+    for (int64_t j = 0; j < lxj; ++j) {
+        num_paths += work(j) * binom(static_cast<double>((m - xj(j)) + (n - j)), static_cast<double>(n - j));
+    }
+    return num_paths;
+}
+
+template <typename WorkVec>
+XSF_HOST_DEVICE inline double
+compute_outer_prob_inside_method(int64_t m, int64_t n, int64_t g, int64_t h, WorkVec work) {
+    /* Count the proportion of paths from (0, 0) to (m, n) that do not stay strictly
+     * inside the two diagonal lines |x/m - y/n| < h / lcm(m, n).
+     *
+     * Requires m > 0, n > 0, g = gcd(m, n) and 0 <= h <= lcm(m, n).
+     * work must have length at least min(m, n) + 1.
+     *
+     * The classical algorithm counts the paths which do stay inside, but we are
+     * interested in 1 - proportion to compute p-values, so the recursion is changed
+     * to compute 1 - p directly while staying within the "inside method" as
+     * described by Hodges. For the recursion for 1 - p see
+     * Viehmann, T.: "Numerically more stable computation of the p-values
+     * for the two-sample Kolmogorov-Smirnov test," arXiv: 2102.08037
+     */
+    // Probability is symmetrical in m, n. Computation below uses m >= n.
+    if (m < n) {
+        cxx::swap(m, n);
+    }
+    const int64_t mg = m / g;
+    const int64_t ng = n / g;
+
+    // Count the integer lattice paths from (0, 0) to (m, n) which satisfy
+    // |nx/g - my/g| < h. Compute matrix A such that:
+    //  A(x, 0) = A(0, y) = 1
+    //  A(x, y) = A(x, y-1) + A(x-1, y), for x,y>=1, except that
+    //  A(x, y) = 0 if |x/m - y/n|>= h
+    // Probability is A(m, n)/binom(m+n, n)
+    // Only need to preserve a single column of A, and only a sliding window of it.
+    // minj keeps track of the slide.
+    int64_t minj = 0;
+    int64_t maxj = cxx::min(static_cast<int64_t>(cxx::ceil(static_cast<double>(h) / mg)), n + 1);
+    int64_t curlen = maxj - minj;
+    // The work array must be long enough to hold maximum window needed.
+    const int64_t lenA = cxx::min(2 * maxj + 2, n + 1);
+    XSF_ASSERT(static_cast<int64_t>(work.extent(0)) >= lenA);
+    // The entries are essentially binomial coefficients and grow quickly, so each
+    // column is computed directly as a proportion rather than as a count.
+    // Initialize the first column
+    for (int64_t j = 0; j < lenA; ++j) {
+        work(j) = (j < maxj) ? 0.0 : 1.0;
+    }
+    for (int64_t i = 1; i <= m; ++i) {
+        // Generate the next column. First calculate the sliding window
+        const int64_t lastminj = minj;
+        const int64_t lastlen = curlen;
+        minj = cxx::max(static_cast<int64_t>(cxx::floor(static_cast<double>(ng * i - h) / mg)) + 1, int64_t(0));
+        minj = cxx::min(minj, n);
+        maxj = cxx::min(static_cast<int64_t>(cxx::ceil(static_cast<double>(ng * i + h) / mg)), n + 1);
+        if (maxj <= minj) {
+            return 1.0;
+        }
+        // Now fill in the values.
+        double val = (minj == 0) ? 0.0 : 1.0;
+        for (int64_t jj = 0; jj < maxj - minj; ++jj) {
+            const int64_t j = jj + minj;
+            val = (work(jj + minj - lastminj) * i + val * j) / (i + j);
+            work(jj) = val;
+        }
+        curlen = maxj - minj;
+        if (lastlen > curlen) {
+            // Set some carried-over elements to 1
+            for (int64_t k = maxj - minj; k < cxx::min(maxj - minj + (lastlen - curlen), lenA); ++k) {
+                work(k) = 1.0;
+            }
+        }
+    }
+    return work(maxj - minj - 1);
+}
+
+template <typename WorkVec>
+XSF_HOST_DEVICE inline cxx::tuple<bool, double, double>
+attempt_exact_2kssamp(int64_t n1, int64_t n2, int64_t g, double d, bool two_sided, WorkVec work) {
+    /* Attempt to compute the exact two-sample Kolmogorov-Smirnov p-value.
+     *
+     * n1, n2 are the sample sizes
+     * g is gcd(n1, n2)
+     * d is the computed max difference in ECDFs
+     * two_sided selects the two-sided alternative, otherwise one-sided
+     * ("less" and "greater" have the same null distribution).
+     * work is a work array of length at least min(n1, n2) + 1.
+     *
+     * Returns (success, d, probability), where d is rounded to the lattice
+     * h / lcm(n1, n2). On failure the caller should fall back to an asymptotic method.
+     */
+    const double qnan = cxx::numeric_limits<double>::quiet_NaN();
+    if (!cxx::isfinite(d)) {
+        return {false, d, qnan};
+    }
+    const int64_t lcm = (n1 / g) * n2;
+    // Round half to even, like np.round in SciPy (e.g. d = 0.5, lcm = 21 gives h = 10).
+    const int64_t h = static_cast<int64_t>(cxx::nearbyint(d * static_cast<double>(lcm)));
+    d = static_cast<double>(h) / static_cast<double>(lcm);
+    if (h == 0) {
+        return {true, d, 1.0};
+    }
+    double prob;
+    if (two_sided) {
+        if (n1 == n2) {
+            prob = compute_prob_outside_square(n1, h);
+        } else {
+            prob = compute_outer_prob_inside_method(n1, n2, g, h, work);
+        }
+    } else if (n1 == n2) {
+        // prob = binom(2n, n-h) / binom(2n, n)
+        // Evaluating in that form incurs roundoff errors from binom.
+        // Instead calculate directly.
+        prob = 1.0;
+        for (int64_t j = 0; j < h; ++j) {
+            prob *= static_cast<double>(n1 - j) / (static_cast<double>(n1 + j) + 1.0);
+        }
+    } else {
+        const double num_paths = count_paths_outside_method(n1, n2, g, h, work);
+        const double bin = binom(static_cast<double>(n1 + n2), static_cast<double>(n1));
+        if (!cxx::isfinite(num_paths) || num_paths > bin || cxx::isinf(bin)) {
+            return {false, d, qnan};
+        }
+        prob = num_paths / bin;
+    }
+    // Overflow or invalid operations in the intermediate calculations.
+    if (!cxx::isfinite(prob)) {
+        return {false, d, qnan};
+    }
+    if (!(0 <= prob && prob <= 1)) {
+        return {false, d, prob};
+    }
+    return {true, d, prob};
 }
 
 namespace detail {
