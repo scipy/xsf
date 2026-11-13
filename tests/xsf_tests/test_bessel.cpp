@@ -87,3 +87,28 @@ TEST_CASE("ive for negative non-integer v and large Im(z)", "[bessel][xsf_tests]
     CAPTURE(v, y, result, ref, rel_err);
     REQUIRE(rel_err <= 1e-12);
 }
+
+TEST_CASE("real jv and jve retain tiny normal values", "[bessel][xsf_tests]") {
+    using test_case = std::tuple<double, double, double>;
+    // Reference values computed with mpmath at 120 digits.
+    auto [v, x, expected] = GENERATE(
+        test_case{5.0, 1e-60, 2.604166666666666e-304}, test_case{2.5, 1e-122, 5.319230405352436e-307},
+        test_case{5.0, -1e-60, -2.604166666666666e-304}, test_case{-5.0, 1e-60, -2.604166666666666e-304},
+        test_case{-5.0, -1e-60, 2.604166666666666e-304}, test_case{6.0, -1e-50, 2.170138888888889e-305},
+        test_case{-6.0, 1e-50, 2.170138888888889e-305},
+        test_case{0.1, std::numeric_limits<double>::denorm_min(), 4.580731034319154e-33},
+        test_case{0.5, std::numeric_limits<double>::denorm_min(), 1.7735048886036273e-162}
+    );
+    const double j = xsf::cyl_bessel_j(v, x);
+    const double je = xsf::cyl_bessel_je(v, x);
+    CAPTURE(v, x, j, je, expected);
+    CHECK(xsf::extended_relative_error(j, expected) <= 2e-13);
+    CHECK(xsf::extended_relative_error(je, expected) <= 2e-13);
+}
+
+TEST_CASE("real jv and jve zero arguments and underflow", "[bessel][xsf_tests]") {
+    using test_case = std::tuple<double, double, double>;
+    auto [v, x, expected] = GENERATE(test_case{0.0, 0.0, 1.0}, test_case{5.0, 0.0, 0.0}, test_case{5.0, 1e-100, 0.0});
+    CHECK(xsf::cyl_bessel_j(v, x) == expected);
+    CHECK(xsf::cyl_bessel_je(v, x) == expected);
+}
