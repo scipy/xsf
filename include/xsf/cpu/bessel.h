@@ -65,7 +65,7 @@ namespace detail {
 
     template <typename T>
     std::complex<T> rotate_i(std::complex<T> i, std::complex<T> k, T v) {
-        T s = std::sin(v * M_PI) * (2 / M_PI);
+        T s = sinpi(v) * (2 / M_PI);
 
         return i + s * k;
     }
@@ -756,12 +756,27 @@ inline std::complex<double> cyl_bessel_ie(double v, std::complex<double> z) {
     if (sign == -1) {
         if (!detail::reflect_i(&cy, v)) {
             nz = amos::besk(z, v, kode, n, &cy_k, &ierr);
-            set_error_and_nan("ive(kv):", ierr_to_sferr(nz, ierr), cy_k);
-            /* adjust scaling to match zbesi */
+            /* adjust scaling to match zbesi, in two steps since exp(-Re(z)) can underflow */
             cy_k *= std::complex<double>(std::cos(z.imag()), -std::sin(z.imag()));
             if (z.real() > 0) {
-                cy_k.real(cy_k.real() * exp(-2 * z.real()));
-                cy_k.imag(cy_k.imag() * exp(-2 * z.real()));
+                if (ierr == 2) {
+                    /* exp(z) K_v(z) overflowed, but K_v(z) may not */
+                    nz = amos::besk(z, v, 1, n, &cy_k, &ierr);
+                    cy_k *= exp(-z.real() / 2);
+                    cy_k *= exp(-z.real() / 2);
+                } else {
+                    cy_k *= exp(-z.real());
+                    cy_k *= exp(-z.real());
+                }
+            }
+            set_error_and_nan("ive(kv):", ierr_to_sferr(nz, ierr), cy_k);
+            if (ierr == 2 && z.imag() == 0 && z.real() > 0 && v > 1) {
+                /* lower bound of log(2 / pi sin(pi v) exp(-x) K_v(x)), see cyl_bessel_k_overflows */
+                double x = z.real();
+                double logk = v * (std::log(2 * v) - std::log(x) - 1) - x / (v - 1) * x / 4 - std::log(v / M_PI_2) / 2;
+                if (logk - x + std::log(std::abs(sinpi(v)) / M_PI_2) > std::log(std::numeric_limits<double>::max())) {
+                    cy_k = INFINITY;
+                }
             }
             /* v -> -v */
             cy = detail::rotate_i(cy, cy_k, v);
