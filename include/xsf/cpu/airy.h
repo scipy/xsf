@@ -22,6 +22,22 @@ inline int cephes_airy(float xf, float *aif, float *aipf, float *bif, float *bip
 namespace xsf {
 namespace detail {
 
+    // int_z^inf Ai(t) dt for |ph z| <= pi/3, given zeta = 2/3 z^(3/2), as
+    // 1/(pi sqrt(3)) int_0^inf exp(-zeta cosh(u)) cosh(u/3) / cosh(u) du (DLMF 9.6.2, 10.32.9),
+    // with the trapezoidal rule in v = sqrt(2 zeta) sinh(u/2), so that exp(-zeta cosh(u)) = exp(-zeta - v^2)
+    template <typename T>
+    std::complex<T> itairy_tail(std::complex<T> zeta) {
+        const T pi = 3.141592653589793;
+        const T h = 0.15; // the poles at v = +-i sqrt(zeta) add an error below eps for x > 2
+        std::complex<T> r = T(1) / std::sqrt(T(2) * zeta), sum = 0.0;
+        for (int k = 1; k <= 41; k++) { // exp(-v^2) < eps / 2 beyond the last node
+            T v = h * k;
+            std::complex<T> s = v * r, c = std::sqrt(T(1) + s * s);
+            sum += std::exp(-v * v) * std::cosh(T(2.0 / 3.0) * std::asinh(s)) / ((T(1) + T(2) * s * s) * c);
+        }
+        return (sum + T(0.5)) * std::exp(-zeta) * (T(2) * h / pi) / std::sqrt(T(6) * zeta);
+    }
+
     template <typename T>
     void itairy(T x, T &apt, T &bpt, T &ant, T &bnt) {
 
@@ -59,12 +75,12 @@ namespace detail {
             ant = 0.0;
             bnt = 0.0;
         } else {
-            if (std::abs(x) <= 9.25) {
+            if (std::abs(x) <= 20.0) {
                 for (l = 0; l < 2; l++) {
                     x = x * std::pow(-1, l);
                     fx = x;
                     r = x;
-                    for (k = 1; k < 41; k++) {
+                    for (k = 1; k < 81; k++) {
                         r = r * (3.0 * k - 2.0) / (3.0 * k + 1.0) * x / (3.0 * k) * x / (3.0 * k - 1.0) * x;
                         fx += r;
                         if (std::abs(r) < std::abs(fx) * eps) {
@@ -73,7 +89,7 @@ namespace detail {
                     }
                     gx = 0.5 * x * x;
                     r = gx;
-                    for (k = 1; k < 41; k++) {
+                    for (k = 1; k < 81; k++) {
                         r = r * (3.0 * k - 1.0) / (3.0 * k + 2.0) * x / (3.0 * k) * x / (3.0 * k + 1.0) * x;
                         gx += r;
                         if (std::abs(r) < std::abs(gx) * eps) {
@@ -90,6 +106,14 @@ namespace detail {
                         bnt = -bnt;
                         x = -x;
                     }
+                }
+                if (x > 2.0) {
+                    // Ai(-t) and Bi(-t) from Ai(t e^(i pi / 3)), DLMF 9.2.14, 9.2.10
+                    xe = x * std::sqrt(x) / 1.5;
+                    apt = q0 - itairy_tail(std::complex<T>(xe, 0.0)).real();
+                    std::complex<T> t = itairy_tail(std::complex<T>(0.0, xe));
+                    ant = q1 - 2.0 * t.real();
+                    bnt = -2.0 * t.imag();
                 }
             } else {
                 xe = x * std::sqrt(x) / 1.5;
