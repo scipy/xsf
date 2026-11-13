@@ -472,7 +472,8 @@ namespace detail {
             }
             if (i > 0 && x_next == x_previous) {
                 set_error("find_root_newton", SF_ERROR_LOSS, NULL);
-                return {x, NewtonRootFinderStatus::SUCCESS};
+                double mid_point = 0.5 * (x + x_previous);
+                return {mid_point, NewtonRootFinderStatus::SUCCESS};
             }
             x_previous = x;
             x = x_next;
