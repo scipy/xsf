@@ -59,3 +59,22 @@ TEST_CASE("zeta(x, q) for q > 1e8", "[zeta][xsf_tests]") {
     CAPTURE(x, q, out, desired, error, rtol);
     REQUIRE(error <= rtol);
 }
+
+TEST_CASE("Hurwitz zeta at negative shifts and large orders", "[zeta][xsf_tests]") {
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double>;
+    const double inf = std::numeric_limits<double>::infinity();
+    // Values from 150-digit finite sums and positive-argument Hurwitz zeta tails.
+    auto [x, q, desired] = GENERATE_COPY(
+        test_case{2.0, -0.75, 18.975106932284888}, test_case{3.0, -0.75, 62.29349959839809},
+        test_case{31.0, -7.5, 1.5931355392154464e-29}, test_case{2.0, -10000000000.5, 9.869604400989358},
+        test_case{3.0, -10000000000.5, 4.999999999e-21}, test_case{31.0, -0.49999999999999994, -1.1305221409216952e-05},
+        test_case{1031.0, -0.49999999999999994, -5.267741079373558e+297},
+        test_case{31.0, -0.5000000000000001, 3.304063430367369e-05}, test_case{3.0, -1e-15, -9.999999999999998e+44},
+        test_case{1031.0, -0.5, 2.8178113466323453e-182}, test_case{1e300, 1.5, 0.0}, test_case{inf, 1.5, 0.0},
+        test_case{inf, 0.5, inf}, test_case{inf, 1.0, 1.0}
+    );
+    const double out = xsf::zeta(x, q);
+    CAPTURE(x, q, out, desired);
+    REQUIRE((out == desired || xsf::extended_relative_error(out, desired) < 2e-13));
+}
