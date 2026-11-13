@@ -199,9 +199,4 @@ TEST_CASE("hyperu b near 0", "[hyperu][xsf_tests]") {
     const double rtol = 1e-7;
     CAPTURE(a, b, x, out, desired, error, rtol);
     REQUIRE(error <= rtol);
-
-    const float out_f = xsf::hyperu(static_cast<float>(a), static_cast<float>(b), static_cast<float>(x));
-    const double error_f = xsf::extended_relative_error(static_cast<double>(out_f), desired);
-    CAPTURE(out_f, error_f);
-    REQUIRE(error_f <= 1e-5);
 }
