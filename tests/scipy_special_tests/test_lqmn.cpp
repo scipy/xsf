@@ -92,6 +92,54 @@ TEST_CASE("lqmn TestLegendreFunctions.test_lqmn_gt1", "[lqmn][real][smoketest]")
     }
 }
 
+TEST_CASE("lqmn for real arguments outside [-1, 1]", "[lqmn][real][regression]") {
+    constexpr int m = 1;
+    constexpr int n = 2;
+    constexpr int m1p = m + 1;
+    constexpr int n1p = n + 1;
+    constexpr double rtol = 2e-11;
+
+    double q_data[m1p * n1p], qd_data[m1p * n1p];
+    std::complex<double> cq_data[m1p * n1p], cqd_data[m1p * n1p];
+    auto q_mn = std::mdspan(q_data, m1p, n1p);
+    auto qd_mn = std::mdspan(qd_data, m1p, n1p);
+    auto cq_mn = std::mdspan(cq_data, m1p, n1p);
+    auto cqd_mn = std::mdspan(cqd_data, m1p, n1p);
+
+    // The real and complex paths should agree for real x outside [-1, 1].
+    // The points include the reported failure, values near -1, both sides of
+    // the transition to the fixed-step recurrence at |x| = 1.1, and positive x.
+    for (double x : {-1.00011, -1.0005, -1.001, -1.01, -1.05, -1.09, -1.0999, -1.1, -1.1001,
+                     1.00011, 1.01, 1.05, 1.0999, 1.1, 1.1001}) {
+        xsf::lqmn(x, q_mn, qd_mn);
+        xsf::lqmn(std::complex<double>(x, 0.0), cq_mn, cqd_mn);
+
+        long double xl = x;
+        long double q0 = 0.5L * std::log(std::fabs((xl + 1.0L) / (xl - 1.0L)));
+        long double xq = std::sqrt(xl * xl - 1.0L);
+        long double q10 = -1.0L / xq;
+        long double q11 = xq * (q0 + xl / (1.0L - xl * xl));
+        long double q12 = 3.0L * xl * q11 - 2.0L * q10;
+        double expected = static_cast<double>(q12);
+        long double q1 = xl * q0 - 1.0L;
+        long double q2 = (3.0L * xl * q1 - q0) / 2.0L;
+        double expected_derivative = static_cast<double>(-xl / (xl * xl - 1.0L) * q12 + 6.0L / xq * q2);
+
+        CAPTURE(x, q_mn(m, n), cq_mn(m, n), qd_mn(m, n), cqd_mn(m, n), expected, expected_derivative);
+        REQUIRE(std::isfinite(q_mn(m, n)));
+        double tolerance = rtol * std::max(1.0, std::fabs(expected));
+        REQUIRE(std::fabs(q_mn(m, n) - expected) <= tolerance);
+        REQUIRE(std::fabs(std::imag(cq_mn(m, n))) <= tolerance);
+        REQUIRE(std::abs(q_mn(m, n) - std::real(cq_mn(m, n))) <= tolerance);
+
+        double derivative_tolerance = rtol * std::max(1.0, std::fabs(expected_derivative));
+        REQUIRE(std::isfinite(qd_mn(m, n)));
+        REQUIRE(std::fabs(qd_mn(m, n) - expected_derivative) <= derivative_tolerance);
+        REQUIRE(std::fabs(std::imag(cqd_mn(m, n))) <= derivative_tolerance);
+        REQUIRE(std::abs(qd_mn(m, n) - std::real(cqd_mn(m, n))) <= derivative_tolerance);
+    }
+}
+
 TEST_CASE("lqmn complex", "[lqmn][complex][smoketest]") {
     constexpr double atol = 1e-16;
     constexpr double x = 0.5;
