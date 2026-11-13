@@ -111,6 +111,12 @@ namespace cephes {
                                             expn_A7, expn_A8, expn_A9, expn_A10, expn_A11, expn_A12};
         constexpr int expn_Adegs[] = {0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
 
+        /* a * exp(b) for exp(b) < DBL_MIN: rounding exp(b) alone can lose the subnormal result */
+        XSF_HOST_DEVICE inline double expn_mul_exp(double a, double b) {
+            double e = cxx::exp(0.5 * b);
+            return (a * e) * e;
+        }
+
         /* Asymptotic expansion for large n, DLMF 8.20(ii) */
         XSF_HOST_DEVICE inline double expn_large_n(int n, double x) {
             int k;
@@ -120,12 +126,6 @@ namespace cephes {
             double fac = 1;
             double res = 1; /* A[0] = 1 */
             double expfac, term;
-
-            expfac = cxx::exp(-lambda * p) / (lambda + 1) / p;
-            if (expfac == 0) {
-                set_error("expn", SF_ERROR_UNDERFLOW, NULL);
-                return 0;
-            }
 
             /* Do the k = 1 term outside the loop since A[1] = 1 */
             fac *= multiplier;
@@ -140,6 +140,10 @@ namespace cephes {
                 }
             }
 
+            if (x > MAXLOG) {
+                return expn_mul_exp(res / (lambda + 1) / p, -x);
+            }
+            expfac = cxx::exp(-lambda * p) / (lambda + 1) / p;
             return expfac * res;
         }
     } // namespace detail
@@ -158,7 +162,8 @@ namespace cephes {
             return cxx::numeric_limits<double>::quiet_NaN();
         }
 
-        if (x > detail::MAXLOG) {
+        /* E_n(x) ~ exp(-x) / x is subnormal for MAXLOG < x < -MINLOG */
+        if (x > -detail::MINLOG) {
             return (0.0);
         }
 
@@ -172,6 +177,9 @@ namespace cephes {
         }
 
         if (n == 0) {
+            if (x > detail::MAXLOG) {
+                return detail::expn_mul_exp(1.0 / x, -x);
+            }
             return (cxx::exp(-x) / x);
         }
 
@@ -220,6 +228,9 @@ namespace cephes {
                 }
             } while (t > detail::MACHEP);
 
+            if (x > detail::MAXLOG) {
+                return detail::expn_mul_exp(ans, -x);
+            }
             ans *= cxx::exp(-x);
             return ans;
         }
