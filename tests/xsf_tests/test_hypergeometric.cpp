@@ -116,3 +116,41 @@ TEST_CASE("hyp1f1(a, b, z) tiny a and b", "[hyp1f1][xsf_tests]") {
         REQUIRE(error_real <= rtol);
     }
 }
+
+TEST_CASE("hyp1f1(a, b, z) tiny a, series stop", "[hyp1f1][xsf_tests]") {
+    // Regression test for gh-454: the series stopped at the first tiny term, but for
+    // tiny a the terms can grow again.
+    /*
+    import mpmath
+
+    mpmath.mp.dps = 100
+
+    cases = [(1e-17, 1.0, 18 + 7j), (1e-16, -7.5, 19.5), (0.5, -600.3, -1), (1e-50, -60.5, 80j), (-1e-50, 1.0, 500j)]
+    for a, b, z in cases:
+        print(complex(mpmath.hyp1f1(a, b, z)))
+    */
+    SET_FP_FORMAT()
+    using cd = std::complex<double>;
+    using test_case = std::tuple<double, double, cd, cd>;
+    auto [a, b, z, desired] = GENERATE(
+        test_case{1e-17, 1.0, {18, 7}, {1.000000000033934, 1.1386064725124296e-11}},
+        test_case{1e-16, -7.5, {19.5, 0}, {1.0222808622762243, 0.0}},
+        // chgm sums all 500 terms here, and must still apply exp(x) of DLMF 13.2.39
+        test_case{0.5, -600.3, {-1, 0}, {1.0008339606910475, 0.0}},
+        // the later terms cancel, or don't converge: cchg keeps the sum at the first tiny term
+        test_case{1e-50, -60.5, {0, 80}, {1.0, 1.274534007911415e-18}},
+        test_case{-1e-50, 1.0, {0, 500}, {1.0, -1.5725658822431688e-50}}
+    );
+
+    const cd out = xsf::hyp1f1(a, b, z);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 1e-14;
+    CAPTURE(a, b, z, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+    if (z.imag() == 0.0) {
+        const double out_real = xsf::hyp1f1(a, b, z.real());
+        const double error_real = xsf::extended_relative_error(out_real, desired.real());
+        CAPTURE(out_real, error_real);
+        REQUIRE(error_real <= rtol);
+    }
+}

@@ -672,13 +672,28 @@ namespace specfun {
                     chg = 1.0;
                     chw = 0.0;
                     crg = 1.0;
+                    std::complex<double> chg0 = 0.0; // the sum at the first negligible term
+                    double rmax = 0.0;               // the largest term after it
                     for (j = 1; j < 501; j++) {
                         crg = crg * (a + (j - 1)) / (j * (b + (j - 1))) * z;
                         chg += crg;
+                        if (chg0 != 0.0) {
+                            rmax = std::max(rmax, std::abs(crg));
+                        }
                         if (std::abs((chg - chw) / chg) < 1e-15) {
-                            break;
+                            if (chg0 == 0.0) {
+                                chg0 = chg;
+                            }
+                            // stop only if the terms can't grow again (e.g. for tiny a)
+                            if ((b + j >= std::abs(z)) && (fabs((a + j) / (j + 1.0) * std::abs(z) / (b + j)) < 1.0)) {
+                                break;
+                            }
                         }
                         chw = chg;
+                    }
+                    // if the later terms don't converge or cancel to below their rounding error, drop them
+                    if ((chg0 != 0.0) && ((j == 501) || !(std::abs(chg - chg0) > 1e-15 * rmax))) {
+                        chg = chg0;
                     }
                 } else {
                     y = 0.0;
@@ -850,13 +865,15 @@ namespace specfun {
                 for (j = 1; j < 501; j++) {
                     rg = rg * (a + (j - 1)) / (j * (b + (j - 1))) * x;
                     hg += rg;
-                    if ((hg != 0.0) && (fabs(rg / hg) < 1e-15)) {
-                        // DLMF 13.2.39 (cf. above)
-                        if (x0 < 0.0) {
-                            hg *= exp(x0);
-                        }
+                    // stop only if the terms can't grow again (e.g. for tiny a)
+                    if ((hg != 0.0) && (fabs(rg / hg) < 1e-15) &&
+                        ((rg == 0.0) || ((b + j >= x) && (fabs((a + j) / (j + 1.0) * x / (b + j)) < 1.0)))) {
                         break;
                     }
+                }
+                // DLMF 13.2.39 (cf. above)
+                if (x0 < 0.0) {
+                    hg *= exp(x0);
                 }
             } else {
                 // DLMF 13.7.2 & 13.2.4, SUM2 corresponds to first sum
