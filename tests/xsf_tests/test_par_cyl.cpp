@@ -120,3 +120,60 @@ TEST_CASE("pbwa accuracy float", "[pbwa][xsf_tests]") {
     CHECK(error_f <= rtol);
     CHECK(error_d <= rtol);
 }
+
+TEST_CASE("pbvv half-integer v and negative x", "[pbvv][xsf_tests]") {
+    // Regression test for gh-520: V_v(x) is recessive here and lost all digits.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+
+    def pbvv(v, x):
+        v, x = mpmath.mpf(v), mpmath.mpf(x)
+        f = lambda t: mpmath.pcfv(-v - 0.5, t)
+        return f(x), mpmath.diff(f, x)
+
+
+    for v, x in [(-0.5, -8.0), (-0.5, -12.0), (0.5, -12.0), (0.5, -8.0), (-0.5, -4.0)]:
+        f, d = pbvv(v, x)
+        print(f"pbvv({v!r}, {x!r}) = ({float(f)!r}, {float(d)!r})")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double, double>;
+    auto [v, x, desired_f, desired_d] = GENERATE(
+        test_case{-0.5, -8.0, 2.232022159445888e-08, 9.064507251631539e-08},
+        test_case{-0.5, -12.0, 3.76805638742432e-17, 2.2763748814178562e-16},
+        test_case{0.5, -12.0, -9.074417427744898e-16, -5.406969892772695e-15}
+    );
+
+    double f, d;
+    xsf::pbvv(v, x, f, d);
+    const double error_f = xsf::extended_relative_error(f, desired_f);
+    const double error_d = xsf::extended_relative_error(d, desired_d);
+    const double rtol = 1e-8;
+    CAPTURE(v, x, f, d, desired_f, desired_d, error_f, error_d, rtol);
+    REQUIRE(error_f <= rtol);
+    REQUIRE(error_d <= rtol);
+}
+
+TEST_CASE("pbvv half-integer v and negative x, float", "[pbvv][xsf_tests]") {
+    // Regression test for gh-520, float instantiation. Reference values from the script above:
+    // pbvv(0.5, -8.0) = (-3.5985191778830186e-07, -1.4170874495587485e-06)
+    // pbvv(-0.5, -4.0) = (0.005059046431512129, 0.01070212790594681)
+    SET_FP_FORMAT()
+    using test_case = std::tuple<float, float, double, double>;
+    auto [v, x, desired_f, desired_d] = GENERATE(
+        test_case{0.5f, -8.0f, -3.5985191778830186e-07, -1.4170874495587485e-06},
+        test_case{-0.5f, -4.0f, 0.005059046431512129, 0.01070212790594681}
+    );
+    float f, d;
+    xsf::pbvv(v, x, f, d);
+    const double rtol = 1e-5;
+    CAPTURE(v, x, f, d, rtol);
+    REQUIRE(xsf::extended_relative_error(static_cast<double>(f), desired_f) <= rtol);
+    REQUIRE(xsf::extended_relative_error(static_cast<double>(d), desired_d) <= rtol);
+}
