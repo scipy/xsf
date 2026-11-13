@@ -112,8 +112,8 @@ namespace cephes {
             double hi, lo;
 
             double_double() = default;
-            double_double(double high, double low) : hi(high), lo(low) {}
-            explicit double_double(double high) : hi(high), lo(0.0) {}
+            XSF_HOST_DEVICE double_double(double high, double low) : hi(high), lo(low) {}
+            XSF_HOST_DEVICE explicit double_double(double high) : hi(high), lo(0.0) {}
 
             XSF_HOST_DEVICE explicit operator double() const { return hi; }
             XSF_HOST_DEVICE explicit operator int() const { return static_cast<int>(hi); }
