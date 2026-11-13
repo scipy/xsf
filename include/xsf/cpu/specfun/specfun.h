@@ -1337,7 +1337,7 @@ namespace specfun {
         hmin = 1e300;
         h0 = 0.0;
         for (j = 1; j < 151; j++) {
-            r1 = r1 * (a + (j - 1)) / (j * (b + j - 1.0)) * x;
+            r1 = r1 * (a + (j - 1)) / (j * (b + (j - 1))) * x;
             r2 = r2 * (a - b + j) / (j * (1.0 - b + j)) * x;
             hu += r1 - r2;
             hua = fabs(hu);

@@ -171,3 +171,37 @@ TEST_CASE("hyperu tiny a and integer b", "[hyperu][xsf_tests]") {
     CAPTURE(a, b, x, out, desired, error, rtol);
     REQUIRE(error <= rtol);
 }
+
+TEST_CASE("hyperu b near 0 and just above -1", "[hyperu][xsf_tests]") {
+    // Regression test for gh-533: the small-x series rounded `b + j - 1.0`,
+    // which loses the digits of `b + j - 1` for `b` near 1 - j.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for a, b, x in [(2.5, -1e-12, 15.0), (0.75, -1e-13, 3.0), (2.5, -0.999999999999, 15.0)]:
+        print(f"hyperu({a!r}, {b!r}, {x!r}) = {float(mpmath.hyperu(a, b, x))!r}")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double, double>;
+    auto [a, b, x, desired] = GENERATE(
+        test_case{2.5, -1e-12, 15.0, 0.0007070198793433216}, test_case{0.75, -1e-13, 3.0, 0.3241572028349371},
+        test_case{2.5, -0.999999999999, 15.0, 0.0006240950425694717}
+    );
+
+    const double out = xsf::hyperu(a, b, x);
+    const double error = xsf::extended_relative_error(out, desired);
+    // the two series cancel, so allow more than a few eps
+    const double rtol = 1e-7;
+    CAPTURE(a, b, x, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+
+    const float out_f = xsf::hyperu(static_cast<float>(a), static_cast<float>(b), static_cast<float>(x));
+    const double error_f = xsf::extended_relative_error(static_cast<double>(out_f), desired);
+    CAPTURE(out_f, error_f);
+    REQUIRE(error_f <= 1e-5);
+}
