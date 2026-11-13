@@ -51,6 +51,22 @@ namespace detail {
                                     0.7463319064601508, 0.6360536807265150, 0.5108670019508271, 0.3737060887154196,
                                     0.2277858511416451, 0.07652652113349733};
 
+    // Gauss-Laguerre rule (DLMF 3.5.27, Table 3.5.9), n = 20, computed with mpmath (dps 50):
+    // nodes are the roots of L_20, weights are x / (21 L_21(x))^2.
+    constexpr double bvn_lag_x20[20] = {
+        0.07053988969198875, 0.37212681800161146, 0.9165821024832735, 1.707306531028344,  2.749199255309432,
+        4.048925313850887,   5.6151749708616165,  7.459017453671064,  9.594392869581096,  12.038802546964316,
+        14.81429344263074,   17.948895520519375,  21.47878824028501,  25.451702793186904, 29.93255463170061,
+        35.013434240479,     40.83305705672857,   47.6199940473465,   55.810795750063896, 66.52441652561575
+    };
+    constexpr double bvn_lag_w20[20] = {0.16874680185111388,    0.2912543620060683,     0.2666861028670013,
+                                        0.16600245326950683,    0.07482606466879237,    0.02496441730928322,
+                                        0.006202550844572237,   0.0011449623864769082,  0.00015574177302781197,
+                                        1.5401440865224915e-05, 1.0864863665179824e-06, 5.3301209095567146e-08,
+                                        1.757981179050582e-09,  3.7255024025123206e-11, 4.767529251578191e-13,
+                                        3.3728442433624386e-15, 1.1550143395003989e-17, 1.5395221405823435e-20,
+                                        5.286442725569158e-24,  1.6564566124990233e-28};
+
 } // namespace detail
 
 XSF_HOST_DEVICE inline double bivariate_normal_cdf(double dh, double dk, double r) {
@@ -91,15 +107,33 @@ XSF_HOST_DEVICE inline double bivariate_normal_cdf(double dh, double dk, double 
     double k = dk;
     double hk = h * k;
     double bvn = 0.0;
+    if (r > -1.0 && h > r * k && k > r * h) {
+        // The density peaks at the corner (h, k). Integrate Plackett's (1954) identity
+        // dP/ds = exp(-a/(1+s) - b/(1-s)) / (2*pi*sqrt(1-s^2)) from s = -1, where P = 0,
+        // with 1/(1+s) = 1/(1+r) + t/a, by Gauss-Laguerre quadrature.
+        double a = (h + k) * (h + k) / 4.0;
+        double b = (h - k) * (h - k) / 4.0;
+        // The integrand is singular at t = -d, d = a*(1-r)/(2*(1+r)), so require d > 5.
+        if (a * (1.0 - r) > 10.0 * (1.0 + r)) {
+            double w0 = 1.0 / (1.0 + r);
+            for (int i = 0; i < 20; ++i) {
+                double w = w0 + detail::bvn_lag_x20[i] / a;
+                bvn += detail::bvn_lag_w20[i] * cxx::exp(-a * w0 - b * w / (2.0 * w - 1.0)) /
+                       (a * w * cxx::sqrt(2.0 * w - 1.0));
+            }
+            return bvn / tp;
+        }
+    }
     const double *w;
     const double *x;
     int n;
-    if (cxx::abs(r) < 0.3) {
+    double hs = (h * h + k * k) / 2.0;
+    if (cxx::abs(r) < 0.3 && cxx::abs(r) * hs <= 1.0) {
         // Gauss Legendre points and weights, n = 6
         w = detail::bvn_w6;
         x = detail::bvn_x6;
         n = 3;
-    } else if (cxx::abs(r) < 0.75) {
+    } else if (cxx::abs(r) < 0.75 && cxx::abs(r) * hs <= 1.0) {
         // Gauss Legendre points and weights, n = 12
         w = detail::bvn_w12;
         x = detail::bvn_x12;
@@ -113,7 +147,6 @@ XSF_HOST_DEVICE inline double bivariate_normal_cdf(double dh, double dk, double 
 
     // if abs(r) < 0.925, hs = ( h*h + k*k )/2; asr = asin(r)/2;
     if (cxx::abs(r) < 0.925) {
-        double hs = (h * h + k * k) / 2.0;
         double asr = cxx::asin(r) / 2.0;
         // sn = sin(asr*x); bvn = exp((sn*hk-hs)./(1-sn.^2))*w';
         for (int i = 0; i < n; ++i) {
