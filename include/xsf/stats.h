@@ -337,6 +337,154 @@ XSF_HOST_DEVICE inline void poisson_binom_cdf_all(InputMat p, OutputMat res) {
     res(n) = T(1);
 }
 
+namespace detail {
+
+    template <typename T>
+    XSF_HOST_DEVICE inline T log_add_exp(T a, T b) {
+        T hi = a > b ? a : b;
+        T lo = a > b ? b : a;
+        if (hi == -cxx::numeric_limits<T>::infinity()) {
+            return hi;
+        }
+        return hi + cxx::log1p(cxx::exp(lo - hi));
+    }
+
+    template <typename InputMat, typename OutputMat>
+    XSF_HOST_DEVICE inline void poisson_binom_logpmf_all_impl(InputMat p, OutputMat res) {
+        using T = typename OutputMat::value_type;
+        auto n = p.extent(0);
+
+        res(0) = T(0);
+        for (decltype(n) i = 1; i < n + 1; ++i) {
+            res(i) = -cxx::numeric_limits<T>::infinity();
+        }
+
+        for (decltype(n) i = 0; i < n; i++) {
+            T log_p = cxx::log(T(p(i)));
+            T log_q = cxx::log1p(-T(p(i)));
+            for (decltype(n) j = i + 1; j >= 1; j--) {
+                res(j) = log_add_exp(res(j) + log_q, res(j - 1) + log_p);
+            }
+            res(0) += log_q;
+        }
+    }
+
+} // namespace detail
+
+template <typename InputMat, typename OutputMat>
+XSF_HOST_DEVICE inline void poisson_binom_sf_all(InputMat p, OutputMat res) {
+    /* Outputs the full survival function P(X > k) of a Poisson-Binomial distribution.
+     *
+     * While the cdf is below 1/2 the result is 1 - cdf, with the cdf summed
+     * from the lower end. After that the pmf is summed from the upper end, so
+     * small upper tails keep their relative accuracy. */
+    using T = typename OutputMat::value_type;
+    auto n = p.extent(0);
+    auto out_size = res.extent(0);
+
+    if (out_size != n + 1) {
+        set_error("_poisson_binom_sf_all", SF_ERROR_MEMORY, "out.shape[-1] must be p.shape[-1] + 1");
+        return;
+    }
+
+    detail::poisson_binom_pmf_all_impl(p, res);
+
+    // res(0..m-1) is filled from the lower tail and res(m..n) from the upper tail.
+    decltype(n) m = 0;
+    T cdf = T(0);
+    for (; m < n; ++m) {
+        T next = cdf + res(m);
+        if (!(next < T(0.5))) {
+            break;
+        }
+        cdf = next;
+        res(m) = T(1) - cdf;
+    }
+
+    T total = T(0);
+    T pmf_above = res(n);
+    res(n) = T(0);
+    for (decltype(n) i = n; i-- > m;) {
+        total += pmf_above;
+        pmf_above = res(i);
+        res(i) = total;
+    }
+}
+
+template <typename InputMat, typename OutputMat>
+XSF_HOST_DEVICE inline void poisson_binom_logsf_all(InputMat p, OutputMat res) {
+    /* Outputs the log of the full survival function of a Poisson-Binomial distribution.
+     *
+     * Uses the same split as poisson_binom_sf_all: log1p(-cdf) while the cdf is
+     * below 1/2, and the log of the upper-tail sum after that. If an upper-tail
+     * sum gets too small to keep its precision in linear space, everything is
+     * recomputed in log space, so tails far below the smallest positive double
+     * still get a finite logarithm. The log space pass is much slower, so it is
+     * only used when needed. */
+    using T = typename OutputMat::value_type;
+    auto n = p.extent(0);
+    auto out_size = res.extent(0);
+
+    if (out_size != n + 1) {
+        set_error("_poisson_binom_logsf_all", SF_ERROR_MEMORY, "out.shape[-1] must be p.shape[-1] + 1");
+        return;
+    }
+
+    detail::poisson_binom_pmf_all_impl(p, res);
+
+    decltype(n) m = 0;
+    T cdf = T(0);
+    for (; m < n; ++m) {
+        T next = cdf + res(m);
+        if (!(next < T(0.5))) {
+            break;
+        }
+        cdf = next;
+        res(m) = cxx::log1p(-cdf);
+    }
+
+    // Upper-tail sums below this may have lost precision to underflow in the pmf.
+    const T smallest_accurate = cxx::numeric_limits<T>::min() / cxx::numeric_limits<T>::epsilon();
+    bool underflow = false;
+    T total = T(0);
+    T pmf_above = res(n);
+    res(n) = -cxx::numeric_limits<T>::infinity();
+    for (decltype(n) i = n; i-- > m;) {
+        total += pmf_above;
+        pmf_above = res(i);
+        if (total < smallest_accurate) {
+            underflow = true;
+        }
+        res(i) = cxx::log(total);
+    }
+    if (!underflow) {
+        return;
+    }
+
+    detail::poisson_binom_logpmf_all_impl(p, res);
+
+    const T log_half = -cxx::log(T(2));
+    m = 0;
+    T logcdf = -cxx::numeric_limits<T>::infinity();
+    for (; m < n; ++m) {
+        T next = detail::log_add_exp(logcdf, res(m));
+        if (!(next < log_half)) {
+            break;
+        }
+        logcdf = next;
+        res(m) = cxx::log1p(-cxx::exp(logcdf));
+    }
+
+    total = -cxx::numeric_limits<T>::infinity();
+    pmf_above = res(n);
+    res(n) = -cxx::numeric_limits<T>::infinity();
+    for (decltype(n) i = n; i-- > m;) {
+        total = detail::log_add_exp(total, pmf_above);
+        pmf_above = res(i);
+        res(i) = total;
+    }
+}
+
 template <typename InputMat, typename Int>
 XSF_HOST_DEVICE inline typename InputMat::value_type take_from_pmf(InputMat pmf, Int k) {
     using T = typename InputMat::value_type;
@@ -358,6 +506,32 @@ XSF_HOST_DEVICE inline typename InputMat::value_type take_from_discrete_cdf(Inpu
         return T(1);
     }
     return cdf(k);
+}
+
+template <typename InputMat, typename Int>
+XSF_HOST_DEVICE inline typename InputMat::value_type take_from_discrete_sf(InputMat sf, Int k) {
+    using T = typename InputMat::value_type;
+    auto size = sf.extent(0);
+    if (detail::cmp_less(k, 0)) {
+        return T(1);
+    }
+    if (!detail::cmp_less(k, size - 1)) {
+        return T(0);
+    }
+    return sf(k);
+}
+
+template <typename InputMat, typename Int>
+XSF_HOST_DEVICE inline typename InputMat::value_type take_from_discrete_logsf(InputMat logsf, Int k) {
+    using T = typename InputMat::value_type;
+    auto size = logsf.extent(0);
+    if (detail::cmp_less(k, 0)) {
+        return T(0);
+    }
+    if (!detail::cmp_less(k, size - 1)) {
+        return -cxx::numeric_limits<T>::infinity();
+    }
+    return logsf(k);
 }
 
 namespace detail {
