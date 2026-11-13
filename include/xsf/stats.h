@@ -1,5 +1,6 @@
 #pragma once
 
+#include "binom.h"
 #include "cephes/bdtr.h"
 #include "cephes/chdtr.h"
 #include "cephes/const.h"
@@ -474,6 +475,220 @@ XSF_HOST_DEVICE inline typename InputMat::value_type wilcoxon_sf(double k, Input
         return cxx::numeric_limits<T>::quiet_NaN();
     }
     return wilcoxon_sf(static_cast<long long int>(k), cdf);
+}
+
+namespace detail {
+
+    template <typename OutputMat>
+    XSF_HOST_DEVICE inline void mannwhitneyu_pmf_all_impl(int n1, int n2, OutputMat res) {
+        /* Shared implementation used by PMF and CDF table generation.
+         *
+         * Port of scipy.stats._mannwhitneyu._MWU.build_sigma_array and
+         * build_u_freqs_array. The number of arrangements c(u) with U = u satisfies
+         *
+         *     c(0) = 1,   c(u) = (1 / u) * sum_{j=0}^{u-1} c(j) * sigma(u - j),
+         *
+         * where sigma(a) = sum of divisors d of a with d <= n1
+         *                - sum of divisors d of a with n2 < d <= n1 + n2.
+         *
+         * Only u = 0..N/2 (N = n1 * n2) is computed; the upper half follows from the
+         * symmetry c(u) = c(N - u). No memory is allocated: while the lower half is
+         * being filled, sigma(a) is stored in the still-unused upper half of `res`.
+         */
+        using T = typename OutputMat::value_type;
+
+        // Python: n1, n2 = min(n1, n2), max(n1, n2)
+        if (n1 > n2) {
+            const int tmp = n1;
+            n1 = n2;
+            n2 = tmp;
+        }
+        const long long int N = static_cast<long long int>(n1) * n2;
+        const long long int half = N / 2;
+
+        // sigma(a), 1 <= a <= half, lives at res(N + 1 - a). These indices are all > half,
+        // so they never collide with the counts c(0..half) written below.
+        //
+        // Python (build_sigma_array):
+        //     for d in 1..n1:          s_array[d::d] += d
+        //     for d in n2+1..n1+n2:    s_array[d::d] -= d
+        for (long long int a = 1; a <= half; ++a) {
+            res(N + 1 - a) = T(0);
+        }
+        for (long long int d = 1; d <= n1; ++d) {
+            for (long long int a = d; a <= half; a += d) {
+                res(N + 1 - a) += T(d);
+            }
+        }
+        for (long long int d = n2 + 1; d <= static_cast<long long int>(n1) + n2; ++d) {
+            for (long long int a = d; a <= half; a += d) {
+                res(N + 1 - a) -= T(d);
+            }
+        }
+
+        // Python (build_u_freqs_array): configurations[0] = 1, then the recurrence above.
+        //
+        // Python keeps counts as uint64 and switches to float once they exceed the uint64
+        // range. Here counts are held in `res` itself (type T), so they are exact integers only
+        // while <= 2^digits(T) (2^53 for double). Until then the dot product is accumulated in
+        // exact unsigned 64-bit arithmetic, positive and negative sigma terms separately. If a
+        // count gets too large for T, or the accumulation would overflow uint64, we switch to
+        // floating-point accumulation for the rest of the table, as Python does.
+        const cxx::uint64_t uint_max = cxx::numeric_limits<cxx::uint64_t>::max();
+        const cxx::uint64_t exact_max = cxx::uint64_t(1) << cxx::numeric_limits<T>::digits;
+        bool exact = true;
+
+        res(0) = T(1);
+        for (long long int u = 1; u <= half; ++u) {
+            if (exact) {
+                cxx::uint64_t pos = 0; // sum of c(j) * sigma(u - j) over terms with sigma > 0
+                cxx::uint64_t neg = 0; // sum of c(j) * |sigma(u - j)| over terms with sigma < 0
+                bool overflow = false;
+                for (long long int j = 0; j < u; ++j) {
+                    const cxx::uint64_t c = static_cast<cxx::uint64_t>(res(j));
+                    const long long int s = static_cast<long long int>(res(N + 1 - (u - j)));
+                    const cxx::uint64_t s_abs = static_cast<cxx::uint64_t>(s < 0 ? -s : s);
+                    if (c != 0 && s_abs > uint_max / c) {
+                        overflow = true;
+                        break;
+                    }
+                    const cxx::uint64_t term = c * s_abs;
+                    cxx::uint64_t &acc = (s < 0) ? neg : pos;
+                    if (acc > uint_max - term) {
+                        overflow = true;
+                        break;
+                    }
+                    acc += term;
+                }
+                if (!overflow) {
+                    // The sum is an exact non-negative multiple of u.
+                    const cxx::uint64_t count = (pos - neg) / static_cast<cxx::uint64_t>(u);
+                    if (count <= exact_max) {
+                        res(u) = T(count);
+                        continue;
+                    }
+                }
+                exact = false; // fall through to the floating-point path from here on
+            }
+            // Python: new_val = np.dot(configurations[:u], s_array[u - 1::-1]) / u
+            T acc = T(0);
+            for (long long int j = 0; j < u; ++j) {
+                acc += res(j) * res(N + 1 - (u - j));
+            }
+            res(u) = acc / T(u);
+        }
+
+        // Fill the upper half by symmetry, c(N - u) = c(u). This overwrites the sigma values.
+        for (long long int u = 0; u <= half; ++u) {
+            res(N - u) = res(u);
+        }
+
+        // Python: configurations / special.binom(n1 + n2, n1)
+        const T total = T(binom(static_cast<double>(n1) + n2, static_cast<double>(n1)));
+        for (long long int u = 0; u <= N; ++u) {
+            res(u) /= total;
+        }
+    }
+
+    template <typename OutputMat>
+    XSF_HOST_DEVICE inline bool mannwhitneyu_check_args(const char *name, int n1, int n2, OutputMat res) {
+        if (n1 < 0 || n2 < 0) {
+            set_error(name, SF_ERROR_DOMAIN, "n1 and n2 must be non-negative");
+            return false;
+        }
+        const long long int out_size = static_cast<long long int>(res.extent(0));
+        const long long int expected_size = static_cast<long long int>(n1) * n2 + 1;
+        if (out_size != expected_size) {
+            set_error(name, SF_ERROR_MEMORY, "out.shape[-1] must be n1 * n2 + 1");
+            return false;
+        }
+        return true;
+    }
+
+} // namespace detail
+
+template <typename OutputMat>
+XSF_HOST_DEVICE inline void mannwhitneyu_pmf_all(int n1, int n2, OutputMat res) {
+    /* Fill `res` with the full PMF table of the Mann-Whitney U statistic under the null
+     * hypothesis (no ties), for sample sizes n1 and n2.
+     *
+     * res should be an mdspan view of a 1d array of length n1 * n2 + 1; res(u) = P(U = u).
+     */
+    if (!detail::mannwhitneyu_check_args("_mannwhitneyu_pmf_all", n1, n2, res)) {
+        return;
+    }
+    detail::mannwhitneyu_pmf_all_impl(n1, n2, res);
+}
+
+template <typename OutputMat>
+XSF_HOST_DEVICE inline void mannwhitneyu_cdf_all(int n1, int n2, OutputMat res) {
+    /* Fill `res` with the full CDF table of the Mann-Whitney U statistic; res(u) = P(U <= u). */
+    using T = typename OutputMat::value_type;
+
+    if (!detail::mannwhitneyu_check_args("_mannwhitneyu_cdf_all", n1, n2, res)) {
+        return;
+    }
+
+    detail::mannwhitneyu_pmf_all_impl(n1, n2, res);
+    // Python: cdfs = np.cumsum(pmfs)
+    const long long int out_size = static_cast<long long int>(res.extent(0));
+    for (long long int i = 1; i < out_size - 1; ++i) {
+        res(i) = cxx::min(res(i) + res(i - 1), T(1.0));
+    }
+    res(out_size - 1) = T(1.0);
+}
+
+template <typename InputMat>
+XSF_HOST_DEVICE inline typename InputMat::value_type mannwhitneyu_pmf(long long int k, InputMat pmf) {
+    /* Return P(U = k) from a precomputed PMF table. */
+    return take_from_pmf(pmf, k);
+}
+
+template <typename InputMat>
+XSF_HOST_DEVICE inline typename InputMat::value_type mannwhitneyu_pmf(double k, InputMat pmf) {
+    using T = typename InputMat::value_type;
+    if (cxx::isnan(k)) {
+        return cxx::numeric_limits<T>::quiet_NaN();
+    }
+    return mannwhitneyu_pmf(static_cast<long long int>(k), pmf);
+}
+
+template <typename InputMat>
+XSF_HOST_DEVICE inline typename InputMat::value_type mannwhitneyu_cdf(long long int k, InputMat cdf) {
+    /* Return P(U <= k) from a precomputed CDF table. */
+    return take_from_discrete_cdf(cdf, k);
+}
+
+template <typename InputMat>
+XSF_HOST_DEVICE inline typename InputMat::value_type mannwhitneyu_cdf(double k, InputMat cdf) {
+    using T = typename InputMat::value_type;
+    if (cxx::isnan(k)) {
+        return cxx::numeric_limits<T>::quiet_NaN();
+    }
+    return mannwhitneyu_cdf(static_cast<long long int>(k), cdf);
+}
+
+template <typename InputMat>
+XSF_HOST_DEVICE inline typename InputMat::value_type mannwhitneyu_sf(long long int k, InputMat cdf) {
+    /* Return P(U >= k) from a precomputed CDF table. Like SciPy's _MWU.sf, the mass at k is
+     * included.
+     *
+     * Python's _MWU.sf uses the symmetry of the distribution so that it only ever sums the
+     * small left tail. The same symmetry gives P(U >= k) = P(U <= N - k) with N = n1 * n2,
+     * so we read the CDF table at N - k instead of computing 1 - cdf(k - 1). This avoids
+     * cancellation when the survival probability is tiny.
+     */
+    const long long int N = static_cast<long long int>(cdf.extent(0)) - 1;
+    return take_from_discrete_cdf(cdf, N - k);
+}
+
+template <typename InputMat>
+XSF_HOST_DEVICE inline typename InputMat::value_type mannwhitneyu_sf(double k, InputMat cdf) {
+    using T = typename InputMat::value_type;
+    if (cxx::isnan(k)) {
+        return cxx::numeric_limits<T>::quiet_NaN();
+    }
+    return mannwhitneyu_sf(static_cast<long long int>(k), cdf);
 }
 
 namespace detail {
