@@ -106,12 +106,13 @@ namespace cephes {
 
             ib = cxx::round(b);
 
-            if (cxx::abs(b - ib) < hyp2f1_EPS && ib <= 0 && cxx::abs(b) < cxx::abs(a)) {
-                /* .. except when `b` is a smaller negative integer */
+            if (cxx::abs(b - ib) < hyp2f1_EPS && ib <= 0 &&
+                (cxx::abs(b) < cxx::abs(a) || (b == -a && a <= hyp2f1_MAXITER))) {
+                /* .. except when `b` is a negative integer with |b| <= |a| */
                 f = b;
                 b = a;
                 a = f;
-                intflag = 1;
+                intflag = cxx::abs(a) != cxx::abs(b); /* not for the tie `b == -a` */
             }
 
             if ((cxx::abs(a) > cxx::abs(c) + 1 || intflag) && cxx::abs(c - a) > 2 && cxx::abs(a) > 2) {
