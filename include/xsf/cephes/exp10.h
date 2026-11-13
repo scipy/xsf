@@ -40,10 +40,11 @@
  * ERROR MESSAGES:
  *
  *   message         condition      value returned
- * exp10 underflow    x < -MAXL10        0.0
+ * exp10 underflow    x < MINL10         0.0
  * exp10 overflow     x > MAXL10       INFINITY
  *
- * IEEE arithmetic: MAXL10 = 308.2547155599167.
+ * IEEE arithmetic: MAXL10 = 308.2547155599167, MINL10 = -323.60724533877976.
+ * Results for MINL10 <= x < -307.65 are subnormal.
  *
  */
 
@@ -86,6 +87,11 @@ namespace cephes {
         /* static double MAXL10 = 38.230809449325611792; */
         constexpr double exp10_MAXL10 = 308.2547155599167;
 
+        /* log10(2**-1075) = -323.607245338779784..., rounded up. 2**-1075 is
+         * half the smallest subnormal, so 10**x rounds to 0 for x < MINL10 and
+         * to a nonzero subnormal for MINL10 <= x < log10(DBL_MIN). */
+        constexpr double exp10_MINL10 = -323.60724533877976;
+
     } // namespace detail
 
     XSF_HOST_DEVICE inline double exp10(double x) {
@@ -99,7 +105,7 @@ namespace cephes {
             return (cxx::numeric_limits<double>::infinity());
         }
 
-        if (x < -detail::exp10_MAXL10) { /* Would like to use MINLOG but can't */
+        if (x < detail::exp10_MINL10) {
             set_error("exp10", SF_ERROR_UNDERFLOW, NULL);
             return (0.0);
         }
@@ -123,7 +129,14 @@ namespace cephes {
         x = 1.0 + cxx::ldexp(x, 1);
 
         /* multiply by power of 2 */
-        x = cxx::ldexp(x, n);
+        if (n < -1021) {
+            /* The result may be subnormal. Scale exactly by 2**(n + 1022) first,
+             * so that the multiplication by 2**-1022 is the only rounding (ldexp
+             * may round twice for subnormal results on some platforms). */
+            x = cxx::ldexp(x, n + 1022) * cxx::numeric_limits<double>::min();
+        } else {
+            x = cxx::ldexp(x, n);
+        }
 
         return (x);
     }
