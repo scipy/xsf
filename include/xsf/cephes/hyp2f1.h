@@ -454,7 +454,16 @@ namespace cephes {
             neg_int_b = 1;
         }
 
-        if (d <= -1 && !(cxx::abs(d - id) > detail::hyp2f1_EPS && s < 0) && !(neg_int_a || neg_int_b)) {
+        /* Skip the transform when it would cancel 3 to 300 digits (p) and
+         * hys2f1 would not reroute it to hyp2f1ra (i). The plain series has
+         * positive terms there. See gh-371. */
+        t1 = cxx::abs(c - a) >= cxx::abs(c - b) ? c - a : c - b;
+        e = cxx::abs(c - a) >= cxx::abs(c - b) ? c - b : c - a;
+        i = cxx::abs(t1) <= cxx::abs(c) + 1 &&
+            !(e <= 0 && cxx::abs(e - cxx::round(e)) < detail::hyp2f1_EPS && cxx::abs(e) < cxx::abs(t1));
+        p = d * cxx::log10(s);
+        if (d <= -1 && !(cxx::abs(d - id) > detail::hyp2f1_EPS && s < 0) && !(neg_int_a || neg_int_b) &&
+            !(i && a > 0 && b > 0 && c > 0 && x > 0 && x <= 0.9 && p > 3.0 && p < 300.0)) {
             return cxx::pow(s, d) * hyp2f1(c - a, c - b, c, x);
         }
         if (d <= 0 && x == 1 && !(neg_int_a || neg_int_b))
