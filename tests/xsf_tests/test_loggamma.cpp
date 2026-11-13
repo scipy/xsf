@@ -29,3 +29,13 @@ TEST_CASE("loggamma, gammaln near the zeros at 1 and 2", "[loggamma][gammaln][xs
     REQUIRE(error_loggamma <= rtol);
     REQUIRE(error_gammaln <= rtol);
 }
+
+TEST_CASE("loggamma, gammaln are +0 at 1 and 2", "[loggamma][gammaln][xsf_tests]") {
+    for (double x : {1.0, 2.0}) {
+        CAPTURE(x);
+        REQUIRE(xsf::loggamma(x) == 0.0);
+        REQUIRE_FALSE(std::signbit(xsf::loggamma(x)));
+        REQUIRE(xsf::gammaln(x) == 0.0);
+        REQUIRE_FALSE(std::signbit(xsf::gammaln(x)));
+    }
+}
