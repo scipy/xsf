@@ -18,54 +18,127 @@ namespace detail {
         return binom(n + alpha, n);
     }
 
+    constexpr double jacobi_MAXITER = 10000;
+
+    // binom(a, k) for a nonnegative integer k.
+    // Unlike xsf::binom, this is also defined when a is a negative integer.
+    XSF_HOST_DEVICE inline double jacobi_binom(double a, double k) {
+        if (a < 0 && a == cxx::floor(a)) {
+            // binom(-m, k) = (-1)^k binom(m + k - 1, k)
+            double sign = (cxx::fmod(k, 2.0) == 0) ? 1.0 : -1.0;
+            return sign * binom(k - a - 1.0, k);
+        }
+        return binom(a, k);
+    }
+
+    // y^k for a nonnegative integer k, by repeated squaring.
+    template <typename T>
+    XSF_HOST_DEVICE inline T jacobi_int_pow(T y, double k) {
+        T out = 1.0;
+        while (k > 0) {
+            if (cxx::fmod(k, 2.0) != 0) {
+                out *= y;
+            }
+            y *= y;
+            k = cxx::floor(0.5 * k);
+        }
+        return out;
+    }
+
+    // For a nonnegative integer degree n, both the hypergeometric representation used in eval_jacobi and
+    // the recurrence used in eval_jacobi_l are singular when alpha is an integer in [-n, -1], although the
+    // polynomial itself is not. For an integer k in [1, n], Szego, Orthogonal Polynomials, (4.22.2) gives
+    //
+    //     binom(n, k) P_n^{(-k, beta)}(x) = binom(n + beta, k) ((x - 1) / 2)^k P_{n - k}^{(k, beta)}(x).
+    //
+    // If it applies, update n and alpha in place to those of the polynomial on the right-hand side.
+    // Returns the factor multiplying that polynomial.
+    template <typename T>
+    XSF_HOST_DEVICE inline T jacobi_reduce_negative_integer_alpha(double &n, double &alpha, double beta, T x) {
+        if (alpha <= -1 && alpha >= -n && alpha == cxx::floor(alpha)) {
+            double k = -alpha;
+            T factor = (jacobi_binom(n + beta, k) / binom(n, k)) * jacobi_int_pow(0.5 * (x - 1.0), k);
+            n -= k;
+            alpha = k;
+            return factor;
+        }
+        return 1.0;
+    }
+
     template <typename T>
     XSF_HOST_DEVICE inline T eval_jacobi(double n, double alpha, double beta, T x) {
         double a, b, c, d;
         T g;
+        T factor = 1.0;
+        bool polynomial = n >= 0 && n == cxx::floor(n);
 
-        if (alpha == -1 && cxx::abs(beta) == 1) {
+        if (polynomial) {
+            factor = jacobi_reduce_negative_integer_alpha(n, alpha, beta, x);
             if (n == 0) {
-                return 1.0;
-            } else if (n == 1) {
-                return 0.5 * (1.0 + beta) * (x - 1.0);
-            } else if (n > 1) {
-                return ((n + beta) / (2.0 * n)) * (x - 1.0) * eval_jacobi(n - 1.0, 1.0, beta, x);
+                return factor;
             }
+            d = jacobi_binom(n + alpha, n);
+        } else {
+            d = binom(n + alpha, n);
         }
 
-        d = binom(n + alpha, n);
         a = -n;
         b = n + alpha + beta + 1.0;
         c = alpha + 1.0;
         g = 0.5 * (1.0 - x);
-        return d * hyp2f1(a, b, c, g);
+
+        if (polynomial && c <= a && c == cxx::floor(c)) {
+            // alpha is an integer less than -n, so c is a negative integer. The hypergeometric series
+            // terminates before its terms become singular, but hyp2f1 does not evaluate this case
+            // reliably (e.g. for a == c), so sum the n + 1 terms directly.
+            if (n > jacobi_MAXITER) {
+                set_error("eval_jacobi", SF_ERROR_NO_RESULT, NULL);
+                return cxx::numeric_limits<double>::quiet_NaN();
+            }
+            T term = 1.0;
+            T sum = 1.0;
+            for (double j = 0; j < n; j++) {
+                term *= ((a + j) * (b + j) / ((c + j) * (j + 1.0))) * g;
+                sum += term;
+            }
+            return factor * d * sum;
+        }
+        return factor * d * hyp2f1(a, b, c, g);
     }
 
     template <typename Int>
     XSF_HOST_DEVICE inline double eval_jacobi_l(Int n, double alpha, double beta, double x) {
         Int kk;
-        double p, d;
+        double p, d, denom;
         double k, t;
 
         if (n < 0) {
             return eval_jacobi(n, alpha, beta, x);
-        } else if (n == 0) {
-            return 1.0;
+        }
+
+        double m = n;
+        double factor = jacobi_reduce_negative_integer_alpha(m, alpha, beta, x);
+        n = static_cast<Int>(m);
+
+        if (n == 0) {
+            return factor;
         } else if (n == 1) {
-            return 0.5 * (2.0 * (alpha + 1.0) + (alpha + beta + 2.0) * (x - 1.0));
-        } else if (alpha == -1 && cxx::abs(beta) == 1) {
-            return ((n + beta) / (2.0 * n)) * (x - 1.0) * eval_jacobi(n - 1.0, 1.0, beta, x);
+            return factor * 0.5 * (2.0 * (alpha + 1.0) + (alpha + beta + 2.0) * (x - 1.0));
         } else {
             d = (alpha + beta + 2.0) * (x - 1.0) / (2.0 * (alpha + 1.0));
             p = d + 1.0;
             for (kk = 0; kk < n - 1; kk++) {
                 k = kk + 1.0;
                 t = 2.0 * k + alpha + beta;
-                d = ((t * (t + 1.0) * (t + 2.0)) * (x - 1.0) * p + 2.0 * k * (k + beta) * (t + 2.0) * d) /
-                    (2.0 * (k + alpha + 1.0) * (k + alpha + beta + 1.0) * t);
+                denom = 2.0 * (k + alpha + 1.0) * (k + alpha + beta + 1.0) * t;
+                if (denom == 0) {
+                    // The recurrence is singular for some negative integer values of alpha + beta.
+                    return factor * eval_jacobi(m, alpha, beta, x);
+                }
+                d = ((t * (t + 1.0) * (t + 2.0)) * (x - 1.0) * p + 2.0 * k * (k + beta) * (t + 2.0) * d) / denom;
                 p = d + p;
             }
-            return binom(n + alpha, n) * p;
+            return factor * jacobi_binom(m + alpha, m) * p;
         }
     }
 
