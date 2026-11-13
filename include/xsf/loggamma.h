@@ -75,7 +75,8 @@ namespace detail {
         return loggamma_stirling(z) - cxx::log(shiftprod) - signflips * 2 * M_PI * cxx::complex<double>(0, 1);
     }
 
-    XSF_HOST_DEVICE inline cxx::complex<double> loggamma_taylor(cxx::complex<double> z) {
+    template <typename T>
+    XSF_HOST_DEVICE T loggamma_taylor(T z) {
         /* Taylor series for log-Gamma around z = 1.
          *
          * It is
@@ -106,10 +107,10 @@ XSF_HOST_DEVICE inline double loggamma(double x) {
     // lgam loses relative accuracy near its zeros at 1 and 2
     if (cxx::abs(x - 1.0) < detail::loggamma_TAYLOR_RADIUS) {
         // `+ 0.0` keeps +0 at x = 1
-        return detail::loggamma_taylor(x).real() + 0.0;
+        return detail::loggamma_taylor(x) + 0.0;
     }
     if (2.0 - detail::loggamma_TAYLOR_RADIUS < x && x < 2.0) {
-        return cxx::log(x - 1.0) + detail::loggamma_taylor(x - 1.0).real();
+        return cxx::log(x - 1.0) + detail::loggamma_taylor(x - 1.0);
     }
     return cephes::lgam(x);
 }
