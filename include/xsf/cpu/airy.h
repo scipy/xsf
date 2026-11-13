@@ -530,10 +530,10 @@ void airye(T z, T &ai, T &aip, T &bi, T &bip) {
 
 template <typename T>
 void airy(T x, T &ai, T &aip, T &bi, T &bip) {
-    /* For small arguments, use Cephes as it's slightly faster.
-     * For large arguments, use AMOS as it's more accurate.
+    /* For x <= 10, use Cephes as it's slightly faster.
+     * For x > 10, use AMOS as it's more accurate.
      */
-    if (x < -10 || x > 10) {
+    if (x > 10) {
         std::complex<T> zai, zaip, zbi, zbip;
         airy(std::complex(x), zai, zaip, zbi, zbip);
         ai = std::real(zai);
