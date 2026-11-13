@@ -67,6 +67,36 @@ TEST_CASE("kl_div", "[kl_div][xsf_tests]") {
     }
 }
 
+TEST_CASE("kl_div gh-362", "[kl_div][xsf_tests]") {
+    // Regression test for gh-362: x / y under- or overflowed, and x log(x / y) - x + y cancelled near x = y.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    cases = [(1.1265139586533382e-184, 1.5216984521947904e258), (1e300, 1e-300), (1 + 1e-12, 1.0), (1.0, 1 + 1e-12)]
+    for x, y in cases:
+        x, y = mpmath.mpf(x), mpmath.mpf(y)
+        print(f"kl_div({float(x)!r}, {float(y)!r}) = {float(x * mpmath.log(x / y) - x + y)!r}")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double>;
+    auto [x, y, desired] = GENERATE(
+        test_case{1.1265139586533382e-184, 1.5216984521947904e258, 1.5216984521947904e258},
+        test_case{1e300, 1e-300, 1.3805510557964276e303}, test_case{1 + 1e-12, 1.0, 5.000889045338311e-25},
+        test_case{1.0, 1 + 1e-12, 5.000889045336643e-25}
+    );
+
+    const double out = xsf::kl_div(x, y);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 2e-15;
+    CAPTURE(x, y, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
+
 TEST_CASE("rel_entr", "[rel_entr][xsf_tests]") {
     // Mirrors https://github.com/scipy/scipy/blob/v1.18.0rc1/scipy/special/tests/test_basic.py#L4601
     const std::vector<double> values = {0, 0.5, 1.0};
