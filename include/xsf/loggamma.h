@@ -103,6 +103,14 @@ XSF_HOST_DEVICE inline double loggamma(double x) {
     if (x < 0.0) {
         return cxx::numeric_limits<double>::quiet_NaN();
     }
+    // lgam loses relative accuracy near its zeros at 1 and 2
+    if (cxx::abs(x - 1.0) < detail::loggamma_TAYLOR_RADIUS) {
+        // `+ 0.0` keeps +0 at x = 1
+        return detail::loggamma_taylor(x).real() + 0.0;
+    }
+    if (2.0 - detail::loggamma_TAYLOR_RADIUS < x && x < 2.0) {
+        return cxx::log(x - 1.0) + detail::loggamma_taylor(x - 1.0).real();
+    }
     return cephes::lgam(x);
 }
 

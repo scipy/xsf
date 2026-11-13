@@ -36,7 +36,7 @@ XSF_HOST_DEVICE inline float gammainccinv(float a, float p) {
     return gammainccinv(static_cast<double>(a), static_cast<double>(p));
 }
 
-XSF_HOST_DEVICE inline double gammaln(double x) { return cephes::lgam(x); }
+XSF_HOST_DEVICE inline double gammaln(double x) { return x < 0.0 ? cephes::lgam(x) : loggamma(x); }
 
 XSF_HOST_DEVICE inline float gammaln(float x) { return gammaln(static_cast<double>(x)); }
 
