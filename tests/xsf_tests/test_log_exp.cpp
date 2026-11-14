@@ -90,3 +90,57 @@ TEST_CASE("logdiffexp float accuracy", "[logdiffexp][xsf_tests]") {
     CAPTURE(a, b, result, desired, error);
     REQUIRE(error <= 4 * std::numeric_limits<float>::epsilon());
 }
+
+TEST_CASE("logdiffexp branch boundaries", "[logdiffexp][xsf_tests]") {
+    SET_FP_FORMAT()
+
+    // references rounded from 500-digit mpmath evaluations of exact inputs
+    using test_case = std::tuple<double, double, double>;
+    auto [a, b, desired] = GENERATE(
+        // neighboring inputs around the Taylor-series boundary at a = 0.5
+        test_case{0x1.fffffffffffffp-2, -0x1.bb235fcf0fcccp-2, -0x1.cbd13a873a7e2p-54},
+        test_case{0x1.0000000000000p-1, -0x1.bb235fcf0fcccp-2, -0x1.2df50d2ad0a2ep-57},
+        test_case{0x1.0000000000001p-1, -0x1.bb235fcf0fcccp-2, 0x1.9333480f335f9p-53},
+
+        // inputs around the positive fallback threshold for a = 1
+        test_case{1.0, 0x1.137280c3c0cbfp-4, 0x1.0000000000001p-1},
+        test_case{1.0, 0x1.137280c3c0ccfp-4, 0x1.0000000000000p-1},
+        test_case{1.0, 0x1.137280c3c0cdfp-4, 0x1.ffffffffffffdp-2},
+
+        // inputs around the negative fallback threshold for a = 1
+        test_case{1.0, 0x1.7eba9e8033f95p-1, -0x1.ffffffffffffcp-2},
+        test_case{1.0, 0x1.7eba9e8033f96p-1, -0x1.0000000000001p-1},
+        test_case{1.0, 0x1.7eba9e8033f97p-1, -0x1.0000000000005p-1},
+
+        // inputs around the positive fallback threshold for a < 1
+        test_case{0.25, -0x1.e42b9ea8ca691p+0, 0x1.0000000000001p-3},
+        test_case{0.25, -0x1.e42b9ea8ca690p+0, 0x1.fffffffffffffp-4},
+        test_case{0.25, -0x1.e42b9ea8ca68fp+0, 0x1.ffffffffffffdp-4},
+
+        // inputs around the negative fallback threshold for a < 1
+        test_case{0.25, -0x1.d330265c61456p-1, -0x1.ffffffffffffdp-4},
+        test_case{0.25, -0x1.d330265c61455p-1, -0x1.0000000000000p-3},
+        test_case{0.25, -0x1.d330265c61454p-1, -0x1.0000000000002p-3}
+    );
+
+    const double result = xsf::logdiffexp(a, b);
+    const double error = xsf::extended_relative_error(result, desired);
+    CAPTURE(a, b, result, desired, error);
+    REQUIRE(error <= 2e-15);
+}
+
+TEST_CASE("logdiffexp scaled-tail boundary", "[logdiffexp][xsf_tests]") {
+    SET_FP_FORMAT()
+
+    // neighboring inputs around b - a = -700
+    using test_case = std::tuple<double, double, double>;
+    auto [a, b, desired] = GENERATE(
+        test_case{0x1.14f2b0fb92e55p-1010, -0x1.5e00000000001p+9, -0x0.0000000000256p-1022},
+        test_case{0x1.14f2b0fb9307fp-1010, -0x1.5e00000000000p+9, -0x0.00000000000acp-1022},
+        test_case{0x1.14f2b0fb932a9p-1010, -0x1.5dfffffffffffp+9, 0x0.00000000000fep-1022}
+    );
+
+    const double result = xsf::logdiffexp(a, b);
+    CAPTURE(a, b, result, desired);
+    REQUIRE(std::abs(result - desired) <= std::numeric_limits<double>::denorm_min());
+}
