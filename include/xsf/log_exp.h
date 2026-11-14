@@ -82,4 +82,23 @@ T log1mexp(T x) {
     return std::log(-std::expm1(x));
 }
 
+/* Compute log(exp(a) - exp(b)) for a >= b. */
+template <typename T>
+T logdiffexp(T a, T b) {
+    const T inf = std::numeric_limits<T>::infinity();
+
+    if (a < b || (a == inf && b == inf)) {
+        set_error("logdiffexp", SF_ERROR_DOMAIN, NULL);
+        return std::numeric_limits<T>::quiet_NaN();
+    }
+    if (a == b) {
+        set_error("logdiffexp", SF_ERROR_SINGULAR, NULL);
+        return -inf;
+    }
+
+    // log1mexp uses expm1 near zero to avoid cancellation
+    // and log1p for negative arguments farther from zero.
+    return a + log1mexp(b - a);
+}
+
 } // namespace xsf
