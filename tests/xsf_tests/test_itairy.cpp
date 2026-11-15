@@ -39,7 +39,7 @@ TEST_CASE("itairy overflow", "[itairy][xsf_tests]") {
 
     mpmath.mp.dps = 50
 
-    for x in [104.5]:
+    for x in [104.5, -104.5]:
         x = mpmath.mpf(x)
         apt = mpmath.airyai(x, derivative=-1)
         bpt = mpmath.airybi(x, derivative=-1)
@@ -52,8 +52,10 @@ TEST_CASE("itairy overflow", "[itairy][xsf_tests]") {
     using test_case = std::tuple<double, double, double, double, double>;
     auto [x, ref_apt, ref_bpt, ref_ant, ref_bnt] = GENERATE_COPY(
         test_case{104.5, 0.3333333333333333, 3.3773949845225984e+307, 0.683625159831577, 0.0032219271426297096},
+        test_case{-104.5, -0.683625159831577, -0.0032219271426297096, -0.3333333333333333, -3.3773949845225984e+307},
         // the limits, DLMF 9.10.11, 9.10.12
-        test_case{1e205, 1.0 / 3.0, inf, 2.0 / 3.0, 0.0}, test_case{inf, 1.0 / 3.0, inf, 2.0 / 3.0, 0.0}
+        test_case{1e205, 1.0 / 3.0, inf, 2.0 / 3.0, 0.0}, test_case{-1e205, -2.0 / 3.0, 0.0, -1.0 / 3.0, -inf},
+        test_case{inf, 1.0 / 3.0, inf, 2.0 / 3.0, 0.0}, test_case{-inf, -2.0 / 3.0, 0.0, -1.0 / 3.0, -inf}
     );
     double apt, bpt, ant, bnt;
     xsf::itairy(x, apt, bpt, ant, bnt);
@@ -61,7 +63,15 @@ TEST_CASE("itairy overflow", "[itairy][xsf_tests]") {
     const double rtol = 1e-12;
     CAPTURE(x, apt, ref_apt, bpt, ref_bpt, ant, ref_ant, bnt, ref_bnt, rtol);
     REQUIRE(xsf::extended_relative_error(apt, ref_apt) <= rtol);
-    REQUIRE(xsf::extended_relative_error(bpt, ref_bpt) <= rtol);
     REQUIRE(xsf::extended_relative_error(ant, ref_ant) <= rtol);
-    REQUIRE(xsf::extended_relative_error(bnt, ref_bnt) <= rtol);
+    if (std::isinf(ref_bpt)) {
+        REQUIRE(bpt == ref_bpt);
+    } else {
+        REQUIRE(xsf::extended_relative_error(bpt, ref_bpt) <= rtol);
+    }
+    if (std::isinf(ref_bnt)) {
+        REQUIRE(bnt == ref_bnt);
+    } else {
+        REQUIRE(xsf::extended_relative_error(bnt, ref_bnt) <= rtol);
+    }
 }
