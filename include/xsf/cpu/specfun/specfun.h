@@ -1382,7 +1382,7 @@ namespace specfun {
 
         x = z.real();
         a0 = std::abs(z);
-        ca0 = std::exp(-0.25 * z * conj(z));
+        ca0 = std::exp(-0.25 * z * z);
         n0 = 0;
 
         if (n >= 0) {
@@ -1416,23 +1416,25 @@ namespace specfun {
                 cf1 = std::sqrt(2.0 * pi) / ca0 - cpb[1];
                 cpb[1] = cf1;
 
-                for (int k = 2; k < n0; ++k) {
+                for (int k = 2; k <= n0; ++k) {
                     cf = (-z * cf1 + cf0) / (k - 1.0);
                     cpb[k] = cf;
                     cf0 = cf1;
                     cf1 = cf;
                 }
             } else if (a0 <= 3.0) {
-                cpb[n0] = cpdsa(-n0, z);
+                cfa = cpdsa(-n0, z);
+                cpb[n0] = cfa;
                 n1 = n0 + 1;
-                cpb[n1] = cpdsa(-n1, z);
+                cfb = cpdsa(-n1, z);
+                cpb[n1] = cfb;
 
                 nm1 = n0 - 1;
                 for (int k = nm1; k >= 0; --k) {
-                    cf = z * cpb[n0] + (k + 1.0) * cpb[n1];
+                    cf = z * cfa + (k + 1.0) * cfb;
                     cpb[k] = cf;
-                    cpb[n1] = cpb[n0];
-                    cpb[n0] = cf;
+                    cfb = cfa;
+                    cfa = cf;
                 }
             } else {
                 int m = 100 + abs(n);
@@ -1465,7 +1467,7 @@ namespace specfun {
                 cpd[k] = -0.5 * z * cpb[k] + static_cast<double>(k) * cpb[k - 1];
             }
         } else {
-            for (int k = 1; k < n0; ++k) {
+            for (int k = 1; k <= n0; ++k) {
                 cpd[k] = 0.5 * z * cpb[k] - cpb[k - 1];
             }
         }
