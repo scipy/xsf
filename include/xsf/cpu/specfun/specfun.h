@@ -2089,9 +2089,9 @@ namespace specfun {
         //                 their derivatives
         // ===========================================================
 
-        int i, it, j, nr;
+        int i, it, nr;
         double x, h, w, y, w0;
-        std::complex<double> z, zf, zd, zfd, zgd, zp, zq, zw;
+        std::complex<double> z, zf, zd, zq;
 
         x = 0.0;
         y = 0.0;
@@ -2124,24 +2124,13 @@ namespace specfun {
             do {
                 it += 1;
                 cy01(kf, z, &zf, &zd);
-                zp = 1.0;
-                for (i = 1; i < nr; i++) {
-                    zp *= (z - zo[i - 1]);
-                }
-                zfd = zf / zp;
+                // Newton step for g = zf / prod(z - zo[i]): g / g' = zf / (zd - zq * zf), where
+                // zq = sum(1 / (z - zo[i])) is the logarithmic derivative of the product (no overflow)
                 zq = 0.0;
                 for (i = 1; i < nr; i++) {
-                    zw = 1.0;
-                    for (j = 1; j < nr; j++) {
-                        if (j == i) {
-                            continue;
-                        }
-                        zw *= (z - zo[j - 1]);
-                    }
-                    zq += zw;
+                    zq += 1.0 / (z - zo[i - 1]);
                 }
-                zgd = (zd - zq * zfd) / zp;
-                z -= zfd / zgd;
+                z -= zf / (zd - zq * zf);
                 w0 = w;
                 w = std::abs(z);
             } while ((it <= 50) && (fabs((w - w0) / w) > 1.0e-12));
