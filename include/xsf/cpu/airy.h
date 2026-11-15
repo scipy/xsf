@@ -94,11 +94,11 @@ namespace detail {
             } else {
                 xe = x * std::sqrt(x) / 1.5;
                 xp6 = 1.0 / std::sqrt(6.0 * pi * xe);
-                if (xp6 == 0.0) { // 6 pi xe overflows: the limits as x -> inf, DLMF 9.10.11, 9.10.12
-                    apt = q0;
-                    bpt = std::numeric_limits<T>::infinity();
-                    ant = q1;
-                    bnt = 0.0;
+                if (xp6 == 0.0) {                             // 6 pi xe overflows: the limits as x -> inf
+                    apt = q0;                                 // DLMF 9.10.11
+                    bpt = std::numeric_limits<T>::infinity(); // Bi grows, DLMF 9.7.7
+                    ant = q1;                                 // DLMF 9.10.11
+                    bnt = 0.0;                                // DLMF 9.10.12
                     return;
                 }
                 su1 = 1.0;
