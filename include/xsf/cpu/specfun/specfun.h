@@ -3253,6 +3253,8 @@ namespace specfun {
             nm = (int)(27.8 + 0.0327 * nt);
             mm = (int)(0.01088 * nt) + 10;
         }
+        // Also search every order n <= xm, since the zeros of the others are > xm (DLMF 10.21.3)
+        nm = std::max(nm, (int)xm + 1);
 
         L0 = 0;
         /* 45 LOOP */
@@ -3269,7 +3271,7 @@ namespace specfun {
                         bjndd(x, i, &bdfj[0], &bdfj[101], &bdfj[202]);
                         x0 = x;
                         x -= bdfj[100 + i] / bdfj[201 + i];
-                        if (x1 > xm) {
+                        if (x > xm) {
                             goto L20;
                         }
                     } while (fabs(x - x0) > 1e-10);
