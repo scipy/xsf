@@ -2124,7 +2124,8 @@ namespace specfun {
             do {
                 it += 1;
                 cy01(kf, z, &zf, &zd);
-                // Newton step for zf / prod(z - zo[i]), via its logarithmic derivative to avoid overflow
+                // Newton step for g = zf / prod(z - zo[i]): g / g' = zf / (zd - zq * zf), where
+                // zq = sum(1 / (z - zo[i])) is the logarithmic derivative of the product (no overflow)
                 zq = 0.0;
                 for (i = 1; i < nr; i++) {
                     zq += 1.0 / (z - zo[i - 1]);
