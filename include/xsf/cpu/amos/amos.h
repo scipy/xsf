@@ -951,7 +951,8 @@ namespace amos {
             nn = acai(zta, fnu, kode, mr, 1, &cy[0], rl, tol, elim, alim);
             if (nn < 0) {
                 if (nn == -1) {
-                    *nz = 1;
+                    *nz = 0;
+                    *ierr = 2;
                     return 0.;
                 } else {
                     *nz = 0;
