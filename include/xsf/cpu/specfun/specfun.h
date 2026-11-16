@@ -3961,7 +3961,15 @@ namespace specfun {
         const double pi = 3.141592653589793;
         const double rp2 = 0.63661977236758;
 
-        x = fabs(x);
+        if (x < 0.0) {
+            // Lambda_v is even, so its derivative is odd
+            lamv(v, -x, vm, vl, dl);
+            for (k = 0; k <= (int)*vm; k++) {
+                dl[k] = -dl[k];
+            }
+            return;
+        }
+
         x2 = x * x;
         n = (int)v;
         v0 = v - n;
