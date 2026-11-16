@@ -53,3 +53,37 @@ TEST_CASE("specfun::lamv x > 2**31 / 0.9 gh-351", "[lamv][xsf_tests]") {
     CAPTURE(x, vl[2], desired, error, rtol);
     REQUIRE(error <= rtol);
 }
+
+// Regression test for lamv with x < 0: Lambda_v is even, so the derivative must be odd.
+
+/*
+import mpmath
+
+mpmath.mp.dps = 30
+
+v = mpmath.mpf("1.5")
+lam = lambda x: mpmath.gamma(v + 1) * (2 / x) ** v * mpmath.besselj(v, x)
+for x in [-1, -20]:
+    x = mpmath.mpf(x)
+    # Lambda_v is even in x, so Lambda_v' is odd
+    print(f"lamv: {float(x)!r}, {float(lam(-x))!r}, {float(-mpmath.diff(lam, -x))!r}")
+*/
+
+TEST_CASE("specfun::lamv x < 0", "[lamv][xsf_tests]") {
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double>;
+    auto [x, vl1, dl1] = GENERATE(
+        test_case{-1.0, 0.9035060368192703, 0.1861051560341216},
+        test_case{-20.0, -0.0027182609945775797, -0.007254828529643844}
+    );
+
+    double vm = 0.0, vl[2] = {0.0, 0.0}, dl[2] = {0.0, 0.0};
+    xsf::specfun::lamv(1.5, x, &vm, vl, dl);
+
+    const double rtol = 1e-13;
+    const double vl_error = xsf::extended_relative_error(vl[1], vl1);
+    const double dl_error = xsf::extended_relative_error(dl[1], dl1);
+    CAPTURE(x, vl[1], vl1, vl_error, dl[1], dl1, dl_error, rtol);
+    REQUIRE(vl_error <= rtol);
+    REQUIRE(dl_error <= rtol);
+}
