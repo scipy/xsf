@@ -169,3 +169,25 @@ TEST_CASE("amos uni1, uni2 and unik early returns", "[amos][xsf_tests]") {
         REQUIRE(phi == complex{1.0, 0.0});
     }
 }
+
+TEST_CASE("amos besi loss of significance for Re z < 0", "[amos][xsf_tests]") {
+    // abs(z) > 32768 must keep ierr == 3 on the Re z < 0 path, as in ZBESI. Reference values (kode = 2):
+    //   import mpmath as mp
+    //   mp.mp.dps = 40
+    //   z = mp.mpc(-95381.943943023245, 4346.9032242895491)
+    //   v = mp.exp(-abs(z.real)) * mp.besseli(0, z)
+    //   print(repr(float(v.real)), repr(float(v.imag)))
+    using std::complex;
+
+    const complex<double> z{-95381.943943023245, 4346.9032242895491};
+    const complex<double> ref{0.0006042135459882409, 0.0011409675073574123};
+
+    complex<double> cy;
+    int ierr = 0;
+    xsf::amos::besi(z, 0.0, 2, 1, &cy, &ierr);
+
+    REQUIRE(ierr == 3);
+    const auto rel_error = xsf::extended_relative_error(cy, ref);
+    CAPTURE(cy, ref, rel_error);
+    REQUIRE(rel_error <= 5e-14);
+}

@@ -1768,7 +1768,6 @@ namespace amos {
             cy[i - 1] = atol * (zn * csgn);
             csgn = -csgn;
         }
-        *ierr = 0;
         return nz;
     }
 
