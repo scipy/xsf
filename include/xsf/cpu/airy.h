@@ -333,7 +333,7 @@ inline void airyzo(int nt, int kf, double *xa, double *xb, double *xc, double *x
     //          XC(m) --- Ai(a') or Bi(b')
     //          XD(m) --- Ai'(a) or Bi'(b)
     //                    ( m --- Serial number of zeros )
-    // Routine called: AIRYB for computing Airy functions and
+    // Routine called: CEPHES::AIRY for computing Airy functions and
     //                 their derivatives
     // =======================================================
 
@@ -364,7 +364,7 @@ inline void airyzo(int nt, int kf, double *xa, double *xb, double *xc, double *x
 
         while (1) {
             x = rt0;
-            airyb(x, ai, bi, ad, bd);
+            cephes::airy(x, &ai, &ad, &bi, &bd);
 
             if (kf == 1) {
                 rt = rt0 - ai / ad;
@@ -382,7 +382,7 @@ inline void airyzo(int nt, int kf, double *xa, double *xb, double *xc, double *x
 
         xa[i - 1] = rt;
         if (err > 1.0e-14) {
-            airyb(rt, ai, bi, ad, bd);
+            cephes::airy(rt, &ai, &ad, &bi, &bd);
         }
 
         if (kf == 1) {
@@ -420,7 +420,7 @@ inline void airyzo(int nt, int kf, double *xa, double *xb, double *xc, double *x
 
         while (1) {
             x = rt0;
-            airyb(x, ai, bi, ad, bd);
+            cephes::airy(x, &ai, &ad, &bi, &bd);
 
             if (kf == 1) {
                 rt = rt0 - ad / (ai * x);
@@ -438,7 +438,7 @@ inline void airyzo(int nt, int kf, double *xa, double *xb, double *xc, double *x
         xb[i - 1] = rt;
 
         if (err > 1.0e-14) {
-            airyb(rt, ai, bi, ad, bd);
+            cephes::airy(rt, &ai, &ad, &bi, &bd);
         }
 
         if (kf == 1) {
