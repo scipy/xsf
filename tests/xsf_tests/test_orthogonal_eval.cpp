@@ -1205,3 +1205,23 @@ TEST_CASE("eval_gegenbauer large degree prefactor", "[eval_gegenbauer][xsf_tests
     CAPTURE(out, desired, rtol);
     REQUIRE(xsf::extended_relative_error(out, desired) <= rtol);
 }
+
+TEST_CASE("eval_jacobi integer n with non-integer alpha", "[eval_jacobi][xsf_tests]") {
+    // Regression test: binom(n + alpha, n) rounds n + alpha, giving a relative error of ~1e-12.
+    // import mpmath as mp
+    // mp.mp.dps = 50
+    // for n, alpha, beta, x in [(200, 0.3, 0.6, -0.7), (1000, 0.3, 0.6, 0.4), (1000, 0.3, 0.6, 0.9),
+    //                           (10**6, 2, 0.6, 1)]:
+    //     print(n, alpha, beta, x, repr(float(mp.jacobi(n, alpha, beta, x))))
+    SET_FP_FORMAT()
+    using test_case = std::tuple<int, double, double, double, double>;
+    auto [n, alpha, beta, x, desired] = GENERATE(
+        test_case{200, 0.3, 0.6, -0.7, 0.06222340863216819}, test_case{1000, 0.3, 0.6, 0.4, -0.03484986259815013},
+        test_case{1000, 0.3, 0.6, 0.9, -0.03532583568258384}, test_case{1000000, 2.0, 0.6, 1.0, 500001500001.0}
+    );
+
+    const double out = xsf::eval_jacobi(n, alpha, beta, x);
+    const double rtol = 5e-13;
+    CAPTURE(n, alpha, beta, x, out, desired, rtol);
+    REQUIRE(xsf::extended_relative_error(out, desired) <= rtol);
+}
