@@ -70,6 +70,7 @@
 
 #pragma once
 
+#include "../../cephes/zetac.h"
 #include "../../config.h"
 #include <memory>
 
@@ -229,8 +230,8 @@ namespace specfun {
         // Output:  BN(n)  --- Bn
         // ======================================
 
-        int k, m;
-        double r1, r2, s;
+        int m;
+        double r1;
         const double tpi = 6.283185307179586;
 
         bn[0] = 1.0;
@@ -239,15 +240,8 @@ namespace specfun {
         r1 = pow(2.0 / tpi, 2);
         for (m = 4; m < (n + 1); m += 2) {
             r1 = -r1 * (m - 1) * m / (tpi * tpi);
-            r2 = 1.0;
-            for (k = 2; k < 10001; k++) {
-                s = pow(1.0 / k, m);
-                r2 += s;
-                if (s < 1e-15) {
-                    break;
-                }
-            }
-            bn[m] = r1 * r2;
+            // DLMF 25.6.2
+            bn[m] = r1 * cephes::riemann_zeta(m);
         }
         return;
     }
