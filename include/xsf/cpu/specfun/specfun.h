@@ -3868,15 +3868,6 @@ namespace specfun {
         double bk, r, uk, bs, f, f0, f1, bg, r0, x2;
 
         *nm = n;
-        if (fabs(x) < 1e-100) {
-            for (k = 0; k <= n; k++) {
-                bl[k] = 0.0;
-                dl[k] = 0.0;
-            }
-            bl[0] = 1.0;
-            dl[1] = 0.5;
-            return;
-        }
         if (x <= 12.0) {
             x2 = x * x;
             for (k = 0; k <= n; k++) {
