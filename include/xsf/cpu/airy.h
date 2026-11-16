@@ -5,20 +5,6 @@
 #include "../error.h"
 #include "amos.h"
 
-inline int cephes_airy(float xf, float *aif, float *aipf, float *bif, float *bipf) {
-    double ai;
-    double aip;
-    double bi;
-    double bip;
-    int res = xsf::cephes::airy(xf, &ai, &aip, &bi, &bip);
-
-    *aif = ai;
-    *aipf = aip;
-    *bif = bi;
-    *bipf = bip;
-    return res;
-}
-
 namespace xsf {
 namespace detail {
 
