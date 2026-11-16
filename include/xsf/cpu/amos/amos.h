@@ -4958,6 +4958,7 @@ namespace amos {
             for (i = 0; i < n; i++) {
                 y[i] = 0.0;
             }
+            return;
         }
     L30:
         nn = (nd > 2 ? 2 : nd);
@@ -5159,6 +5160,7 @@ namespace amos {
                 *nz = -1;
                 return;
             }
+            *nz = n;
             for (i = 0; i < n; i++) {
                 y[i] = 0.0;
             }
@@ -5356,6 +5358,7 @@ namespace amos {
                 *zeta1 = ac;
                 *zeta2 = fnu;
                 *phi = 1.0;
+                return;
             }
             t = zr * crfn;
             s = 1.0 + t * t;
