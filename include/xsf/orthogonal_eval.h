@@ -67,7 +67,10 @@ namespace detail {
                     (2.0 * (k + alpha + 1.0) * (k + alpha + beta + 1.0) * t);
                 p = d + p;
             }
-            return (alpha > -1 ? c : binom(n + alpha, n)) * p;
+            // keep binom when n + alpha rounds to n + m for an integer 0 <= m < 20: it then multiplies at most
+            // m terms, while the product accumulates n roundings
+            const double m = (n + alpha) - n;
+            return (alpha > -1 && !(m == cxx::floor(m) && m >= 0 && m < 20) ? c : binom(n + alpha, n)) * p;
         }
     }
 
