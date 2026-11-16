@@ -355,3 +355,34 @@ TEST_CASE("hyp0f1 gh-1609 large v", "[hyp0f1][xsf_tests]") {
     CAPTURE(v, result, expected, error);
     REQUIRE(error <= 1e-12);
 }
+
+TEST_CASE("hyp0f1 complex large b", "[hyp0f1][xsf_tests]") {
+    // Regression test: complex hyp0f1 returned inf or NaN for b = 200 (Gamma(b) overflows) and
+    // b = 1000 (the Bessel function also underflows). The tolerance allows for the rounding of
+    // gammaln(1000) ~ 5.9e3 in the exponent.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for b, z in [(200, 3 + 4j), (200, -30 + 40j), (1000, 3 + 4j)]:
+        r = mpmath.hyp0f1(b, z)
+        print(repr(float(r.real)), repr(float(r.imag)))
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, std::complex<double>, std::complex<double>>;
+    auto [b, z, expected] = GENERATE(
+        test_case{200.0, {3.0, 4.0}, {1.0149105206375437, 0.020299401967772655}},
+        test_case{200.0, {-30.0, 40.0}, {0.8435624987801352, 0.17112974553409274}},
+        test_case{1000.0, {3.0, 4.0}, {1.0029964840330383, 0.004011995309430498}}
+    );
+
+    const std::complex<double> result = xsf::hyp0f1(b, z);
+    const double error = xsf::extended_relative_error(result, expected);
+    const double rtol = 5e-12;
+    CAPTURE(b, z, result, expected, error, rtol);
+    REQUIRE(error <= rtol);
+}

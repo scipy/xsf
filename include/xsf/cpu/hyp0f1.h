@@ -10,26 +10,28 @@
 namespace xsf {
 namespace detail {
 
-    inline double hyp0f1_asy(double v, double z) {
+    template <typename T>
+    T hyp0f1_asy(double v, T z) {
         /* Asymptotic expansion for I_{v-1}(2*sqrt(z)) * Gamma(v)
-         * for real z > 0 and v -> +infinity.
+         * for v -> +infinity, with z not near (-inf, -(v-1)**2/4].
          *
          * Based off DLMF 10.41
          */
-        double arg = std::sqrt(z);
-        double v1 = std::abs(v - 1.0);
-        double x = 2.0 * arg / v1;
-        double p1 = std::sqrt(1.0 + x * x);
-        double eta = p1 + std::log(x) - std::log1p(p1);
-        double pp, p2, p4, p6, u1, u2, u3, u_corr_i, u_corr_k;
-        double result, gs;
+        T arg = std::sqrt(z);
+        T v1 = std::abs(v - 1.0);
+        T x = 2.0 * arg / v1;
+        T p1 = std::sqrt(1.0 + x * x);
+        T eta = p1 + std::log(x) - xsf::log1p(p1);
+        T pp, p2, p4, p6, u1, u2, u3, u_corr_i, u_corr_k;
+        T result;
+        double gs;
 
-        double arg_exp_i = -0.5 * std::log(p1);
+        T arg_exp_i = -0.5 * std::log(p1);
         arg_exp_i -= 0.5 * std::log(2.0 * M_PI * v1);
         arg_exp_i += xsf::gammaln(v);
         gs = xsf::gammasgn(v);
 
-        double arg_exp_k = arg_exp_i;
+        T arg_exp_k = arg_exp_i;
         arg_exp_i += v1 * eta;
         arg_exp_k -= v1 * eta;
 
@@ -129,7 +131,18 @@ inline std::complex<double> hyp0f1(double v, std::complex<double> z) {
         r = xsf::cyl_bessel_j(v - 1.0, s);
     }
 
-    return r * xsf::gamma(v) * std::pow(arg, 1.0 - v);
+    t1 = r * xsf::gamma(v) * std::pow(arg, 1.0 - v);
+    if (t1 != 0.0 && std::isfinite(t1.real()) && std::isfinite(t1.imag())) {
+        return t1;
+    }
+
+    // The Bessel function over- or underflows.
+    if (v > 1.0 && (r == 0.0 || !std::isfinite(std::abs(r)))) {
+        return detail::hyp0f1_asy(v, z);
+    }
+
+    // Gamma(v) or the power over- or underflows.
+    return std::exp(xsf::xlogy(std::complex<double>(1.0 - v), arg) + xsf::gammaln(v) + std::log(r)) * xsf::gammasgn(v);
 }
 
 inline std::complex<float> hyp0f1(float v, std::complex<float> z) {
