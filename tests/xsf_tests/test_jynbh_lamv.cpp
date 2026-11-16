@@ -87,3 +87,24 @@ TEST_CASE("specfun::lamv x < 0", "[lamv][xsf_tests]") {
     REQUIRE(vl_error <= rtol);
     REQUIRE(dl_error <= rtol);
 }
+
+TEST_CASE("specfun::lamv parity", "[lamv][xsf_tests]") {
+    // Lambda_v(-x) = Lambda_v(x) and Lambda_v'(-x) = -Lambda_v'(x)
+    SET_FP_FORMAT()
+    const double v = GENERATE(0.5, 1.5, 4.2, 10.7);
+    const double x = GENERATE(0.5, 7.0, 20.0, 50.0);
+
+    // lamv writes up to index max((int)v, 1)
+    double vm_pos = 0.0, vm_neg = 0.0;
+    double vl_pos[16] = {}, dl_pos[16] = {}, vl_neg[16] = {}, dl_neg[16] = {};
+    xsf::specfun::lamv(v, x, &vm_pos, vl_pos, dl_pos);
+    xsf::specfun::lamv(v, -x, &vm_neg, vl_neg, dl_neg);
+
+    CAPTURE(v, x, vm_pos, vm_neg);
+    REQUIRE(vm_neg == vm_pos);
+    for (int k = 0; k <= static_cast<int>(vm_pos); k++) {
+        CAPTURE(k, vl_pos[k], vl_neg[k], dl_pos[k], dl_neg[k]);
+        REQUIRE(vl_neg[k] == vl_pos[k]);
+        REQUIRE(dl_neg[k] == -dl_pos[k]);
+    }
+}
