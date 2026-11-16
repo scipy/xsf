@@ -31,7 +31,7 @@ TEST_CASE("lqn x < -1", "[lqn][real][xsf_tests]") {
     );
 
     std::vector<double> q(n + 1), d(n + 1);
-    xsf::lqn(x, xsf::cxx::mdspan(q.data(), n + 1), xsf::cxx::mdspan(d.data(), n + 1));
+    xsf::lqn(x, xsf::cxx::mdspan(q.data(), q.size()), xsf::cxx::mdspan(d.data(), d.size()));
 
     const double error_q = xsf::extended_relative_error(q[n], desired_q);
     const double error_d = xsf::extended_relative_error(d[n], desired_d);
