@@ -18,7 +18,7 @@ namespace detail {
          * Based off DLMF 10.41
          */
         T arg = std::sqrt(z);
-        double v1 = std::abs(v - 1.0);
+        T v1 = std::abs(v - 1.0);
         T x = 2.0 * arg / v1;
         T p1 = std::sqrt(1.0 + x * x);
         T eta = p1 + std::log(x) - xsf::log1p(p1);
@@ -45,11 +45,11 @@ namespace detail {
         u3 = (30375.0 - 369603.0 * p2 + 765765.0 * p4 - 425425.0 * p6) * pp * p2 / 414720.0;
         u_corr_i = 1.0 + u1 / v1 + u2 / (v1 * v1) + u3 / (v1 * v1 * v1);
 
-        result = std::exp(arg_exp_i - xsf::xlogy(T(v1), arg)) * gs * u_corr_i;
+        result = std::exp(arg_exp_i - xsf::xlogy(v1, arg)) * gs * u_corr_i;
         if (v - 1.0 < 0.0) {
             // DLMF 10.27.2: I_{-v} = I_{v} + (2/pi) sin(pi*v) K_v.
             u_corr_k = 1.0 - u1 / v1 + u2 / (v1 * v1) - u3 / (v1 * v1 * v1);
-            result += std::exp(arg_exp_k + xsf::xlogy(T(v1), arg)) * gs * 2.0 * xsf::sinpi(v1) * u_corr_k;
+            result += std::exp(arg_exp_k + xsf::xlogy(v1, arg)) * gs * 2.0 * xsf::sinpi(v1) * u_corr_k;
         }
 
         return result;
