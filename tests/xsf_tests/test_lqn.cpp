@@ -1,10 +1,7 @@
 #include "../testing_utils.h"
 
 #include <xsf/cpu/legendre.h>
-
-// backport of std::mdspan (since C++23)
-#define MDSPAN_USE_PAREN_OPERATOR 1
-#include <xsf/third_party/kokkos/mdspan.hpp>
+#include <xsf/mdspan.h>
 
 TEST_CASE("lqn x < -1", "[lqn][real][xsf_tests]") {
     // Regression test for lqn at x < -1: the forward recurrence is unstable
@@ -34,7 +31,7 @@ TEST_CASE("lqn x < -1", "[lqn][real][xsf_tests]") {
     );
 
     std::vector<double> q(n + 1), d(n + 1);
-    xsf::lqn(x, std::mdspan(q.data(), n + 1), std::mdspan(d.data(), n + 1));
+    xsf::lqn(x, xsf::cxx::mdspan(q.data(), n + 1), xsf::cxx::mdspan(d.data(), n + 1));
 
     const double error_q = xsf::extended_relative_error(q[n], desired_q);
     const double error_d = xsf::extended_relative_error(d[n], desired_d);
