@@ -386,3 +386,42 @@ TEST_CASE("hyp0f1 complex large b", "[hyp0f1][xsf_tests]") {
     CAPTURE(b, z, result, expected, error, rtol);
     REQUIRE(error <= rtol);
 }
+
+TEST_CASE("hyp0f1 complex Debye fallback", "[hyp0f1][xsf_tests]") {
+    // Regression test for the complex Debye fallback added in gh-557: it was used on the cut
+    // (-inf, -(b-1)^2/4], where the Bessel function rounds to 0 at a zero, and its exponent lost
+    // ~eps b ln(b) for large b.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for b, z in [(1.4008008549704178, -2.25), (1e12, 2e12 + 1e11j), (1e14, 2e14 + 1e13j)]:
+        r = mpmath.hyp0f1(b, z)
+        print(repr(float(r.real)), repr(float(r.imag)))
+    */
+    SET_FP_FORMAT()
+    SECTION("cut") {
+        // 5.471961797816518e-17, a zero up to the rounding of b
+        const std::complex<double> result = xsf::hyp0f1(1.4008008549704178, std::complex<double>{-2.25, 0.0});
+        CAPTURE(result);
+        REQUIRE(std::abs(result) <= 1e-15);
+    }
+
+    SECTION("large b") {
+        using test_case = std::tuple<double, std::complex<double>, std::complex<double>>;
+        auto [b, z, expected] = GENERATE(
+            test_case{1e12, {2e12, 1e11}, {7.352141595894477, 0.7376747161483882}},
+            test_case{1e14, {2e14, 1e13}, {7.352141595908852, 0.7376747161513009}}
+        );
+
+        const std::complex<double> result = xsf::hyp0f1(b, z);
+        const double error = xsf::extended_relative_error(result, expected);
+        const double rtol = 1e-14;
+        CAPTURE(b, z, result, expected, error, rtol);
+        REQUIRE(error <= rtol);
+    }
+}

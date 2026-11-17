@@ -45,6 +45,16 @@ namespace detail {
         u3 = (30375.0 - 369603.0 * p2 + 765765.0 * p4 - 425425.0 * p6) * pp * p2 / 414720.0;
         u_corr_i = 1.0 + u1 / v1 + u2 / (v1 * v1) + u3 / (v1 * v1 * v1);
 
+        if (v - 1.0 > 0.0) {
+            // With h = (p1 - 1) / 2 and Stirling's series (DLMF 5.11.1) for gammaln(v), the ~v1 ln(v1) terms of
+            // the exponent cancel: v1 eta - v1 ln(arg) = v1 (1 - ln(v1) + 2 h - log1p(h)).
+            double vm1 = v - 1.0;
+            double corr = vm1 < 13.0 ? xsf::gammaln(v) - ((vm1 + 0.5) * std::log(vm1) - vm1 + cephes::detail::LS2PI)
+                                     : cephes::polevl(1.0 / (vm1 * vm1), cephes::detail::gamma_A, 4) / vm1;
+            T h = x * x / (2.0 * (1.0 + p1));
+            return std::exp(v1 * (2.0 * h - xsf::log1p(h)) + corr - 0.5 * std::log(p1)) * u_corr_i;
+        }
+
         result = std::exp(arg_exp_i - xsf::xlogy(v1, arg)) * gs * u_corr_i;
         if (v - 1.0 < 0.0) {
             // DLMF 10.27.2: I_{-v} = I_{v} + (2/pi) sin(pi*v) K_v.
@@ -136,9 +146,15 @@ inline std::complex<double> hyp0f1(double v, std::complex<double> z) {
         return t1;
     }
 
-    // The Bessel function over- or underflows.
+    // The Bessel function over- or underflows. A 0 can also be a zero on the cut (-inf, -(v-1)^2/4], where
+    // |e^(v1 eta)| = 1 (DLMF 10.41.3), unlike for an underflow.
     if (v > 1.0 && (r == 0.0 || !std::isfinite(std::abs(r)))) {
-        return detail::hyp0f1_asy(v, z);
+        std::complex<double> x = 2.0 * std::sqrt(z) / (v - 1.0);
+        std::complex<double> p1 = std::sqrt(1.0 + x * x);
+        if (r != 0.0 ||
+            std::abs((v - 1.0) * (p1 + std::log(x) - xsf::log1p(p1)).real()) >= cephes::detail::MAXLOG / 2) {
+            return detail::hyp0f1_asy(v, z);
+        }
     }
 
     // Gamma(v) or the power over- or underflows.
