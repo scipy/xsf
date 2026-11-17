@@ -112,6 +112,7 @@
 #include "igam_asymp_coeff.h"
 #include "lanczos.h"
 #include "ndtr.h"
+#include "rgamma.h"
 #include "unity.h"
 
 namespace xsf {
@@ -141,6 +142,14 @@ namespace cephes {
             double ax, fac, res, num;
 
             if (cxx::abs(a - x) > 0.4 * cxx::abs(a)) {
+                if (a < MACHEP) {
+                    // exp(-lgam(a)) loses precision here; 1/Gamma(a) ~ a (DLMF 5.7.1)
+                    res = cxx::exp(a * cxx::log(x) - x) * xsf::cephes::rgamma(a);
+                    if (res == 0) {
+                        set_error("igam", SF_ERROR_UNDERFLOW, NULL);
+                    }
+                    return res;
+                }
                 ax = a * cxx::log(x) - x - xsf::cephes::lgam(a);
                 // ax < log(sqrt(a)) - a / 16 here (DLMF 5.6.1), but a * log(x) can overflow for huge a
                 if (ax < -MAXLOG || a >= cxx::numeric_limits<double>::max() / MAXLOG) {
@@ -266,6 +275,9 @@ namespace cephes {
 
             logx = cxx::log(x);
             term = -xsf::cephes::expm1(a * logx - xsf::cephes::lgam1p(a));
+            if (a < MACHEP) {
+                return term - cxx::exp(a * logx) * xsf::cephes::rgamma(a) * sum;
+            }
             return term - cxx::exp(a * logx - xsf::cephes::lgam(a)) * sum;
         }
 
@@ -366,7 +378,8 @@ namespace cephes {
             return detail::asymptotic_series(a, x, detail::IGAM);
         }
 
-        if ((x > 1.0) && (x > a)) {
+        // For tiny a, igamc(a, x) ~ a E1(x) < 746 a (DLMF 8.4.4), so this does not cancel
+        if ((x > 1.0 && x > a) || a < detail::MACHEP) {
             return (1.0 - igamc(a, x));
         }
 
