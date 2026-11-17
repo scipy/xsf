@@ -143,7 +143,10 @@ namespace cephes {
 
             if (cxx::abs(a - x) > 0.4 * cxx::abs(a)) {
                 if (a < MACHEP) {
-                    // exp(-lgam(a)) loses precision here; 1/Gamma(a) ~ a (DLMF 5.7.1)
+                    // Here lgam(a) ~ -log(a) is up to ~745, so exp(ax) amplifies the rounding
+                    // error of ax to up to ~745 ulp, and for a below about 1e-308 the
+                    // ax < -MAXLOG check below wrongly returns 0. Using
+                    // 1/Gamma(a) = a + euler_gamma a^2 + ... (DLMF 5.7.1) avoids both.
                     res = cxx::exp(a * cxx::log(x) - x) * xsf::cephes::rgamma(a);
                     if (res == 0) {
                         set_error("igam", SF_ERROR_UNDERFLOW, NULL);
