@@ -248,8 +248,8 @@ namespace cephes {
             }
         } else {
             dk = fk + 1;
-            p = incbet(dn, dk, 0.5);
-            if (p > 0.5) {
+            // 1 - y is exact for y >= 0.5
+            if (y >= 0.5) {
                 p = incbi(dk, dn, 1.0 - y);
             } else {
                 p = 1.0 - incbi(dn, dk, y);

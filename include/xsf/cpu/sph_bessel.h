@@ -34,6 +34,20 @@ Translated to C++ by SciPy developers in 2024.
 
 namespace xsf {
 
+namespace detail {
+
+    // Leading term x^n / (2n + 1)!! of j_n(x) and i_n(x) as x -> 0, https://dlmf.nist.gov/10.52.E1
+    template <typename T>
+    T sph_bessel_tiny(long n, T x) {
+        T res = 1;
+        for (long k = 1; k <= n && res != static_cast<T>(0); ++k) {
+            res *= x / (2 * static_cast<remove_complex_t<T>>(k) + 1);
+        }
+        return res;
+    }
+
+} // namespace detail
+
 template <typename T>
 T sph_bessel_j(long n, T x) {
     if (std::isnan(x)) {
@@ -66,6 +80,13 @@ T sph_bessel_j(long n, T x) {
         return 0;
     }
 
+    // Avoid underflow of J_{n + 1/2}(x) as in sph_bessel_i; the first correction term,
+    // -x^2 / (4n + 6) (https://dlmf.nist.gov/10.53.E1), is below eps / 4 here.
+    // x < 1 keeps the product from overflowing for huge n.
+    if (x < 1 && x * x < (static_cast<T>(n) + static_cast<T>(1.5)) * std::numeric_limits<T>::epsilon()) {
+        return detail::sph_bessel_tiny(n, x);
+    }
+
     if ((n > 0) && (n >= x)) {
         return std::sqrt(M_PI_2 / x) * cyl_bessel_j(n + 1 / static_cast<T>(2), x);
     }
@@ -81,7 +102,7 @@ T sph_bessel_j(long n, T x) {
     }
 
     T sn;
-    for (int i = 0; i < n - 1; ++i) {
+    for (long long i = 0; i < n - 1; ++i) {
         sn = (2 * i + 3) * s1 / x - s0;
         s0 = s1;
         s1 = sn;
@@ -145,23 +166,23 @@ T sph_bessel_j_jac(long n, T z) {
         return -sph_bessel_j(1, z);
     }
 
-    if (z == static_cast<T>(0)) {
-        // DLMF 10.51.2 doesn't work, so use 10.51.1 to get the exact value
-        if (n == 1) {
-            return static_cast<T>(1) / static_cast<T>(3);
-        }
-
-        return 0;
+    // Leading term n z^(n - 1) / (2n + 1)!! of the derivative of https://dlmf.nist.gov/10.52.E1,
+    // as DLMF 10.51.2 fails when j_n(z) underflows; the first correction term is below eps / 2 here.
+    // |z| < 1 keeps the product from overflowing for huge n, as in sph_bessel_j.
+    using R = remove_complex_t<T>;
+    if (std::abs(z) < 1 &&
+        std::norm(z) < (static_cast<R>(n) + static_cast<R>(0.5)) * std::numeric_limits<R>::epsilon()) {
+        return static_cast<R>(n) / (2 * static_cast<R>(n) + 1) * detail::sph_bessel_tiny(n - 1, z);
     }
 
     // DLMF 10.51.2
-    return sph_bessel_j(n - 1, z) - static_cast<T>(n + 1) * sph_bessel_j(n, z) / z;
+    return sph_bessel_j(n - 1, z) - static_cast<T>(n + 1UL) * sph_bessel_j(n, z) / z;
 }
 
 template <typename T>
 T sph_bessel_y(long n, T x) {
     T s0, s1, sn;
-    int idx;
+    long long idx;
 
     if (std::isnan(x)) {
         return x;
@@ -191,7 +212,8 @@ T sph_bessel_y(long n, T x) {
     }
 
     s1 = (s0 - sin(x)) / x;
-    if (n == 1) {
+    // If s1 overflows (tiny x), so does y_n(x); if s0 does too, the recurrence would give inf - inf.
+    if (n == 1 || std::isinf(s1)) {
         return s1;
     }
 
@@ -235,10 +257,8 @@ std::complex<T> sph_bessel_y(long n, std::complex<T> z) {
         return std::complex<T>(1, 1) * std::numeric_limits<T>::infinity();
     }
 
-    // y_n(-z) = (-1)^(n+1) * y_n(z); see sph_bessel_j note above.
-    if (std::imag(z) == 0 && std::real(z) < 0) {
-        std::complex<T> r = sph_bessel_y(n, std::complex<T>{-std::real(z), static_cast<T>(0)});
-        return (n % 2 == 0) ? -r : r;
+    if (std::imag(z) == 0) {
+        return {sph_bessel_y(n, std::real(z)), 0};
     }
 
     return std::sqrt(static_cast<T>(M_PI_2) / z) * cyl_bessel_y(n + 1 / static_cast<T>(2), z);
@@ -246,11 +266,26 @@ std::complex<T> sph_bessel_y(long n, std::complex<T> z) {
 
 template <typename T>
 T sph_bessel_y_jac(long n, T x) {
+    // Real z: avoid nan + nan j where y_n(z) overflows; complex 0 still gives nan.
+    if constexpr (!cxx::is_floating_point_v<T>) {
+        if (std::imag(x) == 0 && std::real(x) != 0) {
+            return {sph_bessel_y_jac(n, std::real(x)), 0};
+        }
+    }
+
     if (n == 0) {
         return -sph_bessel_y(1, x);
     }
 
-    return sph_bessel_y(n - 1, x) - static_cast<T>(n + 1) * sph_bessel_y(n, x) / x;
+    // DLMF 10.51.2; for real x, y_{n-1}(x) is negligible if the second term overflows, so avoid inf - inf.
+    T res = -static_cast<T>(n + 1UL) * sph_bessel_y(n, x) / x;
+    if constexpr (cxx::is_floating_point_v<T>) {
+        if (std::isinf(res)) {
+            return res;
+        }
+    }
+
+    return sph_bessel_y(n - 1, x) + res;
 }
 
 template <typename T>
@@ -291,11 +326,7 @@ T sph_bessel_i(long n, T x) {
     // term of the power series i_n(x) = x^n / (2n + 1)!! * (1 + O(x^2)).
     // The cutoff bounds the omitted first correction by roughly eps / 4.
     if (x * x < (static_cast<T>(n) + static_cast<T>(1.5)) * std::numeric_limits<T>::epsilon()) {
-        T res = 1;
-        for (long k = 1; k <= n && res != 0; ++k) {
-            res *= x / (2 * static_cast<T>(k) + 1);
-        }
-        return res;
+        return detail::sph_bessel_tiny(n, x);
     }
 
     return sqrt(static_cast<T>(M_PI_2) / x) * cyl_bessel_i(n + 1 / static_cast<T>(2), x);
@@ -349,15 +380,16 @@ T sph_bessel_i_jac(long n, T z) {
         return sph_bessel_i(1, z);
     }
 
-    if (z == static_cast<T>(0)) {
-        if (n == 1) {
-            return 1. / 3.;
-        } else {
-            return 0;
-        }
+    // Leading term n z^(n - 1) / (2n + 1)!! of the derivative of https://dlmf.nist.gov/10.52.E1,
+    // as DLMF 10.51.5 fails when i_n(z) underflows; the first correction term is below eps / 2 here.
+    // |z| < 1 keeps the product from overflowing for huge n, as in sph_bessel_j.
+    using R = remove_complex_t<T>;
+    if (std::abs(z) < 1 &&
+        std::norm(z) < (static_cast<R>(n) + static_cast<R>(0.5)) * std::numeric_limits<R>::epsilon()) {
+        return static_cast<R>(n) / (2 * static_cast<R>(n) + 1) * detail::sph_bessel_tiny(n - 1, z);
     }
 
-    return sph_bessel_i(n - 1, z) - static_cast<T>(n + 1) * sph_bessel_i(n, z) / z;
+    return sph_bessel_i(n - 1, z) - static_cast<T>(n + 1UL) * sph_bessel_i(n, z) / z;
 }
 
 template <typename T>
@@ -432,11 +464,18 @@ std::complex<T> sph_bessel_k(long n, std::complex<T> z) {
 
 template <typename T>
 T sph_bessel_k_jac(long n, T x) {
+    // Real z: avoid nan + nan j where k_n(z) overflows; complex 0 still gives nan.
+    if constexpr (!cxx::is_floating_point_v<T>) {
+        if (std::imag(x) == 0 && std::real(x) != 0) {
+            return {sph_bessel_k_jac(n, std::real(x)), 0};
+        }
+    }
+
     if (n == 0) {
         return -sph_bessel_k(1, x);
     }
 
-    return -sph_bessel_k(n - 1, x) - static_cast<T>(n + 1) * sph_bessel_k(n, x) / x;
+    return -sph_bessel_k(n - 1, x) - static_cast<T>(n + 1UL) * sph_bessel_k(n, x) / x;
 }
 
 } // namespace xsf

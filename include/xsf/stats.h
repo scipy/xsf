@@ -134,11 +134,13 @@ XSF_HOST_DEVICE inline float log_ndtr(float x) { return log_ndtr(static_cast<dou
  * the principal branch of the log function log( exp(-z^2) w(i z) )
  */
 XSF_HOST_DEVICE inline cxx::complex<double> log_ndtr(cxx::complex<double> z) {
-    if (z.real() > 6) {
-        // Underflow. Close to the real axis, expand the log in log(1 - ndtr(-z)).
+    if (z.real() > 0) {
+        // Where ndtr(-z) is small, the sum below cancels; use log(1 + w) with w = -ndtr(-z) instead.
         cxx::complex<double> w = -0.5 * erfc(z * M_SQRT1_2);
-        if (cxx::abs(w) < 1e-8) {
-            return w;
+        if (cxx::abs(w) < 0.5) {
+            // log|1 + w| = log1p(2 Re(w) + |w|^2) / 2
+            double t = w.real() * (2 + w.real()) + w.imag() * w.imag();
+            return {0.5 * cxx::log1p(t), cxx::atan2(w.imag(), 1 + w.real())};
         }
     }
 
@@ -160,7 +162,7 @@ XSF_HOST_DEVICE inline cxx::complex<double> log_ndtr(cxx::complex<double> z) {
 
     cxx::complex<double> val1 = cxx::complex<double>(mRe_z2, im);
 
-    cxx::complex<double> val2 = cxx::log(xsf::wofz(complex<double>(-y, x)));
+    cxx::complex<double> val2 = cxx::log(xsf::wofz(cxx::complex<double>(-y, x)));
     cxx::complex<double> result = val1 + val2 - M_LN2;
 
     /* Again, select the principal branch: log(z) = log|z| + i arg(z), thus

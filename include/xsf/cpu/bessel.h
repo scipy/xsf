@@ -31,6 +31,10 @@ namespace detail {
         T c = cospi(v);
         T s = sinpi(v);
 
+        if (c == 0) {
+            // half-integer v: c * j is 0, but NaN if j overflowed
+            return -s * y;
+        }
         return c * j - s * y;
     }
 
@@ -401,6 +405,21 @@ namespace detail {
         return;
     }
 
+    /* AMOS rejects orders above INT_MAX / 2. For real z = x > 0, check if K_v(x)
+     * (times exp(x) if scaled) overflows, with the lower bound
+     * K_v(x) >= sqrt(pi / (2 v)) (2 v / (e x))^v exp(-x^2 / (4 (v - 1))),
+     * from Jensen's inequality on https://dlmf.nist.gov/10.32.E10 and
+     * https://dlmf.nist.gov/5.6.E1.
+     */
+    inline bool cyl_bessel_k_overflows(double v, std::complex<double> z, bool scaled) {
+        double x = std::real(z);
+        if (v <= std::numeric_limits<int>::max() * 0.5 || std::imag(z) != 0 || !(x > 0)) {
+            return false;
+        }
+        double logk = v * (std::log(v / x * 2) - 1) - x / (v - 1) * x / 4 - std::log(v / M_PI_2) / 2;
+        return logk + (scaled ? x : 0) > std::log(std::numeric_limits<double>::max());
+    }
+
 } // namespace detail
 
 /* Integrals of bessel functions */
@@ -626,6 +645,9 @@ inline std::complex<double> cyl_bessel_je(double v, std::complex<double> z) {
         if (!detail::reflect_jy(&cy_j, v)) {
             nz = amos::besy(z, v, kode, n, &cy_y, &ierr);
             set_error_and_nan("jve(yve):", ierr_to_sferr(nz, ierr), cy_y);
+            if (ierr == 2 && z.real() >= 0 && z.imag() == 0) {
+                cy_y = -INFINITY;
+            }
             cy_j = detail::rotate_jy(cy_j, cy_y, v);
         }
     }
@@ -679,7 +701,7 @@ inline std::complex<double> cyl_bessel_ye(double v, std::complex<double> z) {
     if (ierr == 2) {
         if (z.real() >= 0 && z.imag() == 0) {
             /* overflow */
-            cy_y.real(INFINITY);
+            cy_y.real(-INFINITY);
             cy_y.imag(0);
         }
     }
@@ -736,7 +758,7 @@ inline std::complex<double> cyl_bessel_ie(double v, std::complex<double> z) {
             nz = amos::besk(z, v, kode, n, &cy_k, &ierr);
             set_error_and_nan("ive(kv):", ierr_to_sferr(nz, ierr), cy_k);
             /* adjust scaling to match zbesi */
-            cy_k = detail::rotate(cy_k, -z.imag() / M_PI);
+            cy_k *= std::complex<double>(std::cos(z.imag()), -std::sin(z.imag()));
             if (z.real() > 0) {
                 cy_k.real(cy_k.real() * exp(-2 * z.real()));
                 cy_k.imag(cy_k.imag() * exp(-2 * z.real()));
@@ -773,6 +795,11 @@ inline std::complex<double> cyl_bessel_ke(double v, std::complex<double> z) {
     if (v < 0) {
         /* K_v == K_{-v} even for non-integer v */
         v = -v;
+    }
+
+    if (detail::cyl_bessel_k_overflows(v, z, true)) {
+        set_error("kve", SF_ERROR_OVERFLOW, nullptr);
+        return INFINITY;
     }
 
     int n = 1;
@@ -911,6 +938,9 @@ inline std::complex<double> cyl_bessel_j(double v, std::complex<double> z) {
         if (!detail::reflect_jy(&cy_j, v)) {
             nz = amos::besy(z, v, kode, n, &cy_y, &ierr);
             set_error_and_nan("jv(yv):", ierr_to_sferr(nz, ierr), cy_y);
+            if (ierr == 2 && z.real() >= 0 && z.imag() == 0) {
+                cy_y = -INFINITY;
+            }
             cy_j = detail::rotate_jy(cy_j, cy_y, v);
         }
     }
@@ -928,10 +958,13 @@ T cyl_bessel_j(T v, T x) {
         return std::numeric_limits<T>::quiet_NaN();
     }
 
-    std::complex<T> res = cyl_bessel_j(v, std::complex(x));
-    if (std::real(res) != std::real(res)) {
-        /* AMOS returned NaN, possibly due to overflow */
-        return cephes::jv(v, x);
+    std::complex<double> res = cyl_bessel_j(static_cast<double>(v), std::complex<double>(x));
+    if (!std::isfinite(std::real(res))) {
+        /* AMOS returned NaN or inf, possibly due to overflow */
+        T r = cephes::jv(v, x);
+        if (!std::isnan(r)) {
+            return r;
+        }
     }
 
     return std::real(res);
@@ -1086,6 +1119,11 @@ inline std::complex<double> cyl_bessel_k(double v, std::complex<double> z) {
         v = -v;
     }
 
+    if (detail::cyl_bessel_k_overflows(v, z, false)) {
+        set_error("kv", SF_ERROR_OVERFLOW, nullptr);
+        return INFINITY;
+    }
+
     int n = 1;
     int kode = 1;
     int ierr;
@@ -1207,7 +1245,41 @@ inline std::complex<float> cyl_hankel_2(float v, std::complex<float> z) {
     return static_cast<std::complex<float>>(cyl_hankel_2(static_cast<double>(v), static_cast<std::complex<double>>(z)));
 }
 
-inline double besselpoly(double a, double lambda, double nu) { return cephes::besselpoly(a, lambda, nu); }
+namespace detail {
+
+    // int_0^1 t^lambda J_nu(2a t) dt as the Neumann series DLMF 10.22.10 with x = 2a
+    inline double besselpoly_neumann(double a, double lambda, double nu) {
+        double b = 2.0 * a, c0 = (lambda + nu + 1.0) / 2.0, c1 = c0 - lambda;
+        double f = 1.0, g = 0.0, sum = 0.0; // J_mu(b), J_(mu+1)(b) up to a common factor
+        for (int k = (specfun::msta2(b, static_cast<int>(std::ceil(nu + 1.0)), 15) - nu) / 2; k >= 0; k--) {
+            double mu = nu + 1.0 + 2.0 * k;
+            for (int j = 2; j >= 1; j--) { // J_(mu+j-1) = 2(mu+j)/b J_(mu+j) - J_(mu+j+1)
+                double t = f;
+                f = 2.0 * (mu + j) / b * f - g;
+                g = t;
+            }
+            sum = mu * f + (c1 + k) / (c0 + k + 1.0) * sum;
+        }
+        return sum * (cephes::jv(nu + 1.0, b) * f + cephes::jv(nu + 2.0, b) * g) / (f * f + g * g) / b / c0;
+    }
+
+} // namespace detail
+
+inline double besselpoly(double a, double lambda, double nu) {
+    double n = (nu < 0 && std::floor(nu) == nu) ? -nu : nu; // J_(-n) = (-1)^n J_n
+    // Use the Neumann series where the power series cancels badly, and where the Neumann series is accurate:
+    // - a >= 1.5 and n < a^2 - 1: otherwise the power series terms grow to at most ~e^3, or decrease from the start.
+    // - n > -1: all orders n + 2k + 1 are positive, where Miller's backward recurrence gives J.
+    // - lambda >= -1: then c0 > -1/2 and |c1 + k| <= c0 + k + 1, so the coefficients don't grow.
+    // - a < 500: the recurrence isn't rescaled, and f * f overflows from about a = 800.
+    // For lambda + n + 1 <= 0 the integral diverges, but the Neumann series (like the power series) still
+    // converges, since J_(n+2k+1)(2a) decays rapidly in k, to the same analytic continuation in lambda.
+    if (a >= 1.5 && a < 500.0 && n > -1.0 && n < a * a - 1.0 && lambda >= -1.0 && std::isfinite(lambda)) {
+        double s = detail::besselpoly_neumann(a, lambda, n);
+        return (n != nu && std::fmod(n, 2.0) == 1.0) ? -s : s;
+    }
+    return cephes::besselpoly(a, lambda, nu);
+}
 
 inline float besselpoly(float a, float lambda, float nu) {
     return besselpoly(static_cast<double>(a), static_cast<double>(lambda), static_cast<double>(nu));

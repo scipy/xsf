@@ -192,3 +192,33 @@ TEST_CASE("pseudo_huber small r", "[pseudo_huber][xsf_tests]") {
     CAPTURE(out, desired, rel_error, rtol);
     REQUIRE(rel_error <= rtol);
 }
+
+TEST_CASE("pseudo_huber gh-362", "[pseudo_huber][xsf_tests]") {
+    // Regression test for gh-362: delta^2 or (r / delta)^2 under- or overflowed.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 1000
+
+    cases = [(5.632860139466413e-99, 1.1586206105024607e211), (1e200, 1.0), (1e-170, 1e-100)]
+    for delta, r in cases:
+        delta, r = mpmath.mpf(delta), mpmath.mpf(r)
+        out = delta**2 * (mpmath.sqrt(1 + (r / delta) ** 2) - 1)
+        print(f"pseudo_huber({float(delta)!r}, {float(r)!r}) = {float(out)!r}")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double>;
+    auto [delta, r, desired] = GENERATE(
+        test_case{5.632860139466413e-99, 1.1586206105024607e211, 6.526347853663551e112}, test_case{1e200, 1.0, 0.5},
+        test_case{1e-170, 1e-100, 1e-270}
+    );
+
+    const double out = xsf::pseudo_huber(delta, r);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 5e-16;
+    CAPTURE(delta, r, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}

@@ -135,14 +135,15 @@ namespace cephes {
         double f, g, cc, ss, c, s, t, u;
         double x, x2;
 
-        if (cxx::isinf(xxa)) {
+        x = cxx::abs(xxa);
+        x2 = x * x;
+        // also for finite x >= 2^512, where x * x overflows
+        if (cxx::isinf(x2)) {
             cc = 0.5;
             ss = 0.5;
             goto done;
         }
 
-        x = cxx::abs(xxa);
-        x2 = x * x;
         if (x2 < 2.5625) {
             t = x2 * x2;
             ss = x * x2 * polevl(t, detail::fresnl_sn, 5) / p1evl(t, detail::fresnl_sd, 6);

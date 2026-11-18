@@ -726,7 +726,7 @@ void lqn(T x, OutputVec1 qn, OutputVec2 qd) {
         return;
     }
 
-    if (x <= 1.021) {
+    if (fabs(x) <= 1.021) {
         x2 = fabs((1.0 + x) / (1.0 - x));
         q0 = 0.5 * log(x2);
         q1 = x * q0 - 1.0;

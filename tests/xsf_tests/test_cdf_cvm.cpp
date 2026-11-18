@@ -129,3 +129,10 @@ TEST_CASE("cdf_cvm default parameter (n=-1)", "[cdf_cvm][xsf_tests]") {
         REQUIRE(res_default == res_explicit);
     }
 }
+
+// Regression test for gh-340: these used to never return.
+TEST_CASE("cdf_cvm gh-340", "[cdf_cvm][xsf_tests]") {
+    REQUIRE(std::isnan(xsf::cpu::cdf_cvm(std::numeric_limits<double>::quiet_NaN(), 10)));
+    REQUIRE(xsf::cpu::cdf_cvm_inf(1e308) == 1.0);
+    REQUIRE(xsf::cpu::cdf_cvm_inf(std::numeric_limits<double>::infinity()) == 1.0);
+}

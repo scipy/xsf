@@ -31,7 +31,7 @@
  *     Riemann zeta(x) = zetac(x) + 1.
  *
  * Extension of the function definition for x < 1 is implemented.
- * Zero is returned for x > log2(INFINITY).
+ * For x >= 127, 2**-x is returned.
  *
  * ACCURACY:
  *
@@ -146,8 +146,8 @@ namespace cephes {
             }
 
             if (x >= detail::zetac_MAXL2) {
-                /* because first term is 2**-x */
-                return 0.0;
+                /* the terms after 2**-x are negligible */
+                return cxx::pow(2.0, -x);
             }
 
             /* Tabulated values for integer argument */

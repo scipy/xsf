@@ -75,14 +75,19 @@ namespace cephes {
     XSF_HOST_DEVICE inline double rgamma(double x) {
         double w, y, z;
 
-        if (x == 0) {
-            // This case is separate from below to get correct sign for zero.
+        if (cxx::abs(x) < cxx::numeric_limits<double>::min()) {
+            // 1/Gamma(x) = x + gamma x^2 + ... rounds to x (DLMF 5.7.1), with the sign of zero.
             return x;
         }
 
         if (x < 0 && x == cxx::floor(x)) {
             // Gamma poles.
             return 0.0;
+        }
+
+        if (-178.0 < x && x < -170.0) {
+            // Gamma(x) underflows here, so use 1/Gamma(x) = x/Gamma(x + 1).
+            return x * rgamma(x + 1.0);
         }
 
         if (cxx::abs(x) > 4.0) {

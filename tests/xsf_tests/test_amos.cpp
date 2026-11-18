@@ -133,3 +133,61 @@ TEST_CASE("amos buni buffer overflow gh-93", "[amos][xsf_tests]") {
     CHECK(cy[0] == sentinel);
     CHECK(cy[n + 1] == sentinel);
 }
+
+TEST_CASE("amos uni1, uni2 and unik early returns", "[amos][xsf_tests]") {
+    // Found in an audit of amos.h against the AMOS Fortran (zuni1.f, zuni2.f, zunik.f).
+    // Reference values are from the Fortran routines.
+    using std::complex;
+
+    // constants as set up in zbesi
+    const double tol = 2.220446049250313e-16;
+    const double r1m5 = 0.30102999566398120;
+    const double elim = 2.303 * (1021 * r1m5 - 3.0);
+    const double alim = elim + std::fmax(-2.303 * r1m5 * 52, -41.45);
+    const double fnul = 10.0 + 6.0 * (std::fmin(r1m5 * 52, 18.0) - 3.0);
+
+    const int n = 2;
+    complex<double> y[n];
+    int nz = -1;
+    int nlast = -1;
+
+    SECTION("uni2 sets nz on all-underflow") {
+        xsf::amos::uni2(complex{1.0, 30.0}, 1000.0, 1, n, y, &nz, &nlast, fnul, tol, elim, alim);
+        REQUIRE(nz == n);
+    }
+
+    SECTION("uni1 returns on all-underflow") {
+        xsf::amos::uni1(complex{30.0, 1.0}, 1000.0, 1, n, y, &nz, &nlast, fnul, tol, elim, alim);
+        REQUIRE(nz == n);
+    }
+
+    SECTION("unik returns early for tiny z") {
+        int init = 0;
+        complex<double> phi, zeta1, zeta2, total, cwrk[16];
+        xsf::amos::unik(complex{1e-305, 1e-305}, 1000.0, 1, 0, tol, &init, &phi, &zeta1, &zeta2, &total, cwrk);
+        CHECK(init == 0);
+        REQUIRE(phi == complex{1.0, 0.0});
+    }
+}
+
+TEST_CASE("amos besi loss of significance for Re z < 0", "[amos][xsf_tests]") {
+    // abs(z) > 32768 must keep ierr == 3 on the Re z < 0 path, as in ZBESI. Reference values (kode = 2):
+    //   import mpmath as mp
+    //   mp.mp.dps = 40
+    //   z = mp.mpc(-95381.943943023245, 4346.9032242895491)
+    //   v = mp.exp(-abs(z.real)) * mp.besseli(0, z)
+    //   print(repr(float(v.real)), repr(float(v.imag)))
+    using std::complex;
+
+    const complex<double> z{-95381.943943023245, 4346.9032242895491};
+    const complex<double> ref{0.0006042135459882409, 0.0011409675073574123};
+
+    complex<double> cy;
+    int ierr = 0;
+    xsf::amos::besi(z, 0.0, 2, 1, &cy, &ierr);
+
+    REQUIRE(ierr == 3);
+    const auto rel_error = xsf::extended_relative_error(cy, ref);
+    CAPTURE(cy, ref, rel_error);
+    REQUIRE(rel_error <= 5e-14);
+}

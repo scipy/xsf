@@ -123,7 +123,9 @@ namespace cephes {
          * https://dlmf.nist.gov/25.11#E43
          */
         if (q > 1e8) {
-            return (1 / (x - 1) + 1 / (2 * q)) * cxx::pow(q, 1 - x);
+            // 1 / (2 q) + x / (12 q^2), without overflowing q^2, or inf * 0 for x = inf
+            double xq = cxx::isinf(x) ? 0.0 : x / q;
+            return (1 / (x - 1) + (6 + xq) / q / 12) * cxx::pow(q, 1 - x);
         }
 
         /* Euler-Maclaurin summation formula */
@@ -142,7 +144,8 @@ namespace cephes {
             a += 1.0;
             b = cxx::pow(a, -x);
             s += b;
-            if (cxx::abs(b / s) < detail::MACHEP)
+            // stop only if the corrections below, b * a / (x - 1) and -b / 2, are negligible
+            if (cxx::abs(b / s) < detail::MACHEP && cxx::abs(b * a / ((x - 1) * s)) < detail::MACHEP)
                 goto done;
         }
 

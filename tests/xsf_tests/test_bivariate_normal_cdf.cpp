@@ -197,4 +197,13 @@ TEST_CASE("bivariate normal CDF test", "[bivariate_normal_cdf][xsf_tests]") {
         CAPTURE(dh, dk, r, output, expected, rtol, rel_error);
         REQUIRE(rel_error <= rtol);
     }
+
+    SECTION("bivariate normal CDF NaN and huge inputs") {
+        // Regression test for gh-360 (part 1): NaN gave finite results, and huge |dh|, |dk| gave NaN.
+        // The limits are ndtr(38) == 1 and 0.
+        REQUIRE(std::isnan(xsf::bivariate_normal_cdf(1.0, -1.0, std::numeric_limits<double>::quiet_NaN())));
+        REQUIRE(std::isnan(xsf::bivariate_normal_cdf(std::numeric_limits<double>::quiet_NaN(), 1.0, 1.0)));
+        REQUIRE(xsf::bivariate_normal_cdf(1e70, 38.0, 0.97) == 1.0);
+        REQUIRE(xsf::bivariate_normal_cdf(-1e200, -1e200, 0.5) == 0.0);
+    }
 }

@@ -951,7 +951,8 @@ namespace amos {
             nn = acai(zta, fnu, kode, mr, 1, &cy[0], rl, tol, elim, alim);
             if (nn < 0) {
                 if (nn == -1) {
-                    *nz = 1;
+                    *nz = 0;
+                    *ierr = 2;
                     return 0.;
                 } else {
                     *nz = 0;
@@ -1767,7 +1768,6 @@ namespace amos {
             cy[i - 1] = atol * (zn * csgn);
             csgn = -csgn;
         }
-        *ierr = 0;
         return nz;
     }
 
@@ -4957,6 +4957,7 @@ namespace amos {
             for (i = 0; i < n; i++) {
                 y[i] = 0.0;
             }
+            return;
         }
     L30:
         nn = (nd > 2 ? 2 : nd);
@@ -5158,6 +5159,7 @@ namespace amos {
                 *nz = -1;
                 return;
             }
+            *nz = n;
             for (i = 0; i < n; i++) {
                 y[i] = 0.0;
             }
@@ -5355,6 +5357,7 @@ namespace amos {
                 *zeta1 = ac;
                 *zeta2 = fnu;
                 *phi = 1.0;
+                return;
             }
             t = zr * crfn;
             s = 1.0 + t * t;

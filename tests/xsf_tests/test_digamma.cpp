@@ -103,3 +103,21 @@ TEMPLATE_TEST_CASE("digamma non-finite enumeration", "[digamma][xsf_tests][nonfi
         }
     }
 }
+
+TEST_CASE("digamma Re(z) < 0 and abs(z) == 16", "[digamma][xsf_tests]") {
+    // Regression test for gh-347: this returned digamma(z + 1).
+    // Reference values from mpmath.digamma.
+    SET_FP_FORMAT()
+    using cd = std::complex<double>;
+    using test_case = std::tuple<cd, cd>;
+    auto [z, desired] = GENERATE(
+        test_case{{-1e-300, 16}, {2.7729143704671935, 1.6020463267948966}},
+        test_case{{-1e-300, -16}, {2.7729143704671935, -1.6020463267948966}}
+    );
+
+    const cd out = xsf::digamma(z);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 2e-16;
+    CAPTURE(z, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
