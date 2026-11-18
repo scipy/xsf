@@ -37,10 +37,10 @@ namespace numpy {
             xsf::set_error(func_name, SF_ERROR_SINGULAR, "floating point division by zero");
         }
         if (status & NPY_FPE_OVERFLOW) {
-            xsf::set_error(func_name, SF_ERROR_UNDERFLOW, "floating point underflow");
+            xsf::set_error(func_name, SF_ERROR_OVERFLOW, "floating point overflow");
         }
         if (status & NPY_FPE_UNDERFLOW) {
-            xsf::set_error(func_name, SF_ERROR_OVERFLOW, "floating point overflow");
+            xsf::set_error(func_name, SF_ERROR_UNDERFLOW, "floating point underflow");
         }
         if (status & NPY_FPE_INVALID) {
             xsf::set_error(func_name, SF_ERROR_DOMAIN, "floating point invalid value");

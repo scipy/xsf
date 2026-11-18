@@ -254,3 +254,23 @@ TEST_CASE("Legendre-Carlson Km1 identity", "[ellint_carlson][xsf_tests]") {
         REQUIRE(error <= 1e-7);
     }
 }
+
+TEST_CASE("Carlson RF tiny x with y * z underflowing", "[ellint_carlson][xsf_tests]") {
+    // Regression test for gh-467: elliprf was NaN or -inf if x is 0 or subnormal and y * z underflows.
+
+    /*
+    from mpmath import mp
+    mp.dps = 50
+    for x, y, z in [(0.0, 1e-300, 1e-30), (5e-324, 1e-300, 1e-300)]:
+        print(repr(float(mp.elliprf(x, y, z))))
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double, double>;
+    auto [x, y, z, expected] = GENERATE(
+        test_case{0.0, 1e-300, 1e-30, 3.1223528191531603e+17},
+        test_case{5e-324, 1e-300, 1e-300, 1.5707963267926738e+150}
+    );
+    CAPTURE(x, y, z);
+    check_close(xsf::cpu::elliprf(x, y, z), expected, 1e-15);
+    check_close(xsf::cpu::elliprf(C{x}, C{y}, C{z}), C{expected}, 1e-15);
+}

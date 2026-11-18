@@ -81,3 +81,38 @@ TEST_CASE("hyp1f1(a, b, z) large |z| with ph z < 0 after Kummer", "[hyp1f1][xsf_
     CAPTURE(a, b, z, out, desired, error, rtol);
     REQUIRE(error <= rtol);
 }
+
+TEST_CASE("hyp1f1(a, b, z) tiny a and b", "[hyp1f1][xsf_tests]") {
+    // Regression test for gh-454: the series rounded `a + j - 1.0` and `b + j - 1.0`.
+    /*
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for a, b, z in [(1e-17, 2e-17, 1 + 1j), (0.5, 1e-10, 2 + 1j), (-2.0, 1e-17, 1 + 1j)]:
+        print(complex(mpmath.hyp1f1(a, b, z)))
+    for a, b, x in [(1e-17, 2e-17, 1.0), (0.5, 1e-10, 2.0)]:
+        print(float(mpmath.hyp1f1(a, b, x)))
+    */
+    SET_FP_FORMAT()
+    using cd = std::complex<double>;
+    using test_case = std::tuple<double, double, cd, cd>;
+    auto [a, b, z, desired] = GENERATE(
+        test_case{1e-17, 2e-17, {1, 1}, {1.2343469699579426, 1.1436776435894211}},
+        test_case{0.5, 1e-10, {2, 1}, {14042459676.44257, 52867238789.94098}},
+        test_case{-2.0, 1e-17, {1, 1}, {-2e+17, -2.0}}, test_case{1e-17, 2e-17, {1, 0}, {1.8591409142295225, 0.0}},
+        test_case{0.5, 1e-10, {2, 0}, {49777855912.16767, 0.0}}
+    );
+
+    const cd out = xsf::hyp1f1(a, b, z);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 1e-14;
+    CAPTURE(a, b, z, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+    if (z.imag() == 0.0) {
+        const double out_real = xsf::hyp1f1(a, b, z.real());
+        const double error_real = xsf::extended_relative_error(out_real, desired.real());
+        CAPTURE(out_real, error_real);
+        REQUIRE(error_real <= rtol);
+    }
+}

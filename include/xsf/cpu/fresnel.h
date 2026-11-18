@@ -279,19 +279,26 @@ namespace detail {
 
                 c1 = 0.5 + (xf * sin(x2) - xg * cos(x2)) / sqrt(2.0 * pi) / xa;
                 s1 = 0.5 - (xf * cos(x2) + xg * sin(x2)) / sqrt(2.0 * pi) / xa;
+
+                // K+-(x) = (xg +- i xf) e^(-+i pi/4) / (2 sqrt(pi) x), DLMF 7.5.10, 7.12.2, 7.12.3;
+                // avoids the rounding error of the phase x^2 + pi/4 below
+                g.real((xf + xg) / (2.0 * sqrt(2.0 * pi)) / xa);
+                g.imag(pow(-1, ks) * (xf - xg) / (2.0 * sqrt(2.0 * pi)) / xa);
             }
 
             f.real(pp2 * (0.5 - c1));
             fi0 = pp2 * (0.5 - s1);
             f.imag(pow(-1, ks) * fi0);
 
-            xp = x2 + pi / 4.0;
-            cs = cos(xp);
-            ss = sin(xp);
-            xq2 = 1.0 / sqrt(pi);
+            if (xa < 5.5) {
+                xp = x2 + pi / 4.0;
+                cs = cos(xp);
+                ss = sin(xp);
+                xq2 = 1.0 / sqrt(pi);
 
-            g.real(xq2 * (f.real() * cs + fi0 * ss));
-            g.imag(pow(-1, ks) * xq2 * (fi0 * cs - f.real() * ss));
+                g.real(xq2 * (f.real() * cs + fi0 * ss));
+                g.imag(pow(-1, ks) * xq2 * (fi0 * cs - f.real() * ss));
+            }
 
             if (x < 0.0) {
                 f.real(pp2 - f.real());

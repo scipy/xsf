@@ -502,8 +502,8 @@ namespace detail {
         const T p0 = 0.59460355750136;
 
         if (a == 0.0) {
-            g1 = 3.625609908222;
-            g2 = 1.225416702465;
+            g1 = 3.6256099082219083;
+            g2 = 1.2254167024651776;
         } else {
             ug = specfun::cgama(std::complex<T>(0.25, 0.5 * a), 1);
             g1 = std::abs(ug);
@@ -580,6 +580,44 @@ namespace detail {
         return;
     }
 
+    // W(a, x) and W'(a, x) from DLMF 12.14.17 and 12.14.23 at x = 10, followed by Taylor steps of
+    // w'' = (a - x^2 / 4) w (DLMF 12.2.3) down to x, a direction in which W does not decay
+    template <typename T>
+    void pbwa_ode(T a, T x, T &wf, T &wd) {
+        const T x0 = 10.0;
+        const std::complex<T> z(0.5, a);
+        std::complex<T> t = 1.0, s = 1.0, ds = 0.0; // s1 + i s2 and its derivative
+        for (int r = 1; r <= 50 && std::abs(t) >= std::numeric_limits<T>::epsilon(); r++) {
+            t *= std::complex<T>(0.0, -1.0) * (z + T(2 * r - 2)) * (z + T(2 * r - 1)) / (2 * r * x0 * x0);
+            s += t;
+            ds -= t * (2 * r / x0);
+        }
+        // k and omega from DLMF 12.14.5 and 12.14.19
+        T e = exp(M_PI * a), k = 1.0 / (sqrt(1.0 + e * e) + e);
+        T om = 0.25 * x0 * x0 - a * log(x0) + 0.25 * M_PI + 0.5 * specfun::cgama(z, 0).imag();
+        std::complex<T> f = std::polar<T>(sqrt(2 * k / x0), om), u = s * f;
+        std::complex<T> du = u * std::complex<T>(-0.5 / x0, 0.5 * x0 - a / x0) + ds * f;
+        wf = u.real();
+        wd = du.real();
+
+        int n = static_cast<int>(ceil(2.0 * (x0 - x)));
+        T h = (x - x0) / n;
+        for (int i = 0; i < n; i++) {
+            // b[m + 2] = c_m h^m are the terms of W(xi + h), with
+            // (m + 2) (m + 1) c_(m+2) = q c_m - xi c_(m-1) / 2 - c_(m-2) / 4
+            T xi = x0 + i * h, q = a - 0.25 * xi * xi, b[34] = {0.0, 0.0, wf, h * wd};
+            wf += b[3];
+            wd = b[3];
+            for (int m = 0; m < 30; m++) {
+                T c = q * b[m + 2] - 0.5 * h * xi * b[m + 1] - 0.25 * h * h * b[m];
+                b[m + 4] = h * h * c / ((m + 2.0) * (m + 1.0));
+                wf += b[m + 4];
+                wd += (m + 2) * b[m + 4];
+            }
+            wd /= h;
+        }
+    }
+
 } // namespace detail
 
 /*
@@ -599,6 +637,8 @@ void pbwa(T a, T x, T &wf, T &wd) {
         wf = std::numeric_limits<T>::quiet_NaN();
         wd = std::numeric_limits<T>::quiet_NaN();
         set_error("pbwa", SF_ERROR_LOSS, NULL);
+    } else if (fabs(x) > 0.5) {
+        detail::pbwa_ode(a, x, wf, wd);
     } else {
         if (x < 0) {
             x = -x;

@@ -11,6 +11,7 @@
 
 #include "cephes/beta.h"
 #include "cephes/gamma.h"
+#include "cephes/trig.h"
 
 namespace xsf {
 
@@ -59,19 +60,16 @@ XSF_HOST_DEVICE inline double binom(double n, double k) {
         return cxx::exp(-cephes::lbeta(1 + n - k, 1 + k) - cxx::log(n + 1));
     }
     if (k > 1E8 * cxx::abs(n)) {
-        // avoid loss of precision
-        num = cephes::Gamma(1 + n) / cxx::abs(k) + cephes::Gamma(1 + n) * n / (2 * k * k); // + ...
-        num /= M_PI * cxx::pow(cxx::abs(k), n);
+        // avoid loss of precision (DLMF 5.11.13)
+        num = cephes::Gamma(1 + n) / cxx::abs(k) * (1 + n * (n + 1) / (2 * k)); // + ...
+        // split k^n, which can overflow when the result doesn't
+        den = cxx::pow(cxx::abs(k), n / 2);
+        num = num / (M_PI * den) / den;
         if (k > 0) {
             kx = cxx::floor(k);
-            if (static_cast<int>(kx) == kx) {
-                dk = k - kx;
-                sgn = (static_cast<int>(kx) % 2 == 0) ? 1 : -1;
-            } else {
-                dk = k;
-                sgn = 1;
-            }
-            return num * cxx::sin((dk - n) * M_PI) * sgn;
+            dk = k - kx;
+            sgn = (cxx::fmod(kx, 2.0) == 0) ? 1 : -1;
+            return num * cephes::sinpi(dk - n) * sgn;
         }
         kx = cxx::floor(k);
         if (static_cast<int>(kx) == kx) {

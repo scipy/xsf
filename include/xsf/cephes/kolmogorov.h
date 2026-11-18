@@ -182,14 +182,18 @@ namespace cephes {
                 double v = cxx::exp(logv);
                 /*
                  * Want q^((2k-1)^2)(1-q^(4k-1)) / q(1-q^3) < epsilon to break out of loop.
-                 * With KOLMOG_CUTOVER ~ 0.82, k <= 4.  Just unroll the loop, 4 iterations
+                 * With KOLMOG_CUTOVER ~ 0.82, k <= 5.  Just unroll the loop, 5 iterations
                  */
                 double vsq = v * v;
                 double v3 = cxx::pow(v, 3);
                 double vpwr;
 
+                vpwr = v3 * v3 * v3; /* v**9 */
+                P = 1 - vpwr * P;    /* P <- 1 - (1-v**(2k-1)) * P */
+                D = 4 * 4 - vpwr * (5 * 5);
+
                 vpwr = v3 * v3 * v; /* v**7 */
-                P = 1 - vpwr * P;   /* P <- 1 - (1-v**(2k-1)) * P */
+                P = 1 - vpwr * P;
                 D = 3 * 3 - vpwr * D;
 
                 vpwr = v3 * vsq;
