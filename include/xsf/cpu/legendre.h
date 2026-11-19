@@ -900,7 +900,7 @@ void lqmn(T x, OutputMat1 qm, OutputMat2 qd) {
     }
     xs = ls * (1.0 - x * x);
     xq = sqrt(xs);
-    q0 = lq0(x);
+    q0 = lq0<double>(x);
     if (fabs(x) < 1.0001) {
         qm(0, 0) = q0;
         qm(0, 1) = x * q0 - 1.0;
