@@ -29,16 +29,11 @@ TEST_CASE("students t CDF test", "[students_t_cdf][xsf_tests]") {
         // Computed via mpmath
         using test_case = std::tuple<double, double, double>;
         auto [nu, t, expected] = GENERATE(
-            test_case{1000, -3, 0.0013833545221190963},
-            test_case{1000, -10, 8.335351479300033e-23},
-            test_case{1000, 5, 0.9999996616371818},
-            test_case{100000, -10, 7.816507650103639e-24},
-            test_case{1e+10, -3, 0.0013498980349539809},
-            test_case{1e+10, -10, 7.619854967046914e-24},
-            test_case{1e+10, -30, 4.90681350979029e-198},
-            test_case{1e+10, 5, 0.9999997133484233},
-            test_case{3e+15, -3, 0.0013498980316301056},
-            test_case{3e+15, -10, 7.619853024167002e-24}
+            test_case{1000, -3, 0.0013833545221190963}, test_case{1000, -10, 8.335351479300033e-23},
+            test_case{1000, 5, 0.9999996616371818}, test_case{100000, -10, 7.816507650103639e-24},
+            test_case{1e+10, -3, 0.0013498980349539809}, test_case{1e+10, -10, 7.619854967046914e-24},
+            test_case{1e+10, -30, 4.90681350979029e-198}, test_case{1e+10, 5, 0.9999997133484233},
+            test_case{3e+15, -3, 0.0013498980316301056}, test_case{3e+15, -10, 7.619853024167002e-24}
         );
         constexpr double rtol = 1e-13;
         const double output = xsf::students_t_cdf(nu, t);
@@ -50,16 +45,11 @@ TEST_CASE("students t CDF test", "[students_t_cdf][xsf_tests]") {
         // Computed via mpmath
         using test_case = std::tuple<double, double, double>;
         auto [nu, t, expected] = GENERATE(
-            test_case{0.001, -1, 0.49793086122463165},
-            test_case{0.001, 1e+06, 0.5089008835213936},
-            test_case{0.01, -50, 0.4666461962377825},
-            test_case{0.1, 0.5, 0.5567398866770065},
-            test_case{0.1, -1e+06, 0.10484119468057496},
-            test_case{0.5, -1, 0.3011216108413221},
-            test_case{1, 0.001, 0.5003183097800805},
-            test_case{1, -50, 0.006365349100972796},
-            test_case{1, -1e+06, 3.1830988618368455e-07},
-            test_case{2, -1e+06, 4.9999999999925e-13}
+            test_case{0.001, -1, 0.49793086122463165}, test_case{0.001, 1e+06, 0.5089008835213936},
+            test_case{0.01, -50, 0.4666461962377825}, test_case{0.1, 0.5, 0.5567398866770065},
+            test_case{0.1, -1e+06, 0.10484119468057496}, test_case{0.5, -1, 0.3011216108413221},
+            test_case{1, 0.001, 0.5003183097800805}, test_case{1, -50, 0.006365349100972796},
+            test_case{1, -1e+06, 3.1830988618368455e-07}, test_case{2, -1e+06, 4.9999999999925e-13}
         );
         constexpr double rtol = 1e-13;
         const double output = xsf::students_t_cdf(nu, t);
@@ -71,16 +61,11 @@ TEST_CASE("students t CDF test", "[students_t_cdf][xsf_tests]") {
         // Computed via mpmath
         using test_case = std::tuple<double, double, double>;
         auto [nu, t, expected] = GENERATE(
-            test_case{0.1, -1e+30, 0.0004173803137173216},
-            test_case{1, -1e+30, 3.1830988618379067e-31},
-            test_case{1, -1e+100, 3.183098861837907e-101},
-            test_case{3, -1e+100, 1.1026577908435841e-300},
-            test_case{10, -1e+30, 1.2304687499999997e-296},
-            test_case{100, -5, 1.2250867067519001e-06},
-            test_case{100, -100, 2.4314972222697398e-102},
-            test_case{100, -5000, 5.04356830605456e-272},
-            test_case{1000, -5, 3.3836281823243153e-07},
-            test_case{100000, -5, 2.8713508393208365e-07}
+            test_case{0.1, -1e+30, 0.0004173803137173216}, test_case{1, -1e+30, 3.1830988618379067e-31},
+            test_case{1, -1e+100, 3.183098861837907e-101}, test_case{3, -1e+100, 1.1026577908435841e-300},
+            test_case{10, -1e+30, 1.2304687499999997e-296}, test_case{100, -5, 1.2250867067519001e-06},
+            test_case{100, -100, 2.4314972222697398e-102}, test_case{100, -5000, 5.04356830605456e-272},
+            test_case{1000, -5, 3.3836281823243153e-07}, test_case{100000, -5, 2.8713508393208365e-07}
         );
         constexpr double rtol = 1e-13;
         const double output = xsf::students_t_cdf(nu, t);
