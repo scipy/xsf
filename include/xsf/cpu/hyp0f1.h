@@ -90,7 +90,26 @@ inline double hyp0f1(double v, double z) {
     }
 
     arg = std::sqrt(-z);
-    return std::pow(arg, 1.0 - v) * xsf::gamma(v) * xsf::cyl_bessel_j(v - 1.0, 2.0 * arg);
+    double arg_pow = std::pow(arg, 1.0 - v);
+    double gamma_v = xsf::gamma(v);
+    bess_val = xsf::cyl_bessel_j(v - 1.0, 2.0 * arg);
+    double prefactor = arg_pow * gamma_v;
+    if (std::isnormal(arg_pow) && std::isnormal(gamma_v) && std::isnormal(prefactor) && std::isnormal(bess_val)) {
+        return prefactor * bess_val;
+    }
+
+    // The power, Gamma(v) or their product over- or underflows.
+    if (std::isnormal(bess_val)) {
+        arg_exp = xsf::xlogy(1.0 - v, arg) + xsf::gammaln(v) + std::log(std::abs(bess_val));
+        return std::copysign(std::exp(arg_exp), bess_val) * xsf::gammasgn(v);
+    }
+
+    // The Bessel function under- (v > 1) or overflows (v < 1) below its turning point: Debye's expansion
+    // (DLMF 10.19.3), i.e. hyp0f1_asy at z < 0.
+    if ((v > 1.0 || std::isinf(bess_val)) && 2.0 * arg < std::abs(v - 1.0)) {
+        return detail::hyp0f1_asy(v, std::complex<double>(z)).real();
+    }
+    return prefactor * bess_val;
 }
 
 inline float hyp0f1(float v, float z) { return hyp0f1(static_cast<double>(v), static_cast<double>(z)); }
