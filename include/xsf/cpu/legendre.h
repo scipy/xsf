@@ -711,6 +711,33 @@ XSF_HOST_DEVICE T lq0(T x) {
     return cxx::copysign(cxx::log1p(t) / 2, x);
 }
 
+// Q_0(z) = log(ls * (1 + z) / (1 - z)) / 2 for complex z, with ls = -1 for |z| > 1, else 1.
+// The quotient loses digits for |z| < 1/2 and |z| > 2, where Q_0(z) = atanh(w), w = z or 1 / z,
+// so use Re atanh(w) = log1p(t) / 4, Im atanh(w) = atan2(2 Im(w), 1 - |w|^2) / 2, t = 4 Re(w) / |1 - w|^2.
+// In between, only a tiny Re(w) loses digits, so use the real part formula there for -1/2 <= t <= 1.
+template <typename T>
+std::complex<T> lq0(std::complex<T> z) {
+    if (std::isnan(real(z)) || std::isnan(imag(z))) {
+        constexpr T nan = std::numeric_limits<T>::quiet_NaN();
+        return {nan, nan};
+    }
+    if (std::isinf(real(z)) || std::isinf(imag(z))) {
+        return {0, 0};
+    }
+    T a = std::abs(z);
+    std::complex<T> w = a > 2 ? static_cast<T>(1) / z : z;
+    T t = 4 * real(w) / std::norm(static_cast<T>(1) - w);
+    if (a >= 0.5 && a <= 2) {
+        T ls = a > 1 ? -1 : 1;
+        std::complex<T> q = std::log(ls * (static_cast<T>(1) + z) / (static_cast<T>(1) - z)) / static_cast<T>(2);
+        if (t >= -0.5 && t <= 1) {
+            q.real(cxx::log1p(t) / 4);
+        }
+        return q;
+    }
+    return {cxx::log1p(t) / 4, cxx::atan2(2 * imag(w), 1 - std::norm(w)) / 2};
+}
+
 // ====================================================
 // Purpose: Compute Legendre functions Qn(x) & Qn'(x)
 // Input :  x  --- Argument of Qn(x)
@@ -820,9 +847,8 @@ void lqn(std::complex<T> z, OutputVec1 cqn, OutputVec2 cqd) {
         }
         return;
     }
-    int ls = ((abs(z) > 1.0) ? -1 : 1);
 
-    cq0 = std::log(static_cast<T>(ls) * (static_cast<T>(1) + z) / (static_cast<T>(1) - z)) / static_cast<T>(2);
+    cq0 = lq0(z);
     cq1 = z * cq0 - static_cast<T>(1);
 
     cqn(0) = cq0;
@@ -855,9 +881,10 @@ void lqn(std::complex<T> z, OutputVec1 cqn, OutputVec2 cqd) {
             cqf2 = cqf1;
             cqf1 = cqf0;
         }
-        for (int k = 0; k <= n; ++k) {
+        for (int k = 1; k <= n; ++k) {
             cqn[k] *= cq0 / cqf0;
         }
+        cqn[0] = cq0;
     }
     cqd(0) = (cqn(1) - z * cqn(0)) / (z * z - static_cast<T>(1));
 
@@ -1040,7 +1067,7 @@ void lqmn(std::complex<T> z, OutputMat1 cqm, OutputMat2 cqd) {
     zs = static_cast<T>(ls) * (static_cast<T>(1) - z * z);
     zq = sqrt(zs);
 
-    cq0 = std::log(static_cast<T>(ls) * (static_cast<T>(1) + z) / (static_cast<T>(1) - z)) / static_cast<T>(2);
+    cq0 = lq0(z);
     if (xc < 1.0001) {
         cqm(0, 0) = cq0;
         cqm(1, 0) = -static_cast<T>(1) / zq;
@@ -1087,9 +1114,10 @@ void lqmn(std::complex<T> z, OutputMat1 cqm, OutputMat2 cqd) {
             cqf1 = cqf0;
         }
 
-        for (k = 0; k <= n; k++) {
+        for (k = 1; k <= n; k++) {
             cqm(0, k) *= cq0 / cqf0;
         }
+        cqm(0, 0) = cq0;
 
         cqf2 = 0.0;
         cqf1 = 1.0;
