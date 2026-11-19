@@ -93,7 +93,7 @@ TEST_CASE("lqmn TestLegendreFunctions.test_lqmn_gt1", "[lqmn][real][smoketest]")
 }
 
 TEST_CASE("lqmn complex", "[lqmn][complex][smoketest]") {
-    constexpr double atol = 1e-16;
+    constexpr double atol = 2e-16;
     constexpr double x = 0.5;
     // lqmn requires buffer space for at least 2x2
     constexpr int bufsize = 2 * 2;

@@ -40,3 +40,39 @@ TEST_CASE("lqn x < -1", "[lqn][real][xsf_tests]") {
     REQUIRE(error_q <= rtol);
     REQUIRE(error_d <= rtol);
 }
+
+TEST_CASE("lqn lqmn Q_0 for |x| << 1 and |x| >> 1", "[lqn][lqmn][real][xsf_tests]") {
+    // Regression test: log(|(1 + x) / (1 - x)|) / 2 lost digits for |x| << 1 and |x| >> 1,
+    // e.g. relative error 8.3e-8 for lqn(0, 1e-10).
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for x, kind in [(1e-10, 2), (-1e-6, 2), (1e6, 3)]:
+        q = mpmath.legenq(0, 0, mpmath.mpf(x), type=kind).real
+        print(f"x={x!r}: Q_0={float(q)!r}")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, bool>;
+    auto [x, desired, use_lqn] = GENERATE(
+        test_case{1e-10, 1e-10, true}, test_case{-1e-6, -1.0000000000003333e-06, true},
+        test_case{1e6, 1.0000000000003333e-06, false}
+    );
+
+    // lqmn needs space for at least 2x2 values
+    std::vector<double> q(4), d(4);
+    if (use_lqn) {
+        xsf::lqn(x, xsf::cxx::mdspan(q.data(), 2), xsf::cxx::mdspan(d.data(), 2));
+    } else {
+        xsf::lqmn(x, xsf::cxx::mdspan(q.data(), 2, 2), xsf::cxx::mdspan(d.data(), 2, 2));
+    }
+
+    const double error = xsf::extended_relative_error(q[0], desired);
+    const double rtol = 5e-16;
+    CAPTURE(x, q[0], desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
