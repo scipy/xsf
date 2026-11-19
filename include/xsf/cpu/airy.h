@@ -5,20 +5,6 @@
 #include "../error.h"
 #include "amos.h"
 
-inline int cephes_airy(float xf, float *aif, float *aipf, float *bif, float *bipf) {
-    double ai;
-    double aip;
-    double bi;
-    double bip;
-    int res = xsf::cephes::airy(xf, &ai, &aip, &bi, &bip);
-
-    *aif = ai;
-    *aipf = aip;
-    *bif = bi;
-    *bipf = bip;
-    return res;
-}
-
 namespace xsf {
 namespace detail {
 
@@ -94,6 +80,13 @@ namespace detail {
             } else {
                 xe = x * std::sqrt(x) / 1.5;
                 xp6 = 1.0 / std::sqrt(6.0 * pi * xe);
+                if (xp6 == 0.0) {                             // 6 pi xe overflows: the limits as x -> inf
+                    apt = q0;                                 // DLMF 9.10.11
+                    bpt = std::numeric_limits<T>::infinity(); // Bi grows, DLMF 9.7.7
+                    ant = q1;                                 // DLMF 9.10.11
+                    bnt = 0.0;                                // DLMF 9.10.12
+                    return;
+                }
                 su1 = 1.0;
                 r = 1.0;
                 xr1 = 1.0 / xe;
@@ -109,6 +102,10 @@ namespace detail {
                 }
                 apt = q0 - std::exp(-xe) * xp6 * su1;
                 bpt = 2.0 * std::exp(xe) * xp6 * su2;
+                if (std::isinf(bpt)) { // exp(xe) may overflow before bpt does
+                    T g = std::exp(0.5 * xe);
+                    bpt = 2.0 * g * xp6 * su2 * g;
+                }
                 su3 = 1.0;
                 r = 1.0;
                 xr2 = 1.0 / (xe * xe);
@@ -132,176 +129,6 @@ namespace detail {
 
 } // namespace detail
 
-inline void airyb(double x, double &ai, double &bi, double &ad, double &bd) {
-
-    // =======================================================
-    // Purpose: Compute Airy functions and their derivatives
-    // Input:   x  --- Argument of Airy function
-    // Output:  AI --- Ai(x)
-    //          BI --- Bi(x)
-    //          AD --- Ai'(x)
-    //          BD --- Bi'(x)
-    // =======================================================
-
-    int k, km, km2, kmax;
-    double ck[52], dk[52];
-    double xa, xq, xm, fx, r, gx, df, dg, sai, sad, sbi, sbd, xp1, xr2;
-    double xf, rp, xar, xe, xr1, xcs, xss, ssa, sda, ssb, sdb;
-
-    const double eps = 1.0e-15;
-    const double pi = 3.141592653589793;
-    const double c1 = 0.355028053887817;
-    const double c2 = 0.258819403792807;
-    const double sr3 = 1.732050807568877;
-
-    km2 = 0;
-    xa = fabs(x);
-    xq = sqrt(xa);
-    xm = 8.0;
-    if (x > 0.0)
-        xm = 5.0;
-
-    if (x == 0.0) {
-        ai = c1;
-        bi = sr3 * c1;
-        ad = -c2;
-        bd = sr3 * c2;
-        return;
-    }
-
-    if (xa <= xm) {
-        fx = 1.0;
-        r = 1.0;
-        for (k = 1; k <= 40; k++) {
-            r = r * x / (3.0 * k) * x / (3.0 * k - 1.0) * x;
-            fx += r;
-            if (fabs(r) < fabs(fx) * eps)
-                break;
-        }
-
-        gx = x;
-        r = x;
-        for (k = 1; k <= 40; k++) {
-            r = r * x / (3.0 * k) * x / (3.0 * k + 1.0) * x;
-            gx += r;
-            if (fabs(r) < fabs(gx) * eps)
-                break;
-        }
-
-        ai = c1 * fx - c2 * gx;
-        bi = sr3 * (c1 * fx + c2 * gx);
-
-        df = 0.5 * x * x;
-        r = df;
-        for (k = 1; k <= 40; k++) {
-            r = r * x / (3.0 * k) * x / (3.0 * k + 2.0) * x;
-            df += r;
-            if (fabs(r) < fabs(df) * eps)
-                break;
-        }
-
-        dg = 1.0;
-        r = 1.0;
-        for (k = 1; k <= 40; k++) {
-            r = r * x / (3.0 * k) * x / (3.0 * k - 2.0) * x;
-            dg += r;
-            if (fabs(r) < fabs(dg) * eps)
-                break;
-        }
-
-        ad = c1 * df - c2 * dg;
-        bd = sr3 * (c1 * df + c2 * dg);
-    } else {
-        km = (int)(24.5 - xa);
-        if (xa < 6.0)
-            km = 14;
-        if (xa > 15.0)
-            km = 10;
-
-        if (x > 0.0) {
-            kmax = km;
-        } else {
-            // Choose cutoffs so that the remainder term in asymptotic
-            // expansion is epsilon size. The X<0 branch needs to be fast
-            // in order to make AIRYZO efficient
-            if (xa > 70.0)
-                km = 3;
-            if (xa > 500.0)
-                km = 2;
-            if (xa > 1000.0)
-                km = 1;
-
-            km2 = km;
-            if (xa > 150.0)
-                km2 = 1;
-            if (xa > 3000.0)
-                km2 = 0;
-            kmax = 2 * km + 1;
-        }
-        xe = xa * xq / 1.5;
-        xr1 = 1.0 / xe;
-        xar = 1.0 / xq;
-        xf = sqrt(xar);
-        rp = 0.5641895835477563;
-        r = 1.0;
-        for (k = 1; k <= kmax; k++) {
-            r = r * (6.0 * k - 1.0) / 216.0 * (6.0 * k - 3.0) / k * (6.0 * k - 5.0) / (2.0 * k - 1.0);
-            ck[k - 1] = r;
-            dk[k - 1] = -(6.0 * k + 1.0) / (6.0 * k - 1.0) * r;
-        }
-
-        if (x > 0.0) {
-            sai = 1.0;
-            sad = 1.0;
-            r = 1.0;
-            for (k = 1; k <= km; k++) {
-                r *= -xr1;
-                sai += ck[k - 1] * r;
-                sad += dk[k - 1] * r;
-            }
-            sbi = 1.0;
-            sbd = 1.0;
-            r = 1.0;
-            for (k = 1; k <= km; k++) {
-                r *= xr1;
-                sbi += ck[k - 1] * r;
-                sbd += dk[k - 1] * r;
-            }
-            xp1 = exp(-xe);
-            ai = 0.5 * rp * xf * xp1 * sai;
-            bi = rp * xf / xp1 * sbi;
-            ad = -0.5 * rp / xf * xp1 * sad;
-            bd = rp / xf / xp1 * sbd;
-        } else {
-            xcs = cos(xe + pi / 4.0);
-            xss = sin(xe + pi / 4.0);
-            ssa = 1.0;
-            sda = 1.0;
-            r = 1.0;
-            xr2 = 1.0 / (xe * xe);
-            for (k = 1; k <= km; k++) {
-                r *= -xr2;
-                ssa += ck[2 * k - 1] * r;
-                sda += dk[2 * k - 1] * r;
-            }
-            ssb = ck[0] * xr1;
-            sdb = dk[0] * xr1;
-            r = xr1;
-            for (k = 1; k <= km2; k++) {
-                r *= -xr2;
-                ssb += ck[2 * k] * r;
-                sdb += dk[2 * k] * r;
-            }
-
-            ai = rp * xf * (xss * ssa - xcs * ssb);
-            bi = rp * xf * (xcs * ssa + xss * ssb);
-            ad = -rp / xf * (xcs * sda + xss * sdb);
-            bd = rp / xf * (xss * sda - xcs * sdb);
-        }
-    }
-    return;
-}
-
 inline void airyzo(int nt, int kf, double *xa, double *xb, double *xc, double *xd) {
 
     // ========================================================
@@ -322,7 +149,7 @@ inline void airyzo(int nt, int kf, double *xa, double *xb, double *xc, double *x
     //          XC(m) --- Ai(a') or Bi(b')
     //          XD(m) --- Ai'(a) or Bi'(b)
     //                    ( m --- Serial number of zeros )
-    // Routine called: AIRYB for computing Airy functions and
+    // Routine called: CEPHES::AIRY for computing Airy functions and
     //                 their derivatives
     // =======================================================
 
@@ -353,7 +180,7 @@ inline void airyzo(int nt, int kf, double *xa, double *xb, double *xc, double *x
 
         while (1) {
             x = rt0;
-            airyb(x, ai, bi, ad, bd);
+            cephes::airy(x, &ai, &ad, &bi, &bd);
 
             if (kf == 1) {
                 rt = rt0 - ai / ad;
@@ -371,7 +198,7 @@ inline void airyzo(int nt, int kf, double *xa, double *xb, double *xc, double *x
 
         xa[i - 1] = rt;
         if (err > 1.0e-14) {
-            airyb(rt, ai, bi, ad, bd);
+            cephes::airy(rt, &ai, &ad, &bi, &bd);
         }
 
         if (kf == 1) {
@@ -409,7 +236,7 @@ inline void airyzo(int nt, int kf, double *xa, double *xb, double *xc, double *x
 
         while (1) {
             x = rt0;
-            airyb(x, ai, bi, ad, bd);
+            cephes::airy(x, &ai, &ad, &bi, &bd);
 
             if (kf == 1) {
                 rt = rt0 - ad / (ai * x);
@@ -427,7 +254,7 @@ inline void airyzo(int nt, int kf, double *xa, double *xb, double *xc, double *x
         xb[i - 1] = rt;
 
         if (err > 1.0e-14) {
-            airyb(rt, ai, bi, ad, bd);
+            cephes::airy(rt, &ai, &ad, &bi, &bd);
         }
 
         if (kf == 1) {

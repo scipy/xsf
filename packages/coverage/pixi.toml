@@ -23,7 +23,7 @@ build = {
 build-dependencies = {
   xsref = {
     git = "https://github.com/scipy/xsref",
-    rev = "b511621d228fdc660f3471f2855fd9955652f34d",
+    rev = "9890a90db2fb85a50f62d84b02e611526c06e1e7",
   },
   ccache = "*",
 }

@@ -217,7 +217,7 @@ good_args(const T& x, const T& y, const T& z, const T& p,
 	unsigned char flag = 0u;
 	if (  xyzreal_nonneg_atmost1z )
 	{
-	    flag ^= 1u;
+	    flag |= 1u;
 	}
 	/* "... or else let two of the variables x, y, z be nonzero and
 	 * conjugate complex with phase less in magnitude than pi and the
@@ -226,7 +226,7 @@ good_args(const T& x, const T& y, const T& z, const T& p,
 	     argcheck::r1conj2(y, z, x) ||
 	     argcheck::r1conj2(z, x, y) )
 	{
-	    flag ^= 1u;
+	    flag |= 1u;
 	}
 	return (bool)flag;
     }

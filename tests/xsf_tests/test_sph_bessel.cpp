@@ -313,3 +313,124 @@ TEST_CASE("spherical_k_jac reflection derivative complex", "[spherical_bessel][x
     CAPTURE(n, z, result_spherical_k_jac, ref_spherical_k_jac, rel_err_spherical_k_jac, rtol);
     REQUIRE(rel_err_spherical_k_jac <= rtol);
 }
+
+// Regression test for gh-359: j_n(x) underflowed to 0 for tiny x.
+TEST_CASE("spherical_j tiny inputs", "[spherical_bessel][xsf_tests]") {
+    SET_FP_FORMAT()
+    using test_case = std::tuple<long, double, double>;
+
+    // Reference values: float(mpmath.besselj(n + 0.5, x) * mpmath.sqrt(mpmath.pi / (2 * x))), mp.dps = 50.
+    auto [n, x, ref] = GENERATE(
+        test_case{1, 1.166e-222, 3.886666666666666e-223}, test_case{2, 1e-150, 6.666666666666666e-302},
+        test_case{1, 1e-300, 3.3333333333333334e-301}
+    );
+
+    double result = xsf::sph_bessel_j(n, x);
+    double rel_err = xsf::extended_relative_error(result, ref);
+
+    CAPTURE(n, x, result, ref, rel_err);
+    REQUIRE(rel_err <= 1e-15);
+}
+
+// Regression test for gh-373: j_n'(z) and i_n'(z) lost the cancelling j_n(z) / z term when j_n(z)
+// underflowed for tiny z, and y_n'(x) was inf - inf = nan when y_n(x) overflowed.
+/*
+import mpmath
+from mpmath import mpf, mpc
+
+mpmath.mp.dps = 30
+
+# Exact derivative of j_n(z) = z^n / (2n + 1)!! * 0F1(; n + 3/2; s z^2 / 4), with s = -1 (s = 1 for i_n).
+def jac(n, z, s):
+    b = n + mpf(3) / 2
+    w = s * z**2 / 4
+    f = n * mpmath.hyp0f1(b, w) + 2 * w / b * mpmath.hyp0f1(b + 1, w)
+    return z ** (n - 1) / mpmath.fac2(2 * n + 1) * f
+
+for n, z in [(2, mpf("7.5e-179")), (3, mpf("-1e-110")), (2, mpc(0, "1e-300"))]:
+    print(n, z, repr(complex(jac(n, z, -1))), repr(complex(jac(n, z, 1))))
+*/
+TEST_CASE("spherical_j_jac and spherical_i_jac tiny inputs", "[spherical_bessel][xsf_tests]") {
+    SET_FP_FORMAT()
+    using test_case = std::tuple<long, double, double>;
+
+    // The leading term n z^(n - 1) / (2n + 1)!! is the same for j_n' and i_n'.
+    auto [n, x, ref] = GENERATE(test_case{2, 7.5e-179, 1e-179}, test_case{3, -1e-110, 2.857142857142857e-222});
+
+    double result_j = xsf::sph_bessel_j_jac(n, x);
+    double result_i = xsf::sph_bessel_i_jac(n, x);
+    double rel_err_j = xsf::extended_relative_error(result_j, ref);
+    double rel_err_i = xsf::extended_relative_error(result_i, ref);
+
+    CAPTURE(n, x, result_j, result_i, ref, rel_err_j, rel_err_i);
+    REQUIRE(rel_err_j <= 1e-15);
+    REQUIRE(rel_err_i <= 1e-15);
+}
+
+TEST_CASE("spherical_j_jac and spherical_i_jac tiny complex input", "[spherical_bessel][xsf_tests]") {
+    SET_FP_FORMAT()
+    std::complex<double> z{0, 1e-300}, ref{0, 1.3333333333333333e-301};
+
+    std::complex<double> result_j = xsf::sph_bessel_j_jac(2, z);
+    std::complex<double> result_i = xsf::sph_bessel_i_jac(2, z);
+    double rel_err_j = xsf::extended_relative_error(result_j, ref);
+    double rel_err_i = xsf::extended_relative_error(result_i, ref);
+
+    CAPTURE(result_j, result_i, ref, rel_err_j, rel_err_i);
+    REQUIRE(rel_err_j <= 1e-15);
+    REQUIRE(rel_err_i <= 1e-15);
+}
+
+TEST_CASE("spherical_y_jac overflow", "[spherical_bessel][xsf_tests]") {
+    // y_n'(-x) = (-1)^n y_n'(x), from https://dlmf.nist.gov/10.47.E14
+    REQUIRE(xsf::sph_bessel_y_jac(8, 7e-46) == std::numeric_limits<double>::infinity());
+    REQUIRE(xsf::sph_bessel_y_jac(7, -7e-46) == -std::numeric_limits<double>::infinity());
+    REQUIRE(xsf::sph_bessel_y_jac(1, 0.0) == std::numeric_limits<double>::infinity());
+}
+
+// Regression test for gh-487: y_n(x) was nan for n >= 2 and 0 < |x| < 1 / DBL_MAX.
+// y_n(x) ~ -(2n - 1)!! / x^(n + 1) overflows there (https://dlmf.nist.gov/10.52.E2), e.g. with mp.dps = 30,
+// mpmath.bessely(2.5, mpf(5e-324)) * mpmath.sqrt(mpmath.pi / (2 * mpf(5e-324))) is about -2.5e+970.
+TEST_CASE("spherical_y tiny inputs", "[spherical_bessel][xsf_tests]") {
+    // y_n(-x) = (-1)^(n + 1) y_n(x), from https://dlmf.nist.gov/10.47.E14
+    REQUIRE(xsf::sph_bessel_y(2, 5e-324) == -std::numeric_limits<double>::infinity());
+    REQUIRE(xsf::sph_bessel_y(2, -5e-324) == std::numeric_limits<double>::infinity());
+    REQUIRE(xsf::sph_bessel_y(3, 1e-310) == -std::numeric_limits<double>::infinity());
+    REQUIRE(xsf::sph_bessel_y_jac(2, 5e-324) == std::numeric_limits<double>::infinity());
+}
+
+// Regression test for gh-498: n + 1 overflowed for n = LONG_MAX and flipped the sign of the (n + 1) term.
+TEST_CASE("spherical_y_jac and spherical_k_jac n = LONG_MAX", "[spherical_bessel][xsf_tests]") {
+    constexpr long n = std::numeric_limits<long>::max();
+    constexpr double inf = std::numeric_limits<double>::infinity();
+
+    // y_n(1) overflows to -inf for huge n (https://dlmf.nist.gov/10.19.E2); n is odd, so y_n'(-x) = -y_n'(x).
+    REQUIRE(xsf::sph_bessel_y_jac(n, 1.0) == inf);
+    REQUIRE(xsf::sph_bessel_y_jac(n, -1.0) == -inf);
+    // k_n'(x) < 0 for x > 0, so k_n'(inf) = -0, as for small n.
+    double k_jac = xsf::sph_bessel_k_jac(n, inf);
+    REQUIRE(k_jac == 0);
+    REQUIRE(std::signbit(k_jac));
+}
+
+// Regression test for gh-491: for real z, complex y_n(z), y_n'(z) and k_n'(z) had a nan imaginary part
+// where they overflow. Reference values (all overflow), with y_n(-x) = (-1)^(n + 1) y_n(x) (DLMF 10.47.14):
+/*
+from mpmath import mp, mpf, sqrt, pi, bessely, besselk
+mp.dps = 30
+y = lambda n, x: sqrt(pi / (2 * x)) * bessely(n + mpf(1) / 2, x)
+k = lambda n, x: sqrt(pi / (2 * x)) * besselk(n + mpf(1) / 2, x)
+x = mpf(1e-300)
+print(y(1, x), y(2, x), y(50, mpf(1e-10)))  # -1e+600, -3e+900, -2.7e+588
+print(y(0, x) - 2 / x * y(1, x), -k(0, x) - 2 / x * k(1, x))  # DLMF 10.51.2, 10.51.5: 2e+900, -3.1e+900
+*/
+TEST_CASE("spherical_y, spherical_y_jac and spherical_k_jac complex overflow", "[spherical_bessel][xsf_tests]") {
+    using C = std::complex<double>;
+    const double inf = std::numeric_limits<double>::infinity();
+
+    REQUIRE(xsf::sph_bessel_y(1, C(1e-300, 0)) == C(-inf, 0));
+    REQUIRE(xsf::sph_bessel_y(2, C(-1e-300, 0)) == C(inf, 0));
+    REQUIRE(xsf::sph_bessel_y(50, C(1e-10, 0)) == C(-inf, 0));
+    REQUIRE(xsf::sph_bessel_y_jac(1, C(1e-300, 0)) == C(inf, 0));
+    REQUIRE(xsf::sph_bessel_k_jac(1, C(1e-300, 0)) == C(-inf, 0));
+}

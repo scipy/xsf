@@ -254,3 +254,44 @@ TEST_CASE("Legendre-Carlson Km1 identity", "[ellint_carlson][xsf_tests]") {
         REQUIRE(error <= 1e-7);
     }
 }
+
+TEST_CASE("Carlson RF tiny x with y * z underflowing", "[ellint_carlson][xsf_tests]") {
+    // Regression test for gh-467: elliprf was NaN or -inf if x is 0 or subnormal and y * z underflows.
+
+    /*
+    from mpmath import mp
+    mp.dps = 50
+    for x, y, z in [(0.0, 1e-300, 1e-30), (5e-324, 1e-300, 1e-300)]:
+        print(repr(float(mp.elliprf(x, y, z))))
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double, double>;
+    auto [x, y, z, expected] = GENERATE(
+        test_case{0.0, 1e-300, 1e-30, 3.1223528191531603e+17},
+        test_case{5e-324, 1e-300, 1e-300, 1.5707963267926738e+150}
+    );
+    CAPTURE(x, y, z);
+    check_close(xsf::cpu::elliprf(x, y, z), expected, 1e-15);
+    check_close(xsf::cpu::elliprf(C{x}, C{y}, C{z}), C{expected}, 1e-15);
+}
+
+TEST_CASE("Carlson RJ with equal positive real x, y, z", "[ellint_carlson][xsf_tests]") {
+    // Complex elliprj was NaN if two of x, y, z are equal, positive and real, and p is complex.
+
+    /*
+    from mpmath import mp
+    mp.dps = 50
+    for x, y, z, p in [(1, 1, 2, -1+1j), (0.5, 0.5, 0.5, -2+0.1j), (1, 1, 1, -1-1e-3j)]:
+        r = mp.elliprj(x, y, z, p)
+        print(repr(float(r.real)), repr(float(r.imag)))
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double, C, C>;
+    auto [x, y, z, p, expected] = GENERATE(
+        test_case{1.0, 1.0, 2.0, C{-1.0, 1.0}, C{0.10404992139410993, -0.8705134824952264}},
+        test_case{0.5, 0.5, 0.5, C{-2.0, 0.1}, C{-1.2596649659627839, -1.2260630442163205}},
+        test_case{1.0, 1.0, 1.0, C{-1.0, -1e-3}, C{-0.563913158248595, 1.66575419302662}}
+    );
+    CAPTURE(x, y, z, p);
+    check_close(xsf::cpu::elliprj(C{x}, C{y}, C{z}, p), expected, 1e-14);
+}

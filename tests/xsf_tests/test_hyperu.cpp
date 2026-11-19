@@ -85,3 +85,118 @@ TEST_CASE("hyperu gh-15650 sanity", "[hyperu][xsf_tests]") {
         }
     }
 }
+
+TEST_CASE("hyperu tiny a", "[hyperu][xsf_tests]") {
+    // Regression test for gh-350: the first (tiny a) or second (a near -1)
+    // term of the large-x series rounds to 0, and log10(0) was converted to
+    // int, so this returned NaN.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 30
+
+    for a, b, x in [(1e-17, 0.5, 100.0), (-1e-17, 0.5, 100.0), (-1 + 2**-53, 0.5, 200.0)]:
+        print(f"hyperu({a!r}, {b!r}, {x!r}) = {float(mpmath.hyperu(a, b, x))!r}")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double, double>;
+    auto [a, b, x, desired] = GENERATE(
+        test_case{1e-17, 0.5, 100.0, 1.0}, test_case{-1e-17, 0.5, 100.0, 1.0},
+        test_case{-0.9999999999999999, 0.5, 200.0, 199.4999999999999}
+    );
+
+    const double out = xsf::hyperu(a, b, x);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 5e-16;
+    CAPTURE(a, b, x, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
+
+TEST_CASE("hyperu small a small-x series", "[hyperu][xsf_tests]") {
+    // Regression test for gh-436: the small-x series rounded `a + 1.0 - 1.0`,
+    // which is inaccurate for small `a`.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for a, b, x in [(1e-15, 0.5, 50.0), (1e-10, 0.5, 30.0), (-1e-12, 2.5, 25.0)]:
+        print(f"hyperu({a!r}, {b!r}, {x!r}) = {float(mpmath.hyperu(a, b, x))!r}")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double, double>;
+    auto [a, b, x, desired] = GENERATE(
+        test_case{1e-15, 0.5, 50.0, 0.9999999999999961}, test_case{1e-10, 0.5, 30.0, 0.9999999996582531},
+        test_case{-1e-12, 2.5, 25.0, 1.0000000000031584}
+    );
+
+    const double out = xsf::hyperu(a, b, x);
+    const double error = xsf::extended_relative_error(out, desired);
+    // the two series cancel, so allow more than a few eps
+    const double rtol = 1e-11;
+    CAPTURE(a, b, x, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
+
+TEST_CASE("hyperu tiny a and integer b", "[hyperu][xsf_tests]") {
+    // Regression test for gh-459: the terminating series in `chgul` computed
+    // `a + 1 - 1.0`, which is 0 for tiny `a`.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for a, b, x in [(1e-20, 10.0, 0.01), (-1e-20, 15.0, 0.1), (1e-40, 20.0, 0.002)]:
+        print(f"hyperu({a!r}, {b!r}, {x!r}) = {float(mpmath.hyperu(a, b, x))!r}")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double, double>;
+    auto [a, b, x, desired] = GENERATE(
+        test_case{1e-20, 10.0, 0.01, 408.76202110315756}, test_case{-1e-20, 15.0, 0.1, -6934.305358080271},
+        test_case{1e-40, 20.0, 0.002, 1.223736600747381e+27}
+    );
+
+    const double out = xsf::hyperu(a, b, x);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 1e-14;
+    CAPTURE(a, b, x, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
+
+TEST_CASE("hyperu b near 0", "[hyperu][xsf_tests]") {
+    // Regression test for gh-533: the small-x series rounded `b + j - 1.0`,
+    // which loses the digits of a tiny `b`.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for a, b, x in [(2.5, -1e-12, 15.0), (0.75, -1e-13, 3.0), (2.5, 1e-12, 15.0)]:
+        print(f"hyperu({a!r}, {b!r}, {x!r}) = {float(mpmath.hyperu(a, b, x))!r}")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double, double>;
+    auto [a, b, x, desired] = GENERATE(
+        test_case{2.5, -1e-12, 15.0, 0.0007070198793433216}, test_case{0.75, -1e-13, 3.0, 0.3241572028349371},
+        test_case{2.5, 1e-12, 15.0, 0.0007070198793435019}
+    );
+
+    const double out = xsf::hyperu(a, b, x);
+    const double error = xsf::extended_relative_error(out, desired);
+    // the two series cancel, so allow more than a few eps
+    const double rtol = 1e-7;
+    CAPTURE(a, b, x, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}

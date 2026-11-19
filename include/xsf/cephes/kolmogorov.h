@@ -182,14 +182,18 @@ namespace cephes {
                 double v = cxx::exp(logv);
                 /*
                  * Want q^((2k-1)^2)(1-q^(4k-1)) / q(1-q^3) < epsilon to break out of loop.
-                 * With KOLMOG_CUTOVER ~ 0.82, k <= 4.  Just unroll the loop, 4 iterations
+                 * With KOLMOG_CUTOVER ~ 0.82, k <= 5.  Just unroll the loop, 5 iterations
                  */
                 double vsq = v * v;
                 double v3 = cxx::pow(v, 3);
                 double vpwr;
 
+                vpwr = v3 * v3 * v3; /* v**9 */
+                P = 1 - vpwr * P;    /* P <- 1 - (1-v**(2k-1)) * P */
+                D = 4 * 4 - vpwr * (5 * 5);
+
                 vpwr = v3 * v3 * v; /* v**7 */
-                P = 1 - vpwr * P;   /* P <- 1 - (1-v**(2k-1)) * P */
+                P = 1 - vpwr * P;
                 D = 3 * 3 - vpwr * D;
 
                 vpwr = v3 * vsq;
@@ -695,7 +699,7 @@ namespace cephes {
                 return {sf, cdf, pdf};
             }
             /* Special case:  x is so big, the sf underflows double64 */
-            if (-2 * n * x * x < MINLOG) {
+            if (-2.0 * n * x * x < MINLOG) {
                 return {0, 1, 0};
             }
             /* Special case:  x >= 1 - 1/n */
@@ -776,8 +780,8 @@ namespace cephes {
 
                     if (isfinite(Aj) && (Aj != 0.0)) {
                         /* coeff = 1/x + (j-1)/(x+j/n) - (n-j)/(1-x-j/n) */
-                        dAjCoeff = (n * (v - 1)) / (double_double(nxfl + v) + alpha) -
-                                   ((n - v) * n) / (double_double(n - nxfl - v) - alpha);
+                        dAjCoeff = (static_cast<double>(n) * (v - 1)) / (double_double(nxfl + v) + alpha) -
+                                   (static_cast<double>(n - v) * n) / (double_double(n - nxfl - v) - alpha);
                         dAjCoeff = dAjCoeff + oneOverX;
                         dAj = Aj * dAjCoeff;
 
@@ -907,7 +911,7 @@ namespace cephes {
                 double xmin = 1 - psfrootn;
                 double logpsf = (psf < 0.5 ? cxx::log(psf) : cxx::log1p(-pcdf));
                 double xmax = cxx::sqrt(-logpsf / (2.0 * n));
-                double xmax6 = xmax - 1.0L / (6 * n);
+                double xmax6 = xmax - 1.0L / (6.0L * n);
                 a = xmin;
                 b = xmax;
                 /* Allow for a little rounding error */

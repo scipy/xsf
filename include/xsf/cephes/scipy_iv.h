@@ -375,6 +375,7 @@ namespace cephes {
             double i_sum, k_sum, term, divisor;
             int k, n;
             int sign = 1;
+            bool small, prev_small = false;
 
             if (v < 0) {
                 /* Negative v; compute I_{-v} and K_{-v} and use (AMS 9.6.2) */
@@ -411,15 +412,18 @@ namespace cephes {
                     term *= t;
                 }
 
-                /* Sum terms */
                 term /= divisor;
-                i_sum += term;
-                k_sum += (n % 2 == 0) ? term : -term;
 
-                /* Check convergence */
-                if (cxx::abs(term) < MACHEP) {
+                /* Check convergence; u_k(t) itself can vanish, so wait for two small terms */
+                small = cxx::abs(term) < MACHEP;
+                if (small && prev_small) {
                     break;
                 }
+                prev_small = small;
+
+                /* Sum terms */
+                i_sum += term;
+                k_sum += (n % 2 == 0) ? term : -term;
 
                 divisor *= v;
             }
