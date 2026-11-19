@@ -703,6 +703,14 @@ void sph_legendre_p_all(T theta, OutputMat res) {
     });
 }
 
+// Q_0(x) = log(|(1 + x) / (1 - x)|) / 2 without cancellation, for real x != +-1
+template <typename T>
+XSF_HOST_DEVICE T lq0(T x) {
+    T ax = cxx::fabs(x);
+    T t = ax < 1 ? 2 * ax / (1 - ax) : 2 / (ax - 1);
+    return cxx::copysign(cxx::log1p(t) / 2, x);
+}
+
 // ====================================================
 // Purpose: Compute Legendre functions Qn(x) & Qn'(x)
 // Input :  x  --- Argument of Qn(x)
@@ -715,7 +723,7 @@ template <typename T, typename OutputVec1, typename OutputVec2>
 void lqn(T x, OutputVec1 qn, OutputVec2 qd) {
     int n = qn.size() - 1;
 
-    T x2, q0, q1, qf, qc1, qc2, qr, qf0, qf1, qf2;
+    T q0, q1, qf, qc1, qc2, qr, qf0, qf1, qf2;
     const T eps = 1.0e-14;
 
     if (fabs(x) == 1.0) {
@@ -727,8 +735,7 @@ void lqn(T x, OutputVec1 qn, OutputVec2 qd) {
     }
 
     if (fabs(x) <= 1.021) {
-        x2 = fabs((1.0 + x) / (1.0 - x));
-        q0 = 0.5 * log(x2);
+        q0 = lq0(x);
         q1 = x * q0 - 1.0;
         qn[0] = q0;
         qn[1] = q1;
@@ -893,7 +900,7 @@ void lqmn(T x, OutputMat1 qm, OutputMat2 qd) {
     }
     xs = ls * (1.0 - x * x);
     xq = sqrt(xs);
-    q0 = 0.5 * log(fabs((x + 1.0) / (x - 1.0)));
+    q0 = lq0<double>(x);
     if (fabs(x) < 1.0001) {
         qm(0, 0) = q0;
         qm(0, 1) = x * q0 - 1.0;
