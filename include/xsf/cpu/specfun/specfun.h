@@ -4205,7 +4205,8 @@ namespace specfun {
         for (k = 1; k <= n; k++) {
             pd[k] = (k * x * pm[k] - (k + m) * pm[k - 1]) / (x * x - 1.0);
         }
-        coef = ((m % 2) == 0 ? 1 : -1);
+        // Ferrers phase (-1)^m (DLMF 14.6.1) only for |x| < 1, not for x > 1 (DLMF 14.6.3)
+        coef = (((m % 2) == 0 || x > 1.0) ? 1 : -1);
         for (k = 1; k <= n; k++) {
             pm[k] *= coef;
             pd[k] *= coef;
