@@ -923,6 +923,8 @@ void lqmn(T x, OutputMat1 qm, OutputMat2 qd) {
         } else {
             km = (40 + m + n) * ((int)(-1. - 1.8 * log(x - 1.)));
         }
+        // rescale by a power of 2, since the recurrences grow like (2 x)^k and overflow for large |x|
+        const double big = 0x1p512, small = 0x1p-512;
         qf2 = 0.0;
         qf1 = 1.0;
         qf0 = 0.0;
@@ -930,6 +932,13 @@ void lqmn(T x, OutputMat1 qm, OutputMat2 qd) {
             qf0 = ((2.0 * k + 3.0) * x * qf1 - (k + 2.0) * qf2) / (k + 1.0);
             if (k <= n) {
                 qm(0, k) = qf0;
+            }
+            if (fabs(qf0) > big) {
+                qf0 *= small;
+                qf1 *= small;
+                for (int l = k; l <= n; l++) {
+                    qm(0, l) *= small;
+                }
             }
             qf2 = qf1;
             qf1 = qf0;
@@ -945,6 +954,13 @@ void lqmn(T x, OutputMat1 qm, OutputMat2 qd) {
             qf0 = ((2.0 * k + 3.0) * x * qf1 - (k + 1.0) * qf2) / (k + 2.0);
             if (k <= n) {
                 qm(1, k) = qf0;
+            }
+            if (fabs(qf0) > big) {
+                qf0 *= small;
+                qf1 *= small;
+                for (int l = k; l <= n; l++) {
+                    qm(1, l) *= small;
+                }
             }
             qf2 = qf1;
             qf1 = qf0;
@@ -1051,12 +1067,21 @@ void lqmn(std::complex<T> z, OutputMat1 cqm, OutputMat2 cqd) {
         } else {
             km = (40 + m + n) * ((int)(-1.0 - 1.8 * log(xc - 1.)));
         }
+        // rescale by a power of 2, since the recurrences grow like (2 z)^k and overflow for large |z|
+        const double big = 0x1p512, small = 0x1p-512;
         cqf2 = 0.0;
         cqf1 = 1.0;
         for (k = km; k >= 0; k--) {
             cqf0 = (static_cast<T>(2 * k + 3) * z * cqf1 - static_cast<T>(k + 2) * cqf2) / static_cast<T>(k + 1);
             if (k <= n) {
                 cqm(0, k) = cqf0;
+            }
+            if (std::abs(real(cqf0)) + std::abs(imag(cqf0)) > big) {
+                cqf0 *= small;
+                cqf1 *= small;
+                for (int l = k; l <= n; l++) {
+                    cqm(0, l) *= small;
+                }
             }
             cqf2 = cqf1;
             cqf1 = cqf0;
@@ -1072,6 +1097,13 @@ void lqmn(std::complex<T> z, OutputMat1 cqm, OutputMat2 cqd) {
             cqf0 = (static_cast<T>(2 * k + 3) * z * cqf1 - static_cast<T>(k + 1) * cqf2) / static_cast<T>(k + 2);
             if (k <= n) {
                 cqm(1, k) = cqf0;
+            }
+            if (std::abs(real(cqf0)) + std::abs(imag(cqf0)) > big) {
+                cqf0 *= small;
+                cqf1 *= small;
+                for (int l = k; l <= n; l++) {
+                    cqm(1, l) *= small;
+                }
             }
             cqf2 = cqf1;
             cqf1 = cqf0;
