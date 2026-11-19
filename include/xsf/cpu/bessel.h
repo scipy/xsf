@@ -405,7 +405,7 @@ namespace detail {
         return;
     }
 
-    /* AMOS rejects orders above INT_MAX / 2. For real z = x > 0, check if K_v(x)
+    /* AMOS rejects orders above 0.5 / tol (~2e15). For real z = x > 0, check if K_v(x)
      * (times exp(x) if scaled) overflows, with the lower bound
      * K_v(x) >= sqrt(pi / (2 v)) (2 v / (e x))^v exp(-x^2 / (4 (v - 1))),
      * from Jensen's inequality on https://dlmf.nist.gov/10.32.E10 and
@@ -953,7 +953,7 @@ inline std::complex<float> cyl_bessel_j(float v, std::complex<float> x) {
 
 template <typename T>
 T cyl_bessel_j(T v, T x) {
-    if (v != static_cast<int>(v) && x < 0) {
+    if (v != floor(v) && x < 0) {
         set_error("jv", SF_ERROR_DOMAIN, NULL);
         return std::numeric_limits<T>::quiet_NaN();
     }
