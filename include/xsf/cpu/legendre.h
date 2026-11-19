@@ -931,6 +931,14 @@ void lqmn(T x, OutputMat1 qm, OutputMat2 qd) {
             if (k <= n) {
                 qm(0, k) = qf0;
             }
+            // rescale, since the recurrence grows like (2 x)^k and overflows for large |x|
+            if (fabs(qf0) > 0x1p512) {
+                qf0 *= 0x1p-512;
+                qf1 *= 0x1p-512;
+                for (int l = k; l <= n; l++) {
+                    qm(0, l) *= 0x1p-512;
+                }
+            }
             qf2 = qf1;
             qf1 = qf0;
         }
@@ -945,6 +953,14 @@ void lqmn(T x, OutputMat1 qm, OutputMat2 qd) {
             qf0 = ((2.0 * k + 3.0) * x * qf1 - (k + 1.0) * qf2) / (k + 2.0);
             if (k <= n) {
                 qm(1, k) = qf0;
+            }
+            // rescale, since the recurrence grows like (2 x)^k and overflows for large |x|
+            if (fabs(qf0) > 0x1p512) {
+                qf0 *= 0x1p-512;
+                qf1 *= 0x1p-512;
+                for (int l = k; l <= n; l++) {
+                    qm(1, l) *= 0x1p-512;
+                }
             }
             qf2 = qf1;
             qf1 = qf0;
@@ -1058,6 +1074,13 @@ void lqmn(std::complex<T> z, OutputMat1 cqm, OutputMat2 cqd) {
             if (k <= n) {
                 cqm(0, k) = cqf0;
             }
+            if (std::abs(real(cqf0)) + std::abs(imag(cqf0)) > 0x1p512) {
+                cqf0 *= static_cast<T>(0x1p-512);
+                cqf1 *= static_cast<T>(0x1p-512);
+                for (int l = k; l <= n; l++) {
+                    cqm(0, l) *= static_cast<T>(0x1p-512);
+                }
+            }
             cqf2 = cqf1;
             cqf1 = cqf0;
         }
@@ -1072,6 +1095,13 @@ void lqmn(std::complex<T> z, OutputMat1 cqm, OutputMat2 cqd) {
             cqf0 = (static_cast<T>(2 * k + 3) * z * cqf1 - static_cast<T>(k + 1) * cqf2) / static_cast<T>(k + 2);
             if (k <= n) {
                 cqm(1, k) = cqf0;
+            }
+            if (std::abs(real(cqf0)) + std::abs(imag(cqf0)) > 0x1p512) {
+                cqf0 *= static_cast<T>(0x1p-512);
+                cqf1 *= static_cast<T>(0x1p-512);
+                for (int l = k; l <= n; l++) {
+                    cqm(1, l) *= static_cast<T>(0x1p-512);
+                }
             }
             cqf2 = cqf1;
             cqf1 = cqf0;
