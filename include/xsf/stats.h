@@ -18,6 +18,7 @@
 #include "erf.h"
 #include "gamma.h"
 #include "tools.h"
+#include "toms708.h"
 
 namespace xsf {
 
@@ -208,10 +209,6 @@ XSF_HOST_DEVICE inline double students_t_cdf(double nu, double t) {
     //
     // nu: the number of degrees of freedom
     // t: the upper limit of integration
-    //
-    // The following code originates from the Boost C++ library,
-    // from file `boost/math/distributions/students_t.hpp` with
-    // minor changes.
 
     if (cxx::isnan(nu) || cxx::isnan(t) || nu <= 0) {
         return cxx::numeric_limits<double>::quiet_NaN();
@@ -222,24 +219,13 @@ XSF_HOST_DEVICE inline double students_t_cdf(double nu, double t) {
         return p;
     }
 
+    // Use toms708::bratio in order to calculate
     double tt = t * t;
-    double probability;
-    // To reduce rounding error, compute the lower tail directly or by
-    // subtraction, using the identity formula
-    //
-    //  I[x](a,b) = 1 - I[1-x](b,a)
-    //
-    // with x = nu/(nu + t*t), so 1 - x = t*t/(nu + t*t).
-    if (nu > 2 * t * t) {
-        // for a small |t|: compute lower tail = (1 - middle) / 2
-        double x = tt / (nu + tt);
-        probability = 0.5 * (1 - cephes::incbet(0.5, nu / 2, x));
-
-    } else {
-        // for a large |t|: compute lower tail = area of both tails / 2
-        double x = nu / (nu + tt);
-        probability = 0.5 * cephes::incbet(nu / 2, 0.5, x);
+    toms708::TupleDDI incomplete_beta = toms708::bratio(nu / 2, 0.5, nu / (nu + tt), tt / (nu + tt));
+    if (incomplete_beta.i1 != 0) {
+        return cxx::numeric_limits<double>::quiet_NaN();
     }
+    double probability = 0.5 * incomplete_beta.d1;
     return t > 0 ? 1 - probability : probability;
 }
 
