@@ -17,8 +17,8 @@
 #include "config.h"
 #include "erf.h"
 #include "gamma.h"
-#include "tools.h"
 #include "toms708.h"
+#include "tools.h"
 
 namespace xsf {
 
