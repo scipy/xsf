@@ -59,7 +59,7 @@
 
 #pragma once
 
-#include <math.h>
+#include "config.h"
 
 namespace xsf::toms708 {
 
@@ -87,33 +87,33 @@ static const double spmpar[3] = {
     1.7976931348623157e+308, /* np.finfo(np.float64).max    */
 };
 
-static double algdiv(double, double);
-static double alnrel(double);
-static double apser(double, double, double, double);
-static double basym(double, double, double, double);
-static double bcorr(double, double);
-static double betaln(double, double);
-static double bfrac(double, double, double, double, double, double);
-static struct TupleDI bgrat(double, double, double, double, double, double);
-static double bpser(double, double, double, double);
-static struct TupleDDI bratio(double, double, double, double);
-static double brcmp1(int, double, double, double, double);
-static double brcomp(double, double, double, double);
-static double bup(double, double, double, double, int, double);
-static double cdflib_erf(double);
-static double erfc1(int, double);
-static double esum(int, double);
-static double fpser(double, double, double, double);
-static double gam1(double);
-static double gamln(double);
-static double gamln1(double);
-static struct TupleDD grat1(double, double, double, double);
-static double gsumln(double, double);
-static double psi(double);
-static double rexp(double);
-static double rlog1(double);
+XSF_HOST_DEVICE inline double algdiv(double, double);
+XSF_HOST_DEVICE inline double alnrel(double);
+XSF_HOST_DEVICE inline double apser(double, double, double, double);
+XSF_HOST_DEVICE inline double basym(double, double, double, double);
+XSF_HOST_DEVICE inline double bcorr(double, double);
+XSF_HOST_DEVICE inline double betaln(double, double);
+XSF_HOST_DEVICE inline double bfrac(double, double, double, double, double, double);
+XSF_HOST_DEVICE inline struct TupleDI bgrat(double, double, double, double, double, double);
+XSF_HOST_DEVICE inline double bpser(double, double, double, double);
+XSF_HOST_DEVICE inline struct TupleDDI bratio(double, double, double, double);
+XSF_HOST_DEVICE inline double brcmp1(int, double, double, double, double);
+XSF_HOST_DEVICE inline double brcomp(double, double, double, double);
+XSF_HOST_DEVICE inline double bup(double, double, double, double, int, double);
+XSF_HOST_DEVICE inline double cdflib_erf(double);
+XSF_HOST_DEVICE inline double erfc1(int, double);
+XSF_HOST_DEVICE inline double esum(int, double);
+XSF_HOST_DEVICE inline double fpser(double, double, double, double);
+XSF_HOST_DEVICE inline double gam1(double);
+XSF_HOST_DEVICE inline double gamln(double);
+XSF_HOST_DEVICE inline double gamln1(double);
+XSF_HOST_DEVICE inline struct TupleDD grat1(double, double, double, double);
+XSF_HOST_DEVICE inline double gsumln(double, double);
+XSF_HOST_DEVICE inline double psi(double);
+XSF_HOST_DEVICE inline double rexp(double);
+XSF_HOST_DEVICE inline double rlog1(double);
 
-double algdiv(double a, double b) {
+XSF_HOST_DEVICE inline double algdiv(double a, double b) {
     //         Computation of ln(gamma(b)/gamma(a+b)) when b >= 8
     //
     //                             --------
@@ -146,25 +146,25 @@ double algdiv(double a, double b) {
     s11 = 1. + (x + x2 * s9);
 
     // Set w = del(b) - del(a + b)
-    t = pow((1. / b), 2);
+    t = cxx::pow((1. / b), 2);
     w = (((((carr[5] * s11) * t + carr[4] * s9) * t + carr[3] * s7) * t + carr[2] * s5) * t + carr[1] * s3) * t +
         carr[0];
     w *= c / b;
     // Combine the results
     u = d * alnrel(a / b);
-    v = a * (log(b) - 1.);
+    v = a * (cxx::log(b) - 1.);
     return (u > v ? (w - v) - u : (w - u) - v);
 }
 
-double alnrel(double a) {
+XSF_HOST_DEVICE inline double alnrel(double a) {
     //    Evaluation of the function ln(1 + a)
 
     double p[3] = {-0.129418923021993e+01, 0.405303492862024e+00, -0.178874546012214e-01};
     double q[3] = {-0.162752256355323e+01, 0.747811014037616e+00, -0.845104217945565e-01};
     double t, t2, w;
 
-    if (fabs(a) > 0.375) {
-        return log(1. + a);
+    if (cxx::fabs(a) > 0.375) {
+        return cxx::log(1. + a);
     } else {
         t = a / (a + 2.);
         t2 = t * t;
@@ -174,7 +174,7 @@ double alnrel(double a) {
     }
 }
 
-double apser(double a, double b, double x, double eps) {
+XSF_HOST_DEVICE inline double apser(double a, double b, double x, double eps) {
     //    Apser yields the incomplete beta ratio I_(1-x))(b,a) for
     //    a <= Min(eps,eps*b), b*x <= 1, And x <= 0.5. Used when
     //    a is very small. Use only if above inequalities are satisfied.
@@ -185,12 +185,12 @@ double apser(double a, double b, double x, double eps) {
     bx = b * x;
     t = x - bx;
     if (b * eps > 0.02) {
-        c = log(bx) + g + t;
+        c = cxx::log(bx) + g + t;
     } else {
-        c = log(x) + psi(b) + g + t;
+        c = cxx::log(x) + psi(b) + g + t;
     }
 
-    tol = 5. * eps * fabs(c);
+    tol = 5. * eps * cxx::fabs(c);
     j = 1.0;
     s = 0.0;
 
@@ -199,14 +199,14 @@ double apser(double a, double b, double x, double eps) {
         t *= (x - bx / j);
         aj = t / j;
         s += aj;
-        if (fabs(aj) <= tol) {
+        if (cxx::fabs(aj) <= tol) {
             break;
         }
     }
     return -a * (c + s);
 }
 
-double basym(double a, double b, double lmbda, double eps) {
+XSF_HOST_DEVICE inline double basym(double a, double b, double lmbda, double eps) {
     //    Asymptotic expansion for ix(a,b) for large a and b.
     //    Lambda = (a + b)*y - b  and eps is the tolerance used.
     //    It is assumed that lambda is nonnegative and that
@@ -218,8 +218,8 @@ double basym(double a, double b, double lmbda, double eps) {
     double d[21] = {0.0};
     double bsum, dsum, f, h, h2, hn, j0, j1, r, r0, r1, s, ssum;
     double t, t0, t1, u, w, w0, z, z0, z2, zn, znm1;
-    double e0 = 2. / sqrt(PI);
-    double e1 = pow(2.0, (-3. / 2.));
+    double e0 = 2. / cxx::sqrt(PI);
+    double e1 = cxx::pow(2.0, (-3. / 2.));
     int i, imj, j, m, mmj, n, num;
 
     // ****** Num is the maximum value that n can take in the do loop
@@ -231,19 +231,19 @@ double basym(double a, double b, double lmbda, double eps) {
         h = a / b;
         r0 = 1. / (1. + h);
         r1 = (b - a) / b;
-        w0 = 1. / sqrt(a * (1. + h));
+        w0 = 1. / cxx::sqrt(a * (1. + h));
     } else {
         h = b / a;
         r0 = 1. / (1. + h);
         r1 = (b - a) / a;
-        w0 = 1. / sqrt(b * (1. + h));
+        w0 = 1. / cxx::sqrt(b * (1. + h));
     }
     f = a * rlog1(-lmbda / a) + b * rlog1(lmbda / b);
-    t = exp(-f);
+    t = cxx::exp(-f);
     if (t == 0.0) {
         return 0.0;
     }
-    z0 = sqrt(f);
+    z0 = cxx::sqrt(f);
     z = 0.5 * (z0 / e1);
     z2 = f + f;
 
@@ -297,15 +297,15 @@ double basym(double a, double b, double lmbda, double eps) {
         w *= w0;
         t1 = d[n] * w * j1;
         ssum += t0 + t1;
-        if ((fabs(t0) + fabs(t1)) <= eps * ssum) {
+        if ((cxx::fabs(t0) + cxx::fabs(t1)) <= eps * ssum) {
             break;
         }
     }
-    u = exp(-bcorr(a, b));
+    u = cxx::exp(-bcorr(a, b));
     return e0 * t * u * ssum;
 }
 
-double bcorr(double a0, double b0) {
+XSF_HOST_DEVICE inline double bcorr(double a0, double b0) {
     //    Evaluation of  del(a0) + del(b0) - del(a0 + b0)  where
     //    ln(gamma(a)) = (a - 0.5)*ln(a) - a + 0.5*ln(2*pi) + del(a).
     //    It is assumed that a0 >= 8 And b0 >= 8.
@@ -314,8 +314,8 @@ double bcorr(double a0, double b0) {
     double carr[6] = {0.833333333333333e-01,  -0.277777777760991e-02, 0.793650666825390e-03,
                       -0.595202931351870e-03, 0.837308034031215e-03,  -0.165322962780713e-02};
 
-    a = fmin(a0, b0);
-    b = fmax(a0, b0);
+    a = cxx::fmin(a0, b0);
+    b = cxx::fmax(a0, b0);
     h = a / b;
     c = h / (1. + h);
     x = 1. / (1. + h);
@@ -327,35 +327,35 @@ double bcorr(double a0, double b0) {
     s9 = 1. + (x + x2 * s7);
     s11 = 1. + (x + x2 * s9);
     // Set w = del(b) - del(a + b)
-    t = pow((1. / b), 2);
+    t = cxx::pow((1. / b), 2);
     w = (((((carr[5] * s11) * t + carr[4] * s9) * t + carr[3] * s7) * t + carr[2] * s5) * t + carr[1] * s3) * t +
         carr[0];
     w *= c / b;
     // Compute  del(a) + w
-    t = pow((1. / a), 2);
+    t = cxx::pow((1. / a), 2);
     return ((((((carr[5]) * t + carr[4]) * t + carr[3]) * t + carr[2]) * t + carr[1]) * t + carr[0]) / a + w;
 }
 
-double betaln(double a0, double b0) {
+XSF_HOST_DEVICE inline double betaln(double a0, double b0) {
     //    Evaluation of the logarithm of the beta function
 
     double a, b, c, h, u, v, w, z;
     double e = 0.918938533204673;
     int i, n;
 
-    a = fmin(a0, b0);
-    b = fmax(a0, b0);
+    a = cxx::fmin(a0, b0);
+    b = cxx::fmax(a0, b0);
 
     if (a >= 8.0) {
         w = bcorr(a, b);
         h = a / b;
         c = h / (1. + h);
-        u = -(a - 0.5) * log(c);
+        u = -(a - 0.5) * cxx::log(c);
         v = b * alnrel(h);
         if (u > v) {
-            return (((-0.5 * log(b) + e) + w) - v) - u;
+            return (((-0.5 * cxx::log(b) + e) + w) - v) - u;
         } else {
-            return (((-0.5 * log(b) + e) + w) - u) - v;
+            return (((-0.5 * cxx::log(b) + e) + w) - u) - v;
         }
     }
     if (a < 1) {
@@ -385,7 +385,7 @@ double betaln(double a0, double b0) {
                 h = a / b;
                 w *= h / (1. + h);
             }
-            w = log(w);
+            w = cxx::log(w);
             if (b >= 8.0) {
                 return w + gamln(a) + algdiv(a, b);
             }
@@ -396,7 +396,7 @@ double betaln(double a0, double b0) {
                 a -= 1.0;
                 w *= a / (1. + (a / b));
             }
-            return (log(w) - n * log(b)) + (gamln(a) + algdiv(a, b));
+            return (cxx::log(w) - n * cxx::log(b)) + (gamln(a) + algdiv(a, b));
         }
     }
     n = (int)(b - 1.);
@@ -405,10 +405,10 @@ double betaln(double a0, double b0) {
         b -= 1.0;
         z *= b / (a + b);
     }
-    return w + log(z) + (gamln(a) + gamln(b) - gsumln(a, b));
+    return w + cxx::log(z) + (gamln(a) + gamln(b) - gsumln(a, b));
 }
 
-double bfrac(double a, double b, double x, double y, double lmbda, double eps) {
+XSF_HOST_DEVICE inline double bfrac(double a, double b, double x, double y, double lmbda, double eps) {
     //    Continued fraction expansion for ix(a,b) when a,b > 1.
     //    It is assumed that  lambda = (a + b)*y - b.
 
@@ -452,7 +452,7 @@ double bfrac(double a, double b, double x, double y, double lmbda, double eps) {
         bnp1 = t;
         r0 = r;
         r = anp1 / bnp1;
-        if (!(fabs(r - r0) > eps * r)) {
+        if (!(cxx::fabs(r - r0) > eps * r)) {
             break;
         }
         // Rescale an, bn, anp1, and bnp1
@@ -464,7 +464,7 @@ double bfrac(double a, double b, double x, double y, double lmbda, double eps) {
     return result * r;
 }
 
-struct TupleDI bgrat(double a, double b, double x, double y, double w, double eps) {
+XSF_HOST_DEVICE inline struct TupleDI bgrat(double a, double b, double x, double y, double w, double eps) {
     //    Asymptotic expansion for ix(a,b) when a is larger than b.
     //    The result of the expansion is added to w. It is assumed
     //    that a >= 15 And b <= 1.  Eps is the tolerance used.
@@ -475,7 +475,7 @@ struct TupleDI bgrat(double a, double b, double x, double y, double w, double ep
     double d[30] = {0.0};
     double bm1 = (b - 0.5) - 0.5;
     double nu = a + bm1 * 0.5;
-    double lnx = (y > 0.375 ? log(x) : alnrel(-y));
+    double lnx = (y > 0.375 ? cxx::log(x) : alnrel(-y));
     double z = -nu * lnx;
     int i, n;
 
@@ -485,17 +485,17 @@ struct TupleDI bgrat(double a, double b, double x, double y, double w, double ep
 
     // COMPUTATION OF THE EXPANSION
     // SET R = EXP(-Z)*Z**B/GAMMA(B)
-    r = b * (1. + gam1(b)) * exp(b * log(z));
-    r *= exp(a * lnx) * exp(0.5 * bm1 * lnx);
-    u = algdiv(b, a) + b * log(nu);
-    u = r * exp(-u);
+    r = b * (1. + gam1(b)) * cxx::exp(b * cxx::log(z));
+    r *= cxx::exp(a * lnx) * cxx::exp(0.5 * bm1 * lnx);
+    u = algdiv(b, a) + b * cxx::log(nu);
+    u = r * cxx::exp(-u);
     if (u == 0.0) {
         return (struct TupleDI){.d1 = w, .i1 = 1};
     }
 
     struct TupleDD ret = grat1(b, z, r, eps);
     q = ret.d2;
-    v = 0.25 * pow((1 / nu), 2);
+    v = 0.25 * cxx::pow((1 / nu), 2);
     t2 = 0.25 * lnx * lnx;
     l = w / u;
     j = q / r;
@@ -525,14 +525,14 @@ struct TupleDI bgrat(double a, double b, double x, double y, double w, double ep
         if (ssum <= 0.) {
             return (struct TupleDI){.d1 = w, .i1 = 1};
         }
-        if (!(fabs(dj) > eps * (ssum + l))) {
+        if (!(cxx::fabs(dj) > eps * (ssum + l))) {
             break;
         }
     }
     return (struct TupleDI){.d1 = w + u * ssum, .i1 = 0};
 }
 
-double bpser(double a, double b, double x, double eps) {
+XSF_HOST_DEVICE inline double bpser(double a, double b, double x, double eps) {
     //    Power series expansion for evaluating ix(a,b) when b <= 1
     //    Or b*x <= 0.7.  Eps is the tolerance used.
 
@@ -545,12 +545,12 @@ double bpser(double a, double b, double x, double eps) {
     }
 
     // Compute the factor x**a/(a*beta(a,b))
-    a0 = fmin(a, b);
+    a0 = cxx::fmin(a, b);
 
     if (a0 < 1.0) {
-        b0 = fmax(a, b);
+        b0 = cxx::fmax(a, b);
         if (b0 <= 1.0) {
-            result = pow(x, a);
+            result = cxx::pow(x, a);
             if (result == 0.0) {
                 return 0.0;
             }
@@ -574,9 +574,9 @@ double bpser(double a, double b, double x, double eps) {
                     b0 -= 1.0;
                     c *= (b0 / (a0 + b0));
                 }
-                u += log(c);
+                u += cxx::log(c);
             }
-            z = a * log(x) - u;
+            z = a * cxx::log(x) - u;
             b0 -= 1.0;
             apb = a0 + b0;
             if (apb > 1.0) {
@@ -585,16 +585,16 @@ double bpser(double a, double b, double x, double eps) {
             } else {
                 t = 1. + gam1(apb);
             }
-            result = exp(z) * (a0 / a) * (1. + gam1(b0)) / t;
+            result = cxx::exp(z) * (a0 / a) * (1. + gam1(b0)) / t;
 
         } else if (b0 >= 8) {
             u = gamln1(a0) + algdiv(a0, b0);
-            z = a * log(x) - u;
-            result = (a0 / a) * exp(z);
+            z = a * cxx::log(x) - u;
+            result = (a0 / a) * cxx::exp(z);
         }
     } else {
-        z = a * log(x) - betaln(a, b);
-        result = exp(z) / a;
+        z = a * cxx::log(x) - betaln(a, b);
+        result = cxx::exp(z) / a;
     }
     if ((result == 0.) || (a <= 0.1 * eps)) {
         return result;
@@ -609,14 +609,14 @@ double bpser(double a, double b, double x, double eps) {
         c *= (0.5 + (0.5 - b / n)) * x;
         w = c / (a + n);
         ssum += w;
-        if (!(fabs(w) > tol)) {
+        if (!(cxx::fabs(w) > tol)) {
             break;
         }
     }
     return result * (1. + a * ssum);
 }
 
-struct TupleDDI bratio(double a, double b, double x, double y) {
+XSF_HOST_DEVICE inline struct TupleDDI bratio(double a, double b, double x, double y) {
     //           Evaluation of the incomplete beta function Ix(a,b)
     //
     //                    --------------------
@@ -646,7 +646,7 @@ struct TupleDDI bratio(double a, double b, double x, double y) {
     int ind, n;
     double w = 0.;
     double w1 = 0.;
-    double eps = fmax(spmpar[0], 1e-15);
+    double eps = cxx::fmax(spmpar[0], 1e-15);
     struct TupleDI bgratret;
 
     if ((a < 0.) || (b < 0.)) {
@@ -657,7 +657,7 @@ struct TupleDDI bratio(double a, double b, double x, double y) {
         return (struct TupleDDI){.d1 = w, .d2 = w1, .i1 = 3};
     } else if ((y < 0.) || (y > 1.)) {
         return (struct TupleDDI){.d1 = w, .d2 = w1, .i1 = 4};
-    } else if (fabs(((x + y) - 0.5) - 0.5) > 3. * eps) {
+    } else if (cxx::fabs(((x + y) - 0.5) - 0.5) > 3. * eps) {
         return (struct TupleDDI){.d1 = w, .d2 = w1, .i1 = 5};
     } else if (x == 0.) {
         if (a == 0) {
@@ -675,7 +675,7 @@ struct TupleDDI bratio(double a, double b, double x, double y) {
         return (struct TupleDDI){.d1 = 1.0, .d2 = 0.0, .i1 = 0};
     } else if (b == 0.) {
         return (struct TupleDDI){.d1 = 0.0, .d2 = 1.0, .i1 = 0};
-    } else if (fmax(a, b) < 1e-3 * eps) {
+    } else if (cxx::fmax(a, b) < 1e-3 * eps) {
         return (struct TupleDDI){.d1 = b / (a + b), .d2 = a / (a + b), .i1 = 0};
     }
 
@@ -685,7 +685,7 @@ struct TupleDDI bratio(double a, double b, double x, double y) {
     x0 = x;
     y0 = y;
 
-    if (fmin(a0, b0) <= 1.0) {
+    if (cxx::fmin(a0, b0) <= 1.0) {
         if (!(x <= 0.5)) {
             ind = 1;
             a0 = b;
@@ -693,18 +693,18 @@ struct TupleDDI bratio(double a, double b, double x, double y) {
             x0 = y;
             y0 = x;
         }
-        if (b0 < fmin(eps, eps * a0)) {
+        if (b0 < cxx::fmin(eps, eps * a0)) {
             w = fpser(a0, b0, x0, eps);
             w1 = 0.5 + (0.5 - w);
             return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
         }
-        if ((a0 < fmin(eps, eps * b0)) && (b0 * x0 <= 1.)) {
+        if ((a0 < cxx::fmin(eps, eps * b0)) && (b0 * x0 <= 1.)) {
             w1 = apser(a0, b0, x0, eps);
             w = 0.5 + (0.5 - w1);
             return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
         }
-        if (fmax(a0, b0) <= 1.0) {
-            if ((pow(x0, a0) <= 0.9) || (a0 >= fmin(0.2, b0))) {
+        if (cxx::fmax(a0, b0) <= 1.0) {
+            if ((cxx::pow(x0, a0) <= 0.9) || (a0 >= cxx::fmin(0.2, b0))) {
                 w = bpser(a0, b0, x0, eps);
                 w1 = 0.5 + (0.5 - w);
                 return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
@@ -754,7 +754,7 @@ struct TupleDDI bratio(double a, double b, double x, double y) {
                     return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
                 }
             }
-            if (pow((x0 * b0), a0) <= 0.7) {
+            if (cxx::pow((x0 * b0), a0) <= 0.7) {
                 w = bpser(a0, b0, x0, eps);
                 w1 = 0.5 + (0.5 - w);
                 return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
@@ -782,7 +782,7 @@ struct TupleDDI bratio(double a, double b, double x, double y) {
             b0 = a;
             x0 = y;
             y0 = x;
-            lmbda = fabs(lmbda);
+            lmbda = cxx::fabs(lmbda);
         }
         if ((b0 < 40.) && (b0 * x0 <= 0.7)) {
             w = bpser(a0, b0, x0, eps);
@@ -837,15 +837,15 @@ struct TupleDDI bratio(double a, double b, double x, double y) {
     }
 }
 
-double brcmp1(int mu, double a, double b, double x, double y) {
+XSF_HOST_DEVICE inline double brcmp1(int mu, double a, double b, double x, double y) {
     //    Evaluation of  exp(mu) * (x**a*y**b/beta(a,b))
 
     double a0, apb, b0, c, e, h, lmbda, t, u, v, x0, y0, z;
     double lnx = 1., lny = 1.;
     int i, n;
-    double const r2pi = 1. / sqrt(2. * PI);
+    double const r2pi = 1. / cxx::sqrt(2. * PI);
 
-    a0 = fmin(a, b);
+    a0 = cxx::fmin(a, b);
     if (a0 >= 8.0) {
         if (a > b) {
             h = b / a;
@@ -859,28 +859,28 @@ double brcmp1(int mu, double a, double b, double x, double y) {
             lmbda = a - (a + b) * x;
         }
         e = -lmbda / a;
-        if (fabs(e) > 0.6) {
-            u = e - log(x / x0);
+        if (cxx::fabs(e) > 0.6) {
+            u = e - cxx::log(x / x0);
         } else {
             u = rlog1(e);
         }
         e = lmbda / b;
-        if (fabs(e) > 0.6) {
-            v = e - log(y / y0);
+        if (cxx::fabs(e) > 0.6) {
+            v = e - cxx::log(y / y0);
         } else {
             v = rlog1(e);
         }
         z = esum(mu, -(a * u + b * v));
-        return r2pi * sqrt(b * x0) * z * exp(-bcorr(a, b));
+        return r2pi * cxx::sqrt(b * x0) * z * cxx::exp(-bcorr(a, b));
     }
     if ((x > 0.375) && (y > 0.375)) {
-        lnx = log(x);
-        lny = log(y);
+        lnx = cxx::log(x);
+        lny = cxx::log(y);
     } else if ((x > 0.375) && (y <= 0.375)) {
         lnx = alnrel(-y);
-        lny = log(y);
+        lny = cxx::log(y);
     } else if (x <= 0.375) {
-        lnx = log(x);
+        lnx = cxx::log(x);
         lny = alnrel(-x);
     }
     z = a * lnx + b * lny;
@@ -890,7 +890,7 @@ double brcmp1(int mu, double a, double b, double x, double y) {
         return esum(mu, z);
     }
 
-    b0 = fmax(a, b);
+    b0 = cxx::fmax(a, b);
     if (b0 >= 8.0) {
         u = gamln1(a0) + algdiv(a0, b0);
         return a0 * esum(mu, z - u);
@@ -905,7 +905,7 @@ double brcmp1(int mu, double a, double b, double x, double y) {
                 b0 -= 1.;
                 c *= b0 / (a0 + b0);
             }
-            u += log(c);
+            u += cxx::log(c);
         }
         z -= u;
         b0 -= 1.;
@@ -923,7 +923,7 @@ double brcmp1(int mu, double a, double b, double x, double y) {
         return 0.0;
     }
     apb = a + b;
-    t = exp(z);
+    t = cxx::exp(z);
     if (apb > 1.0) {
         u = a + b - 1.0;
         z = (1. + gam1(u)) / apb;
@@ -935,17 +935,17 @@ double brcmp1(int mu, double a, double b, double x, double y) {
     return t * (a0 * c) / (1. + a0 / b0);
 }
 
-double brcomp(double a, double b, double x, double y) {
+XSF_HOST_DEVICE inline double brcomp(double a, double b, double x, double y) {
     //    Evaluation of x**a*y**b/beta(a,b)
 
     double a0, apb, b0, c, e, h, lmbda, lnx, lny, t, u, v, x0, y0, z;
-    double const r2pi = 1. / sqrt(2 * PI);
+    double const r2pi = 1. / cxx::sqrt(2 * PI);
     int i, n;
 
     if ((x == 0.) || (y == 0.)) {
         return 0.;
     }
-    a0 = fmin(a, b);
+    a0 = cxx::fmin(a, b);
 
     if (a0 >= 8.) {
         if (a > b) {
@@ -960,38 +960,38 @@ double brcomp(double a, double b, double x, double y) {
             lmbda = a - (a + b) * x;
         }
         e = -lmbda / a;
-        if (fabs(e) > 0.6) {
-            u = e - log(x / x0);
+        if (cxx::fabs(e) > 0.6) {
+            u = e - cxx::log(x / x0);
         } else {
             u = rlog1(e);
         }
         e = lmbda / b;
-        if (fabs(e) > 0.6) {
-            v = e - log(y / y0);
+        if (cxx::fabs(e) > 0.6) {
+            v = e - cxx::log(y / y0);
         } else {
             v = rlog1(e);
         }
 
-        z = exp(-(a * u + b * v));
-        return r2pi * sqrt(b * x0) * z * exp(-bcorr(a, b));
+        z = cxx::exp(-(a * u + b * v));
+        return r2pi * cxx::sqrt(b * x0) * z * cxx::exp(-bcorr(a, b));
     }
     if (x <= 0.375) {
-        lnx = log(x);
+        lnx = cxx::log(x);
         lny = alnrel(-x);
     } else {
-        lnx = (y > 0.375 ? log(x) : alnrel(-y));
-        lny = log(y);
+        lnx = (y > 0.375 ? cxx::log(x) : alnrel(-y));
+        lny = cxx::log(y);
     }
     z = a * lnx + b * lny;
     if (a0 >= 1.0) {
         z -= betaln(a, b);
-        return exp(z);
+        return cxx::exp(z);
     }
 
-    b0 = fmax(a, b);
+    b0 = cxx::fmax(a, b);
     if (b0 >= 8.0) {
         u = gamln1(a0) + algdiv(a0, b0);
-        return a0 * exp(z - u);
+        return a0 * cxx::exp(z - u);
     }
 
     if (b0 > 1.0) {
@@ -1003,7 +1003,7 @@ double brcomp(double a, double b, double x, double y) {
                 b0 -= 1.0;
                 c *= b0 / (a0 + b0);
             }
-            u += log(c);
+            u += cxx::log(c);
         }
         z -= u;
         b0 -= 1.0;
@@ -1015,14 +1015,14 @@ double brcomp(double a, double b, double x, double y) {
         } else {
             t = 1. + gam1(apb);
         }
-        return a0 * exp(z) * (1. + gam1(b0)) / t;
+        return a0 * cxx::exp(z) * (1. + gam1(b0)) / t;
     }
-    if (exp(z) == 0.) {
+    if (cxx::exp(z) == 0.) {
         return 0.0;
     }
 
     apb = a + b;
-    t = exp(z);
+    t = cxx::exp(z);
     if (apb > 1.0) {
         u = a + b - 1.0;
         z = (1. + gam1(u)) / apb;
@@ -1033,7 +1033,7 @@ double brcomp(double a, double b, double x, double y) {
     return t * (a0 * c) / (1. + a0 / b0);
 }
 
-double bup(double a, double b, double x, double y, int n, double eps) {
+XSF_HOST_DEVICE inline double bup(double a, double b, double x, double y, int n, double eps) {
     //     Evaluation of Ix(a,b) - Ix(a+n,b) where n is a positive integer and
     //     eps is the tolerance used.
     double apb = a + b;
@@ -1050,7 +1050,7 @@ double bup(double a, double b, double x, double y, int n, double eps) {
     if (!((n == 1) || (a < 1) || (apb < 1.1 * ap1))) {
         mu = 708;
         t = mu;
-        d = exp(-708);
+        d = cxx::exp(-708.0);
     }
 
     result = brcmp1(mu, a, b, x, y) / a;
@@ -1118,7 +1118,7 @@ double bup(double a, double b, double x, double y, int n, double eps) {
     return result * w;
 }
 
-double cdflib_erf(double x) {
+XSF_HOST_DEVICE inline double cdflib_erf(double x) {
     //    Evaluation of the real error function
 
     double ax, bot, t, top;
@@ -1136,7 +1136,7 @@ double cdflib_erf(double x) {
     };
     double s[4] = {9.41537750555460e+01, 1.87114811799590e+02, 9.90191814623914e+01, 1.80124575948747e+01};
 
-    ax = fabs(x);
+    ax = cxx::fabs(x);
     if (ax <= 0.5) {
         t = x * x;
         top = ((((a[0] * t + a[1]) * t + a[2]) * t + a[3]) * t + a[4]) + 1.0;
@@ -1146,20 +1146,20 @@ double cdflib_erf(double x) {
     if (ax <= 4.0) {
         top = (((((((p[0]) * ax + p[1]) * ax + p[2]) * ax + p[3]) * ax + p[4]) * ax + p[5]) * ax + p[6]) * ax + p[7];
         bot = (((((((q[0]) * ax + q[1]) * ax + q[2]) * ax + q[3]) * ax + q[4]) * ax + q[5]) * ax + q[6]) * ax + q[7];
-        t = 0.5 + (0.5 - exp(-x * x) * (top / bot));
+        t = 0.5 + (0.5 - cxx::exp(-x * x) * (top / bot));
         return (x < 0 ? -t : t);
     }
     if (ax < 5.8) {
-        t = pow(1 / x, 2);
+        t = cxx::pow(1 / x, 2);
         top = (((r[0] * t + r[1]) * t + r[2]) * t + r[3]) * t + r[4];
         bot = (((s[0] * t + s[1]) * t + s[2]) * t + s[3]) * t + 1.0;
-        t = 0.5 + (0.5 - exp(-x * x) * (c - top / (x * x * bot)) / ax);
+        t = 0.5 + (0.5 - cxx::exp(-x * x) * (c - top / (x * x * bot)) / ax);
         return (x < 0 ? -t : t);
     }
     return (x < 0 ? -1 : 1);
 }
 
-double erfc1(int ind, double x) {
+XSF_HOST_DEVICE inline double erfc1(int ind, double x) {
     //    Evaluation of the complementary error function
     //
     //    Erfc1(ind,x) = erfc(x)            if ind = 0
@@ -1181,7 +1181,7 @@ double erfc1(int ind, double x) {
     double s[4] = {9.41537750555460e+01, 1.87114811799590e+02, 9.90191814623914e+01, 1.80124575948747e+01};
 
     if (x <= -5.6) {
-        return (ind == 0 ? 2.0 : (2 * exp(x * x)));
+        return (ind == 0 ? 2.0 : (2 * cxx::exp(x * x)));
     }
 
     // sqrt(log(np.finfo(np.float64).max)) ~= 26.64
@@ -1189,51 +1189,51 @@ double erfc1(int ind, double x) {
         return 0.0;
     }
 
-    ax = fabs(x);
+    ax = cxx::fabs(x);
 
     if (ax <= 0.5) {
         t = x * x;
         top = (((((a[0]) * t + a[1]) * t + a[2]) * t + a[3]) * t + a[4]) + 1.0;
         bot = (((b[0]) * t + b[1]) * t + b[2]) * t + 1.0;
         result = 0.5 + (0.5 - x * (top / bot));
-        return (ind == 0 ? result : result * exp(t));
+        return (ind == 0 ? result : result * cxx::exp(t));
     } else if ((0.5 < ax) && (ax <= 4.0)) {
         top = (((((((p[0]) * ax + p[1]) * ax + p[2]) * ax + p[3]) * ax + p[4]) * ax + p[5]) * ax + p[6]) * ax + p[7];
         bot = (((((((q[0]) * ax + q[1]) * ax + q[2]) * ax + q[3]) * ax + q[4]) * ax + q[5]) * ax + q[6]) * ax + q[7];
         result = top / bot;
     } else {
-        t = pow(1 / x, 2);
+        t = cxx::pow(1 / x, 2);
         top = (((r[0] * t + r[1]) * t + r[2]) * t + r[3]) * t + r[4];
         bot = (((s[0] * t + s[1]) * t + s[2]) * t + s[3]) * t + 1.0;
         result = (c - t * (top / bot)) / ax;
     }
     if (ind == 0) {
-        result *= exp(-(x * x));
+        result *= cxx::exp(-(x * x));
         return (x < 0 ? (2.0 - result) : result);
     } else {
-        return (x < 0 ? (2.0 * exp(x * x) - result) : result);
+        return (x < 0 ? (2.0 * cxx::exp(x * x) - result) : result);
     }
 }
 
-double esum(int mu, double x) {
+XSF_HOST_DEVICE inline double esum(int mu, double x) {
     //    Evaluation of exp(mu + x)
 
     if (x > 0.0) {
         if ((mu > 0.) || (mu + x < 0)) {
-            return exp(mu) * exp(x);
+            return cxx::exp(static_cast<double>(mu)) * cxx::exp(x);
         } else {
-            return exp(mu + x);
+            return cxx::exp(mu + x);
         }
     } else {
         if ((mu < 0.) || (mu + x > 0.)) {
-            return exp(mu) * exp(x);
+            return cxx::exp(static_cast<double>(mu)) * cxx::exp(x);
         } else {
-            return exp(mu + x);
+            return cxx::exp(mu + x);
         }
     }
 }
 
-double fpser(double a, double b, double x, double eps) {
+XSF_HOST_DEVICE inline double fpser(double a, double b, double x, double eps) {
     //           Evaluation of i_x(a,b)
     //
     //    for b < Min(eps,eps*a) and x <= 0.5.
@@ -1242,11 +1242,11 @@ double fpser(double a, double b, double x, double eps) {
 
     if (!(a <= 1e-3 * eps)) {
         result = 0.0;
-        t = a * log(x);
+        t = a * cxx::log(x);
         if (t < -708.) {
             return result;
         }
-        result = exp(t);
+        result = cxx::exp(t);
     }
     //  Note that 1/Beta(a,b) = b
     result *= (b / a);
@@ -1259,14 +1259,14 @@ double fpser(double a, double b, double x, double eps) {
         t *= x;
         c = t / an;
         s += c;
-        if (!(fabs(c) > tol)) {
+        if (!(cxx::fabs(c) > tol)) {
             break;
         }
     }
     return result * (1. + a * s);
 }
 
-double gam1(double a) {
+XSF_HOST_DEVICE inline double gam1(double a) {
     //    Computation of 1/gamma(a+1) - 1  for -0.5 <= A <= 1.5
 
     double bot, d, t, top, w;
@@ -1308,7 +1308,7 @@ double gam1(double a) {
     }
 }
 
-double gamln(double a) {
+XSF_HOST_DEVICE inline double gamln(double a) {
     //    Evaluation of ln(gamma(a)) for positive a
 
     double t, w, d = .418938533204673;
@@ -1317,7 +1317,7 @@ double gamln(double a) {
                          -.595202931351870e-03, .837308034031215e-03,  -.165322962780713e-02};
 
     if (a <= 0.8) {
-        return gamln1(a) - log(a);
+        return gamln1(a) - cxx::log(a);
     }
 
     if (a <= 2.25) {
@@ -1333,14 +1333,14 @@ double gamln(double a) {
             t -= 1.0;
             w *= t;
         }
-        return gamln1(t - 1.) + log(w);
+        return gamln1(t - 1.) + cxx::log(w);
     }
-    t = pow(1 / a, 2);
+    t = cxx::pow(1 / a, 2);
     w = (((((c[5] * t + c[4]) * t + c[3]) * t + c[2]) * t + c[1]) * t + c[0]) / a;
-    return (d + w) + (a - 0.5) * (log(a) - 1.);
+    return (d + w) + (a - 0.5) * (cxx::log(a) - 1.);
 }
 
-double gamln1(double a) {
+XSF_HOST_DEVICE inline double gamln1(double a) {
     //    Evaluation of ln(gamma(1 + a)) for -0.2 <= A <= 1.25
 
     double bot, top, w, x;
@@ -1369,7 +1369,7 @@ double gamln1(double a) {
     }
 }
 
-struct TupleDD grat1(double a, double x, double r, double eps) {
+XSF_HOST_DEVICE inline struct TupleDD grat1(double a, double x, double r, double eps) {
     //        Evaluation of the incomplete gamma ratio functions
     //                    p(a,x) and q(a,x)
     //
@@ -1389,10 +1389,10 @@ struct TupleDD grat1(double a, double x, double r, double eps) {
 
     if (a == 0.5) {
         if (x < 0.25) {
-            p = cdflib_erf(sqrt(x));
+            p = cdflib_erf(cxx::sqrt(x));
             return (struct TupleDD){.d1 = p, .d2 = 0.5 + (0.5 - p)};
         } else {
-            q = erfc1(0, sqrt(x));
+            q = erfc1(0, cxx::sqrt(x));
             return (struct TupleDD){.d1 = 0.5 + (0.5 - q), .d2 = q};
         }
     }
@@ -1410,18 +1410,18 @@ struct TupleDD grat1(double a, double x, double r, double eps) {
             c *= -(x / an);
             t = c / (a + an);
             ssum += t;
-            if (fabs(t) <= tol) {
+            if (cxx::fabs(t) <= tol) {
                 break;
             }
         }
         j = a * x * ((ssum / 6. - 0.5 / (a + 2.)) * x + 1. / (a + 1.));
 
-        z = a * log(x);
+        z = a * cxx::log(x);
         h = gam1(a);
         g = 1. + h;
 
         if (((x >= 0.25) && (a >= x / 2.59)) || ((x < 0.25) && (z <= -0.13394))) {
-            w = exp(z);
+            w = cxx::exp(z);
             p = w * g * (0.5 + (0.5 - j));
             q = 0.5 + (0.5 - p);
             return (struct TupleDD){.d1 = p, .d2 = q};
@@ -1451,7 +1451,7 @@ struct TupleDD grat1(double a, double x, double r, double eps) {
         a2n = a2nm1 + cma * a2n;
         b2n = b2nm1 + cma * b2n;
         an0 = a2n / b2n;
-        if (!(fabs(an0 - am0) >= eps * an0)) {
+        if (!(cxx::fabs(an0 - am0) >= eps * an0)) {
             break;
         }
     }
@@ -1460,7 +1460,7 @@ struct TupleDD grat1(double a, double x, double r, double eps) {
     return (struct TupleDD){.d1 = p, .d2 = q};
 }
 
-double gsumln(double a, double b) {
+XSF_HOST_DEVICE inline double gsumln(double a, double b) {
     //     Evaluation of the function ln(gamma(a + b))
     //     for 1 <= A <= 2  And  1 <= B <= 2
 
@@ -1475,10 +1475,10 @@ double gsumln(double a, double b) {
         return gamln1(x) + alnrel(x);
     }
 
-    return gamln1(x - 1.) + log(x * (1. + x));
+    return gamln1(x - 1.) + cxx::log(x * (1. + x));
 }
 
-double psi(double xx) {
+XSF_HOST_DEVICE inline double psi(double xx) {
     //                    Evaluation of the digamma function
     //
     //                          -----------
@@ -1510,7 +1510,7 @@ double psi(double xx) {
     aug = 0.0;
 
     if (x < 0.5) {
-        if (fabs(x) <= xsmall) {
+        if (cxx::fabs(x) <= xsmall) {
             if (x == 0.) {
                 return 0.0;
             }
@@ -1540,12 +1540,12 @@ double psi(double xx) {
                 sgn = -sgn;
             }
             if ((((nq + 1) / 2) % 2) == 1) {
-                aug = sgn * (tan(z) * 4.);
+                aug = sgn * (cxx::tan(z) * 4.);
             } else {
                 if (z == 0.) {
                     return 0.0;
                 }
-                aug = sgn * (4. / tan(z));
+                aug = sgn * (4. / cxx::tan(z));
             }
         }
         x = 1 - x;
@@ -1575,21 +1575,21 @@ double psi(double xx) {
             }
             aug += upper / (den + q2[3]) - 0.5 / x;
         }
-        return aug + log(x);
+        return aug + cxx::log(x);
     }
 }
 
-double rexp(double x) {
+XSF_HOST_DEVICE inline double rexp(double x) {
     // Evaluation of exp(-x)*x**a/gamma(a)
 
     double p[2] = {.914041914819518e-09, .238082361044469e-01};
     double q[4] = {-.499999999085958e+00, .107141568980644e+00, -.119041179760821e-01, .595130811860248e-03};
     double w;
 
-    if (fabs(x) <= 0.15) {
+    if (cxx::fabs(x) <= 0.15) {
         return x * (((p[1] * x + p[0]) * x + 1.) / ((((q[3] * x + q[2]) * x + q[1]) * x + q[0]) * x + 1.));
     } else {
-        w = exp(x);
+        w = cxx::exp(x);
         if (x > 0.) {
             return w * (0.5 + (0.5 - 1. / w));
         } else {
@@ -1598,7 +1598,7 @@ double rexp(double x) {
     }
 }
 
-double rlog1(double x) {
+XSF_HOST_DEVICE inline double rlog1(double x) {
     // Evaluation of the function x - ln(1 + x)
 
     double a = .566749439387324e-01;
@@ -1630,7 +1630,7 @@ double rlog1(double x) {
 
     } else {
 
-        return x - log((x + 0.5) + 0.5);
+        return x - cxx::log((x + 0.5) + 0.5);
     }
 }
 } // namespace xsf::toms708
