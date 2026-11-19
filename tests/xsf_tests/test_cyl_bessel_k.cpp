@@ -1,7 +1,14 @@
+#define SP_SPECFUN_ERROR
 #include "../testing_utils.h"
 #include <complex>
 #include <tuple>
 #include <xsf/cpu/bessel.h>
+
+namespace {
+sf_error_t last_error = SF_ERROR_OK;
+}
+
+void xsf::set_error(const char *, sf_error_t code, const char *, ...) { last_error = code; }
 
 TEST_CASE("cyl_bessel_k gh-46", "[cyl_bessel_k][xsf_tests]") {
     using test_case = std::tuple<double, std::complex<double>, std::complex<double>, double>;
@@ -53,8 +60,10 @@ TEST_CASE("cyl_bessel_k and cyl_bessel_ke near DBL_MAX", "[cyl_bessel_k][cyl_bes
         test_case{-70.0, 0.002, 8.556122497405277e+307, 8.573251866058952e+307}
     );
 
+    last_error = SF_ERROR_OK;
     const double k = xsf::cyl_bessel_k(v, x);
     const double ke = xsf::cyl_bessel_ke(v, x);
+    REQUIRE(last_error == SF_ERROR_OK);
     const double k_error = xsf::extended_relative_error(k, desired_k);
     const double ke_error = xsf::extended_relative_error(ke, desired_ke);
     // AMOS itself is only accurate to a few 1e-14 here, and other libms differ
@@ -62,4 +71,14 @@ TEST_CASE("cyl_bessel_k and cyl_bessel_ke near DBL_MAX", "[cyl_bessel_k][cyl_bes
     CAPTURE(v, x, k, ke, desired_k, desired_ke, k_error, ke_error, rtol);
     REQUIRE(k_error <= rtol);
     REQUIRE(ke_error <= rtol);
+}
+
+TEST_CASE("cyl_bessel_k and cyl_bessel_ke overflow error", "[cyl_bessel_k][cyl_bessel_ke][xsf_tests]") {
+    // Regression test for gh-372: the overflow error is still reported where the result is inf.
+    last_error = SF_ERROR_OK;
+    REQUIRE(xsf::cyl_bessel_k(1.5, 1e-206) == std::numeric_limits<double>::infinity());
+    REQUIRE(last_error == SF_ERROR_OVERFLOW);
+    last_error = SF_ERROR_OK;
+    REQUIRE(xsf::cyl_bessel_ke(1.5, 1e-206) == std::numeric_limits<double>::infinity());
+    REQUIRE(last_error == SF_ERROR_OVERFLOW);
 }

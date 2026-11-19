@@ -833,17 +833,26 @@ T cyl_bessel_ke(T v, T x) {
         return std::numeric_limits<T>::infinity();
     }
 
-    T ke = std::real(cyl_bessel_ke(v, std::complex(x)));
-    if (std::isinf(ke) && std::abs(v) > 1) {
-        // AMOS overflows above about 1e304; recur from lower orders (DLMF 10.29.1)
-        T w = std::abs(v);
-        T r = std::real(cyl_bessel_ke(w - 2, std::complex(x))) +
-              2 * (w - 1) / x * std::real(cyl_bessel_ke(w - 1, std::complex(x)));
-        if (!std::isnan(r)) { // keep inf where the lower orders aren't available either
-            ke = r;
+    T w = std::abs(v);
+    if (w > 1 && !std::isnan(x)) {
+        // call AMOS directly, so no overflow error is reported if the recurrence recovers
+        std::complex<double> cy;
+        int ierr;
+        int nz = amos::besk(std::complex<double>(x), w, 2, 1, &cy, &ierr);
+        if (nz == 0 && ierr == 0) {
+            return std::real(cy);
+        }
+        if (ierr == 2) {
+            // AMOS overflows above about 1e304; recur from lower orders (DLMF 10.29.1)
+            T r = std::real(cyl_bessel_ke(w - 2, std::complex(x))) +
+                  2 * (w - 1) / x * std::real(cyl_bessel_ke(w - 1, std::complex(x)));
+            if (std::isfinite(r)) {
+                return r;
+            }
         }
     }
-    return ke;
+    // |v| <= 1, or recompute to report the error
+    return std::real(cyl_bessel_ke(v, std::complex(x)));
 }
 
 inline std::complex<double> cyl_hankel_1e(double v, std::complex<double> z) {
@@ -1171,17 +1180,26 @@ T cyl_bessel_k(T v, T z) {
         return 0;
     }
 
-    T k = std::real(cyl_bessel_k(v, std::complex(z)));
-    if (std::isinf(k) && std::abs(v) > 1) {
-        // AMOS overflows above about 1e304; recur from lower orders (DLMF 10.29.1)
-        T w = std::abs(v);
-        T r = std::real(cyl_bessel_k(w - 2, std::complex(z))) +
-              2 * (w - 1) / z * std::real(cyl_bessel_k(w - 1, std::complex(z)));
-        if (!std::isnan(r)) { // keep inf where the lower orders aren't available either
-            k = r;
+    T w = std::abs(v);
+    if (w > 1 && !std::isnan(z)) {
+        // call AMOS directly, so no overflow error is reported if the recurrence recovers
+        std::complex<double> cy;
+        int ierr;
+        int nz = amos::besk(std::complex<double>(z), w, 1, 1, &cy, &ierr);
+        if (nz == 0 && ierr == 0) {
+            return std::real(cy);
+        }
+        if (ierr == 2) {
+            // AMOS overflows above about 1e304; recur from lower orders (DLMF 10.29.1)
+            T r = std::real(cyl_bessel_k(w - 2, std::complex(z))) +
+                  2 * (w - 1) / z * std::real(cyl_bessel_k(w - 1, std::complex(z)));
+            if (std::isfinite(r)) {
+                return r;
+            }
         }
     }
-    return k;
+    // |v| <= 1, or recompute to report the error
+    return std::real(cyl_bessel_k(v, std::complex(z)));
 }
 
 inline double cyl_bessel_k0(double x) { return cephes::k0(x); }
