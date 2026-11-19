@@ -914,7 +914,7 @@ void lqmn(T x, OutputMat1 qm, OutputMat2 qd) {
         if (fabs(x) > 1.1) {
             km = 40 + m + n;
         } else {
-            km = (40 + m + n) * ((int)(-1. - 1.8 * log(x - 1.)));
+            km = (40 + m + n) * ((int)(-1. - 1.8 * log(fabs(x) - 1.)));
         }
         qf2 = 0.0;
         qf1 = 1.0;
