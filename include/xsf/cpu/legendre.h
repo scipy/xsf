@@ -735,7 +735,7 @@ void lqn(T x, OutputVec1 qn, OutputVec2 qd) {
     }
 
     if (fabs(x) <= 1.021) {
-        q0 = lq0<decltype(x + 0.0)>(x);
+        q0 = lq0(x);
         q1 = x * q0 - 1.0;
         qn[0] = q0;
         qn[1] = q1;
@@ -900,7 +900,7 @@ void lqmn(T x, OutputMat1 qm, OutputMat2 qd) {
     }
     xs = ls * (1.0 - x * x);
     xq = sqrt(xs);
-    q0 = lq0<decltype(x + 0.0)>(x);
+    q0 = lq0(x);
     if (fabs(x) < 1.0001) {
         qm(0, 0) = q0;
         qm(0, 1) = x * q0 - 1.0;
