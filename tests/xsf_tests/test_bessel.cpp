@@ -1,5 +1,6 @@
 #include "../testing_utils.h"
 #include <tuple>
+#include <xsf/cpu/airy.h>
 #include <xsf/cpu/bessel.h>
 
 TEST_CASE("iv tiny inputs", "[bessel][xsf_tests]") {
@@ -86,4 +87,32 @@ TEST_CASE("ive for negative non-integer v and large Im(z)", "[bessel][xsf_tests]
 
     CAPTURE(v, y, result, ref, rel_err);
     REQUIRE(rel_err <= 1e-12);
+}
+
+TEST_CASE("amos for large |z|", "[bessel][airy][xsf_tests]") {
+    // Regression test for gh-502: hankel1 returned 0, the others NaN.
+    // from mpmath import mp, mpf, hankel1, besseli, besselk, airyai, airybi, exp, sqrt
+    // mp.dps = 50
+    // x = mpf(2e6)
+    // zeta = 2 * x * sqrt(x) / 3
+    // complex(hankel1(86, mpf(1e9)))
+    // float(besseli(0, mpf(2e9)) * exp(-mpf(2e9)))
+    // float(besselk(10, mpf(2e9)) * exp(mpf(2e9)))
+    // float(airyai(x) * exp(zeta))
+    // float(airybi(x) * exp(-zeta))
+    using C = std::complex<double>;
+    const C h1 = xsf::cyl_hankel_1(86.0, C(1e9));
+    const double ive = xsf::cyl_bessel_ie(0.0, 2e9);
+    const double kve = xsf::cyl_bessel_ke(10.0, 2e9);
+    double ai, aip, bi, bip;
+    xsf::airye(2e6, ai, aip, bi, bip);
+
+    SET_FP_FORMAT()
+    CAPTURE(h1, ive, kve, ai, bi);
+    // the phase of hankel1 is only accurate to about eps * |z|
+    CHECK(xsf::extended_relative_error(h1, C(-2.468749115424341e-05, 5.210331359590961e-06)) <= 1e-6);
+    CHECK(xsf::extended_relative_error(ive, 8.920620581321394e-06) <= 5e-15);
+    CHECK(xsf::extended_relative_error(kve, 2.8024956780861995e-05) <= 5e-15);
+    CHECK(xsf::extended_relative_error(ai, 0.007501317867926573) <= 5e-15);
+    CHECK(xsf::extended_relative_error(bi, 0.015002635736958194) <= 5e-15);
 }
