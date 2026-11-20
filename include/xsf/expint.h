@@ -112,7 +112,7 @@ XSF_HOST_DEVICE inline cxx::complex<double> exp1(cxx::complex<double> z) {
         }
         ce1 = cxx::exp(-z) * zc;
         if ((x <= 0.0) && (z.imag() == 0.0)) {
-            ce1 -= M_PI * cxx::complex<double>(0.0, 1.0);
+            ce1 -= cxx::copysign(M_PI, z.imag()) * cxx::complex<double>(0.0, 1.0);
         }
     }
     return ce1;
