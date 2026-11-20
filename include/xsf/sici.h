@@ -152,7 +152,7 @@ XSF_HOST_DEVICE inline void shichi(cxx::complex<double> z, cxx::complex<double> 
         shi += cxx::complex<double>(0.0, 0.5 * M_PI);
         chi -= cxx::complex<double>(0.0, 0.5 * M_PI);
     } else if (z.real() < 0) {
-        chi += cxx::complex<double>(0.0, M_PI);
+        chi += cxx::complex<double>(0.0, cxx::copysign(M_PI, z.imag()));
     }
 }
 
