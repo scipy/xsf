@@ -59,6 +59,16 @@ inline std::complex<double> expm1(std::complex<double> z) {
     if (std::real(z) <= -40) {
         x = -1.0;
     } else {
+        if (std::real(z) > cephes::detail::MAXLOG) {
+            // e^zr overflows: scale in four parts, the -1 terms are negligible
+            double zr = std::real(z);
+            double zi = std::imag(z);
+            if (zi == 0.0) {
+                return std::complex<double>{expm1(zr), zi};
+            }
+            double h = exp(zr / 4);
+            return std::complex<double>{h * std::cos(zi), h * std::sin(zi)} * h * h * h;
+        }
         ezr = expm1(std::real(z));
         x = ezr * std::cos(std::imag(z)) + cosm1(std::imag(z));
     }
