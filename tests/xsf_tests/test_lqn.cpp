@@ -76,3 +76,45 @@ TEST_CASE("lqn lqmn Q_0 for |x| << 1 and |x| >> 1", "[lqn][lqmn][real][xsf_tests
     CAPTURE(x, q[0], desired, error, rtol);
     REQUIRE(error <= rtol);
 }
+
+TEST_CASE("lqn lqmn Q_0 for complex z with |z| << 1 or tiny Re z", "[lqn][lqmn][complex][xsf_tests]") {
+    // Regression test: log((1 + z) / (1 - z)) / 2 lost the digits of the real part for |z| << 1,
+    // e.g. relative error 8.6e-8 for lqn(0, 1e-9+2e-9j), and for tiny Re z with 1/2 <= |z| <= 2,
+    // e.g. relative error 1.9e-6 for lqn(0, 1e-10+1.5j). Also |z| >> 1.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 700
+
+    for z, kind in [(1e-9 + 2e-9j, 2), (1e-300 + 1.5j, 3), (1e6 + 3e5j, 3)]:
+        q = mpmath.legenq(0, 0, mpmath.mpc(z), type=kind)
+        print(f"z={z!r}: Q_0=({float(q.real)!r}, {float(q.imag)!r})")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<std::complex<double>, std::complex<double>, bool>;
+    auto [z, desired, use_lqn] = GENERATE(
+        test_case{{1e-9, 2e-9}, {1e-09, 2e-09}, true},
+        test_case{{1e-10, 1.5}, {3.076923076923077e-11, -0.5880026035475675}, true},
+        test_case{{1e-300, 1.5}, {3.076923076923077e-301, -0.5880026035475675}, true},
+        test_case{{1e-300, 1.5}, {3.076923076923077e-301, -0.5880026035475675}, false},
+        test_case{{1e6, 3e5}, {9.174311926607384e-07, -2.7522935779838986e-07}, true}
+    );
+
+    // lqmn needs space for at least 2x2 values
+    std::vector<std::complex<double>> q(4), d(4);
+    if (use_lqn) {
+        xsf::lqn(z, xsf::cxx::mdspan(q.data(), 2), xsf::cxx::mdspan(d.data(), 2));
+    } else {
+        xsf::lqmn(z, xsf::cxx::mdspan(q.data(), 2, 2), xsf::cxx::mdspan(d.data(), 2, 2));
+    }
+
+    const double error_re = xsf::extended_relative_error(q[0].real(), desired.real());
+    const double error_im = xsf::extended_relative_error(q[0].imag(), desired.imag());
+    const double rtol = 5e-16;
+    CAPTURE(z, q[0], desired, error_re, error_im, rtol);
+    REQUIRE(error_re <= rtol);
+    REQUIRE(error_im <= rtol);
+}
