@@ -18,6 +18,34 @@ namespace detail {
         return binom(n + alpha, n);
     }
 
+    // 2F1(a, b; c; z) = P_n^(alpha, beta)(1 - 2z) / binom(n + alpha, n) (DLMF 18.5.7) for complex z, integral a = -n,
+    // alpha = c - 1 > -1 and beta = a + b - c > -1, by the recurrence of eval_jacobi_l (DLMF 18.9.2), since the series
+    // cancels for large n. Falls back to the series if the recurrence overflows.
+    template <typename T>
+    XSF_HOST_DEVICE inline T hyp2f1_poly(double a, double b, double c, T z) {
+        if constexpr (!cxx::is_same_v<T, double>) {
+            const double lam = a + b; // alpha + beta + 1
+            if (a <= -1 && a > -1e10 && a == cxx::trunc(a) && c > 0 && lam - c > -1 && z != 0.0) {
+                T d = -(lam + 1.0) / c * z;
+                T p = d + 1.0;
+                if (a <= -2) {
+                    // p_2 - p_1 in closed form, which keeps the digits of small c and lam + 1
+                    d = (lam + 3.0) / (c + 1.0) * z * ((((lam + 1.0) * z - c) + (z - 1.0)) / c);
+                    p += d;
+                }
+                for (double k = 2; k < -a && cxx::isfinite(p.real()) && cxx::isfinite(p.imag()); ++k) {
+                    const double t = 2.0 * k + lam - 1.0;
+                    d = (t + 2.0) / (k + lam) * (k / t * ((k + lam - c) / (k + c)) * d - (t + 1.0) / (k + c) * z * p);
+                    p += d;
+                }
+                if (cxx::isfinite(p.real()) && cxx::isfinite(p.imag())) {
+                    return p;
+                }
+            }
+        }
+        return hyp2f1(a, b, c, z);
+    }
+
     template <typename T>
     XSF_HOST_DEVICE inline T eval_jacobi(double n, double alpha, double beta, T x) {
         double a, b, c, d;
@@ -38,7 +66,7 @@ namespace detail {
         b = n + alpha + beta + 1.0;
         c = alpha + 1.0;
         g = 0.5 * (1.0 - x);
-        return d * hyp2f1(a, b, c, g);
+        return d * hyp2f1_poly(a, b, c, g);
     }
 
     template <typename Int>
@@ -216,7 +244,7 @@ namespace detail {
         const double b = n + 2.0 * alpha;
         const double c = alpha + 0.5;
         const T g = (1.0 - x) / 2.0;
-        return d * hyp2f1(a, b, c, g);
+        return d * hyp2f1_poly(a, b, c, g);
     }
 
     template <typename T>
@@ -226,7 +254,7 @@ namespace detail {
                 return x;
             }
         }
-        return hyp2f1(-n, n + 1.0, 1.0, 0.5 * (1.0 - x));
+        return hyp2f1_poly(-n, n + 1.0, 1.0, 0.5 * (1.0 - x));
     }
 
     // Integer-degree P_n(x) by forward recurrence on the values p_k = P_k(x) and their
@@ -286,7 +314,7 @@ namespace detail {
 
     template <typename T>
     XSF_HOST_DEVICE inline T eval_chebyt(double n, T x) {
-        return hyp2f1(-n, n, 0.5, 0.5 * (1.0 - x));
+        return hyp2f1_poly(-n, n, 0.5, 0.5 * (1.0 - x));
     }
 
     // Use the Chebyshev T recurrence directly, see Mason & Handscomb, Chebyshev Polynomials, CRC Press (2003).
@@ -317,7 +345,7 @@ namespace detail {
 
     template <typename T>
     XSF_HOST_DEVICE inline T eval_chebyu(double n, T x) {
-        return (n + 1.0) * hyp2f1(-n, n + 2.0, 1.5, 0.5 * (1.0 - x));
+        return (n + 1.0) * hyp2f1_poly(-n, n + 2.0, 1.5, 0.5 * (1.0 - x));
     }
 
     template <typename Int>
