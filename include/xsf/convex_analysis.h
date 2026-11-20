@@ -2,6 +2,7 @@
 // Original implementation by argriffing.
 #pragma once
 
+#include "cephes/unity.h"
 #include "config.h"
 
 namespace xsf {
@@ -26,7 +27,20 @@ XSF_HOST_DEVICE inline double kl_div(double x, double y) {
     if (cxx::isnan(x) || cxx::isnan(y)) {
         return cxx::numeric_limits<double>::quiet_NaN();
     } else if (x > 0 && y > 0) {
-        return x * cxx::log(x / y) - x + y;
+        // With x = y (1 + e), this is y ((1 + e) log(1 + e) - e), which avoids cancellation near x = y
+        double e = (x - y) / y;
+        if (e == 0) {
+            return 0;
+        }
+        if (-0.5 <= e && e < 1) {
+            return y * (cephes::log1pmx(e) + e * cxx::log1p(e));
+        }
+        double ratio = x / y;
+        if (cxx::numeric_limits<double>::min() < ratio && ratio < cxx::numeric_limits<double>::infinity()) {
+            return x * cxx::log(ratio) - x + y;
+        }
+        // x / y under- or overflows, so take the logarithms first (as in rel_entr)
+        return x * (cxx::log(x) - cxx::log(y)) - x + y;
     } else if (x == 0 && y >= 0) {
         return y;
     } else {
