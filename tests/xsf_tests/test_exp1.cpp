@@ -35,3 +35,41 @@ TEST_CASE("exp1, expi side of the cut for abs(z) >= 40", "[exp1][expi][xsf_tests
     REQUIRE(xsf::extended_relative_error(ei.real(), ei_re) <= rtol);
     REQUIRE(std::abs(ei.imag()) <= 4 * 2.2e-16 * M_PI);
 }
+
+TEST_CASE("exp1, expi overflow only above the true overflow threshold", "[exp1][expi][xsf_tests]") {
+    // exp(x) overflows for x > 709.78 but Ei(x) only for x > 716.35, so these used to be inf/nan.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    print(repr(float(mpmath.ei(712).real)))
+    e1 = mpmath.e1(mpmath.mpc(-712, 1))
+    print(repr(float(e1.real)), repr(float(e1.imag)))
+    e1 = mpmath.e1(mpmath.mpc(-716.65, 0.7853981633974483))
+    print(repr(float(e1.real)), repr(float(e1.imag)))
+    ei = mpmath.ei(mpmath.mpc(712, 1))
+    print(repr(float(ei.real)), repr(float(ei.imag)))
+    */
+    SET_FP_FORMAT()
+    const double rtol = 1e-14;
+
+    const double ei = xsf::expi(712.0);
+    REQUIRE(xsf::extended_relative_error(ei, 2.3216800841052115e306) <= rtol);
+
+    const std::complex<double> e1 = xsf::exp1(std::complex<double>(-712.0, 1.0));
+    REQUIRE(xsf::extended_relative_error(e1.real(), -1.2571543434669668e306) <= rtol);
+    REQUIRE(xsf::extended_relative_error(e1.imag(), 1.9518582701792164e306) <= rtol);
+
+    // Close to the threshold, where both components are near DBL_MAX.
+    const std::complex<double> e1b = xsf::exp1(std::complex<double>(-716.65, 0.7853981633974483));
+    REQUIRE(xsf::extended_relative_error(e1b.real(), -1.7076602595684751e308) <= rtol);
+    REQUIRE(xsf::extended_relative_error(e1b.imag(), 1.7039161718563943e308) <= rtol);
+
+    const std::complex<double> eic = xsf::expi(std::complex<double>(712.0, 1.0));
+    REQUIRE(xsf::extended_relative_error(eic.real(), 1.2571543434669668e306) <= rtol);
+    REQUIRE(xsf::extended_relative_error(eic.imag(), 1.9518582701792164e306) <= rtol);
+}
