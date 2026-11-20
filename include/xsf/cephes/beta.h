@@ -228,7 +228,8 @@ namespace cephes {
         }
 
         y = a + b;
-        if (cxx::abs(y) > detail::MAXGAM || cxx::abs(a) > detail::MAXGAM || cxx::abs(b) > detail::MAXGAM) {
+        if (cxx::abs(y) > detail::MAXGAM || cxx::abs(a) > detail::MAXGAM || cxx::abs(b) > detail::MAXGAM ||
+            cxx::abs(b) < cxx::numeric_limits<double>::min()) {
             int sgngam;
             y = detail::lgam_sgn(y, &sgngam);
             sign *= sgngam; /* keep track of the sign */

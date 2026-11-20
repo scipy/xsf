@@ -316,6 +316,12 @@ namespace cephes {
                 return (z);
             }
 
+            if (x != 0.0 && cxx::abs(x) < cxx::numeric_limits<double>::min()) {
+                // DLMF 5.7.3: ln|Gamma(x)| = -ln|x| - gamma*x + ..., and gamma*x < eps
+                *sign = x < 0.0 ? -1 : 1;
+                return -cxx::log(cxx::abs(x));
+            }
+
             if (x < 13.0) {
                 z = 1.0;
                 p = 0.0;

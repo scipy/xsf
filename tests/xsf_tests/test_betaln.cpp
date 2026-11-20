@@ -40,3 +40,25 @@ TEST_CASE("betaln large arguments with ratio above the asymptotic threshold", "[
         REQUIRE(rel_error <= rtol);
     }
 }
+
+TEST_CASE("betaln subnormal arguments", "[betaln][xsf_tests]") {
+    // Regression test for gh-540: Gamma(b) overflowed and betaln returned inf.
+    // Reference values: float(mpmath.log(abs(mpmath.beta(a, b)))) with mpmath.mp.dps = 60.
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double>;
+    auto [a, b, desired] = GENERATE(
+        test_case{5e-309, 1.0, 709.889355822726}, test_case{1e-320, 0.5, 736.8272408909739},
+        test_case{3e-310, -2e-310, 712.0096193589261}
+    );
+
+    const double out = xsf::betaln(a, b);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 5e-16;
+    CAPTURE(a, b, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
+
+TEST_CASE("betaln subnormal arguments with a + b == 0", "[betaln][xsf_tests]") {
+    // Regression test for gh-540: Gamma(b) overflowed, and multiplying by rgamma(0) gave NaN.
+    REQUIRE(xsf::betaln(5e-309, -5e-309) == -std::numeric_limits<double>::infinity());
+}
