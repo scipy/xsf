@@ -59,3 +59,36 @@ TEST_CASE("besselpoly large integer nu", "[besselpoly][xsf_tests]") {
     CAPTURE(a, lmb, nu, out, desired, error, rtol);
     REQUIRE(error <= rtol);
 }
+
+TEST_CASE("besselpoly large nu", "[besselpoly][xsf_tests]") {
+    // Regression test for gh-538: the leading term overflowed for nu > 171,
+    // giving 0 or NaN.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for a, lmb, nu in [(8.0, 1.0, 175.5), (15.0, 0.0, 300.0)]:
+        # power series, DLMF 10.2.2 integrated term by term
+        res = mpmath.fsum(
+            (-1) ** m * mpmath.mpf(a) ** (2 * m + nu)
+            / (mpmath.factorial(m) * mpmath.gamma(nu + m + 1) * (lmb + nu + 1 + 2 * m))
+            for m in range(80)
+        )
+        print(f"besselpoly({a!r}, {lmb!r}, {nu!r}) = {float(res)!r}")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double, double>;
+    auto [a, lmb, nu, desired] = GENERATE(
+        test_case{8.0, 1.0, 175.5, 8.200286437680841e-164}, test_case{15.0, 0.0, 300.0, 3.4683245516566637e-265}
+    );
+
+    const double out = xsf::besselpoly(a, lmb, nu);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 1e-12;
+    CAPTURE(a, lmb, nu, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
