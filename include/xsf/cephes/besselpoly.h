@@ -33,7 +33,16 @@ namespace cephes {
             nu = -nu;
             factor = static_cast<int>(nu) % 2;
         }
-        Sm = cxx::exp(nu * cxx::log(a)) / (Gamma(nu + 1) * (lambda + nu + 1));
+        double lnum = nu * cxx::log(a), d = lambda + nu + 1;
+        double num = cxx::exp(lnum), den = Gamma(nu + 1) * d;
+        if (cxx::isfinite(num) && cxx::isfinite(den)) {
+            Sm = num / den;
+        } else {
+            /* a^nu or Gamma(nu + 1) overflowed: evaluate the leading term in log space */
+            int sign;
+            double lg = detail::lgam_sgn(nu + 1, &sign);
+            Sm = sign * cxx::copysign(cxx::exp(lnum - lg - cxx::log(cxx::abs(d))), d);
+        }
         m = 0;
         do {
             sum += Sm;
