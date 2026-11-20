@@ -7,6 +7,7 @@
 
 #include "config.h"
 #include "error.h"
+#include "evalpoly.h"
 #include "gamma.h"
 #include "trig.h"
 
@@ -325,6 +326,21 @@ namespace detail {
          * real line. */
         return (result == 1.0) ? factor : factor * result;
     }
+
+    /* Taylor coefficients at z = 0 of zeta(z) - 1/(z - 1) (DLMF 25.2.4), degrees 13 down to 1.
+     * The constant term 1/2 is not included.
+     *
+     * from mpmath import mp, zeta, factorial
+     * mp.dps = 40
+     * [float(zeta(0, 1, k) / factorial(k) + 1) for k in range(13, 0, -1)]
+     */
+    constexpr double zeta_regular_taylor_coeff[] = {
+        6.539904805891015e-14,  -4.092582630415831e-14, -9.406895665666177e-12, 1.4970075941901138e-10,
+        -9.110164892314166e-10, -5.764675979949394e-09, 1.6861582638922007e-07, -1.3011460139596242e-06,
+        -1.940896320456038e-06, 0.00012070049942883505, -0.000785194477042408,  -0.0031782279542924255,
+        0.08106146679532726
+    };
+
 } // namespace detail
 
 XSF_HOST_DEVICE inline cxx::complex<double> riemann_zeta(cxx::complex<double> z) {
@@ -333,6 +349,11 @@ XSF_HOST_DEVICE inline cxx::complex<double> riemann_zeta(cxx::complex<double> z)
     }
     if (z.real() >= 0.5) {
         return detail::zeta_right_halfplane(z);
+    }
+    if (cxx::abs(z) < 0.5) {
+        // The reflection evaluates zeta(1 - z) next to its pole. Sum the Taylor series instead, with
+        // 1/(z - 1) = -1 + z/(z - 1) so that the constant -1/2 is exact.
+        return -0.5 + z * (1.0 / (z - 1.0) + evalpoly(detail::zeta_regular_taylor_coeff, 12, z));
     }
     return detail::zeta_reflection(z);
 }
