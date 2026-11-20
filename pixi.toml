@@ -88,7 +88,7 @@ cupy-tests = {
     xsf.path = ".",
     xsref = {
       git = "https://github.com/scipy/xsref",
-      rev = "c5fde949accb98bcad515b19af1cd64bed8cb19d",
+      rev = "537a2bcc0212e248d1a94ae512a81534df29a419",
     },
     # xsf requires C++17, which CuPy uses by default from version 14.
     cupy = ">=14",
