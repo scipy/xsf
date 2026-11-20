@@ -219,6 +219,28 @@ TEST_CASE("Carlson RJ difficult arguments", "[ellint_carlson][xsf_tests]") {
     REQUIRE(std::abs(result - expected) <= 1e-20 + 5e-15 * std::abs(expected));
 }
 
+TEST_CASE("Carlson RD, RF, RJ nearly conjugate arguments", "[ellint_carlson][xsf_tests]") {
+    // Regression test for gh-409: x + lam cancelled in the duplication step.
+    /*
+    from mpmath import mp, mpc, elliprd, elliprf, elliprj
+    mp.dps = 50
+    x = mpc(-1e-4, 1e-30)
+    for r in [elliprf(x, 0.5, x.conjugate()), elliprd(x, x.conjugate(), 0.5), elliprj(x, 0.5, x.conjugate(), 0.3)]:
+        print(repr(float(r.real)))
+    mp.dps = 500
+    x = mpc(-1e100, 1e-300)
+    print(repr(float(elliprd(x, x.conjugate(), 0.5).real)))
+    */
+    SET_FP_FORMAT()
+    const C x{-1e-4, 1e-30};
+    check_close(xsf::cpu::elliprf(x, C{0.5}, std::conj(x)), C{92.63905375888068}, 2e-15);
+    check_close(xsf::cpu::elliprd(x, std::conj(x), C{0.5}), C{547.2412897228597}, 2e-15);
+    check_close(xsf::cpu::elliprj(x, C{0.5}, std::conj(x), C{0.3}), C{909.4222643525362}, 2e-15);
+    // The cancelling root sum underflows here.
+    const C y{-1e100, 1e-300};
+    check_close(xsf::cpu::elliprd(y, std::conj(y), C{0.5}), C{4.242640687119285e-100}, 2e-15);
+}
+
 TEST_CASE("Legendre-Carlson K and E identities", "[ellint_carlson][xsf_tests]") {
     // Mirrors
     // https://github.com/scipy/scipy/blob/v1.18.0/scipy/special/tests/test_basic.py#L2001-L2024

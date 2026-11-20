@@ -75,10 +75,13 @@ do { 	\
 
 #define ELLINT_RJ_UPDT()	\
 do {	\
+    T xl = arithmetic::add_lam(xm, ym, zm, cct1[0], cct1[1], cct1[2], lam);\
+    T yl = arithmetic::add_lam(ym, zm, xm, cct1[1], cct1[2], cct1[0], lam);\
+    T zl = arithmetic::add_lam(zm, xm, ym, cct1[2], cct1[0], cct1[1], lam);\
     Am = (Am + lam) * (RT)0.25;	\
-    xm = (xm + lam) * (RT)0.25;	\
-    ym = (ym + lam) * (RT)0.25;	\
-    zm = (zm + lam) * (RT)0.25;	\
+    xm = xl * (RT)0.25;	\
+    ym = yl * (RT)0.25;	\
+    zm = zl * (RT)0.25;	\
     pm = (pm + lam) * (RT)0.25;	\
     xxm = xxm * (RT)0.25;	\
     yym = yym * (RT)0.25;	\
