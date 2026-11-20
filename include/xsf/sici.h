@@ -64,7 +64,7 @@ XSF_HOST_DEVICE inline void sici(cxx::complex<double> z, cxx::complex<double> &s
     }
     if (z == -cxx::numeric_limits<double>::infinity()) {
         si = -M_PI_2;
-        ci = {0.0, M_PI};
+        ci = {0.0, cxx::copysign(M_PI, z.imag())};
         return;
     }
 
@@ -84,8 +84,9 @@ XSF_HOST_DEVICE inline void sici(cxx::complex<double> z, cxx::complex<double> &s
     // DLMF 6.5.5/6.5.6 plus DLMF 6.4.4/6.4.6/6.4.7
     // Multiply by i componentwise to preserve signed zero for the branch cut.
     cxx::complex<double> jz(-z.imag(), z.real());
-    cxx::complex<double> term1 = expi(jz);
-    cxx::complex<double> term2 = expi(-jz);
+    // Off the imaginary axis use -E1(-w) for Ei(w): its +-pi i would round off a tiny Im Ci
+    cxx::complex<double> term1 = z.real() == 0 ? expi(jz) : -exp1(-jz);
+    cxx::complex<double> term2 = z.real() == 0 ? expi(-jz) : -exp1(jz);
     si = cxx::complex<double>(0.0, -0.5) * (term1 - term2);
     ci = 0.5 * (term1 + term2);
     if (z.real() == 0) {
@@ -95,14 +96,11 @@ XSF_HOST_DEVICE inline void sici(cxx::complex<double> z, cxx::complex<double> &s
             ci -= cxx::complex<double>(0.0, M_PI_2);
         }
     } else if (z.real() > 0) {
-        si -= M_PI_2;
+        // a complex +0i keeps Im Si = +0 for real z
+        si += cxx::complex<double>(M_PI_2, 0.0);
     } else {
-        si += M_PI_2;
-        if (z.imag() >= 0) {
-            ci += cxx::complex<double>(0.0, M_PI);
-        } else {
-            ci -= cxx::complex<double>(0.0, M_PI);
-        }
+        si += cxx::complex<double>(-M_PI_2, 0.0);
+        ci += cxx::complex<double>(0.0, cxx::copysign(M_PI, z.imag()));
     }
 }
 
