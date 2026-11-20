@@ -200,3 +200,37 @@ TEST_CASE("hyperu b near 0", "[hyperu][xsf_tests]") {
     CAPTURE(a, b, x, out, desired, error, rtol);
     REQUIRE(error <= rtol);
 }
+
+TEST_CASE("hyperu x == 0 and b > 1", "[hyperu][xsf_tests]") {
+    // Regression test for gh-542: hyperu(a, b, 0) returned +inf for all a when b > 1.
+    // For a = -m it is (-1)^m (b)_m (DLMF 13.2.7), otherwise it is inf with the sign of 1 / Gamma(a).
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 30
+
+    for a, b in [(-3, 2.5), (0, 2), (-2, 1.5)]:
+        print(f"hyperu({a!r}, {b!r}, 0) = {float((-1)**(-a) * mpmath.rf(b, -a))!r}")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double>;
+    auto [a, b, desired] =
+        GENERATE(test_case{-3.0, 2.5, -39.375}, test_case{0.0, 2.0, 1.0}, test_case{-2.0, 1.5, 3.75});
+
+    const double out = xsf::hyperu(a, b, 0.0);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 5e-16;
+    CAPTURE(a, b, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+
+    const double inf = std::numeric_limits<double>::infinity();
+    REQUIRE(xsf::hyperu(-0.5, 2.0, 0.0) == -inf);
+    REQUIRE(xsf::hyperu(-1.5, 2.0, 0.0) == inf);
+    REQUIRE(xsf::hyperu(0.5, 2.0, 0.0) == inf);
+    REQUIRE(xsf::hyperu(-4.0, 1e306, 0.0) == inf);
+    REQUIRE(xsf::hyperu(-3.0, 1e306, 0.0) == -inf);
+    REQUIRE(xsf::hyperu(-2147483648.5, 2.0, 0.0) == -inf);
+}
