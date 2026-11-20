@@ -116,3 +116,28 @@ TEST_CASE("hyp1f1(a, b, z) tiny a and b", "[hyp1f1][xsf_tests]") {
         REQUIRE(error_real <= rtol);
     }
 }
+
+TEST_CASE("hyp1f1(1, 2, z) complex z near 0: exp(z) - 1 cancels", "[hyp1f1][xsf_tests]") {
+    // Regression test for the (exp(z) - 1) / z shortcut for a = 1, b = 2.
+    /*
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for z in [1e-10 + 1e-10j, 1e-5 - 2e-5j, 1e-10j]:
+        print(f"hyp1f1(1, 2, {z!r}) = {complex(mpmath.hyp1f1(1, 2, mpmath.mpc(z)))!r}")
+    */
+    SET_FP_FORMAT()
+    using cd = std::complex<double>;
+    using test_case = std::tuple<cd, cd>;
+    auto [z, desired] = GENERATE(
+        test_case{{1e-10, 1e-10}, {1.00000000005, 5.000000000333333e-11}},
+        test_case{{1e-5, -2e-5}, {1.0000049999499996, -1.0000066666583331e-05}}, test_case{{0.0, 1e-10}, {1.0, 5e-11}}
+    );
+
+    const cd out = xsf::hyp1f1(1.0, 2.0, z);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 5e-15;
+    CAPTURE(z, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
