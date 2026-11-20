@@ -33,3 +33,28 @@ TEST_CASE("riemann_zeta complex z near 0", "[riemann_zeta][xsf_tests]") {
     REQUIRE(re_error <= rtol);
     REQUIRE(im_error <= rtol);
 }
+
+TEST_CASE("riemann_zeta(z) for 30 < |Im z| <= 50 and near the zeros of 1 - 2^(1 - z)", "[riemann_zeta][xsf_tests]") {
+    // Borwein's 50-term sum is inaccurate for |Im z| > 30, and dividing by 1 - 2^(1 - z) loses
+    // digits near its zeros 1 + 2 pi i k / ln(2). Also near the pole, where Re zeta is finite
+    // while Im zeta is about -1e307, and Im zeta is much smaller than Re zeta at large Re z.
+    // Reference values, with mpmath.mp.dps = 50:
+    //     w = mpmath.zeta(mpmath.mpc(re, im)); print(float(w.real), float(w.imag))
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double, double, double>;
+    auto [re, im, desired_re, desired_im, rtol] = GENERATE(
+        test_case{0.5, 48.0, -0.006058168095158761, -0.00536975820007769, 1e-11},
+        test_case{-0.5, 47.0, -5.485325059905793, -7.224137203791469, 1e-12},
+        test_case{33.0, 40.0, 0.9999999999006589, -6.069455759733579e-11, 1e-12},
+        test_case{27.0, 31.726520992790356, 0.9999999925492941, 3.845617282366759e-14, 1e-9},
+        test_case{1.0, 9.064720283654388, 1.3465795428363172, 0.1098831367962695, 1e-12},
+        test_case{1.0, 1e-307, 0.5772156649015329, -1.0000000000000001e+307, 1e-12}
+    );
+
+    const std::complex<double> out = xsf::riemann_zeta(std::complex<double>(re, im));
+    const double error_re = xsf::extended_relative_error(out.real(), desired_re);
+    const double error_im = xsf::extended_relative_error(out.imag(), desired_im);
+    CAPTURE(re, im, out, desired_re, desired_im, error_re, error_im, rtol);
+    REQUIRE(error_re <= rtol);
+    REQUIRE(error_im <= rtol);
+}

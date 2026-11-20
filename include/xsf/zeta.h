@@ -129,13 +129,19 @@ namespace detail {
             cxx::complex<double> term = cxx::pow(static_cast<double>(i), -z);
             result += term;
             // When z.real() > 1, series converges and we can consider early termination
-            if (z.real() > 1 && cxx::abs(term) / cxx::abs(result) <= cxx::numeric_limits<double>::epsilon()) {
+            /* For |Im z| <= 50, compare to the smaller part of result, as Im zeta can be much
+             * smaller than Re zeta. Above, this would take far too long for Re z near 2.5. */
+            double scale = cxx::abs(z.imag()) > 50.0 ? cxx::abs(result)
+                                                     : cxx::min(cxx::abs(result.real()), cxx::abs(result.imag()));
+            if (z.real() > 1 && cxx::abs(term) <= cxx::numeric_limits<double>::epsilon() * scale) {
                 return result;
             }
         }
         double N = static_cast<double>(n);
         cxx::complex<double> b = cxx::pow(N, -z);
-        result += b * (0.5 + N / (z - 1.0));
+        // The pole term b N / (z - 1) is added after the tail, as near z = 1 it dwarfs the rest.
+        cxx::complex<double> pole = b * N / (z - 1.0);
+        result += 0.5 * b;
         /* The terms of the Euler-Maclaurin
          * expansion below are T(k, n) = B2k/(2k)! * n^(1 - z - 2k) * z(z+1)...(z+2k-2).
          * We work with logarithms to avoid overflow in all cases at the expense of
@@ -151,11 +157,12 @@ namespace detail {
             cxx::complex<double> term = cxx::exp(zeta_em_log_coeff(k) + log_factor + log_poch);
             result += term;
             if (cxx::abs(term) / cxx::abs(result) <= cxx::numeric_limits<double>::epsilon()) {
-                return result;
+                return result + pole;
             }
             log_poch += cxx::log(z + static_cast<double>(2 * k - 1)) + cxx::log(z + static_cast<double>(2 * k));
             log_factor -= 2 * cxx::log(N);
         }
+        result += pole;
         /* Euler-maclaurin absolute error estimate.
          * The error is bounded above by |(z + 2m + 1)/(z.real + 2m + 1) * T(m+1, n)|
          * See https://en.wikipedia.org/wiki/Riemann_zeta_function#Numerical_algorithms
@@ -220,8 +227,9 @@ namespace detail {
         0.9999998260580315,     0.9999999933099243
     };
 
-    /* Compute riemann_zeta for complex input z using Algorithm 2 from Borwein 1995. */
-    XSF_HOST_DEVICE inline cxx::complex<double> zeta_borwein(cxx::complex<double> z) {
+    /* Compute riemann_zeta for complex input z using Algorithm 2 from Borwein 1995.
+     * eta_factor is 1 - 2^(1 - z). */
+    XSF_HOST_DEVICE inline cxx::complex<double> zeta_borwein(cxx::complex<double> z, cxx::complex<double> eta_factor) {
         cxx::complex<double> result = 0.0;
         // Sum in reverse order because smaller terms come later.
         for (int k = 49; k >= 0; k--) {
@@ -230,7 +238,7 @@ namespace detail {
             cxx::complex<double> term = sign * (zeta_borwein_coeff[k] - 1.0) / den;
             result += term;
         }
-        return result * -1.0 / (1.0 - cxx::pow(2.0, 1.0 - z));
+        return result * -1.0 / eta_factor;
     }
 
     /* Compute riemann zeta for complex z and real part >= 0 */
@@ -240,7 +248,7 @@ namespace detail {
         }
         /* Cutoff for using Euler-MacLaurin chosen based on cursory empirical search.
          * TODO: Choose cutoffs in a more principled way. */
-        if (z.real() < 50.0 && cxx::abs(z.imag()) > 50.0) {
+        if (z.real() < 50.0 && cxx::abs(z.imag()) > 30.0) {
             if (z.real() >= 0.0 && z.real() < 2.5 && cxx::abs(z.imag()) > 1e9) {
                 /* Euler-MacLaurin summation starts to take an unreasonable amount of time in this
                  * region, so just give up and return NaN instead. */
@@ -249,7 +257,13 @@ namespace detail {
             }
             return zeta_euler_maclaurin(z);
         }
-        return zeta_borwein(z);
+        /* Borwein computes eta(z) = (1 - 2^(1 - z)) zeta(z), so the division loses digits near the
+         * zeros of the factor, 1 + 2 pi i k / ln(2). */
+        cxx::complex<double> eta_factor = 1.0 - cxx::pow(2.0, 1.0 - z);
+        if (cxx::abs(eta_factor) < 0.5) {
+            return zeta_euler_maclaurin(z);
+        }
+        return zeta_borwein(z, eta_factor);
     }
 
     XSF_HOST_DEVICE inline cxx::complex<double> exppi(cxx::complex<double> z) {
