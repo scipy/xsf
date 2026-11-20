@@ -103,7 +103,8 @@ def get_preamble(header):
     return f'#include "{header_path}"'
 
 
-@check_version(cupy, "13.0.0")
+# xsf requires C++17, which CuPy uses by default from version 14.
+@check_version(cupy, "14.0.0")
 class TestCuPy:
     def _adjust_tol(self, tol, *, wiggle=16):
         return wiggle * np.maximum(tol, np.finfo(tol.dtype).eps)
@@ -264,7 +265,6 @@ class TestCuPy:
     @pytest.mark.parametrize(
         "tables_paths", get_tables_for_func("gdtrib")
     )
-    @pytest.mark.xfail(reason="Requires cpp_std >= 17")
     def test_gdtrib(self, tables_paths):
         input_path, output_path, tol_path = tables_paths
         gdtrib = cupy._core.create_ufunc(
