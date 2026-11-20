@@ -118,3 +118,37 @@ TEST_CASE("lqn lqmn Q_0 for complex z with |z| << 1 or tiny Re z", "[lqn][lqmn][
     REQUIRE(error_re <= rtol);
     REQUIRE(error_im <= rtol);
 }
+
+TEST_CASE("lqn |x| just above 1.021", "[lqn][real][xsf_tests]") {
+    // Regression test for scipy/xsf#552 (comment 7052780497): the series for the start values
+    // of the backward recurrence was cut off after 500 terms, e.g. relative error 6.4e-5 for
+    // Q_0(-1.02101) with n = 100.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    # Q_n(-x) = (-1)^(n+1) Q_n(x) for x > 1
+    for x, k in [(-1.02101, 0), (1.02101, 0), (-1.02101, 100)]:
+        s = (-1) ** (k + 1) if x < 0 else 1
+        q = s * mpmath.legenq(k, 0, abs(mpmath.mpf(x)), type=3).real
+        print(f"x={x!r}, k={k}: Q_k={float(q)!r}")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, int, int, double>;
+    auto [x, n, k, desired] = GENERATE(
+        test_case{-1.02101, 100, 0, -2.2831770752899967}, test_case{1.02101, 200, 0, 2.2831770752899967},
+        test_case{-1.02101, 100, 100, -3.20577818739551e-10}
+    );
+
+    std::vector<double> q(n + 1), d(n + 1);
+    xsf::lqn(x, xsf::cxx::mdspan(q.data(), q.size()), xsf::cxx::mdspan(d.data(), d.size()));
+
+    const double error = xsf::extended_relative_error(q[k], desired);
+    const double rtol = 1e-13;
+    CAPTURE(x, n, k, q[k], desired, error, rtol);
+    REQUIRE(error <= rtol);
+}

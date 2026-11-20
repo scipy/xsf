@@ -751,7 +751,7 @@ void lqn(T x, OutputVec1 qn, OutputVec2 qd) {
     int n = qn.size() - 1;
 
     T q0, q1, qf, qc1, qc2, qr, qf0, qf1, qf2;
-    const T eps = 1.0e-14;
+    const T eps = 1.0e-16;
 
     if (fabs(x) == 1.0) {
         for (int k = 0; k <= n; k++) {
@@ -791,7 +791,10 @@ void lqn(T x, OutputVec1 qn, OutputVec2 qd) {
             qf = 1.0;
             qr = 1.0;
 
-            for (int k = 1; k <= 500; k++) {
+            // For |x| just above 1.021, the terms decay like 1/x^2 ~ 0.96, so the tail can be tens of
+            // times the last term, and in double up to ~3800 terms are needed (at n ~ 1000). Skip the
+            // series if its prefactor underflowed, since qf can then overflow.
+            for (int k = 1; k <= 5000 && (l == 0 ? qc1 : qc2) != 0; k++) {
                 qr = qr * (0.5 * nl + k - 1.0) * (0.5 * (nl - 1) + k) / ((nl + k - 0.5) * k * x * x);
                 qf += qr;
                 if (fabs(qr / qf) < eps)
