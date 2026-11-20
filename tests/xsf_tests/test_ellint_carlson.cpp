@@ -317,3 +317,34 @@ TEST_CASE("Carlson RJ with equal positive real x, y, z", "[ellint_carlson][xsf_t
     CAPTURE(x, y, z, p);
     check_close(xsf::cpu::elliprj(C{x}, C{y}, C{z}, p), expected, 1e-14);
 }
+
+TEST_CASE("Carlson RJ nearly imaginary arguments", "[ellint_carlson][xsf_tests]") {
+    // Complex elliprj was inaccurate if p + lam cancels in the duplication step.
+
+    /*
+    from mpmath import mp, mpc, sqrt, quad, inf
+    mp.dps = 30
+    def rj(x, y, z, p):  # mp.elliprj is inaccurate for the last case
+        f = lambda t: 1 / ((t + p) * sqrt(t + x) * sqrt(t + y) * sqrt(t + z))
+        return 1.5 * quad(f, [0, 1, 10, 100, inf])
+    for e in [1e-10, 1e-16, 1e-20]:
+        r = rj(mpc(e, 1), mpc(e, 4), mpc(e, 9), mpc(e, -11))
+        print(repr(float(r.real)), repr(float(r.imag)))
+    for x, p in [(mpc(1e-20, 6), mpc(1e-20, -90)), (mpc(0, 2), mpc(1e-307, -6))]:
+        r = rj(x, x, x, p)
+        print(repr(float(r.real)), repr(float(r.imag)))
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<C, C, C, C, C>;
+    auto [x, y, z, p, expected] = GENERATE(
+        test_case{C{1e-10, 1}, C{1e-10, 4}, C{1e-10, 9}, C{1e-10, -11}, C{0.10806392013828732, -0.0030081533124577168}},
+        test_case{C{1e-16, 1}, C{1e-16, 4}, C{1e-16, 9}, C{1e-16, -11}, C{0.10806392013989438, -0.003008153314064776}},
+        test_case{C{1e-20, 1}, C{1e-20, 4}, C{1e-20, 9}, C{1e-20, -11}, C{0.10806392013989438, -0.0030081533140647776}},
+        // in a later step
+        test_case{C{1e-20, 6}, C{1e-20, 6}, C{1e-20, 6}, C{1e-20, -90}, C{0.011987648840548771, 0.004902495074008858}},
+        // with an R_C argument that underflows
+        test_case{C{0, 2}, C{0, 2}, C{0, 2}, C{1e-307, -6}, C{0.2832647046057039, -0.0112596066683392}}
+    );
+    CAPTURE(x, y, z, p);
+    check_close(xsf::cpu::elliprj(x, y, z, p), expected, 1e-13);
+}

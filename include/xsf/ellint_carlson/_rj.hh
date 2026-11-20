@@ -71,6 +71,14 @@ do { 	\
     cct1[2] = cct2[0] = std::sqrt(zm);	\
     lam = arithmetic::ndot2(cct1, cct2, 3);	\
     dm = (prm + cct1[0]) * (prm + cct1[1]) * (prm + cct1[2]);\
+    pl = pm + lam;	\
+    /* Re(p + lam) >= 4^-m Re p in the right half-plane */	\
+    if ( right && (std::abs(pl) < std::abs(pm)) &&	\
+         (std::real(pl) < std::real(p) * d4m) )	\
+    {	\
+	pl = pl - std::real(pl) + std::real(p) * d4m;	\
+    }	\
+    u = prm / dm * (pl * (RT)2.0);	\
 } while ( 0 )
 
 #define ELLINT_RJ_UPDT()	\
@@ -82,7 +90,7 @@ do {	\
     xm = xl * (RT)0.25;	\
     ym = yl * (RT)0.25;	\
     zm = zl * (RT)0.25;	\
-    pm = (pm + lam) * (RT)0.25;	\
+    pm = pl * (RT)0.25;	\
     xxm = xxm * (RT)0.25;	\
     yym = yym * (RT)0.25;	\
     zzm = zzm * (RT)0.25;	\
@@ -617,9 +625,45 @@ rj(const T& x, const T& y, const T& z, const T& p, const double& rerr, T& res,
     /* m = 0; */
     RT d4m = 1.0;
     T pm = p;
-    T prm, lam, dm;
+    T prm, lam, dm, pl, u;
+    /* The R_C term of a step is 6 4^-m R_C(1, u) / d, where
+     * u = 1 + delta 4^-3m / d^2 = 2 sqrt(p) (p + lam) / d. Once u cancels with
+     * p + lam in the right half-plane, these terms are summed directly from
+     * the latter, instead of via s. */
+    bool right = ( (std::real(xm) >= 0.0) && (std::real(p) > 0.0) );
+    auto cancels = [&]() {
+	return ( right && (std::abs(pl) < std::abs(pm)) &&
+		 (std::abs(u) < 0.0625) );
+    };
+    auto rc_term = [&]() {
+	/* R_C(1, u) = sqrt(c) R_C(c, c u), with the smaller factor of u scaled
+	 * if it or u underflows */
+	T a = prm / dm;
+	T b = pl * (RT)2.0;
+	RT c = (RT)1.0;
+	RT tiny = std::numeric_limits<RT>::min();
+	if ( (std::abs(a) < tiny) || (std::abs(u) < tiny) )
+	{
+	    c = (RT)0x1p600;
+	    if ( std::abs(a) < std::abs(b) )
+	    {
+		a = prm / (dm / c);
+	    } else {
+		b *= c;
+	    }
+	}
+	T r;
+	ExitStatus status_tmp = rc(T(c), a * b, rerr, r);
+	if ( status_tmp != ExitStatus::success )
+	{
+	    status = status_tmp;
+	}
+	return r * std::sqrt(c) * (d4m * (RT)6.0) / dm;
+    };
     ELLINT_RJ_CALC();
     T sm = dm * (RT)0.5;
+    bool direct = cancels();
+    T rcsum = direct ? rc_term() : T(0.0);
     /* next */
     ELLINT_RJ_UPDT();
 
@@ -637,7 +681,18 @@ rj(const T& x, const T& y, const T& z, const T& p, const double& rerr, T& res,
 	T rm = sm * (std::sqrt((delta * d4m) / (sm * sm) + (RT)1.0) +
 	                 (RT)1.0);
 	ELLINT_RJ_CALC();
-	sm = (rm * dm - delta * (d4m * d4m)) * (RT)0.5 / (dm + rm * d4m);
+	if ( !direct && cancels() )
+	{
+	    direct = true;
+	    rcsum = rjimpl::safe_atan_sqrt_div(delta * d4m / (sm * sm)) *
+		    (RT)3.0 / sm;
+	}
+	if ( direct )
+	{
+	    rcsum += rc_term();
+	} else {
+	    sm = (rm * dm - delta * (d4m * d4m)) * (RT)0.5 / (dm + rm * d4m);
+	}
 
 	/* next */
 	ELLINT_RJ_UPDT();
@@ -693,7 +748,7 @@ rj(const T& x, const T& y, const T& z, const T& p, const double& rerr, T& res,
     tmp *= t;
     t = delta * d4m / (sm * sm);
     /* Use the library atan function, following Ref[4], Sec. 1.6.1. */
-    tmp += rjimpl::safe_atan_sqrt_div(t) * (RT)3.0 / sm;
+    tmp += direct ? rcsum : rjimpl::safe_atan_sqrt_div(t) * (RT)3.0 / sm;
 
     res = tmp;
     return status;
