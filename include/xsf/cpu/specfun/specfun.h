@@ -71,6 +71,7 @@
 #pragma once
 
 #include "../../config.h"
+#include "../exp.h"
 #include <memory>
 
 namespace xsf {
@@ -668,7 +669,9 @@ namespace specfun {
             return (1.0 + z / b) * std::exp(z);
         }
         if ((a == 1.0) && (b == 2.0)) {
-            return (std::exp(z) - 1.0) / z;
+            // expm1 only near 0: exp(z) - 1 cancels there, but expm1 overflows for large Re z
+            bool near_zero = std::abs(z.real()) < 1.0 && std::abs(z.imag()) < 1.0;
+            return (near_zero ? xsf::expm1(z) : std::exp(z) - 1.0) / z;
         }
         if ((a == (int)a) && (a < 0.0)) {
             m = (int)(-a);
