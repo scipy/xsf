@@ -2576,10 +2576,23 @@ namespace amos {
         elim = 2.303 * (k * r1m5 - 3.0);
         exr = std::cos(xx);
         exi = std::sin(xx);
-        ey = 0.0;
         tay = std::fabs(yy + yy);
         if (tay < elim) {
             ey = std::exp(-tay);
+        } else {
+            // AMOS drops the H term with the factor exp(-tay) here, but for abs(z) < fnu it can be significant
+            std::complex<double> *h = (yy < 0.0) ? cwrk.get() : cy;
+            std::complex<double> *g = (yy < 0.0) ? cy : cwrk.get();
+            double eyh = std::exp(-std::fabs(yy)); // exp(-tay / 2), as exp(-tay) can underflow
+            for (i = 0; i < n; i++) {
+                aa = (h[i] == 0.0) ? -elim : std::log(std::abs(h[i])) - tay;
+                if ((aa > -elim) && (std::exp(aa) / tol > std::abs(g[i]))) {
+                    h[i] = h[i] * eyh * eyh;
+                } else {
+                    h[i] = 0.0;
+                }
+            }
+            ey = 1.0;
         }
         if (yy < 0.0) {
             /* 90 */
@@ -2615,7 +2628,7 @@ namespace amos {
 
             st -= std::complex<double>(aa, bb) * c1 * atol;
             cy[i - 1] = st * hci;
-            if ((st == 0.0) && (ey == 0.0)) {
+            if ((st == 0.0) && (tay >= elim)) {
                 nz += 1;
             }
         }
