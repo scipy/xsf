@@ -94,8 +94,13 @@ XSF_HOST_DEVICE inline cxx::complex<double> exp1(cxx::complex<double> z) {
         //                  1     1     1     2     2     3     3
         // E1 = exp(-z) * ----- ----- ----- ----- ----- ----- ----- ...
         //                Z +   1 +   Z +   1 +   Z +   1 +   Z +
+        // Close to the cut, it can miss part of the 2 pi i jump across it, so there (unless E1
+        // overflows) it is evaluated on the cut, and the integral of -exp(-t)/t from x to z is
+        // added (DLMF 6.2.1).
+        bool cut = (-2.0 * cephes::detail::MAXLOG < x) && (x < xt) && (cxx::abs(z.imag()) < 0.3);
+        cxx::complex<double> w = cut ? cxx::complex<double>(x) : z;
         zc = 0.0;
-        zd = static_cast<double>(1) / z;
+        zd = static_cast<double>(1) / w;
         zdc = zd;
         zc += zdc;
         for (k = 1; k < 501; k++) {
@@ -103,21 +108,35 @@ XSF_HOST_DEVICE inline cxx::complex<double> exp1(cxx::complex<double> z) {
             zdc *= (zd - static_cast<double>(1));
             zc += zdc;
 
-            zd = static_cast<double>(1) / (zd * static_cast<double>(k) + z);
-            zdc *= (z * zd - static_cast<double>(1));
+            zd = static_cast<double>(1) / (zd * static_cast<double>(k) + w);
+            zdc *= (w * zd - static_cast<double>(1));
             zc += zdc;
             if ((cxx::abs(zdc) <= cxx::abs(zc) * 1e-15) && (k > 20)) {
                 break;
             }
         }
+        cxx::complex<double> iy(0.0, z.imag()), s = 0.0;
+        if (cut) {
+            // The integral is -exp(-x) iy s, with s = sum_k a_k (iy)^k/(k + 1), where
+            // exp(-u)/(x + u) = sum_k a_k u^k, so x a_k + a_{k-1} = (-1)^k/k!
+            cxx::complex<double> p = 1.0;
+            double a = 1.0 / x, f = 1.0;
+            s = a;
+            for (k = 1; k < 20; k++) {
+                f = -f / k;
+                a = (f - a) / x;
+                p *= iy;
+                s += p * (a / (k + 1));
+            }
+        }
         if (-2.0 * cephes::detail::MAXLOG < x && x < -cephes::detail::MAXLOG) {
             // exp(-x) overflows before E1 does, so apply it in two halves
             double h = cxx::exp(-x / 2.0);
-            ce1 = h * (cxx::exp(cxx::complex<double>(0.0, -z.imag())) * (h * zc));
+            ce1 = h * (cxx::exp(cxx::complex<double>(0.0, -w.imag())) * (h * zc - (h * iy) * s));
         } else {
-            ce1 = cxx::exp(-z) * zc;
+            ce1 = cxx::exp(-w) * (zc - iy * s);
         }
-        if ((x <= 0.0) && (z.imag() == 0.0)) {
+        if (cut || ((x <= 0.0) && (z.imag() == 0.0))) {
             ce1 -= cxx::copysign(M_PI, z.imag()) * cxx::complex<double>(0.0, 1.0);
         }
     }
