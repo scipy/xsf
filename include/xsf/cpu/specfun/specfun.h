@@ -3940,6 +3940,8 @@ namespace specfun {
         } else {
             m = msta2(x, *nm, 15);
         }
+        // rescale by a power of 2, since the backward recurrence overflows for large x
+        const double big = 0x1p512, small = 0x1p-512;
         bs = 0.0;
         f = 0.0;
         f0 = 0.0;
@@ -3952,13 +3954,12 @@ namespace specfun {
             if (k % 2 == 0) {
                 bs += 2.0 * f;
             }
-            if (fabs(f) > 0x1p512) {
-                // rescale (exactly), the recurrence overflows from about x = 4476
-                f /= 0x1p512;
-                f1 /= 0x1p512;
-                bs /= 0x1p512;
+            if (fabs(f) > big) {
+                f *= small;
+                f1 *= small;
+                bs *= small;
                 for (i = k; i <= *nm; i++) {
-                    bl[i] /= 0x1p512;
+                    bl[i] *= small;
                 }
             }
             f0 = f1;
@@ -4120,6 +4121,8 @@ namespace specfun {
                 m = msta2(x, n, 15);
             }
 
+            // rescale by a power of 2, since the backward recurrence overflows for large x
+            const double big = 0x1p512, small = 0x1p-512;
             f = 0.0;
             f2 = 0.0;
             f1 = 1.0e-100;
@@ -4128,11 +4131,11 @@ namespace specfun {
                 f = 2.0 * (v0 + k + 1.0) / x * f1 - f2;
                 if (k <= n)
                     vl[k] = f;
-                if (fabs(f) > 0x1p512) {
-                    f /= 0x1p512;
-                    f1 /= 0x1p512;
+                if (fabs(f) > big) {
+                    f *= small;
+                    f1 *= small;
                     for (i = k; i <= n; i++) {
-                        vl[i] /= 0x1p512;
+                        vl[i] *= small;
                     }
                 }
                 f2 = f1;
