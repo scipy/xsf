@@ -73,3 +73,33 @@ TEST_CASE("exp1, expi overflow only above the true overflow threshold", "[exp1][
     REQUIRE(xsf::extended_relative_error(eic.real(), 1.2571543434669668e306) <= rtol);
     REQUIRE(xsf::extended_relative_error(eic.imag(), 1.9518582701792164e306) <= rtol);
 }
+
+TEST_CASE("exp1 near the negative real axis for abs(z) >= 40", "[exp1][xsf_tests]") {
+    // Regression test: the continued fraction missed (part of) the 2 pi i jump across the cut.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 400
+
+    for x, y in [(-40, -1e-10), (-45, 1e-17), (-100, -1e-50), (-710, 5e-310)]:
+        e1 = mpmath.e1(mpmath.mpc(x, y))
+        print(repr(float(e1.real)), repr(float(e1.imag)))
+    */
+    SET_FP_FORMAT()
+    auto [x, y, re, im] = GENERATE(
+        std::make_tuple(-40.0, -1e-10, -6039718263611242.0, -588460.0254998964),
+        std::make_tuple(-45.0, 1e-17, -7.943916035704454e+17, 4.621578692518006),
+        std::make_tuple(-100.0, -1e-50, -2.71555274485388e+41, 3.1415926509016763),
+        std::make_tuple(-710.0, 5e-310, -3.1509156882062014e+305, -3.1414353300147115)
+    );
+    // exp(710) can be off by about 710 eps on other platforms
+    const double rtol = 2e-13;
+
+    const std::complex<double> e1 = xsf::exp1(std::complex<double>(x, y));
+    CAPTURE(x, y, e1);
+    REQUIRE(xsf::extended_relative_error(e1.real(), re) <= rtol);
+    REQUIRE(xsf::extended_relative_error(e1.imag(), im) <= rtol);
+}
