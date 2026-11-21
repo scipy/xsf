@@ -974,9 +974,8 @@ void lqmn(T x, OutputMat1 qm, OutputMat2 qd) {
             qf1 = qf0;
         }
 
-        for (k = 0; k <= n; k++) {
-            qm(0, k) *= q0 / qf0;
-        }
+        // Q_k^0 = qm(0, k) c0 2^-512 can underflow, so keep the 2^512 until the recurrence in m
+        const double c0 = 0x1p512 * q0 / qf0;
 
         qf2 = 0.0;
         qf1 = 1.0;
@@ -997,16 +996,23 @@ void lqmn(T x, OutputMat1 qm, OutputMat2 qd) {
         }
 
         q10 = -1.0 / xq;
-        for (k = 0; k <= n; k++) {
-            qm(1, k) *= q10 / qf0;
-        }
+        const double c1 = 0x1p512 * q10 / qf0;
 
         for (j = 0; j <= n; j++) {
-            q0 = qm(0, j);
-            q1 = qm(1, j);
+            q0 = qm(0, j) * c0;
+            q1 = qm(1, j) * c1;
+            qm(0, j) = qm(0, j) * c0 * 0x1p-512;
+            qm(1, j) = qm(1, j) * c1 * 0x1p-512;
+            // undo the 2^512 once Q_j^i and Q_j^(i+1) are normal
+            double s = 0x1p512;
             for (i = 0; i <= (m - 2); i++) {
+                if (s > 1 && fmin(fabs(q0), fabs(q1)) >= 0x1p-510) {
+                    q0 /= s;
+                    q1 /= s;
+                    s = 1;
+                }
                 qf = -2. * (i + 1.) * x / xq * q1 + (j - i) * (j + i + 1.) * q0;
-                qm(i + 2, j) = qf;
+                qm(i + 2, j) = qf / s;
                 q0 = q1;
                 q1 = qf;
             }
@@ -1117,10 +1123,9 @@ void lqmn(std::complex<T> z, OutputMat1 cqm, OutputMat2 cqd) {
             cqf1 = cqf0;
         }
 
-        for (k = 1; k <= n; k++) {
-            cqm(0, k) *= cq0 / cqf0;
-        }
-        cqm(0, 0) = cq0;
+        // Q_k^0 = cqm(0, k) c0 / scale can underflow, so keep the scale, 2^512 for double, until the recurrence in m
+        const T scale = std::ldexp(T(1), std::numeric_limits<T>::max_exponent / 2);
+        const std::complex<T> c0 = scale * cq0 / cqf0;
 
         cqf2 = 0.0;
         cqf1 = 1.0;
@@ -1141,16 +1146,23 @@ void lqmn(std::complex<T> z, OutputMat1 cqm, OutputMat2 cqd) {
         }
 
         cq10 = -static_cast<T>(1) / zq;
-        for (k = 0; k <= n; k++) {
-            cqm(1, k) *= cq10 / cqf0;
-        }
+        const std::complex<T> c1 = scale * cq10 / cqf0;
 
         for (j = 0; j <= n; j++) {
-            cq0 = cqm(0, j);
-            cq1 = cqm(1, j);
+            cq0 = j == 0 ? scale * cq0 : cqm(0, j) * c0;
+            cq1 = cqm(1, j) * c1;
+            cqm(0, j) = cq0 / scale;
+            cqm(1, j) = cq1 / scale;
+            // undo the scale once Q_j^i and Q_j^(i+1) are normal
+            T s = scale;
             for (i = 0; i <= (m - 2); i++) {
+                if (s > 1 && std::fmin(std::abs(cq0), std::abs(cq1)) >= std::numeric_limits<T>::min() * s) {
+                    cq0 /= s;
+                    cq1 /= s;
+                    s = 1;
+                }
                 cqf = -static_cast<T>(2 * (i + 1)) * z / zq * cq1 + static_cast<T>((j - i) * (j + i + 1)) * cq0;
-                cqm(i + 2, j) = cqf;
+                cqm(i + 2, j) = cqf / s;
                 cq0 = cq1;
                 cq1 = cqf;
             }
