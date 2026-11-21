@@ -53,6 +53,7 @@
 #include "../config.h"
 #include "const.h"
 #include "gamma.h"
+#include "lanczos.h"
 #include "rgamma.h"
 
 namespace xsf {
@@ -85,6 +86,40 @@ namespace cephes {
             r += -t * t * u * (1 - b) / 12;
 
             return r;
+        }
+
+        /*
+         * ln(|B(a, b)|) and the sign of B(a, b) in *y and *sgn, for |a| >= |b| > 0 with
+         * |b| < |a| / 8, or a > 0 and b <= -a / 2. Returns false otherwise.
+         *
+         * lgam(a) + lgam(b) - lgam(a + b) loses about |a| * log|a| * eps through cancellation,
+         * e.g. a relative error of 3.4e-9 for lbeta(1e100, 1e94), 9e-11 for beta(999999, 0.5),
+         * 3e-10 for beta(-1000000.25, 0.5) and 4e-12 for beta(5000.25, -4999.5). lgam_ratio
+         * avoids it; the negative one of the two largest arguments is reflected first.
+         *
+         * Port of lbeta_ratio from jorenham/xsf-rust#415 and #420 by Joren Hammudoglu.
+         */
+        XSF_HOST_DEVICE inline bool lbeta_ratio(double a, double b, double *y, int *sgn) {
+            if (a > 0 && cxx::abs(b) < 0.125 * a) {
+                *y = lgam_sgn(b, sgn) - lgam_ratio(a, b);
+                return true;
+            }
+            if (a > 0 && b <= -0.5 * a) {
+                /* B(a, b) = pi / sin(pi b) * Gamma(a) / Gamma(1 - b) / Gamma(a + b), with exact a + b */
+                *y = cxx::log(M_PI / cxx::abs(sinpi(b))) - lgam_ratio(a, 1 - (a + b)) - lgam(a + b);
+                *sgn = (gammasgn(b) < 0) ? -1 : 1;
+                return true;
+            }
+            if (a < 0 && cxx::abs(b) < -0.125 * a) {
+                /* Gamma(a) / Gamma(a + b) = sin(pi (a + b)) / sin(pi a) * Gamma(1 - a - b) / Gamma(1 - a) */
+                double s = sinpi(a + b) / sinpi(a);
+                *y = lgam_sgn(b, sgn) + cxx::log(cxx::abs(s)) - lgam_ratio(1 - a - b, b);
+                if (s < 0) {
+                    *sgn = -*sgn;
+                }
+                return true;
+            }
+            return false;
         }
 
         /*
@@ -153,6 +188,13 @@ namespace cephes {
         y = a + b;
         if (cxx::abs(y) > detail::MAXGAM || cxx::abs(a) > detail::MAXGAM || cxx::abs(b) > detail::MAXGAM) {
             int sgngam;
+            if (detail::lbeta_ratio(a, b, &y, &sign)) {
+                /* Avoid loss of precision in lgam(a) + lgam(b) - lgam(a + b) */
+                if (y > detail::MAXLOG) {
+                    goto overflow;
+                }
+                return (sign * cxx::exp(y));
+            }
             y = detail::lgam_sgn(y, &sgngam);
             sign *= sgngam; /* keep track of the sign */
             y = detail::lgam_sgn(b, &sgngam) - y;
@@ -230,6 +272,10 @@ namespace cephes {
         y = a + b;
         if (cxx::abs(y) > detail::MAXGAM || cxx::abs(a) > detail::MAXGAM || cxx::abs(b) > detail::MAXGAM) {
             int sgngam;
+            if (detail::lbeta_ratio(a, b, &y, &sgngam)) {
+                /* Avoid loss of precision in lgam(a) + lgam(b) - lgam(a + b) */
+                return (y);
+            }
             y = detail::lgam_sgn(y, &sgngam);
             sign *= sgngam; /* keep track of the sign */
             y = detail::lgam_sgn(b, &sgngam) - y;
