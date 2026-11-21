@@ -818,6 +818,32 @@ void lqn(T x, OutputVec1 qn, OutputVec2 qd) {
             qf1 = qf0;
         }
 
+        // If qc1 and qc2 underflowed (large n or |x|), use the continued fraction
+        // Q_k / Q_(k-1) = k / ((2k + 1) x - (k + 1) Q_(k+1) / Q_k) (DLMF 14.10.3) from degree n + 100 instead (its
+        // relative error shrinks like (|x| - sqrt(x^2 - 1))^2 < 0.67 per degree), and Q_k = Q_0 prod Q_j / Q_(j-1)
+        if (qc1 == 0 && qc2 == 0) {
+            T r = 0;
+            for (int k = n + 100; k >= 1; k--) {
+                r = k / ((2.0 * k + 1) * x - (k + 1.0) * r);
+                if (k <= n) {
+                    qn[k] = r;
+                }
+            }
+
+            // rescale by a power of 2, so that the product underflows gracefully
+            const double big = 0x1p512, small = 0x1p-512;
+            double q = lq0(x), s = 1;
+            qn[0] = q;
+            for (int k = 1; k <= n; k++) {
+                q *= qn[k];
+                if (fabs(q) < small) {
+                    q *= big;
+                    s *= small;
+                }
+                qn[k] = q * s;
+            }
+        }
+
         qd[0] = 1.0 / (1.0 - x * x);
 
         for (int k = 1; k <= n; k++) {
