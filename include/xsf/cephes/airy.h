@@ -165,8 +165,10 @@ namespace cephes {
     } // namespace detail
 
     XSF_HOST_DEVICE inline int airy(double x, double *ai, double *aip, double *bi, double *bip) {
-        double z, zz, t, f, g, uf, ug, k, zeta, theta;
+        double z, zz, t, f, g, uf, ug, k, zeta, theta, tai = 0.0, taip = 0.0;
         int domflg;
+        const double x0 = 2.09, ai0 = 0.03042031836319838, aip0 = -0.04708838543657824; /* Ai(x0), Ai'(x0) */
+        const bool taylor = x >= 0.75 && x < x0;
 
         domflg = 0;
         if (x > detail::MAXAIRY) {
@@ -198,6 +200,25 @@ namespace cephes {
             *aip = -k * (g * uf + f * ug);
             *bip = k * (f * uf - g * ug);
             return (0);
+        }
+
+        if (taylor) {
+            /* The Maclaurin series of Ai cancel here (terms up to 36 |Ai|), so sum the Taylor
+             * series at x0 instead, using Ai'' = x Ai (DLMF 9.2.1): with h = x - x0 < 0 the
+             * terms a_n = Ai^(n)(x0) h^n / n! satisfy n (n - 1) a_n = h^2 (x0 a_(n-2) + h a_(n-3)).
+             * ai0 and aip0 are rounded from mpmath. */
+            double h = x - x0, a3 = 0.0, a2 = ai0, a1 = aip0 * h;
+            tai = a2 + a1;
+            taip = a1;
+            for (k = 2.0; cxx::abs(a2) > detail::MACHEP * tai || cxx::abs(a1) > detail::MACHEP * tai; k += 1.0) {
+                t = h * h * (x0 * a2 + h * a3) / (k * (k - 1.0));
+                a3 = a2;
+                a2 = a1;
+                a1 = t;
+                tai += t;
+                taip += k * t;
+            }
+            taip /= h;
         }
 
         if (x >= 2.09) { /* cbrt(9) */
@@ -248,7 +269,7 @@ namespace cephes {
         uf = detail::airy_c1 * f;
         ug = detail::airy_c2 * g;
         if ((domflg & 1) == 0) {
-            *ai = uf - ug;
+            *ai = taylor ? tai : uf - ug;
         }
         if ((domflg & 2) == 0) {
             *bi = detail::SQRT3 * (uf + ug);
@@ -281,7 +302,7 @@ namespace cephes {
         uf = detail::airy_c1 * f;
         ug = detail::airy_c2 * g;
         if ((domflg & 4) == 0) {
-            *aip = uf - ug;
+            *aip = taylor ? taip : uf - ug;
         }
         if ((domflg & 8) == 0) {
             *bip = detail::SQRT3 * (uf + ug);
