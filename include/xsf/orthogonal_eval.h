@@ -18,6 +18,13 @@ namespace detail {
         return binom(n + alpha, n);
     }
 
+    // P_n^(alpha, beta)(x) for alpha near -1 from p1 = P_n^(alpha + 1, beta)(x) and p2 = P_(n-1)^(alpha + 2, beta)(x),
+    // using DLMF 18.5.7 term by term
+    template <typename T>
+    XSF_HOST_DEVICE inline T jacobi_alpha_shift(double n, double alpha, double beta, T x, T p1, T p2) {
+        return ((alpha + 1.0) * p1 + 0.5 * (n + beta) * (x - 1.0) * p2) / (n + alpha + 1.0);
+    }
+
     template <typename T>
     XSF_HOST_DEVICE inline T eval_jacobi(double n, double alpha, double beta, T x) {
         double a, b, c, d;
@@ -35,10 +42,10 @@ namespace detail {
 
         if (cxx::is_same_v<T, double> && cxx::abs(alpha + 1.0) < 1e-13 && n >= 1 && n <= 9007199254740992.0 &&
             n == cxx::floor(n) && cxx::abs(n + alpha + beta + 1.0) > 0) {
-            // hyp2f1 sees a pole at c = alpha + 1 = 0: shift alpha up with DLMF 18.5.7 term by term
-            return ((alpha + 1.0) * eval_jacobi(n, alpha + 1.0, beta, x) +
-                    0.5 * (n + beta) * (x - 1.0) * eval_jacobi(n - 1.0, alpha + 2.0, beta, x)) /
-                   (n + alpha + 1.0);
+            // hyp2f1 sees a pole at c = alpha + 1 = 0
+            return jacobi_alpha_shift(
+                n, alpha, beta, x, eval_jacobi(n, alpha + 1.0, beta, x), eval_jacobi(n - 1.0, alpha + 2.0, beta, x)
+            );
         }
 
         // complex x keeps binom for now: the complex hyp2f1 cancels for alpha near -1 and x near -1
@@ -66,10 +73,11 @@ namespace detail {
             return ((n + beta) / (2.0 * n)) * (x - 1.0) * eval_jacobi(n - 1.0, 1.0, beta, x);
         } else {
             if (beta >= -1 && cxx::abs(alpha + 1.0) < 0.5) {
-                // the recurrence below divides by alpha + 1: shift alpha up as in eval_jacobi, unless that overflows
-                p = ((alpha + 1.0) * eval_jacobi_l(n, alpha + 1.0, beta, x) +
-                     0.5 * (n + beta) * (x - 1.0) * eval_jacobi_l(n - 1, alpha + 2.0, beta, x)) /
-                    (n + alpha + 1.0);
+                // the recurrence below divides by alpha + 1, so shift alpha up unless that overflows
+                p = jacobi_alpha_shift(
+                    n, alpha, beta, x, eval_jacobi_l(n, alpha + 1.0, beta, x),
+                    eval_jacobi_l(n - 1, alpha + 2.0, beta, x)
+                );
                 if (cxx::isfinite(p)) {
                     return p;
                 }
