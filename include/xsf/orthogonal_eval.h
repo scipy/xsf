@@ -211,7 +211,12 @@ namespace detail {
             }
         }
 
-        const double d = cephes::Gamma(n + 2.0 * alpha) / cephes::Gamma(1.0 + n) / cephes::Gamma(2.0 * alpha);
+        // Gamma(n + 2 alpha) / Gamma(n + 1) / Gamma(2 alpha) = 1 / (n B(2 alpha, n)) (DLMF 5.12.1), avoiding overflow
+        // of the Gamma factors; at the poles of Gamma(2 alpha) (2 alpha = 0, -1, ...) the Gamma form is kept.
+        const double alpha2 = 2.0 * alpha;
+        const double d = (n >= 1 && (alpha2 > 0 || alpha2 != cxx::floor(alpha2)))
+                             ? 1.0 / n / beta(alpha2, n)
+                             : cephes::Gamma(n + alpha2) / cephes::Gamma(1.0 + n) / cephes::Gamma(alpha2);
         const double a = -n;
         const double b = n + 2.0 * alpha;
         const double c = alpha + 0.5;
