@@ -152,3 +152,37 @@ TEST_CASE("lqn |x| just above 1.021", "[lqn][real][xsf_tests]") {
     CAPTURE(x, n, k, q[k], desired, error, rtol);
     REQUIRE(error <= rtol);
 }
+
+TEST_CASE("lqn large n or |x| > 1.021", "[lqn][real][xsf_tests]") {
+    // Regression test: the start values of the backward recurrence underflowed, so that all Q_k were 0,
+    // e.g. Q_0(1.5) with n = 1000. Q_1200(1.2) checks that the tail goes to 0, not to the smallest subnormal.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    # Q_n(-x) = (-1)^(n+1) Q_n(x) for x > 1
+    for x, k in [(1.5, 0), (1.5, 500), (-10.0, 0), (100.0, 0), (1.2, 1200)]:
+        s = (-1) ** (k + 1) if x < 0 else 1
+        q = s * mpmath.legenq(k, 0, abs(mpmath.mpf(x)), type=3).real
+        print(f"x={x!r}, k={k}: Q_k={float(q)!r}")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, int, int, double>;
+    auto [x, n, k, desired] = GENERATE(
+        test_case{1.5, 1000, 0, 0.8047189562170501}, test_case{1.5, 1000, 500, 3.3678835706511123e-211},
+        test_case{-10.0, 250, 0, -0.10033534773107558}, test_case{100.0, 150, 0, 0.010000333353334763},
+        test_case{1.2, 1200, 1200, 0.0}
+    );
+
+    std::vector<double> q(n + 1), d(n + 1);
+    xsf::lqn(x, xsf::cxx::mdspan(q.data(), q.size()), xsf::cxx::mdspan(d.data(), d.size()));
+
+    const double error = xsf::extended_relative_error(q[k], desired);
+    const double rtol = 1e-13;
+    CAPTURE(x, n, k, q[k], desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
