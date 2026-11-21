@@ -1183,3 +1183,25 @@ TEST_CASE("Chebyshev float overloads", "[chebyshev][xsf_tests]") {
     REQUIRE(std::abs(real_eval(3.0f, 0.5f) - expected) < 1e-6f);
     REQUIRE(std::abs(complex_eval(3.0f, {0.5f, 0.5f}) - complex_expected) < 1e-5f);
 }
+
+TEST_CASE("eval_gegenbauer large degree prefactor", "[eval_gegenbauer][xsf_tests]") {
+    // Regression test: Gamma(n + 2 alpha) / Gamma(n + 1) overflowed for n > 170.
+    // import mpmath as mp
+    // mp.mp.dps = 50
+    // print(repr(float(mp.gegenbauer(300.5, 2.5, 1.5))))
+    // z = mp.mpc(1.5, 0.2)
+    // for n, a in [(500, 0.75), (200, -0.25)]:
+    //     print(repr(complex(mp.gegenbauer(n, a, z))))
+    SET_FP_FORMAT()
+    using cd = std::complex<double>;
+    const cd z{1.5, 0.2};
+    auto [out, desired] = GENERATE_COPY(
+        std::make_tuple(xsf::eval_gegenbauer(500.0, 0.75, z), cd{4.570588854908153e+212, -2.6867469140263845e+212}),
+        std::make_tuple(xsf::eval_gegenbauer(200.0, -0.25, z), cd{5.630275347012046e+81, 2.693588249802822e+81}),
+        std::make_tuple(xsf::eval_gegenbauer(300.5, 2.5, 1.5), cd{2.3319010819326352e+129, 0.0})
+    );
+
+    const double rtol = 1e-11;
+    CAPTURE(out, desired, rtol);
+    REQUIRE(xsf::extended_relative_error(out, desired) <= rtol);
+}
