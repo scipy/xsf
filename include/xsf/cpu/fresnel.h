@@ -365,7 +365,7 @@ inline void fcszo(int kf, int nt, std::complex<double> *zo) {
 
     int it;
     double psq, px, py, w, w0;
-    std::complex<double> z, zp, zf, zd, zfd, zgd, zq, zw;
+    std::complex<double> z, zf, zd, zq;
     const double pi = 3.141592653589793;
     psq = 0.0;
     w = 0.0;
@@ -402,24 +402,12 @@ inline void fcszo(int kf, int nt, std::complex<double> *zo) {
                 detail::cfs(z, &zf, &zd);
             }
 
-            zp = 1.0;
-            for (int i = 1; i < nr; i++)
-                zp *= (z - zo[i - 1]);
-
-            zfd = zf / zp;
+            // Newton step for g = zf / prod(z - zo[i]): g / g' = zf / (zd - zq * zf), where
+            // zq = sum(1 / (z - zo[i])) is the logarithmic derivative of the product (no overflow)
             zq = 0.0;
-            for (int i = 1; i < nr; i++) {
-                zw = 1.0;
-                for (int j = 1; j < nr; j++) {
-                    if (j == i) {
-                        continue;
-                    }
-                    zw *= (z - zo[j - 1]);
-                }
-                zq += zw;
-            }
-            zgd = (zd - zq * zfd) / zp;
-            z -= zfd / zgd;
+            for (int i = 1; i < nr; i++)
+                zq += 1.0 / (z - zo[i - 1]);
+            z -= zf / (zd - zq * zf);
             w0 = w;
             w = std::abs(z);
         } while ((it <= 50) && (fabs((w - w0) / w) > 1.0e-12));
