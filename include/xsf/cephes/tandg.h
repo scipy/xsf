@@ -109,6 +109,10 @@ namespace cephes {
             x = x - 180.0 * k;
             if (cotflg) {
                 if (x <= 90.0) {
+                    if (x != 0.0 && x < 45.0) {
+                        // 90 - x would round, which is amplified near the pole at x = 0
+                        return sign / cxx::tan(x * detail::PI180);
+                    }
                     x = 90.0 - x;
                 } else {
                     x = x - 90.0;
@@ -135,6 +139,10 @@ namespace cephes {
                 return sign * cxx::numeric_limits<double>::infinity();
             }
             /* x is now transformed into [0, 90) */
+            if (x > 45.0) {
+                // x * PI180 would round, which is amplified near the pole at x = 90; 90 - x is exact
+                return sign / cxx::tan((90.0 - x) * detail::PI180);
+            }
             return sign * cxx::tan(x * detail::PI180);
         }
 

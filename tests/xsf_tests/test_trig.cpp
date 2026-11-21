@@ -180,3 +180,29 @@ TEST_CASE("sinpi and cospi complex subnormal real part and large imaginary part"
     REQUIRE(error_s <= rtol);
     REQUIRE(error_c <= rtol);
 }
+
+TEST_CASE("tandg and cotdg near poles", "[tandg][cotdg][xsf_tests]") {
+    // Regression test for gh-363: rounding of the argument was amplified near
+    // the poles, e.g. cotdg(1e-15) was inf.
+    /*
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for f, x in [("tandg", 89.9999999999), ("cotdg", 1e-10), ("cotdg", 1e-15), ("cotdg", 179.9999999999)]:
+        t = mpmath.tan(mpmath.mpf(x) * mpmath.pi / 180)
+        print(f, repr(x), repr(float(t if f == "tandg" else 1 / t)))
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<bool, double, double>;
+    auto [cot, x, desired] = GENERATE(
+        test_case{false, 89.9999999999, 572947570131.5804}, test_case{true, 1e-10, 572957795130.8232},
+        test_case{true, 1e-15, 5.729577951308232e+16}, test_case{true, 179.9999999999, -573029000997.1478}
+    );
+
+    const double out = cot ? xsf::cotdg(x) : xsf::tandg(x);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 1e-15;
+    CAPTURE(cot, x, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
