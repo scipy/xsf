@@ -975,7 +975,7 @@ void lqmn(T x, OutputMat1 qm, OutputMat2 qd) {
         }
 
         // Q_k^0 = qm(0, k) c0 2^-512 can underflow, so keep the 2^512 until the recurrence in m
-        const double c0 = 0x1p512 * q0 / qf0;
+        const double c0 = big * q0 / qf0;
 
         qf2 = 0.0;
         qf1 = 1.0;
@@ -996,17 +996,17 @@ void lqmn(T x, OutputMat1 qm, OutputMat2 qd) {
         }
 
         q10 = -1.0 / xq;
-        const double c1 = 0x1p512 * q10 / qf0;
+        const double c1 = big * q10 / qf0;
 
         for (j = 0; j <= n; j++) {
             q0 = qm(0, j) * c0;
             q1 = qm(1, j) * c1;
-            qm(0, j) = qm(0, j) * c0 * 0x1p-512;
-            qm(1, j) = qm(1, j) * c1 * 0x1p-512;
+            qm(0, j) = qm(0, j) * c0 * small;
+            qm(1, j) = qm(1, j) * c1 * small;
             // undo the 2^512 once Q_j^i and Q_j^(i+1) are normal
-            double s = 0x1p512;
+            double s = big;
             for (i = 0; i <= (m - 2); i++) {
-                if (s > 1 && fmin(fabs(q0), fabs(q1)) >= 0x1p-510) {
+                if (s > 1 && fmin(fabs(q0), fabs(q1)) >= std::numeric_limits<double>::min() * s) {
                     q0 /= s;
                     q1 /= s;
                     s = 1;
