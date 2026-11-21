@@ -156,6 +156,12 @@ namespace cephes {
                     set_error("igam", SF_ERROR_UNDERFLOW, NULL);
                     return 0.0;
                 }
+                if (a >= 1 && a <= 171 && x <= 1000 && ax > -700) {
+                    // x^a exp(-x) / Gamma(a) without the rounding error of ax. With q^2 / Gamma(a), nothing overflows,
+                    // and ax > -700 keeps q, 1 / Gamma(a) (as a <= 171) and the result normal.
+                    double q = cxx::pow(x, 0.5 * a) * cxx::exp(-0.5 * x);
+                    return (q * xsf::cephes::rgamma(a)) * q;
+                }
                 return cxx::exp(ax);
             }
 

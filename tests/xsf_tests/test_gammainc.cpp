@@ -70,3 +70,44 @@ TEST_CASE("gammaincc tiny a", "[gammaincc][xsf_tests]") {
     CAPTURE(a, x, out, desired, error, rtol);
     REQUIRE(error <= rtol);
 }
+
+/*
+If you want to check the expected values below with mpmath, this is the script:
+
+import mpmath
+
+mpmath.mp.dps = 50
+
+for a, x in [(100.5, 20.0), (150.5, 400.0), (40.5, 100.0)]:
+    p = mpmath.gammainc(a, 0, x, regularized=True)
+    q = mpmath.gammainc(a, x, mpmath.inf, regularized=True)
+    print(f"({a!r}, {x!r}): gammainc = {float(p)!r}, gammaincc = {float(q)!r}")
+*/
+
+TEST_CASE("gammainc moderate a", "[gammainc][xsf_tests]") {
+    // Regression test for gh-539: relative error 4e-14.
+    SET_FP_FORMAT()
+    const double a = 100.5;
+    const double x = 20.0;
+    const double desired = 1.552580377875624e-37;
+
+    const double out = xsf::gammainc(a, x);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 2e-15;
+    CAPTURE(a, x, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
+
+TEST_CASE("gammaincc moderate a", "[gammaincc][xsf_tests]") {
+    // Regression test for gh-539: relative error 2e-14 to 3e-14.
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double>;
+    auto [a, x, desired] =
+        GENERATE(test_case{150.5, 400.0, 6.666866067858389e-47}, test_case{40.5, 100.0, 4.732682589050121e-12});
+
+    const double out = xsf::gammaincc(a, x);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 2e-15;
+    CAPTURE(a, x, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
