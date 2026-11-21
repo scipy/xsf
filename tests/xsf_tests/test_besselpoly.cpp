@@ -29,3 +29,33 @@ TEST_CASE("besselpoly large a", "[besselpoly][xsf_tests]") {
     CAPTURE(a, lmb, nu, out, desired, error, rtol);
     REQUIRE(error <= rtol);
 }
+
+TEST_CASE("besselpoly large integer nu", "[besselpoly][xsf_tests]") {
+    // Regression test: cephes::jv overflowed in its backward recurrence for
+    // integer orders where J is tiny, so the Neumann series returned NaN.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for a, lmb, nu in [(42.23, 0.0, 484.0), (43.75, 0.0, 490.0)]:
+        c = mpmath.mpf(lmb + nu + 1) / 2
+        res = mpmath.hyp1f2(c, nu + 1, c + 1, -mpmath.mpf(a)**2)
+        res *= mpmath.mpf(a)**nu / (2 * c * mpmath.gamma(nu + 1))
+        print(f"besselpoly({a!r}, {lmb!r}, {nu!r}) = {float(res)!r}")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double, double>;
+    auto [a, lmb, nu, desired] = GENERATE(
+        test_case{42.23, 0.0, 484.0, 3.23801322587164e-309}, test_case{43.75, 0.0, 490.0, 3.6250468855274235e-308}
+    );
+
+    const double out = xsf::besselpoly(a, lmb, nu);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 5e-12;
+    CAPTURE(a, lmb, nu, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}

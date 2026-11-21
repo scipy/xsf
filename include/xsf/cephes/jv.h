@@ -624,6 +624,10 @@ namespace cephes {
             if (nint != 0) {
                 k = 0.0;
                 q = detail::jv_recur(&n, x, &k, 1);
+                if (!cxx::isfinite(q)) {
+                    /* J_k / J_n overflowed, so J_n is tiny and x is small relative to n */
+                    return sign * detail::jv_jvs(n, x);
+                }
                 if (k == 0.0) {
                     y = j0(x) / q;
                     goto done;
