@@ -386,3 +386,36 @@ TEST_CASE("hyp0f1 complex large b", "[hyp0f1][xsf_tests]") {
     CAPTURE(b, z, result, expected, error, rtol);
     REQUIRE(error <= rtol);
 }
+
+TEST_CASE("hyp0f1 real negative z large b", "[hyp0f1][xsf_tests]") {
+    // Regression test: real hyp0f1 returned inf, 0 or NaN for z < 0 where Gamma(b), the power or the Bessel
+    // function over- or underflows. The tolerance allows for the rounding of gammaln(200) ~ 858 in the exponent.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for b, z in [(200, -25), (170, -1e5), (200.5, -14925.09375), (400, -10), (-300.5, -1)]:
+        print(repr(float(mpmath.hyp0f1(b, z))))
+
+    # hyp0f1(b, z) = Gamma(b) (-z)^((1-b)/2) J_{b-1}(2 sqrt(-z)) with |J| <= 1 underflows
+    b, z = mpmath.mpf(400), mpmath.mpf(-1e6)
+    print(mpmath.loggamma(b) + (1 - b) * mpmath.log(-z) / 2)  # -761.68...
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double>;
+    auto [b, z, expected] = GENERATE(
+        test_case{200.0, -25.0, 0.8824625738882579}, test_case{170.0, -1e5, 3.5116551662045885e-120},
+        test_case{200.5, -14925.09375, 3.5265052263334145e-45}, test_case{400.0, -10.0, 0.9753091519048813},
+        test_case{-300.5, -1.0, 1.003333348801711}, test_case{400.0, -1e6, 0.0}
+    );
+
+    const double result = xsf::hyp0f1(b, z);
+    const double error = xsf::extended_relative_error(result, expected);
+    const double rtol = 5e-12;
+    CAPTURE(b, z, result, expected, error, rtol);
+    REQUIRE(error <= rtol);
+}
