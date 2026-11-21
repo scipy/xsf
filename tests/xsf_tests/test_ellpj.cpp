@@ -130,3 +130,58 @@ TEST_CASE("ellpj negative m", "[ellpj][xsf_tests]") {
     REQUIRE(rel_error_dn <= rtol);
     REQUIRE(rel_error_ph <= rtol);
 }
+
+TEST_CASE("ellpj m near 1", "[ellpj][xsf_tests]") {
+    // Regression test for gh-375: inaccurate or NaN results for m near 1 and large |u|.
+    //
+    // Reference values computed with mpmath:
+    //
+    // import mpmath as mp
+    //
+    // mp.mp.dps = 30
+    //
+    // cases = [
+    //     (30, 0.9999999999),
+    //     (-607.2815430467333, 0.9999999999994756),
+    //     (38.667659355052244, 0.9999999999),  # 3 K(m) - 0.02
+    //     (400, 1.0),
+    //     (-711, 1.0),
+    // ]
+    // for u, m in cases:
+    //     u, m = mp.mpf(u), mp.mpf(m)
+    //     sn, cn, dn = (mp.ellipfun(f, u, m) for f in ("sn", "cn", "dn"))
+    //     if m == 1:
+    //         ph = mp.atan(mp.sinh(u))
+    //     else:  # am(u + 2 K) = am(u) + pi
+    //         ph = mp.atan(sn / cn) + mp.nint(u / (2 * mp.ellipk(m))) * mp.pi
+    //     print(*(repr(float(x)) for x in (sn, cn, dn, ph)), sep=", ")
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double, double, double, double>;
+    // u, m, ref_sn, ref_cn, ref_dn, ref_ph
+    auto [u, m, ref_sn, ref_cn, ref_dn, ref_ph] = GENERATE(
+        test_case{30, 0.9999999999, -0.9995517672263414, -0.029937679180219296, 0.029937680848858644, 4.68244682738601},
+        test_case{
+            -607.2815430467333, 0.9999999999994756, 0.9999999999976209, 2.1813134771969566e-06, 2.298366119731372e-06,
+            -61.26105892631445
+        },
+        test_case{
+            38.667659355052244, 0.9999999999, -0.999999999999955, -3.000450144379841e-07, 1.0004500751397702e-05,
+            4.712388680339675
+        },
+        test_case{400, 1, 1.0, 3.8303391934280114e-174, 3.8303391934280114e-174, 1.5707963267948966},
+        test_case{-711, 1, -1.0, 3.293467350449585e-309, 3.293467350449585e-309, -1.5707963267948966}
+    );
+
+    // cn and dn are only accurate to about 1e-9 here
+    const double rtol = 1e-8;
+
+    double sn, cn, dn, ph;
+    int result = xsf::cephes::ellpj(u, m, &sn, &cn, &dn, &ph);
+    REQUIRE(result == 0);
+
+    CAPTURE(u, m, sn, ref_sn, cn, ref_cn, dn, ref_dn, ph, ref_ph, rtol);
+    REQUIRE(xsf::extended_relative_error(sn, ref_sn) <= rtol);
+    REQUIRE(xsf::extended_relative_error(cn, ref_cn) <= rtol);
+    REQUIRE(xsf::extended_relative_error(dn, ref_dn) <= rtol);
+    REQUIRE(xsf::extended_relative_error(ph, ref_ph) <= rtol);
+}

@@ -78,7 +78,7 @@ namespace cephes {
 
     XSF_HOST_DEVICE inline int ellpj(double u, double m, double *sn, double *cn, double *dn, double *ph) {
         double ai, b, phi, t, twon, dnfac;
-        double a[9], c[9];
+        double a[10], c[10];
         int i;
 
         /* Check for special cases */
@@ -118,14 +118,36 @@ namespace cephes {
             *dn = 1.0 - 0.5 * m * t * t;
             return (0);
         }
-        if (m >= 0.9999999999) {
+        if (m == 1.0) {
+            if (cxx::isinf(u)) {
+                *sn = *cn = *dn = *ph = cxx::numeric_limits<double>::quiet_NaN();
+                return (0);
+            }
+            /* DLMF Table 22.5.4 */
+            b = cxx::cosh(u);
+            if (cxx::isfinite(b)) {
+                phi = 1.0 / b;
+            } else {
+                /* sech(u) = 2 exp(-|u|) */
+                t = cxx::exp(-0.5 * cxx::abs(u));
+                phi = 2.0 * t * t;
+            }
+            *sn = cxx::tanh(u);
+            *cn = phi;
+            *dn = phi;
+            /* gd(u), DLMF 4.23.40 */
+            *ph = cxx::atan(cxx::sinh(u));
+            return (0);
+        }
+        /* DLMF 22.10.7-9, with an error that grows like ((1 - m) cosh(u))^2 */
+        if (m >= 0.9999999999 && (1.0 - m) * cxx::cosh(u) < 1e-4) {
             ai = 0.25 * (1.0 - m);
             b = cxx::cosh(u);
             t = cxx::tanh(u);
             phi = 1.0 / b;
             twon = b * cxx::sinh(u);
             *sn = t + ai * (twon - u) / (b * b);
-            *ph = 2.0 * cxx::atan(exp(u)) - M_PI_2 + ai * (twon - u) / b;
+            *ph = cxx::atan(cxx::sinh(u)) + ai * (twon - u) / b;
             ai *= t * phi;
             *cn = phi - ai * (twon - u);
             *dn = phi + ai * (twon + u);
@@ -140,7 +162,7 @@ namespace cephes {
         i = 0;
 
         while (cxx::abs(c[i] / a[i]) > detail::MACHEP) {
-            if (i > 7) {
+            if (i > 8) {
                 set_error("ellpj", SF_ERROR_OVERFLOW, NULL);
                 goto done;
             }
@@ -168,7 +190,8 @@ namespace cephes {
         dnfac = cxx::cos(phi - b);
         /* See discussion after DLMF 22.20.5 */
         if (cxx::abs(dnfac) < 0.1) {
-            *dn = cxx::sqrt(1 - m * (*sn) * (*sn));
+            /* dn^2 = k'^2 + k^2 cn^2 (DLMF 22.6.1) avoids cancellation for m near 1 */
+            *dn = cxx::sqrt((1.0 - m) + m * t * t);
         } else {
             *dn = t / dnfac;
         }
