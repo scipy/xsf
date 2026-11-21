@@ -1205,3 +1205,46 @@ TEST_CASE("eval_gegenbauer large degree prefactor", "[eval_gegenbauer][xsf_tests
     CAPTURE(out, desired, rtol);
     REQUIRE(xsf::extended_relative_error(out, desired) <= rtol);
 }
+
+TEST_CASE("eval_jacobi alpha near -1", "[eval_jacobi][xsf_tests]") {
+    // Regression test for gh-457: binom(n + alpha, n) lost the digits of alpha + 1, and hyp2f1 has a pole at
+    // alpha + 1 = 0.
+    // import mpmath as mp
+    // mp.mp.dps = 50
+    // for n, alpha, beta, x in [(7, -1 + 1e-15, 2.0, -0.6), (5, -1 - 1e-14, 0.5, 0.3), (20, -1 + 1e-10, 1.0, 0.5)]:
+    //     print(repr(alpha), repr(float(mp.jacobi(n, alpha, beta, x))))
+    SET_FP_FORMAT()
+    using test_case = std::tuple<int, double, double, double, double>;
+    auto [n, alpha, beta, x, desired] = GENERATE(
+        test_case{7, -0.999999999999999, 2.0, -0.6, 1.3708799999999992},
+        test_case{5, -1.00000000000001, 0.5, 0.3, 0.09029086547851277},
+        test_case{20, -0.9999999999, 1.0, 0.5, -0.10796426718241937}
+    );
+
+    const double out_int = xsf::eval_jacobi(n, alpha, beta, x);
+    const double out_double = xsf::eval_jacobi(static_cast<double>(n), alpha, beta, x);
+    const double rtol = 1e-13;
+    CAPTURE(n, alpha, beta, x, out_int, out_double, desired, rtol);
+    REQUIRE(xsf::extended_relative_error(out_int, desired) <= rtol);
+    REQUIRE(xsf::extended_relative_error(out_double, desired) <= rtol);
+}
+
+TEST_CASE("eval_jacobi integer n with alpha near -1", "[eval_jacobi][xsf_tests]") {
+    // Regression test for gh-457: the recurrence for integer n cancels for alpha near -1, and the
+    // shifted recurrence must not overflow.
+    // import mpmath as mp
+    // mp.mp.dps = 50
+    // a = -1 + 5 * 2**-51
+    // for n, alpha, beta, x in [(3, a, a, -1.0), (2, -0.75, 0.0, 2.65e153)]:
+    //     print(repr(alpha), repr(float(mp.jacobi(n, alpha, beta, x))))
+    SET_FP_FORMAT()
+    using test_case = std::tuple<int, double, double, double, double>;
+    auto [n, alpha, beta, x, desired] = GENERATE(
+        test_case{3, -0.9999999999999978, -0.9999999999999978, -1.0, -7.401486830834402e-16},
+        test_case{2, -0.75, 0.0, 2.65e153, 6.41900390625e+306}
+    );
+    const double out = xsf::eval_jacobi(n, alpha, beta, x);
+    const double rtol = 1e-13;
+    CAPTURE(n, alpha, beta, x, out, desired, rtol);
+    REQUIRE(xsf::extended_relative_error(out, desired) <= rtol);
+}
