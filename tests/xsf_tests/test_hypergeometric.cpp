@@ -141,3 +141,36 @@ TEST_CASE("hyp1f1(1, 2, z) complex z near 0: exp(z) - 1 cancels", "[hyp1f1][xsf_
     CAPTURE(z, out, desired, error, rtol);
     REQUIRE(error <= rtol);
 }
+
+TEST_CASE("hyp1f1(-m, -n, z) complex z, integers 0 <= m <= n: terminating series", "[hyp1f1][xsf_tests]") {
+    // Regression test: complex hyp1f1 returned inf, the series terminates at the m-th term.
+    /*
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    def poly(m, n, z):
+        term = total = mpmath.mpf(1)
+        for k in range(1, m + 1):
+            term *= mpmath.mpf(-m + k - 1) / (k * (-n + k - 1)) * z
+            total += term
+        return complex(total)
+
+    for m, n, z in [(1, 10, 1 + 1j), (3, 3, 0.5 + 0.5j), (4, 6, 2 - 1j)]:
+        print(f"hyp1f1({-m}, {-n}, {z!r}) = {poly(m, n, mpmath.mpmathify(z))!r}")
+    */
+    SET_FP_FORMAT()
+    using cd = std::complex<double>;
+    using test_case = std::tuple<double, double, cd, cd>;
+    auto [a, b, z, desired] = GENERATE(
+        test_case{-1.0, -10.0, {1.0, 1.0}, {1.1, 0.1}},
+        test_case{-3.0, -3.0, {0.5, 0.5}, {1.4583333333333333, 0.7916666666666666}},
+        test_case{-4.0, -6.0, {2.0, -1.0}, {2.9805555555555556, -1.9}}
+    );
+
+    const cd out = xsf::hyp1f1(a, b, z);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 5e-15;
+    CAPTURE(a, b, z, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
