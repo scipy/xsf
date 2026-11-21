@@ -3952,6 +3952,15 @@ namespace specfun {
             if (k % 2 == 0) {
                 bs += 2.0 * f;
             }
+            if (fabs(f) > 0x1p512) {
+                // rescale (exactly), the recurrence overflows from about x = 4476
+                f /= 0x1p512;
+                f1 /= 0x1p512;
+                bs /= 0x1p512;
+                for (i = k; i <= *nm; i++) {
+                    bl[i] /= 0x1p512;
+                }
+            }
             f0 = f1;
             f1 = f;
         }
@@ -4119,6 +4128,13 @@ namespace specfun {
                 f = 2.0 * (v0 + k + 1.0) / x * f1 - f2;
                 if (k <= n)
                     vl[k] = f;
+                if (fabs(f) > 0x1p512) {
+                    f /= 0x1p512;
+                    f1 /= 0x1p512;
+                    for (i = k; i <= n; i++) {
+                        vl[i] /= 0x1p512;
+                    }
+                }
                 f2 = f1;
                 f1 = f;
             }

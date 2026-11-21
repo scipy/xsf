@@ -91,3 +91,38 @@ TEST_CASE("specfun::lamn parity", "[lamn][xsf_tests]") {
         REQUIRE(dl_neg[k] == -dl_pos[k]);
     }
 }
+
+// Regression test for lamn with large x: the backward recurrence overflowed from about x = 4476, giving nan.
+// The second case checks the stored values that are rescaled too.
+
+/*
+import mpmath
+
+mpmath.mp.dps = 40
+
+lam = lambda v, x: mpmath.gamma(v + 1) * (2 / x) ** v * mpmath.besselj(v, x)
+for n, x, k in [(2, 5000, 2), (1480, 800, 856)]:
+    x = mpmath.mpf(x)
+    print(f"lamn: {n}, {float(x)!r}, {k}, {float(lam(k, x))!r}, {float(-x / (2 * (k + 1)) * lam(k + 1, x))!r}")
+*/
+
+TEST_CASE("specfun::lamn large x", "[lamn][xsf_tests]") {
+    SET_FP_FORMAT()
+    using test_case = std::tuple<int, double, int, double, double>;
+    auto [n, x, k, bl_k, dl_k] = GENERATE(
+        test_case{2, 5000.0, 2, 2.1265079325321248e-09, -2.919271034712797e-09},
+        test_case{1480, 800.0, 856, 1.7983969600283228e-95, -1.2321840028709226e-95}
+    );
+
+    int nm = 0;
+    std::vector<double> bl(n + 1, 0.0), dl(n + 1, 0.0);
+    xsf::specfun::lamn(n, x, &nm, bl.data(), dl.data());
+
+    const double rtol = 1e-12;
+    const double bl_error = xsf::extended_relative_error(bl[k], bl_k);
+    const double dl_error = xsf::extended_relative_error(dl[k], dl_k);
+    CAPTURE(n, x, k, bl[k], bl_k, bl_error, dl[k], dl_k, dl_error, rtol);
+    REQUIRE(nm == n);
+    REQUIRE(bl_error <= rtol);
+    REQUIRE(dl_error <= rtol);
+}
