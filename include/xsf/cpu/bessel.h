@@ -528,12 +528,7 @@ void rctj(T x, int *nm, OutputVec1 rj, OutputVec2 dj) {
     f = 0.0;
 
     if (n >= 2) {
-        m = specfun::msta1(x, 200);
-        if (m < n) {
-            *nm = m;
-        } else {
-            m = specfun::msta2(x, n, 15);
-        }
+        m = specfun::msta2(x, n, 15);
 
         // rescale by a power of 2, since the backward recurrence overflows for large x
         const double big = 0x1p512, small = 0x1p-512;
@@ -548,7 +543,7 @@ void rctj(T x, int *nm, OutputVec1 rj, OutputVec2 dj) {
             if (fabs(f) > big) {
                 f *= small;
                 f1 *= small;
-                for (int l = k; l <= *nm; l++) {
+                for (int l = k; l <= *nm && rj[l] != 0.0; l++) {
                     rj[l] *= small;
                 }
             }
