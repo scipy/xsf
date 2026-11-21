@@ -125,6 +125,10 @@
  *                      Relative error:
  * arithmetic   domain     # trials      peak         rms
  *    IEEE      0,26.6417   30000       5.7e-14     1.5e-14
+ *
+ * For x >= 26.5433, where erfc(x) < 2**-1022, the result is subnormal and
+ * exp(-x**2) is evaluated with scaling to avoid premature underflow.
+ * erfc(x) underflows to 0 for x > 27.226.
  */
 
 /*
@@ -176,6 +180,36 @@ namespace cephes {
 
         constexpr double ndtri_UTHRESH = 37.519379347;
 
+        /* Smallest double x with erfc(x) < DBL_MIN = 2**-1022. */
+        constexpr double erfc_SUBNORMAL_X = 26.54325845425098;
+
+        /* log(2) = erfc_LN2HI + erfc_LN2LO, where erfc_LN2HI has 32 significant
+         * bits, so that 1022 * erfc_LN2HI is exact. */
+        constexpr double erfc_LN2HI = 6.93147180369123816490E-1;
+        constexpr double erfc_LN2LO = 1.90821492927058770002E-10;
+
+        /* erfc(x) for x >= erfc_SUBNORMAL_X, where the result is subnormal or 0.
+         *
+         * exp(-x * x) would underflow, or lose most of its significant bits as
+         * a subnormal, before it is multiplied by R(x) / S(x). Instead, write
+         * x * x = hi + lo exactly and use
+         *
+         *     exp(-x * x) = 2**-1022 * exp(1022 * log(2) - hi) * exp(-lo).
+         *
+         * For 18.9 < x < 37.6, 1022 * erfc_LN2HI - hi is exact (Sterbenz) and
+         * the scaled value stays in the normal range. The final multiplication
+         * by 2**-1022 is then the only rounding into the subnormal range (a
+         * single multiplication, since ldexp may round twice for subnormal
+         * results on some platforms).
+         */
+        XSF_HOST_DEVICE inline double erfc_subnormal(double x) {
+            double hi = x * x;
+            double lo = cxx::fma(x, x, -hi);
+            double z = cxx::exp(1022 * erfc_LN2HI - hi) * cxx::exp(1022 * erfc_LN2LO - lo);
+            double y = (z * polevl(x, ndtr_R, 5)) / p1evl(x, ndtr_S, 6);
+            return y * cxx::numeric_limits<double>::min();
+        }
+
     } // namespace detail
 
     XSF_HOST_DEVICE inline double erf(double x);
@@ -196,6 +230,17 @@ namespace cephes {
 
         if (x < 1.0) {
             return 1.0 - erf(a);
+        }
+
+        if (a >= detail::erfc_SUBNORMAL_X) {
+            /* erfc(a) is subnormal; erfc(a) < 2**-1075 rounds to 0 for a > 27.23. */
+            if (a < 28.0) {
+                y = detail::erfc_subnormal(a);
+                if (y != 0.0) {
+                    return y;
+                }
+            }
+            goto under;
         }
 
         z = -a * a;

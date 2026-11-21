@@ -45,10 +45,11 @@
  * ERROR MESSAGES:
  *
  *   message         condition      value returned
- * exp underflow    x < -MAXL2        0.0
+ * exp underflow    x <= MINL2        0.0
  * exp overflow     x > MAXL2         INFINITY
  *
- * For IEEE arithmetic, MAXL2 = 1024.
+ * For IEEE arithmetic, MAXL2 = 1024 and MINL2 = -1075.
+ * Results for MINL2 < x < -1022 are subnormal.
  */
 
 /*
@@ -79,7 +80,9 @@ namespace cephes {
         };
 
         constexpr double exp2_MAXL2 = 1024.0;
-        constexpr double exp2_MINL2 = -1024.0;
+        /* 2**-1075 is half the smallest subnormal, so 2**x rounds to 0 for
+         * x <= -1075 and to a nonzero subnormal for -1075 < x < -1022. */
+        constexpr double exp2_MINL2 = -1075.0;
 
     } // namespace detail
 
@@ -94,7 +97,7 @@ namespace cephes {
             return (cxx::numeric_limits<double>::infinity());
         }
 
-        if (x < detail::exp2_MINL2) {
+        if (x <= detail::exp2_MINL2) {
             return (0.0);
         }
 
@@ -114,7 +117,14 @@ namespace cephes {
         x = 1.0 + cxx::ldexp(x, 1);
 
         /* scale by power of 2 */
-        x = cxx::ldexp(x, n);
+        if (n < -1021) {
+            /* The result may be subnormal. Scale exactly by 2**(n + 1022) first,
+             * so that the multiplication by 2**-1022 is the only rounding (ldexp
+             * may round twice for subnormal results on some platforms). */
+            x = cxx::ldexp(x, n + 1022) * cxx::numeric_limits<double>::min();
+        } else {
+            x = cxx::ldexp(x, n);
+        }
         return (x);
     }
 
