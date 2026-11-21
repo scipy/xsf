@@ -5962,18 +5962,27 @@ namespace specfun {
         //              Normal return.
         //          Status::NoMemory
         //              An internal memory allocation failed.
+        //          Status::Other
+        //              c is too large or not finite (CV = NaN).
         // =========================================================
 
         int i, icm, j, k, k1, l, nm, nm1;
         T cs, dk0, dk1, dk2, d2k, s, t, t1, x1, xa, xb;
         // eg[<=200] is supplied by the caller
 
+        // The characteristic values depend only on c^2 (DLMF 30.3).
+        c = cxx::fabs(c);
         if (c < 1e-10) {
             for (i = 1; i <= (n - m + 1); i++) {
                 eg[i - 1] = (i + m) * (i + m - 1);
             }
             *cv = eg[n - m];
             return Status::OK;
+        }
+        // The arrays below hold nm = 10 + (int)(0.5 * (n - m) + c) <= 300 terms, i.e. 0.5 * (n - m) + c < 291.
+        if (!(0.5 * (n - m) + c < 291)) {
+            *cv = cxx::numeric_limits<T>::quiet_NaN();
+            return Status::Other;
         }
 
         // TODO: Following array sizes should be decided dynamically
