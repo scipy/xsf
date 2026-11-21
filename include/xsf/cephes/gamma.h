@@ -279,7 +279,6 @@ namespace cephes {
 
         XSF_HOST_DEVICE inline double lgam_sgn(double x, int *sign) {
             double p, q, u, w, z;
-            int i;
 
             *sign = 1;
 
@@ -296,8 +295,8 @@ namespace cephes {
                     set_error("lgam", SF_ERROR_SINGULAR, NULL);
                     return (cxx::numeric_limits<double>::infinity());
                 }
-                i = p;
-                if ((i & 1) == 0) {
+                // p can be far beyond the range of int, so take its parity in double
+                if (cxx::fmod(p, 2.0) == 0) {
                     *sign = -1;
                 } else {
                     *sign = 1;
@@ -390,7 +389,8 @@ namespace cephes {
             return cxx::numeric_limits<double>::quiet_NaN();
         }
         // sign of gamma for x in (-n, -n+1) for positive integer n is (-1)^n.
-        if (static_cast<int>(fx) % 2) {
+        // fx can be far beyond the range of int, so take its parity in double.
+        if (cxx::fmod(fx, 2.0) != 0) {
             return -1.0;
         }
         return 1.0;
