@@ -172,3 +172,21 @@ TEST_CASE(
         CHECK(err <= rtol);
     }
 }
+
+TEST_CASE("yve and jve for abs(z) < v and large Im(z)", "[bessel][xsf_tests]") {
+    // Regression test: exp(-2 abs(Im(z))) underflows, and both returned half the value.
+    // from mpmath import mp, mpc, besselj, bessely, exp
+    // mp.dps = 50
+    // z = mpc(-56.62880604813402, 642.0640904862184)
+    // complex(bessely(1000, z) * exp(-z.imag))
+    // complex(besselj(-1000.25, z) * exp(-z.imag))
+    using C = std::complex<double>;
+    const C z{-56.62880604813402, 642.0640904862184};
+    const C ye = xsf::cyl_bessel_ye(1000.0, z);
+    const C je = xsf::cyl_bessel_je(-1000.25, z);
+
+    SET_FP_FORMAT()
+    CAPTURE(ye, je);
+    CHECK(xsf::extended_relative_error(ye, C(2.074005539824065e-266, -2.8023085742856945e-266)) <= 1e-12);
+    CHECK(xsf::extended_relative_error(je, C(-7.495756129622798e-267, 3.260785413724547e-266)) <= 1e-12);
+}
