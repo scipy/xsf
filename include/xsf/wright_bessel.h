@@ -26,6 +26,7 @@
 #include "config.h"
 #include "digamma.h"
 #include "error.h"
+#include "loggamma.h"
 
 namespace xsf {
 
@@ -68,6 +69,19 @@ namespace detail {
         return res;
     }
 
+    XSF_HOST_DEVICE inline double wb_log_series(double a, double b, double x, unsigned int nstop) {
+        /* log(Phi(a, b, x)) from wb_series. Split off the k=0 term to keep
+         * the accuracy when Phi is close to 1:
+         * log(Phi) = log(t0) + log1p(sum_{k>=1} t_k / t0), t0 = 1/Gamma(b).
+         */
+        double t0 = cephes::rgamma(b);
+        double tail = wb_series(a, b, x, 1, nstop);
+        if (tail < t0) {
+            return -xsf::loggamma(b) + cxx::log1p(tail / t0);
+        }
+        return cxx::log(t0 + tail);
+    }
+
     template <bool log_wb>
     XSF_HOST_DEVICE inline double wb_large_a(double a, double b, double x, int n) {
         /* 2. Taylor series expansion in x=0, for large a.
@@ -86,6 +100,22 @@ namespace detail {
 
         double res = 0;
         double lnx = cxx::log(x);
+        if (log_wb && nstart == 0 && b > 0) {
+            // log1p of the k >= 1 terms relative to the k=0 term, for accuracy when Phi is close to 1
+            double lgam_b = xsf::loggamma(b);
+            double tail = 0;
+            for (int k = 1; k < n; k++) {
+                double e = k * lnx - cephes::lgam(k + 1) - cephes::lgam(a * k + b) + lgam_b;
+                if (e >= 0) {
+                    tail = 1;
+                    break;
+                }
+                tail += cxx::exp(e);
+            }
+            if (tail < 1) {
+                return -lgam_b + cxx::log1p(tail);
+            }
+        }
         // For numerical stability, we factor out the maximum term exp(..) with k=k_max
         // but only if it is larger than 0.
         double max_exponent = cxx::fmax(0., k_max * lnx - cephes::lgam(k_max + 1) - cephes::lgam(a * k_max + b));
@@ -184,8 +214,10 @@ namespace detail {
             double dg = digamma(b);
             // pg1 = polygamma(1, b)
             double pg1 = cephes::zeta(2, b);
+            // the leading term 1, left out for log1p
+            const double lead = log_wb ? 0 : 1;
             if (order <= 2) {
-                res = 1 + a * x * (-dg + 0.5 * a * (1 + x) * (dg * dg - pg1));
+                res = lead + a * x * (-dg + 0.5 * a * (1 + x) * (dg * dg - pg1));
             } else {
                 if (order > 5) {
                     order = 5;
@@ -196,7 +228,7 @@ namespace detail {
                 B[1] = -dg;
                 B[2] = dg * dg - pg1;
                 B[3] = (-dg * dg + 3 * pg1) * dg - pg2;
-                A[order] = 1;
+                A[order] = lead;
                 A[order - 1] = X[1] * B[1];
                 A[order - 2] = X[2] * B[2] / 2.;
                 A[order - 3] = X[3] * B[3] / 6.;
@@ -221,7 +253,7 @@ namespace detail {
                 res *= exp_rgamma(x, b);
             } else {
                 // logarithm of Wright's function
-                res = x - cephes::lgam(b) + cxx::log(res);
+                res = x - xsf::loggamma(b) + cxx::log1p(res);
             }
         }
         return res;
@@ -780,17 +812,17 @@ XSF_HOST_DEVICE inline double wright_bessel_t(double a, double b, double x) {
 
     if (x <= 1) {
         // 18 term Taylor Series => error mostly smaller 5e-14
-        double res = detail::wb_series(a, b, x, 0, 18);
-        if (log_wb)
-            res = cxx::log(res);
-        return res;
+        if (log_wb) {
+            return detail::wb_log_series(a, b, x, 18);
+        }
+        return detail::wb_series(a, b, x, 0, 18);
     }
     if (x <= 2) {
         // 20 term Taylor Series => error mostly smaller 1e-12 to 1e-13
-        double res = detail::wb_series(a, b, x, 0, 20);
-        if (log_wb)
-            res = cxx::log(res);
-        return res;
+        if (log_wb) {
+            return detail::wb_log_series(a, b, x, 20);
+        }
+        return detail::wb_series(a, b, x, 0, 20);
     }
     if (a >= 5) {
         /* Taylor series around the approximate maximum term.
