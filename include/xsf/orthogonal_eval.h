@@ -10,6 +10,9 @@ namespace xsf {
 
 namespace detail {
 
+    template <typename Int>
+    XSF_HOST_DEVICE inline double eval_jacobi_l(Int n, double alpha, double beta, double x);
+
     // binom(n + alpha, n) = 1 / (n B(alpha + 1, n)) (DLMF 5.12.1), keeping the digits of alpha + 1 for alpha near -1
     XSF_HOST_DEVICE inline double binom_alpha(double n, double alpha) {
         if (alpha < -0.5 && n >= 1) {
@@ -20,6 +23,12 @@ namespace detail {
 
     template <typename T>
     XSF_HOST_DEVICE inline T eval_jacobi(double n, double alpha, double beta, T x) {
+        // The 2F1 series cancels near the origin for alpha == beta and odd n: use the integer-degree path.
+        if constexpr (cxx::is_same_v<T, double>) {
+            if (alpha == beta && alpha > -1 && cxx::abs(x) < 1e-5 && n <= 1e4 && cxx::fmod(n, 2.0) == 1.0) {
+                return eval_jacobi_l(static_cast<long long>(n), alpha, beta, x);
+            }
+        }
         double a, b, c, d;
         T g;
 
@@ -46,6 +55,19 @@ namespace detail {
         Int kk;
         double p, d;
         double k, t;
+
+        if (alpha == beta && alpha > -1 && cxx::abs(x) < 1e-5 && n % 2 == 1) {
+            // The recurrence below cancels near the origin for odd n: use DLMF 18.9.2 with alpha == beta
+            double p0 = 1.0, p1 = (alpha + 1.0) * x;
+            for (Int k = 1; k < n; ++k) {
+                const double j = k;
+                const double p2 = (j + alpha + 1.0) / ((j + 1.0) * (j + 2.0 * alpha + 1.0)) *
+                                  ((2.0 * (j + alpha) + 1.0) * x * p1 - (j + alpha) * p0);
+                p0 = p1;
+                p1 = p2;
+            }
+            return p1;
+        }
 
         if (n < 0) {
             return eval_jacobi(n, alpha, beta, x);

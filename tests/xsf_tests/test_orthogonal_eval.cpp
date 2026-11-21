@@ -1205,3 +1205,22 @@ TEST_CASE("eval_gegenbauer large degree prefactor", "[eval_gegenbauer][xsf_tests
     CAPTURE(out, desired, rtol);
     REQUIRE(xsf::extended_relative_error(out, desired) <= rtol);
 }
+
+TEST_CASE("eval_jacobi with alpha == beta and odd n near the origin", "[eval_jacobi][xsf_tests]") {
+    // Regression test: the 2F1 series and the integer-degree recurrence cancel for odd n and small x.
+    // import mpmath as mp
+    // mp.mp.dps = 50
+    // for n, a, x in [(5, 0.7, 1e-10), (7, -0.3, 1e-12), (3, 0.25, 1e-8)]:
+    //     print(repr(float(mp.jacobi(n, a, a, x))))
+    SET_FP_FORMAT()
+    auto [out, desired] = GENERATE(
+        std::make_tuple(xsf::eval_jacobi(5, 0.7, 0.7, 1e-10), 3.09759375e-10),
+        std::make_tuple(xsf::eval_jacobi(5.0, 0.7, 0.7, 1e-10), 3.09759375e-10),
+        std::make_tuple(xsf::eval_jacobi(7.0, -0.3, -0.3, 1e-12), -1.72948984375e-12),
+        std::make_tuple(xsf::eval_jacobi(3, 0.25, 0.25, 1e-8), -1.8281249999999997e-08)
+    );
+
+    const double rtol = 1e-15;
+    CAPTURE(out, desired, rtol);
+    REQUIRE(xsf::extended_relative_error(out, desired) <= rtol);
+}
