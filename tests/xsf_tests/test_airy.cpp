@@ -62,3 +62,34 @@ TEST_CASE("airyzo fifth zeros", "[airyzo][xsf_tests]") {
         REQUIRE(error <= rtol);
     }
 }
+
+TEST_CASE("airy Ai Taylor", "[airy][xsf_tests]") {
+    // Regression test: the Maclaurin series of Ai and Ai' cancel for 0.75 <= x < 2.09, with errors of up to ~100 eps.
+
+    /*
+    If you want to check the values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for x in (2.0799248120300753, 2.0631328320802003):
+        x = mpmath.mpf(x)
+        print(float(mpmath.airyai(x)), float(mpmath.airyai(x, derivative=1)))
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double>;
+    auto [x, ai_desired, aip_desired] = GENERATE(
+        test_case{2.0799248120300753, 0.03089798121053051, -0.04773240803820107},
+        test_case{2.0631328320802003, 0.03170861742551274, -0.04882122346344751}
+    );
+
+    double ai, aip, bi, bip;
+    xsf::airy(x, ai, aip, bi, bip);
+    const double rtol = 2e-15;
+    const double ai_error = xsf::extended_relative_error(ai, ai_desired);
+    const double aip_error = xsf::extended_relative_error(aip, aip_desired);
+    CAPTURE(x, ai, ai_desired, ai_error, aip, aip_desired, aip_error, rtol);
+    REQUIRE(ai_error <= rtol);
+    REQUIRE(aip_error <= rtol);
+}
