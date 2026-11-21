@@ -1407,7 +1407,7 @@ namespace specfun {
         //      (2) CPDLA for computing Dn(z) for a large |z|
         // ==================================================
 
-        int n0, n1, nm1;
+        int n0;
         double a0, x;
         std::complex<double> ca0, cf, cf0, cf1, cfa, cfb, cs0, z1;
         const double pi = 3.141592653589793;
@@ -1433,7 +1433,7 @@ namespace specfun {
         } else {
             n0 = -n;
 
-            if (x <= 0.0 || a0 == 0.0) {
+            if (x < 0.0) {
                 cf0 = ca0;
                 cpb[0] = cf0;
 
@@ -1454,41 +1454,73 @@ namespace specfun {
                     cf0 = cf1;
                     cf1 = cf;
                 }
-            } else if (a0 <= 3.0) {
-                cfa = cpdsa(-n0, z);
-                cpb[n0] = cfa;
-                n1 = n0 + 1;
-                cfb = cpdsa(-n1, z);
-                cpb[n1] = cfb;
-
-                nm1 = n0 - 1;
-                for (int k = nm1; k >= 0; --k) {
-                    cf = z * cfa + (k + 1.0) * cfb;
-                    cpb[k] = cf;
-                    cfb = cfa;
-                    cfa = cf;
-                }
             } else {
-                int m = 100 + abs(n);
-                cfa = 0.0;
-                cfb = 1.0e-30;
+                // Re(z) >= 0: D_{-k}(z) by the backward recurrence (DLMF 12.8.1) from D_{-m}(z) and
+                // D_{-m-1}(z). Near the imaginary axis, m is raised away from the turning points
+                // z^2 = -4 m.
+                double m = std::max(n0, 40);
+                if (std::abs(z.imag()) > x && a0 * a0 < 10.0 * m) {
+                    m = std::fmax(m, std::ceil(2.0 * a0 * a0));
+                }
 
-                for (int k = m; k >= 0; --k) {
-                    cf = z * cfb + (k + 1.0) * cfa;
-
-                    if (k <= n0) {
-                        cpb[k] = cf;
+                // The trapezoidal rule for DLMF 12.5.1 on the ray t = ts e^v through the saddle point
+                // ts^2 + z ts = m of t^m exp(-t^2 / 2 - z t), relative to the integrand at v = 0, where
+                // Im sqrt(z^2 + 4 m) has the sign of Im(z). Each direction stops at the first node below
+                // 1e-18 of the sum, as the integrand grows again farther out near the imaginary axis.
+                const std::complex<double> z2 = z * z;
+                cs0 = std::sqrt(z2 + 4.0 * m);
+                const std::complex<double> ts =
+                    2.0 * m / (z + std::complex<double>(cs0.real(), std::copysign(cs0.imag(), z.imag())));
+                const std::complex<double> ts2 = ts * ts;
+                const double h = 0.5 / std::sqrt(std::abs(m + ts2));
+                cfb = 1.0;
+                cfa = 1.0;
+                for (int dir = 1; dir >= -1; dir -= 2) {
+                    for (int j = 1; j <= 100; ++j) {
+                        const double v = dir * j * h;
+                        const double em = std::expm1(v);
+                        cf = std::exp(-m * (em - v) - 0.5 * ts2 * em * em);
+                        cfb += cf;
+                        cfa += cf * (em + 1.0);
+                        if (std::abs(cf) < 1e-18 * std::abs(cfb)) {
+                            break;
+                        }
                     }
+                }
 
+                // D_{-k}(z) is cfb 2^e. cf is the log of the integrand at v = 0 over Gamma(m), and e is
+                // clamped to keep it an exact integer, and to fit in an int for ldexp.
+                const double emax = 1e15, ekmax = 1e9;
+                cf = -0.25 * z2 + m * std::log(ts) - 0.5 * ts2 - z * ts - cgama(m, 0).real();
+                double e = std::fmin(std::fmax(std::round(cf.real() / M_LN2), -emax), emax);
+                cs0 = h * std::exp(cf - e * M_LN2);
+                cfb *= cs0;
+                cfa *= cs0 * ts / m;
+
+                const double big = 0x1p512, small = 0x1p-512;
+                for (long long k = static_cast<long long>(m); k >= 0; --k) {
+                    if (k <= n0) {
+                        const int ek = static_cast<int>(std::fmin(std::fmax(e, -ekmax), ekmax));
+                        cpb[k] = {std::ldexp(cfb.real(), ek), std::ldexp(cfb.imag(), ek)};
+                    }
+                    cf = z * cfb + static_cast<double>(k) * cfa;
+                    if (std::abs(cf) > big) {
+                        cf *= small;
+                        cfb *= small;
+                        e += 512;
+                    }
                     cfa = cfb;
                     cfb = cf;
                 }
 
-                cs0 = ca0 / cfb;
-
-                for (int k = 0; k <= n0; ++k) {
-                    cpb[k] = cs0 * cpb[k];
+                // D_0(z) cancels the error that D_{-m}(z) and D_{-m-1}(z) share
+                if (std::isnormal(std::abs(cpb[0])) && std::isnormal(std::abs(ca0))) {
+                    cs0 = ca0 / cpb[0];
+                    for (int k = 1; k <= n0; ++k) {
+                        cpb[k] = cs0 * cpb[k];
+                    }
                 }
+                cpb[0] = ca0;
             }
         }
 
