@@ -1205,3 +1205,23 @@ TEST_CASE("eval_gegenbauer large degree prefactor", "[eval_gegenbauer][xsf_tests
     CAPTURE(out, desired, rtol);
     REQUIRE(xsf::extended_relative_error(out, desired) <= rtol);
 }
+
+TEST_CASE("Chebyshev and Legendre with real integral n near the origin", "[chebyshev][legendre][xsf_tests]") {
+    // Regression test: the 2F1 series cancels for odd n and small x.
+    // import mpmath as mp
+    // mp.mp.dps = 50
+    // x = mp.mpf(1e-10)
+    // for f, n in [(mp.chebyt, 5), (mp.chebyt, 21), (mp.chebyu, 5), (mp.legendre, 5), (mp.chebyt, -5)]:
+    //     print(repr(float(f(n, x))))
+    SET_FP_FORMAT()
+    auto [out, desired] = GENERATE(
+        std::make_tuple(xsf::eval_chebyt(5.0, 1e-10), 5e-10), std::make_tuple(xsf::eval_chebyt(21.0, 1e-10), 2.1e-09),
+        std::make_tuple(xsf::eval_chebyu(5.0, 1e-10), 6e-10),
+        std::make_tuple(xsf::eval_legendre(5.0, 1e-10), 1.875e-10),
+        std::make_tuple(xsf::eval_chebyt(-5.0, 1e-10), 5e-10)
+    );
+
+    const double rtol = 1e-15;
+    CAPTURE(out, desired, rtol);
+    REQUIRE(xsf::extended_relative_error(out, desired) <= rtol);
+}
