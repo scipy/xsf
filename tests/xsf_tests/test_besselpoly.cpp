@@ -59,3 +59,33 @@ TEST_CASE("besselpoly large integer nu", "[besselpoly][xsf_tests]") {
     CAPTURE(a, lmb, nu, out, desired, error, rtol);
     REQUIRE(error <= rtol);
 }
+
+TEST_CASE("besselpoly large nu Neumann series", "[besselpoly][xsf_tests]") {
+    // Follow-up to gh-485: the Neumann series was normalized with cephes::jv, which
+    // loses digits or underflows to 0 for large nu.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for a, lmb, nu in [(60.0, 0.0, 244.5), (40.0, 0.0, 400.5)]:
+        c = mpmath.mpf(lmb + nu + 1) / 2
+        res = mpmath.hyp1f2(c, nu + 1, c + 1, -mpmath.mpf(a)**2)
+        res *= mpmath.mpf(a)**nu / (2 * c * mpmath.gamma(nu + 1))
+        print(f"besselpoly({a!r}, {lmb!r}, {nu!r}) = {float(res)!r}")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double, double>;
+    auto [a, lmb, nu, desired] = GENERATE(
+        test_case{60.0, 0.0, 244.5, 3.230211041251911e-54}, test_case{40.0, 0.0, 400.5, 1.5235998731386507e-233}
+    );
+
+    const double out = xsf::besselpoly(a, lmb, nu);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 5e-13;
+    CAPTURE(a, lmb, nu, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
