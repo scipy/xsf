@@ -1,6 +1,6 @@
 """Test xsf functions work on GPU through CuPy.
 
-Beyond cupy and pytest, also requires xsref package to be installed.
+Beyond cupy and pytest, also requires xsref and polars packages to be installed.
 Should be run with pytest-isolate or pytest-forked to isolate tests
 in separate processes since memory corruption on GPU can cause
 failures to occur in unrelated tests.
@@ -35,7 +35,7 @@ def check_version(module, min_ver):
         return pytest.mark.skip(reason=f"{module.name} is not installed")
     return pytest.mark.skipif(
         Version(module.__version__) < Version(min_ver),
-        reason=f"{module.__name__} version >= {min_ver} required"
+        reason=f"{module.__name__} version >= {min_ver} required",
     )
 
 #------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ def check_version(module, min_ver):
 try:
     import cupy  # type: ignore
 except (ImportError, AttributeError):
-    cupy = MissingModule('cupy')
+    cupy = MissingModule("cupy")
 
 
 def _get_cols_helper(table_path, xp):
@@ -67,6 +67,8 @@ def _get_cols_helper(table_path, xp):
     elif table_name.startswith("err_"):
         table = pl.read_parquet(table_path)
         rows = table.to_numpy()
+    else:
+        raise ValueError(f"Unrecognized table type: {table_path.name}")
     result = tuple(xp.asarray(col) for col in zip(*rows))
     if len(result) == 1:
         result = result[0]
@@ -115,9 +117,15 @@ class TestCuPy:
     def test_beta(self, tables_paths):
         input_path, output_path, tol_path = tables_paths
         beta = cupy._core.create_ufunc(
-            "cupyx_scipy_beta",
-            ("ll->d", "LL->d", "ee->d", "ff->f", "dd->d"),
-            "out0 = out0_type(xsf::beta(in0, in1));",
+            "cupyx_scipy_special_beta",
+            (
+                ("ll->d", "out0 = xsf::beta(double(in0), double(in1))"),
+                ("LL->d", "out0 = xsf::beta(double(in0), double(in1))"),
+                ("ee->d", "out0 = xsf::beta(double(in0), double(in1))"),
+                "ff->f",
+                "dd->d",
+            ),
+            "out0 = xsf::beta(in0, in1)",
             preamble=get_preamble("xsf/beta.h"),
         )
 
@@ -136,9 +144,9 @@ class TestCuPy:
     def test_binom(self, tables_paths):
         input_path, output_path, tol_path = tables_paths
         binom = cupy._core.create_ufunc(
-            "cupyx_scipy_binom",
+            "cupyx_scipy_special_binom",
             ("ff->f", "dd->d"),
-            "out0 = out0_type(xsf::binom(in0, in1));",
+            "out0 = xsf::binom(in0, in1)",
             preamble=get_preamble("xsf/binom.h"),
         )
 
@@ -157,9 +165,9 @@ class TestCuPy:
     def test_gamma(self, tables_paths):
         input_path, output_path, tol_path = tables_paths
         gamma = cupy._core.create_ufunc(
-            'cupyx_scipy_special_gamma',
-            ('f->f', 'd->d', 'F->F', 'D->D'),
-            'out0 = xsf::gamma(in0)',
+            "cupyx_scipy_special_gamma",
+            ("f->f", "d->d", "F->F", "D->D"),
+            "out0 = xsf::gamma(in0)",
             preamble=get_preamble("xsf/gamma.h"),
         )
 
@@ -178,17 +186,17 @@ class TestCuPy:
     def test_digamma(self, tables_paths):
         input_path, output_path, tol_path = tables_paths
         digamma = cupy._core.create_ufunc(
-            'cupyx_scipy_special_digamma',
+            "cupyx_scipy_special_digamma",
             (
-                ('l->d', 'out0 = xsf::digamma(double(in0))'),
-                ('e->d', 'out0 = xsf::digamma(double(in0))'),
-                'f->f',
-                'd->d',
-                'F->F',
-                'D->D',
+                ("l->d", "out0 = xsf::digamma(double(in0))"),
+                ("e->d", "out0 = xsf::digamma(double(in0))"),
+                "f->f",
+                "d->d",
+                "F->F",
+                "D->D",
             ),
-            'out0 = xsf::digamma(in0)',
-            preamble=get_preamble("xsf/digamma.h")
+            "out0 = xsf::digamma(in0)",
+            preamble=get_preamble("xsf/digamma.h"),
         )
 
         x = get_cols_as_cupy(input_path)
@@ -200,15 +208,15 @@ class TestCuPy:
             extended_relative_error(out, desired) <= self._adjust_tol(rtol)
         )
 
-
     @pytest.mark.parametrize(
         "tables_paths", get_tables_for_func("ellipkinc")
     )
     def test_ellipkinc(self, tables_paths):
         input_path, output_path, tol_path = tables_paths
         ellipkinc = cupy._core.create_ufunc(
-            'cupyx_scipy_special_ellipkinc', ('ff->f', 'dd->d'),
-            'out0 = xsf::cephes::ellik(in0, in1)',
+            "cupyx_scipy_special_ellipkinc",
+            ("ff->f", "dd->d"),
+            "out0 = xsf::cephes::ellik(in0, in1)",
             preamble=get_preamble("xsf/cephes/ellik.h"),
         )
 
@@ -227,8 +235,9 @@ class TestCuPy:
     def test_ellipeinc(self, tables_paths):
         input_path, output_path, tol_path = tables_paths
         ellipeinc = cupy._core.create_ufunc(
-            'cupyx_scipy_special_ellipeinc', ('ff->f', 'dd->d'),
-            'out0 = xsf::cephes::ellie(in0, in1)',
+            "cupyx_scipy_special_ellipeinc",
+            ("ff->f", "dd->d"),
+            "out0 = xsf::cephes::ellie(in0, in1)",
             preamble=get_preamble("xsf/cephes/ellie.h"),
         )
 
@@ -247,9 +256,9 @@ class TestCuPy:
     def test_expn(self, tables_paths):
         input_path, output_path, tol_path = tables_paths
         expn = cupy._core.create_ufunc(
-            'cupyx_scipy_special_expn',
-            ('ff->f', 'dd->d'),
-            'out0 = xsf::cephes::expn(in0, in1)',
+            "cupyx_scipy_special_expn",
+            ("ff->f", "dd->d"),
+            "out0 = xsf::cephes::expn(in0, in1)",
             preamble=get_preamble("xsf/cephes/expn.h"),
         )
 
@@ -268,9 +277,9 @@ class TestCuPy:
     def test_gdtrib(self, tables_paths):
         input_path, output_path, tol_path = tables_paths
         gdtrib = cupy._core.create_ufunc(
-            'cupyx_scipy_special_gdtrib',
-            ('fff->f', 'ddd->d'),
-            'out0 = xsf::gdtrib(in0, in1, in2)',
+            "cupyx_scipy_special_gdtrib",
+            ("fff->f", "ddd->d"),
+            "out0 = xsf::gdtrib(in0, in1, in2)",
             preamble=get_preamble("xsf/cdflib.h"),
         )
 
@@ -289,9 +298,9 @@ class TestCuPy:
     def test_hyp2f1(self, tables_paths):
         input_path, output_path, tol_path = tables_paths
         hyp2f1 = cupy._core.create_ufunc(
-            'cupyx_scipy_special_hyp2f1',
-            ('ffff->f', 'dddd->d', 'fffF->F', 'dddD->D'),
-            'out0 = xsf::hyp2f1(in0, in1, in2, in3)',
+            "cupyx_scipy_special_hyp2f1",
+            ("ffff->f", "dddd->d", "fffF->F", "dddD->D"),
+            "out0 = xsf::hyp2f1(in0, in1, in2, in3)",
             preamble=get_preamble("xsf/hyp2f1.h"),
         )
 
@@ -315,7 +324,7 @@ class TestCuPy:
     def test_lambertw(self, tables_paths):
         input_path, output_path, tol_path = tables_paths
         _lambertw_scalar = cupy._core.create_ufunc(
-            "cupyx_scipy_lambertw_scalar",
+            "cupyx_scipy_special_lambertw_scalar",
             ("Dld->D", "Flf->F"),
             "out0 = xsf::lambertw(in0, in1, in2)",
             preamble=get_preamble("xsf/lambertw.h"),
@@ -338,39 +347,39 @@ class TestCuPy:
     def test_sici(self, tables_paths):
         input_path, output_path, tol_path = tables_paths
         sici = cupy._core.create_ufunc(
-            'cupyx_scipy_special_sici',
+            "cupyx_scipy_special_sici",
             (
                 (
-                    'f->ff',
-                    '''
+                    "f->ff",
+                    """
                     float si, ci;
                     xsf::sici(in0, si, ci);
                     out0 = si; out1 = ci;
-                    ''',
+                    """,
                 ),
-            (
-                'd->dd',
-                '''
-                double si, ci;
-                xsf::sici(in0, si, ci);
-                out0 = si; out1 = ci;
-                ''',
-            ),
                 (
-                    'F->FF',
-                    '''
+                    "d->dd",
+                    """
+                    double si, ci;
+                    xsf::sici(in0, si, ci);
+                    out0 = si; out1 = ci;
+                    """,
+                ),
+                (
+                    "F->FF",
+                    """
                     complex<float> si, ci;
                     xsf::sici(in0, si, ci);
-                out0 = si; out1 = ci;
-                    ''',
+                    out0 = si; out1 = ci;
+                    """,
                 ),
                 (
-                    'D->DD',
-                    '''
+                    "D->DD",
+                    """
                     complex<double> si, ci;
                     xsf::sici(in0, si, ci);
                     out0 = si; out1 = ci;
-                    ''',
+                    """,
                 ),
             ),
             preamble=get_preamble("xsf/sici.h"),
@@ -396,39 +405,39 @@ class TestCuPy:
     def test_shichi(self, tables_paths):
         input_path, output_path, tol_path = tables_paths
         shichi = cupy._core.create_ufunc(
-            'cupyx_scipy_special_shichi',
+            "cupyx_scipy_special_shichi",
             (
                 (
-                    'f->ff',
-                    '''
+                    "f->ff",
+                    """
                     float shi, chi;
                     xsf::shichi(in0, shi, chi);
                     out0 = shi; out1 = chi;
-                    ''',
+                    """,
                 ),
                 (
-                    'd->dd',
-                    '''
+                    "d->dd",
+                    """
                     double shi, chi;
                     xsf::shichi(in0, shi, chi);
                     out0 = shi; out1 = chi;
-                    ''',
+                    """,
                 ),
                 (
-                    'F->FF',
-                    '''
+                    "F->FF",
+                    """
                     complex<float> shi, chi;
                     xsf::shichi(in0, shi, chi);
                     out0 = shi; out1 = chi;
-                    ''',
+                    """,
                 ),
                 (
-                    'D->DD',
-                    '''
+                    "D->DD",
+                    """
                     complex<double> shi, chi;
                     xsf::shichi(in0, shi, chi);
                     out0 = shi; out1 = chi;
-                    ''',
+                    """,
                 ),
             ),
             preamble=get_preamble("xsf/sici.h"),
@@ -454,9 +463,9 @@ class TestCuPy:
     def test_erf(self, tables_paths):
         input_path, output_path, tol_path = tables_paths
         erf = cupy._core.create_ufunc(
-            'cupyx_scipy_special_erf',
-            ('f->f', 'd->d', 'F->F', 'D->D'),
-            'out0 = xsf::erf(in0)',
+            "cupyx_scipy_special_erf",
+            ("f->f", "d->d", "F->F", "D->D"),
+            "out0 = xsf::erf(in0)",
             preamble=get_preamble("xsf/erf.h"),
         )
 
@@ -475,9 +484,9 @@ class TestCuPy:
     def test_erfc(self, tables_paths):
         input_path, output_path, tol_path = tables_paths
         erfc = cupy._core.create_ufunc(
-            'cupyx_scipy_special_erfc',
-            ('f->f', 'd->d', 'F->F', 'D->D'),
-            'out0 = xsf::erfc(in0)',
+            "cupyx_scipy_special_erfc",
+            ("f->f", "d->d", "F->F", "D->D"),
+            "out0 = xsf::erfc(in0)",
             preamble=get_preamble("xsf/erf.h"),
         )
 
@@ -502,9 +511,9 @@ class TestCuPy:
     def test_erfcx(self, tables_paths):
         input_path, output_path, tol_path = tables_paths
         erfcx = cupy._core.create_ufunc(
-            'cupyx_scipy_special_erfcx',
-            ('f->f', 'd->d', 'F->F', 'D->D'),
-            'out0 = xsf::erfcx(in0)',
+            "cupyx_scipy_special_erfcx",
+            ("f->f", "d->d", "F->F", "D->D"),
+            "out0 = xsf::erfcx(in0)",
             preamble=get_preamble("xsf/erf.h"),
         )
 
@@ -523,9 +532,9 @@ class TestCuPy:
     def test_erfi(self, tables_paths):
         input_path, output_path, tol_path = tables_paths
         erfi = cupy._core.create_ufunc(
-            'cupyx_scipy_special_erfi',
-            ('f->f', 'd->d', 'F->F', 'D->D'),
-            'out0 = xsf::erfi(in0)',
+            "cupyx_scipy_special_erfi",
+            ("f->f", "d->d", "F->F", "D->D"),
+            "out0 = xsf::erfi(in0)",
             preamble=get_preamble("xsf/erf.h"),
         )
 
@@ -544,9 +553,9 @@ class TestCuPy:
     def test_voigt_profile(self, tables_paths):
         input_path, output_path, tol_path = tables_paths
         voigt_profile = cupy._core.create_ufunc(
-            'cupyx_scipy_special_voigt_profile',
-            ('fff->f', 'ddd->d'),
-            'out0 = xsf::voigt_profile(in0, in1, in2)',
+            "cupyx_scipy_special_voigt_profile",
+            ("fff->f", "ddd->d"),
+            "out0 = xsf::voigt_profile(in0, in1, in2)",
             preamble=get_preamble("xsf/erf.h"),
         )
 
@@ -565,9 +574,9 @@ class TestCuPy:
     def test_wofz(self, tables_paths):
         input_path, output_path, tol_path = tables_paths
         wofz = cupy._core.create_ufunc(
-            'cupyx_scipy_special_wofz',
-            ('F->F', 'D->D'),
-            'out0 = xsf::wofz(in0)',
+            "cupyx_scipy_special_wofz",
+            ("F->F", "D->D"),
+            "out0 = xsf::wofz(in0)",
             preamble=get_preamble("xsf/erf.h"),
         )
 
@@ -586,9 +595,9 @@ class TestCuPy:
     def test_dawsn(self, tables_paths):
         input_path, output_path, tol_path = tables_paths
         dawsn = cupy._core.create_ufunc(
-            'cupyx_scipy_special_dawsn',
-            ('f->f', 'd->d', 'F->F', 'D->D'),
-            'out0 = xsf::dawsn(in0)',
+            "cupyx_scipy_special_dawsn",
+            ("f->f", "d->d", "F->F", "D->D"),
+            "out0 = xsf::dawsn(in0)",
             preamble=get_preamble("xsf/erf.h"),
         )
 
