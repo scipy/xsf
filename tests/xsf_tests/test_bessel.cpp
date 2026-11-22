@@ -48,6 +48,26 @@ TEST_CASE("iv large v where u_1(t) vanishes", "[bessel][xsf_tests]") {
     REQUIRE(rel_err <= 1e-13);
 }
 
+TEST_CASE("iv large v near the overflow threshold", "[bessel][xsf_tests]") {
+    // These returned inf, although the results are below DBL_MAX.
+    // from mpmath import mp, mpf, besseli
+    // mp.dps = 50
+    // float(besseli(mpf(v), mpf(x)))
+    using test_case = std::tuple<double, double, double>;
+    auto [v, x, ref] = GENERATE(
+        test_case{54.0994671244485, 712, 3.159462389002481e+306}, test_case{100, 717, 3.4403526299831825e+306},
+        test_case{-60.5, 714, 1.4031369658517224e+307}, test_case{4000, 3066.106224, 1.7976922430682064e+308}
+    );
+
+    double result = xsf::cyl_bessel_i(v, x);
+    double rel_err = xsf::extended_relative_error(result, ref);
+
+    SET_FP_FORMAT()
+    CAPTURE(v, x, result, ref, rel_err);
+    // The rounding error of eta makes the error grow like v * eps (9e-13 for v = 4000).
+    REQUIRE(rel_err <= 5e-12);
+}
+
 TEST_CASE("jv and yv for negative v on overflow", "[bessel][xsf_tests]") {
     // Regression test for gh-383: the first four returned inf, NaN, -inf, and NaN,
     // and the last one must keep using the finite cephes::jv fallback.

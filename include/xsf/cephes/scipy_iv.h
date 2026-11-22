@@ -370,7 +370,7 @@ namespace cephes {
          * Compute Iv, Kv from (AMS5 9.7.7 + 9.7.8), asymptotic expansion for large v
          */
         XSF_HOST_DEVICE inline void ikv_asymptotic_uniform(double v, double x, double *i_value, double *k_value) {
-            double i_prefactor, k_prefactor;
+            double i_prefactor, i_scale = 1, k_prefactor;
             double t, t2, eta, z;
             double i_sum, k_sum, term, divisor;
             int k, n;
@@ -388,7 +388,14 @@ namespace cephes {
             t2 = t * t;
             eta = cxx::sqrt(1 + z * z) + cxx::log(z / (1 + 1 / t));
 
-            i_prefactor = cxx::sqrt(t / (2 * M_PI * v)) * cxx::exp(v * eta);
+            i_prefactor = cxx::sqrt(t / (2 * M_PI * v));
+            if (v * eta > MAXLOG) {
+                /* exp(v * eta) overflows: apply exp(v * eta / 2) here and once more to the sum */
+                i_scale = cxx::exp(0.5 * v * eta);
+                i_prefactor *= i_scale;
+            } else {
+                i_prefactor *= cxx::exp(v * eta);
+            }
             i_sum = 1.0;
 
             k_prefactor = cxx::sqrt(M_PI * t / (2 * v)) * cxx::exp(-v * eta);
@@ -441,6 +448,8 @@ namespace cephes {
                 /* symmetric in v */
                 *k_value = k_prefactor * k_sum;
             }
+
+            i_sum *= i_scale;
 
             if (i_value != NULL) {
                 if (sign == 1) {
