@@ -100,31 +100,28 @@ namespace detail {
 
         double res = 0;
         double lnx = cxx::log(x);
-        if (log_wb && nstart == 0 && b > 0) {
-            // log1p of the k >= 1 terms relative to the k=0 term, for accuracy when Phi is close to 1
-            double lgam_b = xsf::loggamma(b);
-            double tail = 0;
-            for (int k = 1; k < n; k++) {
-                double e = k * lnx - cephes::lgam(k + 1) - cephes::lgam(a * k + b) + lgam_b;
-                if (e >= 0) {
-                    tail = 1;
-                    break;
-                }
-                tail += cxx::exp(e);
-            }
-            if (tail < 1) {
-                return -lgam_b + cxx::log1p(tail);
-            }
-        }
         // For numerical stability, we factor out the maximum term exp(..) with k=k_max
         // but only if it is larger than 0.
         double max_exponent = cxx::fmax(0., k_max * lnx - cephes::lgam(k_max + 1) - cephes::lgam(a * k_max + b));
-        for (int k = nstart; k < nstart + n; k++) {
+        int kstart = nstart;
+        if (log_wb && nstart == 0 && b > 0) {
+            // For the log, if the k=0 term is the largest, factor it out instead and add the
+            // other terms with log1p, for accuracy when the result is close to 0. The terms
+            // are log-concave in k, so k=0 is the largest if the k=1 term is not larger.
+            double lgam_b = xsf::loggamma(b);
+            if (lnx - cephes::lgam(a + b) <= -lgam_b) {
+                max_exponent = -lgam_b;
+                kstart = 1;
+            }
+        }
+        for (int k = kstart; k < nstart + n; k++) {
             res += cxx::exp(k * lnx - cephes::lgam(k + 1) - cephes::lgam(a * k + b) - max_exponent);
         }
 
         if (!log_wb) {
             res *= cxx::exp(max_exponent);
+        } else if (kstart > nstart) {
+            res = max_exponent + cxx::log1p(res);
         } else {
             // logarithm of Wright's function
             res = max_exponent + cxx::log(res);
@@ -814,15 +811,17 @@ XSF_HOST_DEVICE inline double wright_bessel_t(double a, double b, double x) {
         // 18 term Taylor Series => error mostly smaller 5e-14
         if (log_wb) {
             return detail::wb_log_series(a, b, x, 18);
+        } else {
+            return detail::wb_series(a, b, x, 0, 18);
         }
-        return detail::wb_series(a, b, x, 0, 18);
     }
     if (x <= 2) {
         // 20 term Taylor Series => error mostly smaller 1e-12 to 1e-13
         if (log_wb) {
             return detail::wb_log_series(a, b, x, 20);
+        } else {
+            return detail::wb_series(a, b, x, 0, 20);
         }
-        return detail::wb_series(a, b, x, 0, 20);
     }
     if (a >= 5) {
         /* Taylor series around the approximate maximum term.

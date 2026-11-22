@@ -3,9 +3,9 @@
 #include <xsf/wright_bessel.h>
 
 TEST_CASE("log_wright_bessel result close to 0", "[log_wright_bessel][xsf_tests]") {
-    // log(Phi) was computed as log(1 + small), losing the small part: the first two
-    // returned 0, the third had relative error 3e-6 and the fourth 2e-8. The last three
-    // have b one ulp below 1, where lgam(b) is close to 0 and needs an accurate log-gamma.
+    // Test that log_wright_bessel keeps the precision when Phi is close to 1, i.e.
+    // when the result is close to 0. The last three cases have b one ulp below 1,
+    // where log(Gamma(b)) is close to 0 as well.
 
     /*
     If you want to check the expected values below with mpmath, this is the script:
