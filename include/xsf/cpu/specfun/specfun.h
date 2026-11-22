@@ -496,7 +496,9 @@ namespace specfun {
             w1 = 0.0;
             w2 = 0.0;
 
-            // exp(-x2) is folded into the terms: cosh(n y) overflows for large y, and they peak near n = 2 |y|.
+            // exp(-x2) is folded into the terms, because cosh(n y) overflows for large y. Their exponential factor
+            // exp(-n^2 / 4 + n |y| - x2) peaks at n = 2 |y|. The loop bound targets 20 terms past the peak, subject
+            // to the limits below.
             // With a = -n^2 / 4 - x2, ea = exp(a + n |y|) and em = expm1(-2 n |y|):
             // exp(a) cosh(n y) = ea (1 + em / 2) and exp(a) sinh(n y) = -sgn(y) ea em / 2.
             const double ay = fabs(y);
