@@ -41,3 +41,18 @@ TEST_CASE("rcty overflow", "[rcty][real][xsf_tests]") {
     REQUIRE(error_ry <= rtol);
     REQUIRE(error_dy <= rtol);
 }
+
+TEST_CASE("rcty n = 0", "[rcty][real][xsf_tests]") {
+    // Regression test: with n = 0, ry[1] and dy[1] were written out of bounds.
+    const double x = GENERATE(1e-70, 1.0);
+
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    std::vector<double> ry(2, nan), dy(2, nan);
+    xsf::rcty(x, xsf::cxx::mdspan(ry.data(), 1), xsf::cxx::mdspan(dy.data(), 1));
+
+    CAPTURE(x, ry[0], dy[0], ry[1], dy[1]);
+    REQUIRE(ry[0] == -std::cos(x));
+    REQUIRE(dy[0] == std::sin(x));
+    REQUIRE(std::isnan(ry[1]));
+    REQUIRE(std::isnan(dy[1]));
+}

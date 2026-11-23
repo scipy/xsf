@@ -591,6 +591,10 @@ void rcty(T x, int *nm, OutputVec1 ry, OutputVec2 dy) {
     T rf0, rf1, rf2;
     *nm = n;
     ry[0] = -cos(x);
+    if (n == 0) {
+        dy[0] = sin(x);
+        return;
+    }
     ry[1] = ry[0] / x - sin(x);
     rf0 = ry[0];
     rf1 = ry[1];
