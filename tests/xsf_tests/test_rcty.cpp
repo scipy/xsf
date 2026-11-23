@@ -62,3 +62,21 @@ TEST_CASE("rcty n = 0", "[rcty][real][xsf_tests]") {
     REQUIRE(std::isnan(ry[1]));
     REQUIRE(std::isnan(dy[1]));
 }
+
+TEST_CASE("rcty float overflow", "[rcty][real][xsf_tests]") {
+    // Regression test: with float x, the orders that overflow in float were left unset, or finite with double outputs.
+    // ry[k](-x) = (-1)^k ry[k](x) and dy[k](-x) = (-1)^(k+1) dy[k](x), and ry[199](100) ~ -2.2e39.
+    const float x = GENERATE(100.0f, -100.0f);
+
+    const double nan = std::numeric_limits<double>::quiet_NaN(), inf = std::numeric_limits<double>::infinity();
+    std::vector<double> ry(201, nan), dy(201, nan);
+    xsf::rcty(x, xsf::cxx::mdspan(ry.data(), ry.size()), xsf::cxx::mdspan(dy.data(), dy.size()));
+
+    const double s = (x > 0) ? 1 : -1;
+    CAPTURE(x, ry[198], ry[199], ry[200], dy[199], dy[200]);
+    REQUIRE(std::isfinite(ry[198]));
+    REQUIRE(ry[199] == -s * inf);
+    REQUIRE(ry[200] == -inf);
+    REQUIRE(dy[199] == inf);
+    REQUIRE(dy[200] == s * inf);
+}
