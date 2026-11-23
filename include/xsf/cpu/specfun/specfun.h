@@ -492,28 +492,32 @@ namespace specfun {
             er1 = exp(-x2) * (1.0 - cs) / (2.0 * pi * x);
             ei1 = exp(-x2) * ss / (2.0 * pi * x);
             er2 = 0.0;
-            w1 = 0.0;
-
-            for (int n = 1; n <= 100; n++) {
-                er2 += exp(-0.25 * n * n) / (n * n + 4.0 * x2) *
-                       (2.0 * x - 2.0 * x * cosh(n * y) * cs + n * sinh(n * y) * ss);
-                if (fabs((er2 - w1) / er2) < eps)
-                    break;
-                w1 = er2;
-            }
-
-            c0 = 2.0 * exp(-x2) / pi;
-            err = cer->real() + er1 + c0 * er2;
             ei2 = 0.0;
+            w1 = 0.0;
             w2 = 0.0;
 
-            for (int n = 1; n <= 100; n++) {
-                ei2 += exp(-0.25 * n * n) / (n * n + 4.0 * x2) * (2.0 * x * cosh(n * y) * ss + n * sinh(n * y) * cs);
-                if (fabs((ei2 - w2) / ei2) < eps)
+            // exp(-x2) is folded into the terms, because cosh(n y) overflows for large y. Their exponential factor
+            // exp(-n^2 / 4 + n |y| - x2) peaks at n = 2 |y|. The loop bound targets 20 terms past the peak, subject
+            // to the limits below.
+            // With a = -n^2 / 4 - x2, ea = exp(a + n |y|) and em = expm1(-2 n |y|):
+            // exp(a) cosh(n y) = ea (1 + em / 2) and exp(a) sinh(n y) = -sgn(y) ea em / 2.
+            const double ay = fabs(y);
+            const double nlimit = 1.0e6; // bounds the loop for huge or infinite y
+            const double nmax = fmin(nlimit, fmax(100.0, 2.0 * ay + 20.0));
+            for (double n = 1; n <= nmax; n++) {
+                const double a = -0.25 * n * n - x2, d = n * n + 4.0 * x2;
+                const double ea = exp(a + n * ay), em = expm1(-2.0 * n * ay);
+                const double ch = ea * (1.0 + 0.5 * em), sh = copysign(-0.5 * ea * em, y);
+                er2 += (2.0 * x * (exp(a) - ch * cs) + n * sh * ss) / d;
+                ei2 += (2.0 * x * ch * ss + n * sh * cs) / d;
+                if (fabs((er2 - w1) / er2) < eps && fabs((ei2 - w2) / ei2) < eps)
                     break;
+                w1 = er2;
                 w2 = ei2;
             }
-            *cer = std::complex<double>(err, ei1 + c0 * ei2);
+
+            c0 = 2.0 / pi;
+            *cer = std::complex<double>(cer->real() + er1 + c0 * er2, ei1 + c0 * ei2);
         }
         *cder = 2.0 / sqrt(pi) * std::exp(-z * z);
     }
@@ -587,9 +591,9 @@ namespace specfun {
         // Routine called: CERF for computing erf(z) and erf'(z)
         // ===============================================================
 
-        int i, j, nr, it = 0;
+        int i, nr, it = 0;
         double pu, pv, px, py, w0;
-        std::complex<double> z, zf, zd, zp, zw, zq, zfd, zgd;
+        std::complex<double> z, zf, zd, zq;
         double w = 0.0;
         const double pi = 3.141592653589793;
 
@@ -604,24 +608,13 @@ namespace specfun {
             do {
                 it++;
                 cerf(z, &zf, &zd);
-                zp = 1.0;
-
-                for (i = 1; i < nr; i++) {
-                    zp *= (z - zo[i - 1]);
-                }
-                zfd = zf / zp;
+                // Newton step for g = zf / prod(z - zo[i]): g / g' = zf / (zd - zq * zf), where
+                // zq = sum(1 / (z - zo[i])) is the logarithmic derivative of the product (no overflow)
                 zq = 0.0;
                 for (i = 1; i < nr; i++) {
-                    zw = 1.0;
-                    for (j = 1; j < nr; j++) {
-                        if (j == i)
-                            continue;
-                        zw *= (z - zo[j - 1]);
-                    }
-                    zq += zw;
+                    zq += 1.0 / (z - zo[i - 1]);
                 }
-                zgd = (zd - zq * zfd) / zp;
-                z -= zfd / zgd;
+                z -= zf / (zd - zq * zf);
                 w0 = w;
                 w = std::abs(z);
             } while ((it <= 50) && (fabs((w - w0) / w) > 1.0e-11));
