@@ -591,7 +591,7 @@ void rcty(T x, int *nm, OutputVec1 ry, OutputVec2 dy) {
     T rf0, rf1, rf2;
     *nm = n;
     ry[0] = -cos(x);
-    if (n == 0) {
+    if (n <= 0) {
         dy[0] = sin(x);
         return;
     }
@@ -600,7 +600,7 @@ void rcty(T x, int *nm, OutputVec1 ry, OutputVec2 dy) {
     rf1 = ry[1];
 
     for (k = 2; k <= n; k++) {
-        rf2 = (2.0 * k - 1.0) / x * rf1 - rf0;
+        rf2 = std::fma((2.0 * k - 1.0) / x, rf1, -rf0);
         if (std::isinf(rf2)) {
             break;
         }
@@ -612,12 +612,12 @@ void rcty(T x, int *nm, OutputVec1 ry, OutputVec2 dy) {
     *nm = k - 1;
     dy[0] = sin(x);
     for (k = 1; k <= *nm; k++) {
-        dy[k] = -k / x * ry[k] + ry[k - 1];
+        dy[k] = std::fma(-ry[k] / x, k, ry[k - 1]);
     }
     // the remaining orders overflow
     for (k = *nm + 1; k <= n; k++) {
         ry[k] = (2.0 * k - 1.0) / x * ry[k - 1];
-        dy[k] = -k / x * ry[k];
+        dy[k] = -ry[k] / x * k;
     }
     return;
 }

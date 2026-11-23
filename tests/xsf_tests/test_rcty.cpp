@@ -16,7 +16,7 @@ TEST_CASE("rcty overflow", "[rcty][real][xsf_tests]") {
     # x * y_k(x)
     ry = lambda k, x: mpmath.sqrt(mpmath.pi * x / 2) * mpmath.bessely(k + mpmath.mpf(1) / 2, x)
 
-    for k, x in [(2, "1e-70"), (149, 1), (1848, 1000), (200, 0.5)]:
+    for k, x in [(2, "1e-70"), (149, 1), (1848, 1000), (11767, 9976), (200, 0.5)]:
         X = mpmath.mpf(x)
         dy = ry(k - 1, X) - k * ry(k, X) / X  # DLMF 10.51.2
         print(f"k={k}, x={x}: {float(ry(k, X))!r} {float(dy)!r}")
@@ -27,6 +27,7 @@ TEST_CASE("rcty overflow", "[rcty][real][xsf_tests]") {
         test_case{4, 2, 1e-70, -3e+140, 6e+210},
         test_case{150, 149, 1.0, -1.2573906731395004e+304, 1.873469766108334e+306},
         test_case{1848, 1848, 1000.0, -8.119236242111399e+307, 1.2616870528216194e+308},
+        test_case{11767, 11767, 9976.0, -1.7421119390689042e+308, 1.0896047571747254e+308},
         test_case{200, 200, 0.5, -std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()}
     );
 
@@ -38,8 +39,13 @@ TEST_CASE("rcty overflow", "[rcty][real][xsf_tests]") {
     const double error_dy = xsf::extended_relative_error(dy[k], desired_dy);
     const double rtol = 1e-12;
     CAPTURE(n, k, x, ry[k], desired_ry, error_ry, dy[k], desired_dy, error_dy, rtol);
-    REQUIRE(error_ry <= rtol);
-    REQUIRE(error_dy <= rtol);
+    if (std::isinf(desired_ry)) {
+        REQUIRE(ry[k] == desired_ry);
+        REQUIRE(dy[k] == desired_dy);
+    } else {
+        REQUIRE(error_ry <= rtol);
+        REQUIRE(error_dy <= rtol);
+    }
 }
 
 TEST_CASE("rcty n = 0", "[rcty][real][xsf_tests]") {
