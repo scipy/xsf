@@ -5222,6 +5222,11 @@ namespace amos {
             //
             ai = airy(arg, 0, 2, &nai, &idum);
             dai = airy(arg, 1, 2, &ndai, &idum);
+            if (idum == 4) {
+                // abs(arg) too large for airy
+                *nz = -2;
+                return;
+            }
             s2 = phi * (ai * asum + dai * bsum);
             c2r = std::exp(std::real(s1)) * std::real(css[iflag - 1]);
             c2i = std::imag(s1);
@@ -5956,6 +5961,10 @@ namespace amos {
                 c2 = arg[j - 1] * cr2;
                 ai = airy(c2, 0, 2, &nai, &idum);
                 dai = airy(c2, 1, 2, &ndai, &idum);
+                if (idum == 4) {
+                    // abs(arg) too large for airy
+                    return -2;
+                }
                 s2 = cs * phi[j - 1] * (ai * asum[j - 1] + cr2 * dai * bsum[j - 1]);
                 c2r = std::real(s1);
                 c2i = std::imag(s1);
@@ -6201,6 +6210,10 @@ namespace amos {
 
             ai = airy(argd, 0, 2, &nai, &idum);
             dai = airy(argd, 1, 2, &ndai, &idum);
+            if (idum == 4) {
+                // abs(arg) too large for airy
+                return -2;
+            }
             s2 = cs * phid * (ai * asumd + dai * bsumd);
             c2r = std::real(s1);
             c2i = std::imag(s1);

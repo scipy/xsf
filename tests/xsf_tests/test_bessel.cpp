@@ -138,6 +138,28 @@ TEST_CASE("amos for large |z|", "[bessel][airy][xsf_tests]") {
     CHECK(xsf::extended_relative_error(bi, 0.015002635736958194) <= 5e-15);
 }
 
+TEST_CASE("amos uniform expansions for |z| just below 0.5 / tol", "[bessel][xsf_tests]") {
+    // Regression test for gh-502: these returned 0.
+    // from mpmath import mp, mpf, bessely
+    // mp.dps = 50
+    // float(bessely(86, mpf(2e15)))
+    using C = std::complex<double>;
+    const double yv = xsf::cyl_bessel_y(86.0, 2e15);
+    const C h1 = xsf::cyl_hankel_1(86.0, C(2e15));
+    const C kve = xsf::cyl_bessel_ke(86.0, C(0, 2e15));
+    const C jv = xsf::cyl_bessel_j(1e8, C(2e15));
+    // only the airy argument of the analytic continuation in unk2 is past the cutoff (up to rounding)
+    const C kve_cont = xsf::cyl_bessel_ke(86.0, C(-400, 1501199875790300.75));
+
+    SET_FP_FORMAT()
+    CAPTURE(yv, h1, kve, jv, kve_cont);
+    CHECK(xsf::extended_relative_error(yv, 5.142851446965517e-09) <= 5e-15);
+    CHECK(std::isnan(h1.real()));
+    CHECK(std::isnan(kve.real()));
+    CHECK(std::isnan(jv.real()));
+    CHECK(kve_cont != C(0));
+}
+
 TEST_CASE("orders above 2**30", "[bessel][xsf_tests]") {
     // Regression test for gh-503: the first three returned NaN, the last two had the wrong phase.
     // For odd v, J_v(-x) = -J_v(x) and H1_v(-x) = H2_v(x) = J_v(x) - i Y_v(x) (DLMF 10.11.1, 10.11.5).
