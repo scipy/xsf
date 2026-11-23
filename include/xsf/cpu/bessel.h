@@ -87,10 +87,17 @@ namespace detail {
         return s;
     }
 
+    // principal sqrt(z) that keeps exact zeros (libc++ std::sqrt goes through polar form and does not)
+    inline std::complex<double> principal_sqrt(std::complex<double> z) {
+        double x = z.real(), y = z.imag(), t = 2 * std::sqrt(std::hypot(x / 8, y / 8) + std::abs(x) / 8);
+        return (x >= 0) ? std::complex<double>(t, y / (2 * t))
+                        : std::complex<double>(std::abs(y) / (2 * t), std::copysign(t, y));
+    }
+
     // H1(z) exp(-iz) (s = 1) or H2(z) exp(iz) (s = -1) for Re(z) >= 0 or s Im(z) > 0, DLMF 10.17.5-6
     inline std::complex<double> hankel_asy_e_right(double s, double v, std::complex<double> z) {
         // sqrt(z) exp(s pi i / 4) as sqrt(s i z), which keeps small components
-        std::complex<double> q = std::sqrt(std::complex<double>(-s * z.imag(), s * z.real()));
+        std::complex<double> q = principal_sqrt(std::complex<double>(-s * z.imag(), s * z.real()));
         q = (z.real() < 0) ? -q : q;
         return rotate(std::sqrt(M_2_PI) / q * hankel_asy_sum(v, std::complex<double>(0, s) / z), -s * v / 2);
     }
@@ -120,12 +127,12 @@ namespace detail {
         std::complex<double> a = hankel_asy_sum(v, -1.0 / z) * std::exp(std::complex<double>(x - std::abs(x), y));
         std::complex<double> b = hankel_asy_sum(v, 1.0 / z) * std::exp(std::complex<double>(-x - std::abs(x), -y));
         return (a + rotate(std::complex<double>(0, s) * b, s * v)) / std::sqrt(2 * M_PI) /
-               std::sqrt(std::complex(x, y));
+               principal_sqrt(std::complex(x, y));
     }
 
     // K(z) exp(z), DLMF 10.40.2
     inline std::complex<double> cyl_bessel_k_asy_e(double v, std::complex<double> z) {
-        return std::sqrt(M_PI_2) / std::sqrt(std::complex(z.real(), z.imag() + 0.0)) * hankel_asy_sum(v, 1.0 / z);
+        return std::sqrt(M_PI_2) / principal_sqrt(std::complex(z.real(), z.imag() + 0.0)) * hankel_asy_sum(v, 1.0 / z);
     }
 
     // r exp(a + ib) for |r| < exp(-16), with exp(a) = exp(h)^2 exp(a - 2h) split as in sinpi so that only overflowing
