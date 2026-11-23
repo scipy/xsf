@@ -157,6 +157,7 @@
 
 #include "igam.h"
 #include "igami.h"
+#include "rgamma.h"
 
 namespace xsf {
 namespace cephes {
@@ -186,7 +187,7 @@ namespace cephes {
             double a = df / 2.0;
             // split x^a so that the product rounds only once when it is subnormal
             double p = cxx::pow(x, a / 2.0);
-            return p * (p * (cxx::pow(2.0, -a) / Gamma(a + 1.0)));
+            return p * (p * (cxx::pow(2.0, -a) * rgamma(a + 1.0)));
         }
         return (igam(df / 2.0, x / 2.0));
     }
