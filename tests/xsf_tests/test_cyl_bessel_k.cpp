@@ -82,3 +82,37 @@ TEST_CASE("cyl_bessel_k and cyl_bessel_ke overflow error", "[cyl_bessel_k][cyl_b
     REQUIRE(xsf::cyl_bessel_ke(1.5, 1e-206) == std::numeric_limits<double>::infinity());
     REQUIRE(last_error == SF_ERROR_OVERFLOW);
 }
+
+TEST_CASE("cyl_bessel_k near the underflow threshold", "[cyl_bessel_k][xsf_tests]") {
+    // Regression test: these returned 0 although K is a normal double.
+    /*
+    Reference values from mpmath:
+
+    from mpmath import mp, besselk, mpc
+    mp.dps = 30
+    for v, z in [(0, 699), (50, 700), (0.5, mpc(702, -50)), (0, mpc(700, 1e5))]:
+        print(repr(complex(besselk(v, z))))
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, std::complex<double>, std::complex<double>>;
+    auto [v, z, desired] = GENERATE(
+        test_case{0.0, {699.0, 0.0}, {1.2702841880327418e-305, 0.0}},
+        test_case{50.0, {700.0, 0.0}, {2.7793358770120587e-305, 0.0}},
+        test_case{0.5, {702.0, -50.0}, {6.138086236570686e-307, -1.4367386773346883e-307}},
+        test_case{0.0, {700.0, 1e5}, {-2.86945346472656e-307, 2.6525609459688144e-307}}
+    );
+
+    last_error = SF_ERROR_OK;
+    const std::complex<double> w = xsf::cyl_bessel_k(v, z);
+    const double error = xsf::extended_relative_error(w, desired);
+    const double rtol = 5e-14;
+    CAPTURE(v, z, w, desired, error, rtol);
+    REQUIRE(error <= rtol);
+    REQUIRE(last_error != SF_ERROR_UNDERFLOW);
+    if (z.imag() == 0) {
+        const double k = xsf::cyl_bessel_k(v, z.real());
+        const double k_error = xsf::extended_relative_error(k, desired.real());
+        CAPTURE(k, k_error);
+        REQUIRE(k_error <= rtol);
+    }
+}
