@@ -45,7 +45,8 @@ namespace detail {
         u3 = (30375.0 - 369603.0 * p2 + 765765.0 * p4 - 425425.0 * p6) * pp * p2 / 414720.0;
         u_corr_i = 1.0 + u1 / v1 + u2 / (v1 * v1) + u3 / (v1 * v1 * v1);
 
-        result = std::exp(arg_exp_i - xsf::xlogy(v1, arg)) * gs * u_corr_i;
+        // DLMF 10.39.9: 0F1(;v;z) = Gamma(v) arg^(1-v) I_{v-1}(2 arg)
+        result = std::exp(arg_exp_i + xsf::xlogy(T(1.0 - v), arg)) * gs * u_corr_i;
         if (v - 1.0 < 0.0) {
             // DLMF 10.27.2: I_{-v} = I_{v} + (2/pi) sin(pi*v) K_v.
             u_corr_k = 1.0 - u1 / v1 + u2 / (v1 * v1) - u3 / (v1 * v1 * v1);

@@ -386,3 +386,27 @@ TEST_CASE("hyp0f1 complex large b", "[hyp0f1][xsf_tests]") {
     CAPTURE(b, z, result, expected, error, rtol);
     REQUIRE(error <= rtol);
 }
+
+TEST_CASE("hyp0f1 real large z, b < 1", "[hyp0f1][xsf_tests]") {
+    // Regression test: the asymptotic fallback used arg^(-|b-1|) instead of arg^(1-b) for b < 1 and
+    // returned a finite value (e.g. -1.1e308) where the result overflows.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for b, z in [(-0.5, 1.3e5), (0.5, 1.28e5), (-2.5, 1.3e5)]:
+        print(mpmath.hyp0f1(b, z))  # -5.4e315, 2.8e310, -1.9e320
+    */
+    using test_case = std::tuple<double, double, double>;
+    auto [b, z, sign] =
+        GENERATE(test_case{-0.5, 1.3e5, -1.0}, test_case{0.5, 1.28e5, 1.0}, test_case{-2.5, 1.3e5, -1.0});
+
+    const double result = xsf::hyp0f1(b, z);
+    const double expected = sign * std::numeric_limits<double>::infinity();
+    CAPTURE(b, z, result, expected);
+    REQUIRE(result == expected);
+}
