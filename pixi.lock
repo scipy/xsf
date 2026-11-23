@@ -146,7 +146,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/libstdcxx-devel_linux-64-16.2.0-h86e191b_107.conda
       - conda: https://prefix.dev/conda-forge/noarch/sysroot_linux-64-2.28-h4ee821c_9.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-      - conda_source: xsf[a1272b41] @ packages/coverage
+      - conda_source: xsf[4cd8e7b4] @ packages/coverage
       linux-aarch64:
       - conda: https://prefix.dev/conda-forge/linux-aarch64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://prefix.dev/conda-forge/linux-aarch64/aws-c-auth-0.10.4-h03961ac_1.conda
@@ -246,7 +246,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/libstdcxx-devel_linux-aarch64-16.2.0-h082e5f6_107.conda
       - conda: https://prefix.dev/conda-forge/noarch/sysroot_linux-aarch64-2.28-h585391f_9.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-      - conda_source: xsf[ef8338ba] @ packages/coverage
+      - conda_source: xsf[e0bc359d] @ packages/coverage
       osx-64:
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
@@ -329,7 +329,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-64/snappy-1.2.2-h3613d57_2.conda
       - conda: https://prefix.dev/conda-forge/osx-64/zlib-1.3.2-hbb4bfdb_3.conda
       - conda: https://prefix.dev/conda-forge/osx-64/zstd-1.5.7-hbc1a06c_7.conda
-      - conda_source: xsf[db3721aa] @ packages/coverage
+      - conda_source: xsf[d69c46fb] @ packages/coverage
       osx-arm64:
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
@@ -412,7 +412,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-arm64/snappy-1.2.2-h3951085_2.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/zlib-1.3.2-h8088a28_3.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
-      - conda_source: xsf[9927e69d] @ packages/coverage
+      - conda_source: xsf[6edba300] @ packages/coverage
   cupy-tests:
     channels:
     - url: https://prefix.dev/conda-forge/
@@ -550,7 +550,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/typing_extensions-4.16.0-pyhcf101f3_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
       - conda_source: xsf[9ae48397] @ .
-      - conda_source: xsref[e398a1bf] @ git+https://github.com/scipy/xsref?rev=537a2bcc0212e248d1a94ae512a81534df29a419#537a2bcc0212e248d1a94ae512a81534df29a419
+      - conda_source: xsref[4e4957cb] @ git+https://github.com/scipy/xsref?rev=6bff961548209fd7221a03309a1b896faef8c133#6bff961548209fd7221a03309a1b896faef8c133
       linux-64-cuda-13-0:
       - conda: https://prefix.dev/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://prefix.dev/conda-forge/linux-64/aws-c-auth-0.10.4-hb7a77c6_1.conda
@@ -684,7 +684,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/typing_extensions-4.16.0-pyhcf101f3_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
       - conda_source: xsf[9ae48397] @ .
-      - conda_source: xsref[e398a1bf] @ git+https://github.com/scipy/xsref?rev=537a2bcc0212e248d1a94ae512a81534df29a419#537a2bcc0212e248d1a94ae512a81534df29a419
+      - conda_source: xsref[4e4957cb] @ git+https://github.com/scipy/xsref?rev=6bff961548209fd7221a03309a1b896faef8c133#6bff961548209fd7221a03309a1b896faef8c133
   default:
     channels:
     - url: https://prefix.dev/conda-forge/
@@ -1445,7 +1445,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-64/zstd-1.5.7-hb78ec9c_7.conda
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-      - conda_source: xsf[0bfdd56c] @ packages/tests-debug
+      - conda_source: xsf[6217e394] @ packages/tests-debug
       linux-64-cuda-12-0:
       - conda: https://prefix.dev/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://prefix.dev/conda-forge/linux-64/aws-c-auth-0.10.4-hb7a77c6_1.conda
@@ -1532,7 +1532,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-64/zstd-1.5.7-hb78ec9c_7.conda
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-      - conda_source: xsf[0bfdd56c] @ packages/tests-debug
+      - conda_source: xsf[6217e394] @ packages/tests-debug
       linux-64-cuda-13-0:
       - conda: https://prefix.dev/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://prefix.dev/conda-forge/linux-64/aws-c-auth-0.10.4-hb7a77c6_1.conda
@@ -1619,7 +1619,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-64/zstd-1.5.7-hb78ec9c_7.conda
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-      - conda_source: xsf[0bfdd56c] @ packages/tests-debug
+      - conda_source: xsf[6217e394] @ packages/tests-debug
       linux-aarch64:
       - conda: https://prefix.dev/conda-forge/linux-aarch64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://prefix.dev/conda-forge/linux-aarch64/aws-c-auth-0.10.4-h03961ac_1.conda
@@ -1706,7 +1706,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-aarch64/zstd-1.5.7-h9d15635_7.conda
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-      - conda_source: xsf[2ff37e8a] @ packages/tests-debug
+      - conda_source: xsf[b720d7b7] @ packages/tests-debug
       osx-64:
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
@@ -1787,7 +1787,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-64/snappy-1.2.2-h3613d57_2.conda
       - conda: https://prefix.dev/conda-forge/osx-64/zlib-1.3.2-hbb4bfdb_3.conda
       - conda: https://prefix.dev/conda-forge/osx-64/zstd-1.5.7-hbc1a06c_7.conda
-      - conda_source: xsf[6e2ef411] @ packages/tests-debug
+      - conda_source: xsf[2da42ccf] @ packages/tests-debug
       osx-arm64:
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
@@ -1868,7 +1868,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-arm64/snappy-1.2.2-h3951085_2.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/zlib-1.3.2-h8088a28_3.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
-      - conda_source: xsf[0e8c8260] @ packages/tests-debug
+      - conda_source: xsf[b616a5fd] @ packages/tests-debug
       win-64:
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-h4c7d964_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
@@ -1941,7 +1941,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/win-64/vs2015_runtime-14.51.36247-h633cb9f_41.conda
       - conda: https://prefix.dev/conda-forge/win-64/zlib-1.3.2-hfd05255_3.conda
       - conda: https://prefix.dev/conda-forge/win-64/zstd-1.5.7-h534d264_7.conda
-      - conda_source: xsf[df4fd199] @ packages/tests-debug
+      - conda_source: xsf[5af7d96b] @ packages/tests-debug
   tests-release:
     channels:
     - url: https://prefix.dev/conda-forge/
@@ -2032,7 +2032,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-64/zstd-1.5.7-hb78ec9c_7.conda
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-      - conda_source: xsf[c9412cb8] @ packages/tests-release
+      - conda_source: xsf[ca6a6773] @ packages/tests-release
       linux-64-cuda-12-0:
       - conda: https://prefix.dev/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://prefix.dev/conda-forge/linux-64/aws-c-auth-0.10.4-hb7a77c6_1.conda
@@ -2119,7 +2119,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-64/zstd-1.5.7-hb78ec9c_7.conda
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-      - conda_source: xsf[c9412cb8] @ packages/tests-release
+      - conda_source: xsf[ca6a6773] @ packages/tests-release
       linux-64-cuda-13-0:
       - conda: https://prefix.dev/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://prefix.dev/conda-forge/linux-64/aws-c-auth-0.10.4-hb7a77c6_1.conda
@@ -2206,7 +2206,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-64/zstd-1.5.7-hb78ec9c_7.conda
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-      - conda_source: xsf[c9412cb8] @ packages/tests-release
+      - conda_source: xsf[ca6a6773] @ packages/tests-release
       linux-aarch64:
       - conda: https://prefix.dev/conda-forge/linux-aarch64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://prefix.dev/conda-forge/linux-aarch64/aws-c-auth-0.10.4-h03961ac_1.conda
@@ -2293,7 +2293,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-aarch64/zstd-1.5.7-h9d15635_7.conda
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-      - conda_source: xsf[e39e88e3] @ packages/tests-release
+      - conda_source: xsf[cad4e6f7] @ packages/tests-release
       osx-64:
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
@@ -2374,7 +2374,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-64/snappy-1.2.2-h3613d57_2.conda
       - conda: https://prefix.dev/conda-forge/osx-64/zlib-1.3.2-hbb4bfdb_3.conda
       - conda: https://prefix.dev/conda-forge/osx-64/zstd-1.5.7-hbc1a06c_7.conda
-      - conda_source: xsf[e5808d74] @ packages/tests-release
+      - conda_source: xsf[fc0799b1] @ packages/tests-release
       osx-arm64:
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
@@ -2455,7 +2455,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-arm64/snappy-1.2.2-h3951085_2.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/zlib-1.3.2-h8088a28_3.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
-      - conda_source: xsf[52398d27] @ packages/tests-release
+      - conda_source: xsf[f5a49ee9] @ packages/tests-release
       win-64:
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-h4c7d964_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
@@ -2528,7 +2528,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/win-64/vs2015_runtime-14.51.36247-h633cb9f_41.conda
       - conda: https://prefix.dev/conda-forge/win-64/zlib-1.3.2-hfd05255_3.conda
       - conda: https://prefix.dev/conda-forge/win-64/zstd-1.5.7-h534d264_7.conda
-      - conda_source: xsf[302f9d2c] @ packages/tests-release
+      - conda_source: xsf[13b17522] @ packages/tests-release
 packages:
 - conda: https://prefix.dev/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
   build_number: 20
@@ -15880,7 +15880,7 @@ packages:
     - zstd >=1.5.7,<1.6.0a0
   size: 387535
   timestamp: 1786599623274
-- conda_source: xsf[0bfdd56c] @ packages/tests-debug
+- conda_source: xsf[6217e394] @ packages/tests-debug
   variants:
     c_stdlib: sysroot
     c_stdlib_version: '2.28'
@@ -16028,7 +16028,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/noarch/python_abi-3.12-9_cp312.conda
   - conda: https://prefix.dev/conda-forge/noarch/sysroot_linux-64-2.28-h4ee821c_9.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-  - conda_source: xsref[e398a1bf] @ git+https://github.com/scipy/xsref?rev=537a2bcc0212e248d1a94ae512a81534df29a419#537a2bcc0212e248d1a94ae512a81534df29a419
+  - conda_source: xsref[4e4957cb] @ git+https://github.com/scipy/xsref?rev=6bff961548209fd7221a03309a1b896faef8c133#6bff961548209fd7221a03309a1b896faef8c133
   host_packages:
   - conda: https://prefix.dev/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
   - conda: https://prefix.dev/conda-forge/linux-64/arrow-utils-22.0.0-h635bf11_32_cpu.conda
@@ -16114,7 +16114,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/linux-64/zstd-1.5.7-hb78ec9c_7.conda
   - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-- conda_source: xsf[0e8c8260] @ packages/tests-debug
+- conda_source: xsf[b616a5fd] @ packages/tests-debug
   variants:
     c_stdlib: macosx_deployment_target
     c_stdlib_version: '13.0'
@@ -16270,7 +16270,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/osx-arm64/xxhash-0.8.3-h579eaed_1.conda
   - conda: https://prefix.dev/conda-forge/osx-arm64/zlib-1.3.2-h8088a28_3.conda
   - conda: https://prefix.dev/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
-  - conda_source: xsref[d8e00857] @ git+https://github.com/scipy/xsref?rev=537a2bcc0212e248d1a94ae512a81534df29a419#537a2bcc0212e248d1a94ae512a81534df29a419
+  - conda_source: xsref[04b9544b] @ git+https://github.com/scipy/xsref?rev=6bff961548209fd7221a03309a1b896faef8c133#6bff961548209fd7221a03309a1b896faef8c133
   host_packages:
   - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
@@ -16350,7 +16350,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/osx-arm64/snappy-1.2.2-h3951085_2.conda
   - conda: https://prefix.dev/conda-forge/osx-arm64/zlib-1.3.2-h8088a28_3.conda
   - conda: https://prefix.dev/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
-- conda_source: xsf[2ff37e8a] @ packages/tests-debug
+- conda_source: xsf[b720d7b7] @ packages/tests-debug
   variants:
     c_stdlib: sysroot
     c_stdlib_version: '2.28'
@@ -16498,7 +16498,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/noarch/python_abi-3.12-9_cp312.conda
   - conda: https://prefix.dev/conda-forge/noarch/sysroot_linux-aarch64-2.28-h585391f_9.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-  - conda_source: xsref[3ff84977] @ git+https://github.com/scipy/xsref?rev=537a2bcc0212e248d1a94ae512a81534df29a419#537a2bcc0212e248d1a94ae512a81534df29a419
+  - conda_source: xsref[71d8845f] @ git+https://github.com/scipy/xsref?rev=6bff961548209fd7221a03309a1b896faef8c133#6bff961548209fd7221a03309a1b896faef8c133
   host_packages:
   - conda: https://prefix.dev/conda-forge/linux-aarch64/_openmp_mutex-4.5-20_gnu.conda
   - conda: https://prefix.dev/conda-forge/linux-aarch64/arrow-utils-22.0.0-hb326ee9_32_cpu.conda
@@ -16584,7 +16584,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/linux-aarch64/zstd-1.5.7-h9d15635_7.conda
   - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-- conda_source: xsf[302f9d2c] @ packages/tests-release
+- conda_source: xsf[13b17522] @ packages/tests-release
   variants:
     cxx_compiler: vs2022
     target_platform: win-64
@@ -16710,7 +16710,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/win-64/xxhash-0.8.3-h39ac402_1.conda
   - conda: https://prefix.dev/conda-forge/win-64/zlib-1.3.2-hfd05255_3.conda
   - conda: https://prefix.dev/conda-forge/win-64/zstd-1.5.7-h534d264_7.conda
-  - conda_source: xsref[4c8bf4a0] @ git+https://github.com/scipy/xsref?rev=537a2bcc0212e248d1a94ae512a81534df29a419#537a2bcc0212e248d1a94ae512a81534df29a419
+  - conda_source: xsref[f2fa5c0b] @ git+https://github.com/scipy/xsref?rev=6bff961548209fd7221a03309a1b896faef8c133#6bff961548209fd7221a03309a1b896faef8c133
   host_packages:
   - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-h4c7d964_0.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
@@ -16782,7 +16782,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/win-64/vs2015_runtime-14.51.36247-h633cb9f_41.conda
   - conda: https://prefix.dev/conda-forge/win-64/zlib-1.3.2-hfd05255_3.conda
   - conda: https://prefix.dev/conda-forge/win-64/zstd-1.5.7-h534d264_7.conda
-- conda_source: xsf[52398d27] @ packages/tests-release
+- conda_source: xsf[f5a49ee9] @ packages/tests-release
   variants:
     c_stdlib: macosx_deployment_target
     c_stdlib_version: '13.0'
@@ -16938,7 +16938,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/osx-arm64/xxhash-0.8.3-h579eaed_1.conda
   - conda: https://prefix.dev/conda-forge/osx-arm64/zlib-1.3.2-h8088a28_3.conda
   - conda: https://prefix.dev/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
-  - conda_source: xsref[d8e00857] @ git+https://github.com/scipy/xsref?rev=537a2bcc0212e248d1a94ae512a81534df29a419#537a2bcc0212e248d1a94ae512a81534df29a419
+  - conda_source: xsref[04b9544b] @ git+https://github.com/scipy/xsref?rev=6bff961548209fd7221a03309a1b896faef8c133#6bff961548209fd7221a03309a1b896faef8c133
   host_packages:
   - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
@@ -17018,7 +17018,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/osx-arm64/snappy-1.2.2-h3951085_2.conda
   - conda: https://prefix.dev/conda-forge/osx-arm64/zlib-1.3.2-h8088a28_3.conda
   - conda: https://prefix.dev/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
-- conda_source: xsf[6e2ef411] @ packages/tests-debug
+- conda_source: xsf[2da42ccf] @ packages/tests-debug
   variants:
     c_stdlib: macosx_deployment_target
     c_stdlib_version: '13.0'
@@ -17174,7 +17174,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/osx-64/xxhash-0.8.3-hd5b56d2_1.conda
   - conda: https://prefix.dev/conda-forge/osx-64/zlib-1.3.2-hbb4bfdb_3.conda
   - conda: https://prefix.dev/conda-forge/osx-64/zstd-1.5.7-hbc1a06c_7.conda
-  - conda_source: xsref[06659a06] @ git+https://github.com/scipy/xsref?rev=537a2bcc0212e248d1a94ae512a81534df29a419#537a2bcc0212e248d1a94ae512a81534df29a419
+  - conda_source: xsref[137ea7a0] @ git+https://github.com/scipy/xsref?rev=6bff961548209fd7221a03309a1b896faef8c133#6bff961548209fd7221a03309a1b896faef8c133
   host_packages:
   - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
@@ -17254,7 +17254,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/osx-64/snappy-1.2.2-h3613d57_2.conda
   - conda: https://prefix.dev/conda-forge/osx-64/zlib-1.3.2-hbb4bfdb_3.conda
   - conda: https://prefix.dev/conda-forge/osx-64/zstd-1.5.7-hbc1a06c_7.conda
-- conda_source: xsf[9927e69d] @ packages/coverage
+- conda_source: xsf[6edba300] @ packages/coverage
   variants:
     c_stdlib: macosx_deployment_target
     c_stdlib_version: '13.0'
@@ -17411,7 +17411,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/osx-arm64/xxhash-0.8.3-h579eaed_1.conda
   - conda: https://prefix.dev/conda-forge/osx-arm64/zlib-1.3.2-h8088a28_3.conda
   - conda: https://prefix.dev/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
-  - conda_source: xsref[d8e00857] @ git+https://github.com/scipy/xsref?rev=537a2bcc0212e248d1a94ae512a81534df29a419#537a2bcc0212e248d1a94ae512a81534df29a419
+  - conda_source: xsref[04b9544b] @ git+https://github.com/scipy/xsref?rev=6bff961548209fd7221a03309a1b896faef8c133#6bff961548209fd7221a03309a1b896faef8c133
   host_packages:
   - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
@@ -17545,7 +17545,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/linux-64/libgcc-16.2.0-ha9f2e26_7.conda
   - conda: https://prefix.dev/conda-forge/linux-64/libgomp-16.2.0-he0feb66_7.conda
   - conda: https://prefix.dev/conda-forge/linux-64/libstdcxx-16.2.0-h934c35e_7.conda
-- conda_source: xsf[a1272b41] @ packages/coverage
+- conda_source: xsf[4cd8e7b4] @ packages/coverage
   variants:
     c_stdlib: sysroot
     c_stdlib_version: '2.28'
@@ -17695,7 +17695,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/noarch/python_abi-3.12-9_cp312.conda
   - conda: https://prefix.dev/conda-forge/noarch/sysroot_linux-64-2.28-h4ee821c_9.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-  - conda_source: xsref[e398a1bf] @ git+https://github.com/scipy/xsref?rev=537a2bcc0212e248d1a94ae512a81534df29a419#537a2bcc0212e248d1a94ae512a81534df29a419
+  - conda_source: xsref[4e4957cb] @ git+https://github.com/scipy/xsref?rev=6bff961548209fd7221a03309a1b896faef8c133#6bff961548209fd7221a03309a1b896faef8c133
   host_packages:
   - conda: https://prefix.dev/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
   - conda: https://prefix.dev/conda-forge/linux-64/arrow-utils-22.0.0-h635bf11_32_cpu.conda
@@ -17781,7 +17781,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/linux-64/zstd-1.5.7-hb78ec9c_7.conda
   - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-- conda_source: xsf[c9412cb8] @ packages/tests-release
+- conda_source: xsf[ca6a6773] @ packages/tests-release
   variants:
     c_stdlib: sysroot
     c_stdlib_version: '2.28'
@@ -17929,7 +17929,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/noarch/python_abi-3.12-9_cp312.conda
   - conda: https://prefix.dev/conda-forge/noarch/sysroot_linux-64-2.28-h4ee821c_9.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-  - conda_source: xsref[e398a1bf] @ git+https://github.com/scipy/xsref?rev=537a2bcc0212e248d1a94ae512a81534df29a419#537a2bcc0212e248d1a94ae512a81534df29a419
+  - conda_source: xsref[4e4957cb] @ git+https://github.com/scipy/xsref?rev=6bff961548209fd7221a03309a1b896faef8c133#6bff961548209fd7221a03309a1b896faef8c133
   host_packages:
   - conda: https://prefix.dev/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
   - conda: https://prefix.dev/conda-forge/linux-64/arrow-utils-22.0.0-h635bf11_32_cpu.conda
@@ -18015,7 +18015,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/linux-64/zstd-1.5.7-hb78ec9c_7.conda
   - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-- conda_source: xsf[db3721aa] @ packages/coverage
+- conda_source: xsf[d69c46fb] @ packages/coverage
   variants:
     c_stdlib: macosx_deployment_target
     c_stdlib_version: '13.0'
@@ -18172,7 +18172,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/osx-64/xxhash-0.8.3-hd5b56d2_1.conda
   - conda: https://prefix.dev/conda-forge/osx-64/zlib-1.3.2-hbb4bfdb_3.conda
   - conda: https://prefix.dev/conda-forge/osx-64/zstd-1.5.7-hbc1a06c_7.conda
-  - conda_source: xsref[06659a06] @ git+https://github.com/scipy/xsref?rev=537a2bcc0212e248d1a94ae512a81534df29a419#537a2bcc0212e248d1a94ae512a81534df29a419
+  - conda_source: xsref[137ea7a0] @ git+https://github.com/scipy/xsref?rev=6bff961548209fd7221a03309a1b896faef8c133#6bff961548209fd7221a03309a1b896faef8c133
   host_packages:
   - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
@@ -18252,7 +18252,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/osx-64/snappy-1.2.2-h3613d57_2.conda
   - conda: https://prefix.dev/conda-forge/osx-64/zlib-1.3.2-hbb4bfdb_3.conda
   - conda: https://prefix.dev/conda-forge/osx-64/zstd-1.5.7-hbc1a06c_7.conda
-- conda_source: xsf[df4fd199] @ packages/tests-debug
+- conda_source: xsf[5af7d96b] @ packages/tests-debug
   variants:
     cxx_compiler: vs2022
     target_platform: win-64
@@ -18378,7 +18378,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/win-64/xxhash-0.8.3-h39ac402_1.conda
   - conda: https://prefix.dev/conda-forge/win-64/zlib-1.3.2-hfd05255_3.conda
   - conda: https://prefix.dev/conda-forge/win-64/zstd-1.5.7-h534d264_7.conda
-  - conda_source: xsref[4c8bf4a0] @ git+https://github.com/scipy/xsref?rev=537a2bcc0212e248d1a94ae512a81534df29a419#537a2bcc0212e248d1a94ae512a81534df29a419
+  - conda_source: xsref[f2fa5c0b] @ git+https://github.com/scipy/xsref?rev=6bff961548209fd7221a03309a1b896faef8c133#6bff961548209fd7221a03309a1b896faef8c133
   host_packages:
   - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-h4c7d964_0.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
@@ -18450,7 +18450,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/win-64/vs2015_runtime-14.51.36247-h633cb9f_41.conda
   - conda: https://prefix.dev/conda-forge/win-64/zlib-1.3.2-hfd05255_3.conda
   - conda: https://prefix.dev/conda-forge/win-64/zstd-1.5.7-h534d264_7.conda
-- conda_source: xsf[e39e88e3] @ packages/tests-release
+- conda_source: xsf[cad4e6f7] @ packages/tests-release
   variants:
     c_stdlib: sysroot
     c_stdlib_version: '2.28'
@@ -18598,7 +18598,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/noarch/python_abi-3.12-9_cp312.conda
   - conda: https://prefix.dev/conda-forge/noarch/sysroot_linux-aarch64-2.28-h585391f_9.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-  - conda_source: xsref[3ff84977] @ git+https://github.com/scipy/xsref?rev=537a2bcc0212e248d1a94ae512a81534df29a419#537a2bcc0212e248d1a94ae512a81534df29a419
+  - conda_source: xsref[71d8845f] @ git+https://github.com/scipy/xsref?rev=6bff961548209fd7221a03309a1b896faef8c133#6bff961548209fd7221a03309a1b896faef8c133
   host_packages:
   - conda: https://prefix.dev/conda-forge/linux-aarch64/_openmp_mutex-4.5-20_gnu.conda
   - conda: https://prefix.dev/conda-forge/linux-aarch64/arrow-utils-22.0.0-hb326ee9_32_cpu.conda
@@ -18684,7 +18684,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/linux-aarch64/zstd-1.5.7-h9d15635_7.conda
   - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-- conda_source: xsf[e5808d74] @ packages/tests-release
+- conda_source: xsf[fc0799b1] @ packages/tests-release
   variants:
     c_stdlib: macosx_deployment_target
     c_stdlib_version: '13.0'
@@ -18840,7 +18840,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/osx-64/xxhash-0.8.3-hd5b56d2_1.conda
   - conda: https://prefix.dev/conda-forge/osx-64/zlib-1.3.2-hbb4bfdb_3.conda
   - conda: https://prefix.dev/conda-forge/osx-64/zstd-1.5.7-hbc1a06c_7.conda
-  - conda_source: xsref[06659a06] @ git+https://github.com/scipy/xsref?rev=537a2bcc0212e248d1a94ae512a81534df29a419#537a2bcc0212e248d1a94ae512a81534df29a419
+  - conda_source: xsref[137ea7a0] @ git+https://github.com/scipy/xsref?rev=6bff961548209fd7221a03309a1b896faef8c133#6bff961548209fd7221a03309a1b896faef8c133
   host_packages:
   - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
@@ -18920,7 +18920,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/osx-64/snappy-1.2.2-h3613d57_2.conda
   - conda: https://prefix.dev/conda-forge/osx-64/zlib-1.3.2-hbb4bfdb_3.conda
   - conda: https://prefix.dev/conda-forge/osx-64/zstd-1.5.7-hbc1a06c_7.conda
-- conda_source: xsf[ef8338ba] @ packages/coverage
+- conda_source: xsf[e0bc359d] @ packages/coverage
   variants:
     c_stdlib: sysroot
     c_stdlib_version: '2.28'
@@ -19070,7 +19070,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/noarch/python_abi-3.12-9_cp312.conda
   - conda: https://prefix.dev/conda-forge/noarch/sysroot_linux-aarch64-2.28-h585391f_9.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-  - conda_source: xsref[3ff84977] @ git+https://github.com/scipy/xsref?rev=537a2bcc0212e248d1a94ae512a81534df29a419#537a2bcc0212e248d1a94ae512a81534df29a419
+  - conda_source: xsref[71d8845f] @ git+https://github.com/scipy/xsref?rev=6bff961548209fd7221a03309a1b896faef8c133#6bff961548209fd7221a03309a1b896faef8c133
   host_packages:
   - conda: https://prefix.dev/conda-forge/linux-aarch64/_openmp_mutex-4.5-20_gnu.conda
   - conda: https://prefix.dev/conda-forge/linux-aarch64/arrow-utils-22.0.0-hb326ee9_32_cpu.conda
@@ -19156,7 +19156,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/linux-aarch64/zstd-1.5.7-h9d15635_7.conda
   - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-- conda_source: xsref[06659a06] @ git+https://github.com/scipy/xsref?rev=537a2bcc0212e248d1a94ae512a81534df29a419#537a2bcc0212e248d1a94ae512a81534df29a419
+- conda_source: xsref[137ea7a0] @ git+https://github.com/scipy/xsref?rev=6bff961548209fd7221a03309a1b896faef8c133#6bff961548209fd7221a03309a1b896faef8c133
   version: 0.0.0
   build: pyh4616a5c_0
   subdir: noarch
@@ -19193,7 +19193,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/osx-64/uv-0.13.9-h1933bab_0.conda
   - conda: https://prefix.dev/conda-forge/osx-64/uv-build-0.12.24-h702656e_0.conda
   - conda: https://prefix.dev/conda-forge/osx-64/zstd-1.5.7-hbc1a06c_7.conda
-- conda_source: xsref[3ff84977] @ git+https://github.com/scipy/xsref?rev=537a2bcc0212e248d1a94ae512a81534df29a419#537a2bcc0212e248d1a94ae512a81534df29a419
+- conda_source: xsref[71d8845f] @ git+https://github.com/scipy/xsref?rev=6bff961548209fd7221a03309a1b896faef8c133#6bff961548209fd7221a03309a1b896faef8c133
   version: 0.0.0
   build: pyh4616a5c_0
   subdir: noarch
@@ -19235,7 +19235,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.11.20-hbd8a1cb_0.conda
   - conda: https://prefix.dev/conda-forge/noarch/python_abi-3.15-9_cp315.conda
   - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026e-h5d301ff_0.conda
-- conda_source: xsref[4c8bf4a0] @ git+https://github.com/scipy/xsref?rev=537a2bcc0212e248d1a94ae512a81534df29a419#537a2bcc0212e248d1a94ae512a81534df29a419
+- conda_source: xsref[f2fa5c0b] @ git+https://github.com/scipy/xsref?rev=6bff961548209fd7221a03309a1b896faef8c133#6bff961548209fd7221a03309a1b896faef8c133
   version: 0.0.0
   build: pyh4616a5c_0
   subdir: noarch
@@ -19273,7 +19273,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/win-64/vc14_runtime-14.51.36247-hb06f545_44.conda
   - conda: https://prefix.dev/conda-forge/win-64/vcomp14-14.51.36247-h1c3f1cb_44.conda
   - conda: https://prefix.dev/conda-forge/win-64/zstd-1.5.7-h534d264_7.conda
-- conda_source: xsref[d8e00857] @ git+https://github.com/scipy/xsref?rev=537a2bcc0212e248d1a94ae512a81534df29a419#537a2bcc0212e248d1a94ae512a81534df29a419
+- conda_source: xsref[04b9544b] @ git+https://github.com/scipy/xsref?rev=6bff961548209fd7221a03309a1b896faef8c133#6bff961548209fd7221a03309a1b896faef8c133
   version: 0.0.0
   build: pyh4616a5c_0
   subdir: noarch
@@ -19310,7 +19310,7 @@ packages:
   - conda: https://prefix.dev/conda-forge/osx-arm64/uv-0.13.9-h4dbbf58_0.conda
   - conda: https://prefix.dev/conda-forge/osx-arm64/uv-build-0.12.24-h083d63c_0.conda
   - conda: https://prefix.dev/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
-- conda_source: xsref[e398a1bf] @ git+https://github.com/scipy/xsref?rev=537a2bcc0212e248d1a94ae512a81534df29a419#537a2bcc0212e248d1a94ae512a81534df29a419
+- conda_source: xsref[4e4957cb] @ git+https://github.com/scipy/xsref?rev=6bff961548209fd7221a03309a1b896faef8c133#6bff961548209fd7221a03309a1b896faef8c133
   version: 0.0.0
   build: pyh4616a5c_0
   subdir: noarch
