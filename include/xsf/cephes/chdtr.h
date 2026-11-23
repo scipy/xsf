@@ -166,6 +166,9 @@ namespace cephes {
             set_error("chdtr", SF_ERROR_DOMAIN, NULL);
             return (cxx::numeric_limits<double>::quiet_NaN());
         }
+        if (x == 0.0 && !cxx::isnan(df) && df > 0.0) {
+            return 1.0; // also if df / 2 underflows, as igamc(0, 0) is NaN
+        }
         return (igamc(df / 2.0, x / 2.0));
     }
 
@@ -174,6 +177,16 @@ namespace cephes {
         if ((x < 0.0)) { /* || (df < 1.0) ) */
             set_error("chdtr", SF_ERROR_DOMAIN, NULL);
             return (cxx::numeric_limits<double>::quiet_NaN());
+        }
+        if (x < 2 * cxx::numeric_limits<double>::min() && !cxx::isnan(df) && df > 0.0) {
+            if (x == 0.0) {
+                return 0.0; // also if df / 2 underflows, as igam(0, 0) is NaN
+            }
+            // x / 2 would be subnormal; leading term of DLMF 8.7.1, (x / 2)^a / Gamma(a + 1)
+            double a = df / 2.0;
+            // split x^a so that the product rounds only once when it is subnormal
+            double p = cxx::pow(x, a / 2.0);
+            return p * (p * (cxx::pow(2.0, -a) / Gamma(a + 1.0)));
         }
         return (igam(df / 2.0, x / 2.0));
     }
