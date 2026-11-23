@@ -479,7 +479,16 @@ namespace detail {
             res += (k % 2 == 0 ? 1 : -1) * C[k] * Zp;
         }
         if (!log_wb) {
-            res *= cxx::pow(Z, 0.5 - b) * cxx::exp(Ap1[1] / a * Z);
+            const double max_exp = 700;
+            if (cxx::isinf(Z)) {
+                return cxx::numeric_limits<double>::infinity();
+            }
+            if (Ap1[1] / a * Z <= max_exp) {
+                res *= cxx::pow(Z, 0.5 - b) * cxx::exp(Ap1[1] / a * Z);
+            } else {
+                // pow and exp can over/underflow separately even if the product is finite
+                res = cxx::exp(cxx::log(Z) * (0.5 - b) + Ap1[1] / a * Z + cxx::log(res));
+            }
         } else {
             // logarithm of Wright's function
             res = cxx::log(Z) * (0.5 - b) + Ap1[1] / a * Z + cxx::log(res);
