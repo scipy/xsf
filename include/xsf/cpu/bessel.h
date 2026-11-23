@@ -615,8 +615,8 @@ void rcty(T x, int *nm, OutputVec1 ry, OutputVec2 dy) {
         dy[k] = std::fma(-ry[k] / x, k, ry[k - 1]);
     }
     // the remaining orders overflow
-    for (k = *nm + 2; k <= n; k++) {
-        ry[k] = (2.0 * k - 1.0) / x * ry[k - 1];
+    for (k = *nm + 1; k < n; k++) {
+        ry[k + 1] = (2.0 * k + 1.0) / x * ry[k];
     }
     for (k = *nm + 1; k <= n; k++) {
         dy[k] = -ry[k] / x * k;

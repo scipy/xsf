@@ -65,7 +65,7 @@ TEST_CASE("rcty n = 0", "[rcty][real][xsf_tests]") {
 
 TEST_CASE("rcty float overflow", "[rcty][real][xsf_tests]") {
     // Regression test: with float x, the orders that overflow in float were left unset, or finite with double outputs.
-    // ry[k](-x) = (-1)^k ry[k](x) and dy[k](-x) = (-1)^(k+1) dy[k](x), and ry[199](100) ~ -2.2e39.
+    // ry[k](-x) = (-1)^k ry[k](x) and dy[k](-x) = (-1)^(k+1) dy[k](x), and ry[199](100) ~ -5.8e38.
     const float x = GENERATE(100.0f, -100.0f);
 
     const double nan = std::numeric_limits<double>::quiet_NaN(), inf = std::numeric_limits<double>::infinity();
