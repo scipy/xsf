@@ -1,6 +1,18 @@
 #include "../testing_utils.h"
 #include <xsf/stats.h>
 
+namespace {
+
+double check_students_t_cdf(double nu, double t, double expected, double rtol = 1e-13) {
+    const double output = xsf::students_t_cdf(nu, t);
+    const auto rel_error = xsf::extended_relative_error(output, expected);
+    CAPTURE(nu, t, output, expected, rtol, rel_error);
+    REQUIRE(rel_error <= rtol);
+    return output;
+}
+
+} // namespace
+
 TEST_CASE("students t CDF test", "[students_t_cdf][xsf_tests]") {
 
     SECTION("students t CDF t = 0 special case") { REQUIRE(xsf::students_t_cdf(1.0, 0.0) == 0.5); }
@@ -12,10 +24,7 @@ TEST_CASE("students t CDF test", "[students_t_cdf][xsf_tests]") {
             test_case{1.0, std::numeric_limits<double>::infinity(), 1.0, 1e-13},
             test_case{1.0, -std::numeric_limits<double>::infinity(), 0.0, 1e-13}
         );
-        const double output = xsf::students_t_cdf(nu, t);
-        const auto rel_error = xsf::extended_relative_error(output, expected);
-        CAPTURE(nu, t, output, expected, rtol, rel_error);
-        REQUIRE(rel_error <= rtol);
+        check_students_t_cdf(nu, t, expected, rtol);
     }
 
     SECTION("students t CDF large degrees of freedom acts normal") {
@@ -35,10 +44,7 @@ TEST_CASE("students t CDF test", "[students_t_cdf][xsf_tests]") {
             test_case{1e+10, -30, 4.90681350979029e-198}, test_case{1e+10, 5, 0.9999997133484233},
             test_case{3e+15, -3, 0.0013498980316301056}, test_case{3e+15, -10, 7.619853024167002e-24}
         );
-        constexpr double rtol = 1e-13;
-        const double output = xsf::students_t_cdf(nu, t);
-        CAPTURE(nu, t, output, expected, rtol);
-        REQUIRE(xsf::extended_relative_error(output, expected) <= rtol);
+        check_students_t_cdf(nu, t, expected);
     }
 
     SECTION("students t CDF small degrees of freedom") {
@@ -51,10 +57,7 @@ TEST_CASE("students t CDF test", "[students_t_cdf][xsf_tests]") {
             test_case{1, 0.001, 0.5003183097800805}, test_case{1, -50, 0.006365349100972796},
             test_case{1, -1e+06, 3.1830988618368455e-07}, test_case{2, -1e+06, 4.9999999999925e-13}
         );
-        constexpr double rtol = 1e-13;
-        const double output = xsf::students_t_cdf(nu, t);
-        CAPTURE(nu, t, output, expected, rtol);
-        REQUIRE(xsf::extended_relative_error(output, expected) <= rtol);
+        check_students_t_cdf(nu, t, expected);
     }
 
     SECTION("students t CDF deep-tail tests") {
@@ -67,10 +70,7 @@ TEST_CASE("students t CDF test", "[students_t_cdf][xsf_tests]") {
             test_case{100, -100, 2.4314972222697398e-102}, test_case{100, -5000, 5.04356830605456e-272},
             test_case{1000, -5, 3.3836281823243153e-07}, test_case{100000, -5, 2.8713508393208365e-07}
         );
-        constexpr double rtol = 1e-13;
-        const double output = xsf::students_t_cdf(nu, t);
-        CAPTURE(nu, t, output, expected, rtol);
-        REQUIRE(xsf::extended_relative_error(output, expected) <= rtol);
+        check_students_t_cdf(nu, t, expected);
     }
 
     SECTION("students t CDF scipy reference values") {
@@ -172,11 +172,9 @@ TEST_CASE("students t CDF test", "[students_t_cdf][xsf_tests]") {
             test_case{4.54402693373586517e+04, -1.10578194430600218e+00, 1.34413383125686930e-01}
         );
 
-        constexpr double rtol = 1e-13;
-        const double output = xsf::students_t_cdf(nu, t);
-        CAPTURE(nu, t, output, expected, rtol);
+        const double output = check_students_t_cdf(nu, t, expected);
+        CAPTURE(nu, t, output);
         CHECK(output >= 0.0);
         CHECK(output <= 1.0);
-        REQUIRE(xsf::extended_relative_error(output, expected) <= rtol);
     }
 }
