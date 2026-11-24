@@ -493,7 +493,7 @@ XSF_HOST_DEVICE inline struct TupleDI bgrat(double a, double b, double x, double
     //    that a >= 15 And b <= 1.  Eps is the tolerance used.
     //    Ierr is a variable that reports the status of the results.
 
-    double bp2n, cn, coef, dj, j, l, n2, q, r, s, ssum, t, t2, u, v;
+    double bp2n, coef, dj, j, l, n2, q, r, s, ssum, t, t2, u, v;
     double d[30] = {0.0};
     double bm1 = (b - 0.5) - 0.5;
     double nu = a + bm1 * 0.5;
@@ -502,7 +502,7 @@ XSF_HOST_DEVICE inline struct TupleDI bgrat(double a, double b, double x, double
     int i, n;
 
     if ((b * z) == 0.0) {
-        return (struct TupleDI){.d1 = w, .i1 = 1};
+        return TupleDI{w, 1};
     }
 
     // COMPUTATION OF THE EXPANSION
@@ -512,7 +512,7 @@ XSF_HOST_DEVICE inline struct TupleDI bgrat(double a, double b, double x, double
     u = algdiv(b, a) + b * cxx::log(nu);
     u = r * cxx::exp(-u);
     if (u == 0.0) {
-        return (struct TupleDI){.d1 = w, .i1 = 1};
+        return TupleDI{w, 1};
     }
 
     struct TupleDD ret = grat1(b, z, r, eps);
@@ -542,13 +542,13 @@ XSF_HOST_DEVICE inline struct TupleDI bgrat(double a, double b, double x, double
         dj = d[n - 1] * j;
         ssum += dj;
         if (ssum <= 0.) {
-            return (struct TupleDI){.d1 = w, .i1 = 1};
+            return TupleDI{w, 1};
         }
         if (!(cxx::fabs(dj) > eps * (ssum + l))) {
             break;
         }
     }
-    return (struct TupleDI){.d1 = w + u * ssum, .i1 = 0};
+    return TupleDI{w + u * ssum, 0};
 }
 
 XSF_HOST_DEVICE inline double bpser(double a, double b, double x, double eps) {
@@ -669,33 +669,33 @@ XSF_HOST_DEVICE inline struct TupleDDI bratio(double a, double b, double x, doub
     struct TupleDI bgratret;
 
     if ((a < 0.) || (b < 0.)) {
-        return (struct TupleDDI){.d1 = w, .d2 = w1, .i1 = 1};
+        return TupleDDI{w, w1, 1};
     } else if ((a == 0.) && (b == 0.)) {
-        return (struct TupleDDI){.d1 = w, .d2 = w1, .i1 = 2};
+        return TupleDDI{w, w1, 2};
     } else if ((x < 0.) || (x > 1.)) {
-        return (struct TupleDDI){.d1 = w, .d2 = w1, .i1 = 3};
+        return TupleDDI{w, w1, 3};
     } else if ((y < 0.) || (y > 1.)) {
-        return (struct TupleDDI){.d1 = w, .d2 = w1, .i1 = 4};
+        return TupleDDI{w, w1, 4};
     } else if (cxx::fabs(((x + y) - 0.5) - 0.5) > 3. * eps) {
-        return (struct TupleDDI){.d1 = w, .d2 = w1, .i1 = 5};
+        return TupleDDI{w, w1, 5};
     } else if (x == 0.) {
         if (a == 0) {
-            return (struct TupleDDI){.d1 = w, .d2 = w1, .i1 = 6};
+            return TupleDDI{w, w1, 6};
         } else {
-            return (struct TupleDDI){.d1 = 0.0, .d2 = 1.0, .i1 = 0};
+            return TupleDDI{0.0, 1.0, 0};
         }
     } else if (y == 0.) {
         if (b == 0) {
-            return (struct TupleDDI){.d1 = w, .d2 = w1, .i1 = 7};
+            return TupleDDI{w, w1, 7};
         } else {
-            return (struct TupleDDI){.d1 = 1.0, .d2 = 0.0, .i1 = 0};
+            return TupleDDI{1.0, 0.0, 0};
         }
     } else if (a == 0.) {
-        return (struct TupleDDI){.d1 = 1.0, .d2 = 0.0, .i1 = 0};
+        return TupleDDI{1.0, 0.0, 0};
     } else if (b == 0.) {
-        return (struct TupleDDI){.d1 = 0.0, .d2 = 1.0, .i1 = 0};
+        return TupleDDI{0.0, 1.0, 0};
     } else if (cxx::fmax(a, b) < 1e-3 * eps) {
-        return (struct TupleDDI){.d1 = b / (a + b), .d2 = a / (a + b), .i1 = 0};
+        return TupleDDI{b / (a + b), a / (a + b), 0};
     }
 
     ind = 0;
@@ -715,23 +715,23 @@ XSF_HOST_DEVICE inline struct TupleDDI bratio(double a, double b, double x, doub
         if (b0 < cxx::fmin(eps, eps * a0)) {
             w = fpser(a0, b0, x0, eps);
             w1 = 0.5 + (0.5 - w);
-            return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
+            return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
         }
         if ((a0 < cxx::fmin(eps, eps * b0)) && (b0 * x0 <= 1.)) {
             w1 = apser(a0, b0, x0, eps);
             w = 0.5 + (0.5 - w1);
-            return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
+            return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
         }
         if (cxx::fmax(a0, b0) <= 1.0) {
             if ((cxx::pow(x0, a0) <= 0.9) || (a0 >= cxx::fmin(0.2, b0))) {
                 w = bpser(a0, b0, x0, eps);
                 w1 = 0.5 + (0.5 - w);
-                return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
+                return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
             }
             if (x0 >= 0.3) {
                 w1 = bpser(b0, a0, y0, eps);
                 w = 0.5 + (0.5 - w1);
-                return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
+                return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
             }
             // 140
             n = 20;
@@ -741,19 +741,19 @@ XSF_HOST_DEVICE inline struct TupleDDI bratio(double a, double b, double x, doub
             bgratret = bgrat(b0, a0, y0, x0, w1, 15. * eps);
             w1 = bgratret.d1;
             w = 0.5 + (0.5 - w1);
-            return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
+            return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
 
         } else {
             // 20
             if (b0 <= 1.0) {
                 w = bpser(a0, b0, x0, eps);
                 w1 = 0.5 + (0.5 - w);
-                return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
+                return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
             }
             if (x0 >= 0.3) {
                 w1 = bpser(b0, a0, y0, eps);
                 w = 0.5 + (0.5 - w1);
-                return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
+                return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
             }
             if (x0 >= 0.1) {
                 // 30
@@ -761,7 +761,7 @@ XSF_HOST_DEVICE inline struct TupleDDI bratio(double a, double b, double x, doub
                     bgratret = bgrat(b0, a0, y0, x0, w1, 15. * eps);
                     w1 = bgratret.d1;
                     w = 0.5 + (0.5 - w1);
-                    return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
+                    return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
                 } else {
                     // 140
                     n = 20;
@@ -770,19 +770,19 @@ XSF_HOST_DEVICE inline struct TupleDDI bratio(double a, double b, double x, doub
                     bgratret = bgrat(b0, a0, y0, x0, w1, 15. * eps);
                     w1 = bgratret.d1;
                     w = 0.5 + (0.5 - w1);
-                    return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
+                    return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
                 }
             }
             if (cxx::pow((x0 * b0), a0) <= 0.7) {
                 w = bpser(a0, b0, x0, eps);
                 w1 = 0.5 + (0.5 - w);
-                return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
+                return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
             }
             if (b0 > 15.) {
                 bgratret = bgrat(b0, a0, y0, x0, w1, 15. * eps);
                 w1 = bgratret.d1;
                 w = 0.5 + (0.5 - w1);
-                return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
+                return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
             }
             // 140
             n = 20;
@@ -791,7 +791,7 @@ XSF_HOST_DEVICE inline struct TupleDDI bratio(double a, double b, double x, doub
             bgratret = bgrat(b0, a0, y0, x0, w1, 15. * eps);
             w1 = bgratret.d1;
             w = 0.5 + (0.5 - w1);
-            return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
+            return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
         }
     } else {
         lmbda = (a > b ? ((a + b) * y - b) : (a - (a + b) * x));
@@ -806,7 +806,7 @@ XSF_HOST_DEVICE inline struct TupleDDI bratio(double a, double b, double x, doub
         if ((b0 < 40.) && (b0 * x0 <= 0.7)) {
             w = bpser(a0, b0, x0, eps);
             w1 = 0.5 + (0.5 - w);
-            return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
+            return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
         }
         if (b0 < 40.) {
             n = (int)b0;
@@ -819,7 +819,7 @@ XSF_HOST_DEVICE inline struct TupleDDI bratio(double a, double b, double x, doub
             if (x0 <= 0.7) {
                 w += bpser(a0, b0, x0, eps);
                 w1 = 0.5 + (0.5 - w);
-                return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
+                return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
             } else {
                 if (a0 <= 15.) {
                     n = 20;
@@ -829,30 +829,30 @@ XSF_HOST_DEVICE inline struct TupleDDI bratio(double a, double b, double x, doub
                 bgratret = bgrat(a0, b0, x0, y0, w, 15. * eps);
                 w = bgratret.d1;
                 w1 = 0.5 + (0.5 - w);
-                return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
+                return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
             }
         }
         if (a0 > b0) {
             if ((b0 <= 100) || (lmbda > 0.03 * b0)) {
                 w = bfrac(a0, b0, x0, y0, lmbda, 15.0 * eps);
                 w1 = 0.5 + (0.5 - w);
-                return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
+                return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
             } else {
                 // 200
                 w = basym(a0, b0, lmbda, 100. * eps);
                 w1 = 0.5 + (0.5 - w);
-                return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
+                return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
             }
         }
         if ((a0 <= 100.) || (lmbda > 0.03 * a0)) {
             w = bfrac(a0, b0, x0, y0, lmbda, 15.0 * eps);
             w1 = 0.5 + (0.5 - w);
-            return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
+            return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
         }
         // 200
         w = basym(a0, b0, lmbda, 100. * eps);
         w1 = 0.5 + (0.5 - w);
-        return (struct TupleDDI){.d1 = (ind == 0 ? w : w1), .d2 = (ind == 0 ? w1 : w), .i1 = 0};
+        return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
     }
 }
 
@@ -1402,19 +1402,19 @@ XSF_HOST_DEVICE inline struct TupleDD grat1(double a, double x, double r, double
 
     if (a * x == 0.) {
         if (x > a) {
-            return (struct TupleDD){.d1 = 1.0, .d2 = 0.0};
+            return TupleDD{1.0, 0.0};
         } else {
-            return (struct TupleDD){.d1 = 0.0, .d2 = 1.0};
+            return TupleDD{0.0, 1.0};
         }
     }
 
     if (a == 0.5) {
         if (x < 0.25) {
             p = cdflib_erf(cxx::sqrt(x));
-            return (struct TupleDD){.d1 = p, .d2 = 0.5 + (0.5 - p)};
+            return TupleDD{p, 0.5 + (0.5 - p)};
         } else {
             q = erfc1(0, cxx::sqrt(x));
-            return (struct TupleDD){.d1 = 0.5 + (0.5 - q), .d2 = q};
+            return TupleDD{0.5 + (0.5 - q), q};
         }
     }
 
@@ -1445,16 +1445,16 @@ XSF_HOST_DEVICE inline struct TupleDD grat1(double a, double x, double r, double
             w = cxx::exp(z);
             p = w * g * (0.5 + (0.5 - j));
             q = 0.5 + (0.5 - p);
-            return (struct TupleDD){.d1 = p, .d2 = q};
+            return TupleDD{p, q};
         } else {
             l = rexp(z);
             w = 0.5 + (0.5 + l);
             q = (w * j - l) * g - h;
             if (q < 0.0) {
-                return (struct TupleDD){.d1 = 1.0, .d2 = 0.0};
+                return TupleDD{1.0, 0.0};
             }
             p = 0.5 + (0.5 - q);
-            return (struct TupleDD){.d1 = p, .d2 = q};
+            return TupleDD{p, q};
         }
     }
     //  Continued fraction expansion
@@ -1478,7 +1478,7 @@ XSF_HOST_DEVICE inline struct TupleDD grat1(double a, double x, double r, double
     }
     q = r * an0;
     p = 0.5 + (0.5 - q);
-    return (struct TupleDD){.d1 = p, .d2 = q};
+    return TupleDD{p, q};
 }
 
 XSF_HOST_DEVICE inline double gsumln(double a, double b) {
