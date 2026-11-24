@@ -219,7 +219,6 @@ XSF_HOST_DEVICE inline double students_t_cdf(double nu, double t) {
         return p;
     }
 
-    // Use toms708::bratio in order to calculate
     double tt = t * t;
     toms708::TupleDDI incomplete_beta = toms708::bratio(nu / 2, 0.5, nu / (nu + tt), tt / (nu + tt));
     if (incomplete_beta.i1 != 0) {
