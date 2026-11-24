@@ -103,6 +103,7 @@ XSF_HOST_DEVICE inline double bup(double, double, double, double, int, double);
 XSF_HOST_DEVICE inline double cdflib_erf(double);
 XSF_HOST_DEVICE inline double erfc1(int, double);
 XSF_HOST_DEVICE inline double esum(int, double);
+XSF_HOST_DEVICE inline double esum_pow(int, double, double, double);
 XSF_HOST_DEVICE inline double fpser(double, double, double, double);
 XSF_HOST_DEVICE inline double gam1(double);
 XSF_HOST_DEVICE inline double gamln(double);
@@ -595,7 +596,7 @@ XSF_HOST_DEVICE inline double bpser(double a, double b, double x, double eps) {
                 }
                 u += cxx::log(c);
             }
-            z = a * cxx::log(x) - u;
+            z = esum_pow(0, cxx::pow(x, a), -u, a * cxx::log(x) - u);
             b0 -= 1.0;
             apb = a0 + b0;
             if (apb > 1.0) {
@@ -604,16 +605,15 @@ XSF_HOST_DEVICE inline double bpser(double a, double b, double x, double eps) {
             } else {
                 t = 1. + gam1(apb);
             }
-            result = cxx::exp(z) * (a0 / a) * (1. + gam1(b0)) / t;
+            result = z * (a0 / a) * (1. + gam1(b0)) / t;
 
         } else if (b0 >= 8) {
             u = gamln1(a0) + algdiv(a0, b0);
-            z = a * cxx::log(x) - u;
-            result = (a0 / a) * cxx::exp(z);
+            result = (a0 / a) * esum_pow(0, cxx::pow(x, a), -u, a * cxx::log(x) - u);
         }
     } else {
-        z = a * cxx::log(x) - betaln(a, b);
-        result = cxx::exp(z) / a;
+        u = betaln(a, b);
+        result = esum_pow(0, cxx::pow(x, a), -u, a * cxx::log(x) - u) / a;
     }
     if ((result == 0.) || (a <= 0.1 * eps)) {
         return result;
@@ -859,7 +859,7 @@ XSF_HOST_DEVICE inline struct TupleDDI bratio(double a, double b, double x, doub
 XSF_HOST_DEVICE inline double brcmp1(int mu, double a, double b, double x, double y) {
     //    Evaluation of  exp(mu) * (x**a*y**b/beta(a,b))
 
-    double a0, apb, b0, c, e, h, lmbda, t, u, v, x0, y0, z;
+    double a0, apb, b0, c, e, h, lmbda, p, t, u, v, x0, y0, z, zr;
     double lnx = 1., lny = 1.;
     int i, n;
     double const r2pi = 1. / cxx::sqrt(2. * PI);
@@ -904,15 +904,26 @@ XSF_HOST_DEVICE inline double brcmp1(int mu, double a, double b, double x, doubl
     }
     z = a * lnx + b * lny;
 
+    if (x <= 0.375) {
+        p = cxx::pow(x, a);
+        zr = b * lny;
+    } else if (y <= 0.375) {
+        p = cxx::pow(y, b);
+        zr = a * lnx;
+    } else {
+        p = cxx::pow(x, a) * cxx::pow(y, b);
+        zr = 0.0;
+    }
+
     if (a0 >= 1.0) {
-        z -= betaln(a, b);
-        return esum(mu, z);
+        u = betaln(a, b);
+        return esum_pow(mu, p, zr - u, z - u);
     }
 
     b0 = cxx::fmax(a, b);
     if (b0 >= 8.0) {
         u = gamln1(a0) + algdiv(a0, b0);
-        return a0 * esum(mu, z - u);
+        return a0 * esum_pow(mu, p, zr - u, z - u);
     }
 
     if (b0 > 1.0) {
@@ -926,7 +937,7 @@ XSF_HOST_DEVICE inline double brcmp1(int mu, double a, double b, double x, doubl
             }
             u += cxx::log(c);
         }
-        z -= u;
+        z = esum_pow(mu, p, zr - u, z - u);
         b0 -= 1.;
         apb = a0 + b0;
 
@@ -936,13 +947,13 @@ XSF_HOST_DEVICE inline double brcmp1(int mu, double a, double b, double x, doubl
         } else {
             t = 1. + gam1(apb);
         }
-        return a0 * esum(mu, z) * (1. + gam1(b0)) / t;
+        return a0 * z * (1. + gam1(b0)) / t;
     }
-    if (esum(mu, z) == 0.0) {
+    t = esum_pow(mu, p, zr, z);
+    if (t == 0.0) {
         return 0.0;
     }
     apb = a + b;
-    t = cxx::exp(z);
     if (apb > 1.0) {
         u = a + b - 1.0;
         z = (1. + gam1(u)) / apb;
@@ -957,7 +968,7 @@ XSF_HOST_DEVICE inline double brcmp1(int mu, double a, double b, double x, doubl
 XSF_HOST_DEVICE inline double brcomp(double a, double b, double x, double y) {
     //    Evaluation of x**a*y**b/beta(a,b)
 
-    double a0, apb, b0, c, e, h, lmbda, lnx, lny, t, u, v, x0, y0, z;
+    double a0, apb, b0, c, e, h, lmbda, lnx, lny, p, t, u, v, x0, y0, z, zr;
     double const r2pi = 1. / cxx::sqrt(2 * PI);
     int i, n;
 
@@ -1002,15 +1013,26 @@ XSF_HOST_DEVICE inline double brcomp(double a, double b, double x, double y) {
         lny = cxx::log(y);
     }
     z = a * lnx + b * lny;
+
+    if (x <= 0.375) {
+        p = cxx::pow(x, a);
+        zr = b * lny;
+    } else if (y <= 0.375) {
+        p = cxx::pow(y, b);
+        zr = a * lnx;
+    } else {
+        p = cxx::pow(x, a) * cxx::pow(y, b);
+        zr = 0.0;
+    }
     if (a0 >= 1.0) {
-        z -= betaln(a, b);
-        return cxx::exp(z);
+        u = betaln(a, b);
+        return esum_pow(0, p, zr - u, z - u);
     }
 
     b0 = cxx::fmax(a, b);
     if (b0 >= 8.0) {
         u = gamln1(a0) + algdiv(a0, b0);
-        return a0 * cxx::exp(z - u);
+        return a0 * esum_pow(0, p, zr - u, z - u);
     }
 
     if (b0 > 1.0) {
@@ -1024,7 +1046,7 @@ XSF_HOST_DEVICE inline double brcomp(double a, double b, double x, double y) {
             }
             u += cxx::log(c);
         }
-        z -= u;
+        z = esum_pow(0, p, zr - u, z - u);
         b0 -= 1.0;
         apb = a0 + b0;
 
@@ -1034,14 +1056,14 @@ XSF_HOST_DEVICE inline double brcomp(double a, double b, double x, double y) {
         } else {
             t = 1. + gam1(apb);
         }
-        return a0 * cxx::exp(z) * (1. + gam1(b0)) / t;
+        return a0 * z * (1. + gam1(b0)) / t;
     }
-    if (cxx::exp(z) == 0.) {
+    t = esum_pow(0, p, zr, z);
+    if (t == 0.) {
         return 0.0;
     }
 
     apb = a + b;
-    t = cxx::exp(z);
     if (apb > 1.0) {
         u = a + b - 1.0;
         z = (1. + gam1(u)) / apb;
@@ -1250,6 +1272,16 @@ XSF_HOST_DEVICE inline double esum(int mu, double x) {
             return cxx::exp(mu + x);
         }
     }
+}
+
+XSF_HOST_DEVICE inline double esum_pow(int mu, double p, double r, double z) {
+    //    Function uses more accurate p * exp(r) form unless it could underflow or overflow,
+    //    then falls back to exp(z).
+
+    if ((p >= cxx::numeric_limits<double>::min()) && (cxx::fabs(r) < 700.) && (cxx::fabs(mu + r) < 700.)) {
+        return p * esum(mu, r);
+    }
+    return esum(mu, z);
 }
 
 XSF_HOST_DEVICE inline double fpser(double a, double b, double x, double eps) {
