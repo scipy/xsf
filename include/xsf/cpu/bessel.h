@@ -540,6 +540,10 @@ void rctj(T x, int *nm, OutputVec1 rj, OutputVec2 dj) {
             if (k <= *nm) {
                 rj[k] = f;
             }
+            if (k < *nm && fabs(x) <= k + 1) {
+                // rj[k + 1] / rj[k], for the derivative where rj[k + 1] underflows (f != 0 for k + 1 >= |x|)
+                dj[k + 1] = f1 / f;
+            }
             if (fabs(f) > big) {
                 f *= small;
                 f1 *= small;
@@ -557,7 +561,11 @@ void rctj(T x, int *nm, OutputVec1 rj, OutputVec2 dj) {
     }
     dj[0] = cos(x);
     for (int k = 1; k <= *nm; k++) {
-        dj[k] = -k * rj[k] / x + rj[k - 1];
+        if (n >= 2 && fabs(x) <= k && fabs(rj[k]) < std::numeric_limits<T>::min()) {
+            dj[k] = (1 - k * dj[k] / x) * rj[k - 1];
+        } else {
+            dj[k] = -k * rj[k] / x + rj[k - 1];
+        }
     }
 }
 
