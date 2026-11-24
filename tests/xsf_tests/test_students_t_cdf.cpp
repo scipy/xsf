@@ -18,7 +18,6 @@ TEST_CASE("students t CDF test", "[students_t_cdf][xsf_tests]") {
     SECTION("students t CDF t = 0 special case") { REQUIRE(xsf::students_t_cdf(1.0, 0.0) == 0.5); }
 
     SECTION("students t CDF infinite t") {
-        // test cases with large inputs
         using test_case = std::tuple<double, double, double, double>;
         auto [nu, t, expected, rtol] = GENERATE(
             test_case{1.0, std::numeric_limits<double>::infinity(), 1.0, 1e-13},
