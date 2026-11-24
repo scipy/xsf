@@ -1,6 +1,6 @@
 /*
  *
- * This file s a C rewrite of the Fortran code with the
+ * This file is a C++ rewrite of the Fortran code with the
  * following as its original description:
  *
  * Cumulative distribution functions, inverses and parameters for
