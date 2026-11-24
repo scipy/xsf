@@ -114,7 +114,7 @@ XSF_HOST_DEVICE inline double rexp(double);
 XSF_HOST_DEVICE inline double rlog1(double);
 
 constexpr double stirling_coeffs[6] = {0.833333333333333e-01,  -0.277777777760991e-02, 0.793650666825390e-03,
-                  -0.595202931351870e-03, 0.837308034031215e-03,  -0.165322962780713e-02};
+                                       -0.595202931351870e-03, 0.837308034031215e-03,  -0.165322962780713e-02};
 
 XSF_HOST_DEVICE inline double algdiv(double a, double b) {
     //         Computation of ln(gamma(b)/gamma(a+b)) when b >= 8
@@ -126,7 +126,6 @@ XSF_HOST_DEVICE inline double algdiv(double a, double b) {
     //
 
     double c, d, h, s11, s3, s5, s7, s9, t, u, v, w, x, x2;
-
 
     if (a > b) {
         h = b / a;
@@ -149,7 +148,11 @@ XSF_HOST_DEVICE inline double algdiv(double a, double b) {
 
     // Set w = del(b) - del(a + b)
     t = cxx::pow((1. / b), 2);
-    w = (((((stirling_coeffs[5] * s11) * t + stirling_coeffs[4] * s9) * t + stirling_coeffs[3] * s7) * t + stirling_coeffs[2] * s5) * t + stirling_coeffs[1] * s3) * t +
+    w = (((((stirling_coeffs[5] * s11) * t + stirling_coeffs[4] * s9) * t + stirling_coeffs[3] * s7) * t +
+          stirling_coeffs[2] * s5) *
+             t +
+         stirling_coeffs[1] * s3) *
+            t +
         stirling_coeffs[0];
     w *= c / b;
     // Combine the results
@@ -214,10 +217,10 @@ XSF_HOST_DEVICE inline double basym(double a, double b, double lmbda, double eps
     //    It is assumed that lambda is nonnegative and that
     //    a and b are greater than or equal to 15.
 
-    double a0[21] = {0.0};
-    double b0[21] = {0.0};
-    double c[21] = {0.0};
-    double d[21] = {0.0};
+    double a0[13] = {0.0};
+    double b0[13] = {0.0};
+    double c[13] = {0.0};
+    double d[13] = {0.0};
     double bsum, dsum, f, h, h2, hn, j0, j1, r, r0, r1, s, ssum;
     double t, t0, t1, u, w, w0, z, z0, z2, zn, znm1;
     double e0 = 2. / cxx::sqrt(PI);
@@ -227,7 +230,7 @@ XSF_HOST_DEVICE inline double basym(double a, double b, double lmbda, double eps
     // ****** Num is the maximum value that n can take in the do loop
     //        ending at statement 50. It is required that num be even.
     //        The arrays a0, b0, c, d have dimension num + 1.
-    num = 20;
+    num = 12;
 
     if (a < b) {
         h = a / b;
@@ -328,12 +331,21 @@ XSF_HOST_DEVICE inline double bcorr(double a0, double b0) {
     s11 = 1. + (x + x2 * s9);
     // Set w = del(b) - del(a + b)
     t = cxx::pow((1. / b), 2);
-    w = (((((stirling_coeffs[5] * s11) * t + stirling_coeffs[4] * s9) * t + stirling_coeffs[3] * s7) * t + stirling_coeffs[2] * s5) * t + stirling_coeffs[1] * s3) * t +
+    w = (((((stirling_coeffs[5] * s11) * t + stirling_coeffs[4] * s9) * t + stirling_coeffs[3] * s7) * t +
+          stirling_coeffs[2] * s5) *
+             t +
+         stirling_coeffs[1] * s3) *
+            t +
         stirling_coeffs[0];
     w *= c / b;
     // Compute  del(a) + w
     t = cxx::pow((1. / a), 2);
-    return ((((((stirling_coeffs[5]) * t + stirling_coeffs[4]) * t + stirling_coeffs[3]) * t + stirling_coeffs[2]) * t + stirling_coeffs[1]) * t + stirling_coeffs[0]) / a + w;
+    return ((((((stirling_coeffs[5]) * t + stirling_coeffs[4]) * t + stirling_coeffs[3]) * t + stirling_coeffs[2]) * t +
+             stirling_coeffs[1]) *
+                t +
+            stirling_coeffs[0]) /
+               a +
+           w;
 }
 
 XSF_HOST_DEVICE inline double betaln(double a0, double b0) {
@@ -464,17 +476,16 @@ XSF_HOST_DEVICE inline double bfrac(double a, double b, double x, double y, doub
     return result * r;
 }
 
-constexpr double bgrat_c[30] = {
-    0.16666666666666666, 0.008333333333333333, 0.0001984126984126984,
-    2.7557319223985893e-06, 2.505210838544172e-08, 1.6059043836821613e-10,
-    7.647163731819816e-13, 2.8114572543455206e-15, 8.22063524662433e-18,
-    1.9572941063391263e-20, 3.868170170630684e-23, 6.446950284384474e-26,
-    9.183689863795546e-29, 1.1309962886447716e-31, 1.216125041553518e-34,
-    1.151633562077195e-37, 9.67759295863189e-41, 7.265460179153071e-44,
-    4.902469756513544e-47, 2.9893108271424046e-50, 1.6552108677421951e-53,
-    8.359650847182804e-57, 3.866628513960594e-60, 1.643974708316579e-63,
-    6.446959640457172e-67, 2.3392451525606576e-70, 7.876246304918039e-74,
-    2.4674957095607893e-77, 7.2106829618959365e-81, 1.9701319568021682e-84};
+constexpr double bgrat_c[30] = {0.16666666666666666,    0.008333333333333333,   0.0001984126984126984,
+                                2.7557319223985893e-06, 2.505210838544172e-08,  1.6059043836821613e-10,
+                                7.647163731819816e-13,  2.8114572543455206e-15, 8.22063524662433e-18,
+                                1.9572941063391263e-20, 3.868170170630684e-23,  6.446950284384474e-26,
+                                9.183689863795546e-29,  1.1309962886447716e-31, 1.216125041553518e-34,
+                                1.151633562077195e-37,  9.67759295863189e-41,   7.265460179153071e-44,
+                                4.902469756513544e-47,  2.9893108271424046e-50, 1.6552108677421951e-53,
+                                8.359650847182804e-57,  3.866628513960594e-60,  1.643974708316579e-63,
+                                6.446959640457172e-67,  2.3392451525606576e-70, 7.876246304918039e-74,
+                                2.4674957095607893e-77, 7.2106829618959365e-81, 1.9701319568021682e-84};
 
 XSF_HOST_DEVICE inline struct TupleDI bgrat(double a, double b, double x, double y, double w, double eps) {
     //    Asymptotic expansion for ix(a,b) when a is larger than b.
@@ -1342,7 +1353,11 @@ XSF_HOST_DEVICE inline double gamln(double a) {
         return gamln1(t - 1.) + cxx::log(w);
     }
     t = cxx::pow(1 / a, 2);
-    w = (((((stirling_coeffs[5] * t + stirling_coeffs[4]) * t + stirling_coeffs[3]) * t + stirling_coeffs[2]) * t + stirling_coeffs[1]) * t + stirling_coeffs[0]) / a;
+    w = (((((stirling_coeffs[5] * t + stirling_coeffs[4]) * t + stirling_coeffs[3]) * t + stirling_coeffs[2]) * t +
+          stirling_coeffs[1]) *
+             t +
+         stirling_coeffs[0]) /
+        a;
     return (d + w) + (a - 0.5) * (cxx::log(a) - 1.);
 }
 
