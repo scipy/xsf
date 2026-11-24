@@ -1157,6 +1157,16 @@ inline std::complex<double> cyl_bessel_k(double v, std::complex<double> z) {
     int kode = 1;
     int ierr;
     int nz = amos::besk(z, v, kode, n, &cy, &ierr);
+    if (nz != 0 && (ierr == 0 || ierr == 3)) {
+        // AMOS flushes K to 0 near Re(z) = 700, also where K is normal: scale K exp(z) by exp(-z) in two steps
+        std::complex<double> ke;
+        int ierr_e;
+        if (amos::besk(z, v, 2, n, &ke, &ierr_e) == 0 && ierr_e == ierr) {
+            double h = std::exp(-std::real(z) / 2);
+            cy = ke * h * std::polar(1.0, -std::imag(z)) * h;
+            nz = cy == 0.0;
+        }
+    }
     set_error_and_nan("kv:", ierr_to_sferr(nz, ierr), cy);
     if (ierr == 2) {
         if (std::real(z) >= 0 && std::imag(z) == 0) {
