@@ -47,3 +47,40 @@ TEST_CASE("assoc_legendre_p norm m0 gh-78", "[assoc_legendre_p][xsf_tests]") {
         }
     }
 }
+
+TEST_CASE("assoc_legendre_p norm high degree gh-26574", "[assoc_legendre_p][xsf_tests]") {
+    using test_case = std::tuple<int, double>;
+    auto [n, ref] = GENERATE(
+        test_case{645, -0.82814316846102642},
+        test_case{646, -0.60632871446514317},
+        test_case{1025, 0.22184868694754134}
+    );
+    const int m = 0;
+    const double z = 0.5;
+    const int branch_cut = 2;
+    const double rtol = 1e-11;
+
+    const double w = xsf::assoc_legendre_p(xsf::assoc_legendre_norm, n, m, z, branch_cut);
+    const auto rel_error = xsf::extended_relative_error(w, ref);
+
+    CAPTURE(n, m, z, w, ref, rtol, rel_error);
+    REQUIRE(rel_error <= rtol);
+}
+
+TEST_CASE("sph_legendre_p high degree gh-26574", "[sph_legendre_p][xsf_tests]") {
+    using test_case = std::tuple<int, double>;
+    auto [n, ref] = GENERATE(
+        test_case{645, -0.26806783143098795},
+        test_case{646, 0.04057110340705230},
+        test_case{1025, 0.29485790856065480}
+    );
+    const int m = 0;
+    const double theta = 1.0;
+    const double rtol = 1e-11;
+
+    const double w = xsf::sph_legendre_p(n, m, theta);
+    const auto rel_error = xsf::extended_relative_error(w, ref);
+
+    CAPTURE(n, m, theta, w, ref, rtol, rel_error);
+    REQUIRE(rel_error <= rtol);
+}
