@@ -739,11 +739,45 @@ namespace specfun {
                 }
             }
             if (a0 >= 2.0) {
+                // The forward recurrence in a (DLMF 13.3.1) can lose accuracy when it starts below b / 2.
+                // Here a is still the starting value (between 1 and 2), not the original a0.
+                const bool unstable = 2.0 * a < b;
                 for (i = 1; i < la; i++) {
                     chg = ((2.0 * a - b + z) * cy1 + (b - a) * cy0) / a;
                     cy0 = cy1;
                     cy1 = chg;
                     a += 1.0;
+                }
+                if (unstable && (std::abs(z) < 20.0 + b)) {
+                    // Sum the series (DLMF 13.2.2) for a0 directly: at most 500 terms, stopping once a term is
+                    // below 1e-15 times the sum. Use it if its error estimate is smaller than the sum and the
+                    // recurrence result is outside twice that estimate.
+                    const int max_terms = 500;
+                    const double rounding = 4.0 * cxx::numeric_limits<double>::epsilon(); // roundoff allowance per term
+                    const double big = 1e290;                                             // terms stay finite
+                    double asum = 1.0;
+                    bool converged = false;
+                    cs1 = 1.0;
+                    cr1 = 1.0;
+                    for (j = 1; (j <= max_terms) && (asum < big); j++) {
+                        cr1 *= (a0 + (j - 1)) / (j * (b + (j - 1))) * z;
+                        cs1 += cr1;
+                        asum += std::abs(cr1);
+                        if (std::abs(cr1) < 1e-15 * std::abs(cs1)) {
+                            converged = true;
+                            break;
+                        }
+                    }
+                    // The term ratios (a0 + j) |z| / ((j + 1) (b + j)) decrease in j for a0 >= 1, so the next
+                    // ratio q bounds the tail geometrically.
+                    const double q = (a0 + j) / ((j + 1) * (b + j)) * std::abs(z);
+                    if (converged && (asum < big) && (q < 1.0)) {
+                        const double err = rounding * j * asum + std::abs(cr1) / (1.0 - q);
+                        // Written as !(... <= ...) so that a NaN recurrence result also takes the series
+                        if ((err < std::abs(cs1)) && !(std::abs(chg - cs1) <= 2.0 * err)) {
+                            chg = cs1;
+                        }
+                    }
                 }
             }
             if (x0 < 0.0) {

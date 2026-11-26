@@ -141,3 +141,29 @@ TEST_CASE("hyp1f1(1, 2, z) complex z near 0: exp(z) - 1 cancels", "[hyp1f1][xsf_
     CAPTURE(z, out, desired, error, rtol);
     REQUIRE(error <= rtol);
 }
+
+TEST_CASE("hyp1f1(a, b, z) a >= 2 and large b", "[hyp1f1][xsf_tests]") {
+    // Regression test: the forward recurrence in a from a < 2 was unstable for large b.
+    /*
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for a, b, z in [(30, 100, 1 + 1j), (10, 250, 10 - 15j), (2.5, 250, -3 - 4j)]:
+        print(complex(mpmath.hyp1f1(a, b, z)))
+    */
+    SET_FP_FORMAT()
+    using cd = std::complex<double>;
+    using test_case = std::tuple<double, double, cd, cd>;
+    auto [a, b, z, desired] = GENERATE(
+        test_case{30.0, 100.0, {1, 1}, {1.2887279943919587, 0.4015957994186829}},
+        test_case{10.0, 250.0, {10, -15}, {1.1985998416598884, -0.8613474402403436}},
+        test_case{2.5, 250.0, {-3, -4}, {0.9695593227156057, -0.03834567597366621}}
+    );
+
+    const cd out = xsf::hyp1f1(a, b, z);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 1e-14;
+    CAPTURE(a, b, z, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
