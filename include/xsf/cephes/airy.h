@@ -56,6 +56,7 @@
 
 #include "../config.h"
 #include "const.h"
+#include "dd_real.h"
 #include "polevl.h"
 
 namespace xsf {
@@ -165,7 +166,7 @@ namespace cephes {
     } // namespace detail
 
     XSF_HOST_DEVICE inline int airy(double x, double *ai, double *aip, double *bi, double *bip) {
-        double z, zz, t, f, g, uf, ug, k, zeta, theta;
+        double z, zz, t, f, g, uf, ug, k, zeta;
         int domflg;
 
         domflg = 0;
@@ -181,15 +182,19 @@ namespace cephes {
             domflg = 15;
             t = cxx::sqrt(-x);
             zeta = -2.0 * x * t / 3.0;
+            // theta = zeta + pi/4 in double-double, with sqrt(-x) = t + (-x - t^2) / (2 t)
+            double e, tt = detail::two_prod(t, t, &e);
+            detail::double_double th =
+                detail::double_double(t, ((-x - tt) - e) / (2.0 * t)) * (-x) * (detail::double_double(2.0) / 3.0) +
+                0.25 * M_PI;
+            f = cxx::sin(th.hi) * cxx::cos(th.lo) + cxx::cos(th.hi) * cxx::sin(th.lo);
+            g = cxx::cos(th.hi) * cxx::cos(th.lo) - cxx::sin(th.hi) * cxx::sin(th.lo);
             t = cxx::sqrt(t);
             k = detail::SQRT1OPI / t;
             z = 1.0 / zeta;
             zz = z * z;
             uf = 1.0 + zz * polevl(zz, detail::airy_AFN, 8) / p1evl(zz, detail::airy_AFD, 9);
             ug = z * polevl(zz, detail::airy_AGN, 10) / p1evl(zz, detail::airy_AGD, 10);
-            theta = zeta + 0.25 * M_PI;
-            f = cxx::sin(theta);
-            g = cxx::cos(theta);
             *ai = k * (f * uf - g * ug);
             *bi = k * (g * uf + f * ug);
             uf = 1.0 + zz * polevl(zz, detail::airy_APFN, 8) / p1evl(zz, detail::airy_APFD, 9);
