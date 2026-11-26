@@ -301,6 +301,30 @@ TEST_CASE("eval_jacobi matches SciPy complex<float> reference values", "[eval_ja
     REQUIRE(error <= tol);
 }
 
+TEST_CASE("Jacobi family with complex x and integral n", "[eval_jacobi][xsf_tests]") {
+    // Regression test: the complex 2F1 series cancels for large integral n.
+    // import mpmath as mp
+    // mp.mp.dps = 50
+    // z = mp.mpc(0.3, 0.4)
+    // for f in [mp.jacobi(100, 0.5, 1.5, z), mp.gegenbauer(100, 2.5, z), mp.legendre(100, z), mp.chebyt(100, z),
+    //           mp.chebyu(100, z)]:
+    //     print(repr(complex(f)))
+    SET_FP_FORMAT()
+    using cd = std::complex<double>;
+    const cd z{0.3, 0.4};
+    auto [out, desired] = GENERATE_COPY(
+        std::make_tuple(xsf::eval_jacobi(100.0, 0.5, 1.5, z), cd{-4.0030701985749144e+16, -2.3638959225853708e+16}),
+        std::make_tuple(xsf::eval_gegenbauer(100.0, 2.5, z), cd{-1.2898726846844436e+20, 2.7483203437911265e+19}),
+        std::make_tuple(xsf::eval_legendre(100.0, z), cd{-1.8550606707144424e+16, -2348347099211833.5}),
+        std::make_tuple(xsf::eval_chebyt(100.0, z), cd{-1.9186682554440662e+17, -4.117137971350584e+16}),
+        std::make_tuple(xsf::eval_chebyu(100.0, z), cd{-2.807537975531033e+17, -1.1537518951488494e+16})
+    );
+
+    const double rtol = 1e-13;
+    CAPTURE(out, desired, rtol);
+    REQUIRE(xsf::extended_relative_error(out, desired) <= rtol);
+}
+
 TEST_CASE("eval_sh_jacobi matches constructed polynomials", "[eval_sh_jacobi][xsf_tests]") {
     // https://github.com/scipy/scipy/blob/a125578782dd3213fb57fda0f4b97c70dd054b1d/scipy/special/tests/test_orthogonal_eval.py#L82-L85
     check_poly(
