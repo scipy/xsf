@@ -36,3 +36,35 @@ TEST_CASE("it2i0k0 large x", "[it2i0k0][xsf_tests]") {
     REQUIRE(rel_error_i0 <= rtol);
     REQUIRE(rel_error_k0 <= rtol);
 }
+
+TEST_CASE("it2i0k0 gh-379", "[it2i0k0][xsf_tests]") {
+    // Regression test for gh-379: the K0 integral lost up to 2e-4 near x = 12, and the I0
+    // integral up to 7e-9 at x = 40.
+
+    /*
+    import mpmath as mp
+
+    mp.mp.dps = 40
+
+    for x in [12.014948790755168, 39.3, 40.0]:
+        ti = mp.nsum(lambda k: (mp.mpf(x) / 2) ** (2 * k) / (2 * k * mp.factorial(k) ** 2), [1, mp.inf])
+        tk = mp.quad(lambda t: mp.besselk(0, t) / t, [x, x + 5, x + 20, mp.inf])
+        print(f"{x!r}, {float(ti)!r}, {float(tk)!r}")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double>;
+    auto [x, ref_i0, ref_k0] = GENERATE(
+        test_case{12.014948790755168, 1863.4463167906697, 1.6161014653313374e-07},
+        test_case{39.3, 197659650101013.12, 4.1828464704837e-20},
+        test_case{40.0, 387326525512364.4, 2.0242046145399133e-20}
+    );
+    double i0int, k0int;
+    xsf::it2i0k0(x, i0int, k0int);
+
+    const double rtol = 5e-15;
+    const auto rel_error_i0 = xsf::extended_relative_error(i0int, ref_i0);
+    const auto rel_error_k0 = xsf::extended_relative_error(k0int, ref_k0);
+    CAPTURE(x, i0int, ref_i0, rel_error_i0, k0int, ref_k0, rel_error_k0, rtol);
+    REQUIRE(rel_error_i0 <= rtol);
+    REQUIRE(rel_error_k0 <= rtol);
+}

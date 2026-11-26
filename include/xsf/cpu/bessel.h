@@ -9,6 +9,7 @@
 #include "../cephes/scipy_iv.h"
 #include "../cephes/yv.h"
 #include "../error.h"
+#include "../expint.h"
 #include "../trig.h"
 #include "amos.h"
 #include "specfun.h"
@@ -82,19 +83,15 @@ namespace detail {
         // =======================================================
 
         int k;
-        T rc1, rc2, e0, b1, b2, rs, r, tw, x2;
-        static const T a[10] = {
-            0.625,
-            1.0078125,
-            2.5927734375,
-            9.1868591308594,
-            4.1567974090576e+1,
-            2.2919635891914e+2,
-            1.491504060477e+3,
-            1.1192354495579e+4,
-            9.515939374212e+4,
-            9.0412425769041e+5
-        };
+        T rc1, rc2, e0, b1, b2, rs, r, tw, x2, h, v, w, t;
+        // A_k = |a_k(0)| + (k - 1/2) A_(k-1) with A_0 = 1, where |a_k(0)| = |a_(k-1)(0)| (2k - 1)^2 / (8k)
+        // (DLMF 10.40.1)
+        T a[28], ak = 1.0, sk = 1.0;
+        for (k = 0; k < 28; k++) {
+            ak *= (2.0 * k + 1.0) * (2.0 * k + 1.0) / (8.0 * (k + 1));
+            sk = ak + (k + 0.5) * sk;
+            a[k] = sk;
+        }
         const T pi = 3.141592653589793;
         const T el = 0.5772156649015329;
 
@@ -102,14 +99,14 @@ namespace detail {
             *ti = 0.0;
             *tk = 0.0;
             return;
-        } else if (x < 20.0) {
+        } else if (x < 40.0) {
             x2 = x * x;
             *ti = 1.0;
             r = 1.0;
             for (k = 1; k <= 50; k++) {
                 r = 0.25 * r * (2 * k - 1.0) / (2 * k + 1.0) / (k * k) * x2;
                 *ti += r;
-                if (fabs(r / (*ti)) < 1.0e-12) {
+                if (fabs(r / (*ti)) < std::numeric_limits<T>::epsilon()) {
                     break;
                 }
             }
@@ -118,7 +115,7 @@ namespace detail {
             x2 = 0.0;
             *ti = 1.0;
             r = 1.0;
-            for (k = 1; k <= 10; k++) {
+            for (k = 1; k <= 28; k++) {
                 r = r / x;
                 *ti += a[k - 1] * r;
             }
@@ -126,7 +123,7 @@ namespace detail {
             *ti = rc1 * exp(x) * (*ti);
         }
 
-        if (x < 12.0) {
+        if (x < 0.5) {
             e0 = el + log(x / 2.0);
             b1 = 1.0 - e0;
             b2 = 0.0;
@@ -145,6 +142,21 @@ namespace detail {
                 tw = *tk;
             }
             *tk *= x;
+        } else if (x < 40.0) {
+            // pi/2 - int_0^inf exp(-x cosh(u)) / cosh(u) du (DLMF 10.43.18, 10.32.9), with the
+            // trapezoidal rule and x cosh(k h) = x + w
+            h = pi * pi / (x + 45.0);
+            *tk = 0.5 / x;
+            for (k = 1; k <= 40; k++) {
+                v = sinh(0.5 * h * k);
+                w = 2.0 * x * v * v;
+                t = exp(-w) / (x + w);
+                *tk += t;
+                if (t < 1.0e-17 * (*tk)) {
+                    break;
+                }
+            }
+            *tk = pi / 2.0 - h * (*tk) * x * exp(-x);
         } else {
             *tk = 1.0;
             r = 1.0;
@@ -238,19 +250,17 @@ namespace detail {
         // =========================================================
 
         int k;
-        T b1, e0, r, r2, rc, rs;
+        T b1, e0, r, r2, rc, rs, h, v, w, t;
         const T pi = 3.141592653589793;
         const T el = 0.5772156649015329;
-        static const T c[8] = {
-            1.625,
-            4.1328125,
-            1.45380859375e1,
-            6.553353881835e1,
-            3.6066157150269e2,
-            2.3448727161884e3,
-            1.7588273098916e4,
-            1.4950639538279e5
-        };
+        // C_k = |a_k(0)| + (k + 1/2) C_(k-1) with C_0 = 1, where |a_k(0)| = |a_(k-1)(0)| (2k - 1)^2 / (8k)
+        // (DLMF 10.40.1)
+        T c[28], ak = 1.0, sk = 1.0;
+        for (k = 0; k < 28; k++) {
+            ak *= (2.0 * k + 1.0) * (2.0 * k + 1.0) / (8.0 * (k + 1));
+            sk = ak + (k + 1.5) * sk;
+            c[k] = sk;
+        }
 
         if (x == 0.0) {
             *tti = 0.0;
@@ -263,7 +273,7 @@ namespace detail {
             for (int k = 2; k <= 50; k++) {
                 r = 0.25 * r * (k - 1.0) / (k * k * k) * x * x;
                 *tti += r;
-                if (fabs(r / (*tti)) < 1.0e-12) {
+                if (fabs(r / (*tti)) < std::numeric_limits<T>::epsilon()) {
                     break;
                 }
             }
@@ -271,14 +281,14 @@ namespace detail {
         } else {
             *tti = 1.0;
             r = 1.0;
-            for (int k = 1; k <= 8; k++) {
+            for (int k = 1; k <= 28; k++) {
                 r = r / x;
                 *tti += c[k - 1] * r;
             }
             rc = x * sqrt(2.0 * pi * x);
             *tti = (*tti) * exp(x) / rc;
         }
-        if (x <= 12.0) {
+        if (x <= 1.0) {
             e0 = (0.5 * log(x / 2.0) + el) * log(x / 2.0) + pi * pi / 24.0 + 0.5 * el * el;
             b1 = 1.5 - (el + log(x / 2.0));
             rs = 1.0;
@@ -293,10 +303,25 @@ namespace detail {
                 }
             }
             *ttk = e0 - 0.125 * x * x * b1;
+        } else if (x < 40.0) {
+            // int_0^inf E1(x cosh(u)) du (DLMF 10.32.9), with the trapezoidal rule and
+            // x cosh(k h) = x + w
+            h = pi * pi / (x + 45.0);
+            *ttk = 0.5 * scaled_exp1(static_cast<double>(x)) / x;
+            for (k = 1; k <= 40; k++) {
+                v = sinh(0.5 * h * k);
+                w = 2.0 * x * v * v;
+                t = exp(-w) * scaled_exp1(static_cast<double>(x + w)) / (x + w);
+                *ttk += t;
+                if (t < 1.0e-17 * (*ttk)) {
+                    break;
+                }
+            }
+            *ttk = h * (*ttk) * exp(-x);
         } else {
             *ttk = 1.0;
             r = 1.0;
-            for (k = 1; k <= 8; k++) {
+            for (k = 1; k <= 28; k++) {
                 r = -r / x;
                 *ttk += c[k - 1] * r;
             }
