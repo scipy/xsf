@@ -6,6 +6,7 @@
 
 #include "../config.h"
 #include "gamma.h"
+#include "lanczos.h"
 
 namespace xsf {
 namespace cephes {
@@ -67,6 +68,13 @@ namespace cephes {
             return r * cxx::pow(a, m) *
                    (1 + m * (m - 1) / (2 * a) + m * (m - 1) * (m - 2) * (3 * m - 1) / (24 * a * a) +
                     m * m * (m - 1) * (m - 1) * (m - 2) * (m - 3) / (48 * a * a * a));
+        } else if (a > 10 && cxx::abs(m) <= 1) {
+            /*
+             * Avoid the loss of precision in lgam(a + m) - lgam(a) below, e.g. a relative
+             * error of 8e-12 for poch(5878.8618471964755, -0.029080395984806877).
+             * Port of jorenham/xsf-rust#415.
+             */
+            return r * cxx::exp(detail::lgam_ratio(a, m));
         }
 
         /* Check for infinity */
@@ -77,6 +85,17 @@ namespace cephes {
         /* Check for zero */
         if (!detail::is_nonpos_int(a + m) && detail::is_nonpos_int(a)) {
             return 0;
+        }
+
+        if (a < -10 && cxx::abs(m) <= 1) {
+            /*
+             * Reflection formula, which avoids the loss of precision in lgam(a + m) - lgam(a)
+             * below, e.g. a relative error of 3.6e-4 for
+             * poch(-96483701341.52873, -0.0010688260996181021). The sines use the exact
+             * fractional part of a instead of the rounded a + m. Port of jorenham/xsf-rust#420.
+             */
+            double f = a - cxx::floor(a);
+            return r * (sinpi(f) / sinpi(f + m)) * poch(1 - a - m, m);
         }
 
         return r * cxx::exp(lgam(a + m) - lgam(a)) * gammasgn(a + m) * gammasgn(a);
