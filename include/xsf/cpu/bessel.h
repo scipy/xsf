@@ -528,12 +528,7 @@ void rctj(T x, int *nm, OutputVec1 rj, OutputVec2 dj) {
     f = 0.0;
 
     if (n >= 2) {
-        m = specfun::msta1(x, 200);
-        if (m < n) {
-            *nm = m;
-        } else {
-            m = specfun::msta2(x, n, 15);
-        }
+        m = specfun::msta2(x, n, 15);
 
         // rescale by a power of 2, since the backward recurrence overflows for large x
         const double big = 0x1p512, small = 0x1p-512;
@@ -545,10 +540,14 @@ void rctj(T x, int *nm, OutputVec1 rj, OutputVec2 dj) {
             if (k <= *nm) {
                 rj[k] = f;
             }
+            if (k < *nm && fabs(x) <= k + 1) {
+                // rj[k + 1] / rj[k], for the derivative where rj[k + 1] underflows (f != 0 for k + 1 >= |x|)
+                dj[k + 1] = f1 / f;
+            }
             if (fabs(f) > big) {
                 f *= small;
                 f1 *= small;
-                for (int l = k; l <= *nm; l++) {
+                for (int l = k; l <= *nm && rj[l] != 0.0; l++) {
                     rj[l] *= small;
                 }
             }
@@ -562,7 +561,11 @@ void rctj(T x, int *nm, OutputVec1 rj, OutputVec2 dj) {
     }
     dj[0] = cos(x);
     for (int k = 1; k <= *nm; k++) {
-        dj[k] = -k * rj[k] / x + rj[k - 1];
+        if (n >= 2 && fabs(x) <= k && fabs(rj[k]) < std::numeric_limits<T>::min()) {
+            dj[k] = (1 - k * dj[k] / x) * rj[k - 1];
+        } else {
+            dj[k] = -k * rj[k] / x + rj[k - 1];
+        }
     }
 }
 

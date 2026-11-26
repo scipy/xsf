@@ -38,3 +38,44 @@ TEST_CASE("rctj large x", "[rctj][real][xsf_tests]") {
     REQUIRE(error_rj <= rtol);
     REQUIRE(error_dj <= rtol);
 }
+
+TEST_CASE("rctj high orders", "[rctj][real][xsf_tests]") {
+    // Regression test: orders above msta1(x, 200) were left unset, and the ones below it were inaccurate.
+
+    /*
+    If you want to check the expected values below with mpmath, this is the script:
+
+    import mpmath
+
+    mpmath.mp.dps = 30
+
+    # x * j_k(x)
+    R = lambda k, x: x * mpmath.sqrt(mpmath.pi / (2 * x)) * mpmath.besselj(k + mpmath.mpf(1) / 2, x)
+
+    for k, x in [(105, 1), (45, "1e-3"), (176, 10), (7, "1e-40"), (3, "1e-90")]:
+        X = mpmath.mpf(x)
+        # its derivative, DLMF 10.51.2
+        print(f"k={k}, x={x}: {float(R(k, X))!r} {float(R(k - 1, X) - k * R(k, X) / X)!r}")
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<int, int, double, double, double>;
+    auto [n, k, x, desired_rj, desired_dj] = GENERATE(
+        test_case{300, 105, 1.0, 1.9599728528102047e-201, 2.0774792044645683e-199},
+        test_case{120, 45, 1e-3, 3.1130384250545827e-209, 1.4319976751903727e-204},
+        test_case{300, 176, 10.0, 3.0545044405010714e-198, 5.397861821994432e-197},
+        test_case{300, 300, 1.0, 0.0, 0.0},                 // underflows
+        test_case{8, 7, 1e-40, 0.0, 3.94667061333728e-286}, // underflows, but the derivative does not
+        test_case{4, 3, 1e-90, 0.0, 3.80952380952381e-272}
+    );
+
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    std::vector<double> rj(n + 1, nan), dj(n + 1, nan);
+    xsf::rctj(x, xsf::cxx::mdspan(rj.data(), rj.size()), xsf::cxx::mdspan(dj.data(), dj.size()));
+
+    const double error_rj = xsf::extended_relative_error(rj[k], desired_rj);
+    const double error_dj = xsf::extended_relative_error(dj[k], desired_dj);
+    const double rtol = 1e-12;
+    CAPTURE(n, k, x, rj[k], desired_rj, error_rj, dj[k], desired_dj, error_dj, rtol);
+    REQUIRE(error_rj <= rtol);
+    REQUIRE(error_dj <= rtol);
+}
