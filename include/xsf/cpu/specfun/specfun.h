@@ -647,6 +647,17 @@ namespace specfun {
         cy0 = 0.0;
         cy1 = 0.0;
         if ((b == 0.0) || (b == -(int)fabs(b))) {
+            if ((a <= 0.0) && (b <= a) && (a == floor(a))) {
+                // terminating series, M(-m, -n, z) with 0 <= m <= n
+                m = (int)(-a);
+                cr = 1.0;
+                chg = 1.0;
+                for (k = 0; (k < m) && (z != 0.0); k++) {
+                    cr = cr * (a + k) / static_cast<double>(k + 1) / (b + k) * z;
+                    chg += cr;
+                }
+                return chg;
+            }
             return 1e300;
         }
         if ((a == 0.0) || (z == 0.0)) {
