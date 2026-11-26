@@ -143,6 +143,20 @@ namespace amos {
     // Are there even platforms where epsilon is smaller than 1e-18?
     constexpr double RTOL_MIN =
         (std::numeric_limits<double>::epsilon() > 1e-18 ? std::numeric_limits<double>::epsilon() : 1e-18);
+    constexpr double MAXLOG = 7.09782712893383996843e2; // log(DBL_MAX)
+
+    // Largest exponent estimate of a uniform expansion of I that is on scale. The estimates omit
+    // the series and about (2 pi |z|)^(-1/2), so the evaluated value decides an overflow, except
+    // where significance is lost (ierr = 3 in besi).
+    inline double i_max_log(double fnu, std::complex<double> z, double tol, double elim) {
+        double aa = std::sqrt(std::fmin(0.5 / tol, std::numeric_limits<int>::max() * 0.5));
+        return (std::fmax(fnu, std::abs(z)) > aa) ? elim : MAXLOG - std::log(tol);
+    }
+
+    // exp(e) * css, also if exp(e) overflows
+    inline double scaled_exp(double e, double css) {
+        return (e > MAXLOG) ? std::exp(e + std::log(css)) : std::exp(e) * css;
+    }
 
     constexpr double zunhj_ar[14] = {
         1.00000000000000000e+00, 1.04166666666666667e-01, 8.35503472222222222e-02, 1.28226574556327160e-01, //  0
@@ -1031,12 +1045,15 @@ namespace amos {
             cz = std::complex<double>(0.0, std::imag(z));
         }
         acz = std::real(cz);
-        if (std::fabs(acz) <= elim) {
+        // For n <= 2, exp(cz) is applied last if it overflows
+        if ((std::fabs(acz) <= elim) || ((n <= 2) && (acz <= i_max_log(fnu + (n - 1), z, tol, elim)))) {
             dnu2 = dfnu + dfnu;
             koded = 1;
             if (!((std::fabs(acz) > alim) && (n > 2))) {
                 koded = 0;
-                ak1 *= std::exp(cz);
+                if (acz <= MAXLOG) {
+                    ak1 *= std::exp(cz);
+                }
             }
             fdn = 0.;
             if (dnu2 > rtr1) {
@@ -1105,6 +1122,13 @@ namespace amos {
                 p1 = -p1;
                 m = n - il + k;
                 y[m - 1] = s2 * ak1;
+                if (acz > MAXLOG) {
+                    double ehalf = std::exp(0.5 * acz);
+                    y[m - 1] = y[m - 1] * ehalf * std::exp(std::complex<double>(0.0, std::imag(cz))) * ehalf;
+                    if (!std::isfinite(std::real(y[m - 1])) || !std::isfinite(std::imag(y[m - 1]))) {
+                        return -1;
+                    }
+                }
             }
             if (n <= 2) {
                 return nz;
@@ -1771,6 +1795,10 @@ namespace amos {
                 atol = tol;
             }
             cy[i - 1] = atol * (zn * csgn);
+            if (!std::isfinite(std::real(cy[i - 1])) || !std::isfinite(std::imag(cy[i - 1]))) {
+                *ierr = 2;
+                return 0;
+            }
             csgn = -csgn;
         }
         return nz;
@@ -2032,6 +2060,10 @@ namespace amos {
                 atol = tol;
             }
             cy[i - 1] = atol * (zn * csgn);
+            if (!std::isfinite(std::real(cy[i - 1])) || !std::isfinite(std::imag(cy[i - 1]))) {
+                *ierr = 2;
+                return 0;
+            }
             csgn = csgn * ci;
         }
         return nz;
@@ -3729,6 +3761,9 @@ namespace amos {
                 }
             }
             y[n - 1] = s2 * cscr;
+            if (!std::isfinite(std::real(y[n - 1])) || !std::isfinite(std::imag(y[n - 1]))) {
+                return -1;
+            }
             if (n == 1) {
                 return nz;
             }
@@ -3740,6 +3775,9 @@ namespace amos {
                 s2 = (fnu + fnui) * rz * s2 + s1;
                 s1 = st;
                 st = s2 * cscr;
+                if (!std::isfinite(std::real(st)) || !std::isfinite(std::imag(st))) {
+                    return -1;
+                }
                 y[k - 1] = st;
                 fnui -= 1.0;
                 k -= 1;
@@ -4944,6 +4982,7 @@ namespace amos {
         double bry[3] = {THRESHOLD_MIN / tol, 0., 0.};
         bry[1] = 1.0 / bry[0];
         bry[2] = std::numeric_limits<double>::max();
+        double emax = i_max_log(fnu + (n - 1), z, tol, elim);
         //
         // CHECK FOR UNDERFLOW AND OVERFLOW ON FIRST MEMBER
         //
@@ -4957,7 +4996,7 @@ namespace amos {
         }
 
         rs1 = std::real(s1);
-        if (std::fabs(rs1) > elim) {
+        if ((rs1 < -elim) || (rs1 > emax)) {
             if (rs1 > 0) {
                 *nz = -1;
                 return;
@@ -4983,7 +5022,7 @@ namespace amos {
             // TEST FOR UNDERFLOW AND OVERFLOW
             //
             rs1 = std::real(s1);
-            if (std::fabs(rs1) > elim) {
+            if ((rs1 < -elim) || (rs1 > emax)) {
                 goto L110;
             }
             if (i == 1) {
@@ -4995,7 +5034,7 @@ namespace amos {
                 //
                 aphi = std::abs(phi);
                 rs1 += std::log(aphi);
-                if (std::fabs(rs1) > elim) {
+                if ((rs1 < -elim) || (rs1 > emax)) {
                     goto L110;
                 }
                 if (i == 1) {
@@ -5012,7 +5051,7 @@ namespace amos {
             // SCALE S1 IF CABS(S1) < ASCLE
             //
             s2 = phi * sum;
-            s1 = std::exp(std::real(s1)) * css[iflag - 1] *
+            s1 = scaled_exp(std::real(s1), css[iflag - 1]) *
                  std::complex<double>(std::cos(std::imag(s1)), std::sin(std::imag(s1)));
             s2 *= s1;
             if (iflag == 1) {
@@ -5024,6 +5063,10 @@ namespace amos {
             cy[i - 1] = s2;
             m = nd - i + 1;
             y[m - 1] = s2 * csr[iflag - 1];
+            if (!std::isfinite(std::real(y[m - 1])) || !std::isfinite(std::imag(y[m - 1]))) {
+                *nz = -1;
+                return;
+            }
         }
         /* 80 */
         if (nd > 2) {
@@ -5039,6 +5082,10 @@ namespace amos {
                 s2 = s1 + (fnu + fn) * rz * c2;
                 s1 = c2;
                 c2 = s2 * c1r;
+                if (!std::isfinite(std::real(c2)) || !std::isfinite(std::imag(c2))) {
+                    *nz = -1;
+                    return;
+                }
                 y[k - 1] = c2;
                 k -= 1;
                 fn -= 1.0;
@@ -5151,6 +5198,7 @@ namespace amos {
             cid = -cid;
             c2 = std::conj(c2);
         }
+        double emax = i_max_log(fnu + (n - 1), z, tol, elim);
         //
         // CHECK FOR UNDERFLOW AND OVERFLOW ON FIRST MEMBER
         //
@@ -5163,7 +5211,7 @@ namespace amos {
             s1 = -zeta1 + zeta2;
         }
         rs1 = std::real(s1);
-        if (std::fabs(rs1) > elim) {
+        if ((rs1 < -elim) || (rs1 > emax)) {
             if (rs1 > 0.) {
                 *nz = -1;
                 return;
@@ -5191,7 +5239,7 @@ namespace amos {
             // TEST FOR UNDERFLOW AND OVERFLOW
             //
             rs1 = std::real(s1);
-            if (std::fabs(rs1) > elim) {
+            if ((rs1 < -elim) || (rs1 > emax)) {
                 goto L50;
             }
             if (i == 1) {
@@ -5204,7 +5252,7 @@ namespace amos {
                 aphi = std::abs(phi);
                 aarg = std::abs(arg);
                 rs1 += std::log(aphi) - 0.25 * std::log(aarg) - aic;
-                if (std::fabs(rs1) > elim) {
+                if ((rs1 < -elim) || (rs1 > emax)) {
                     goto L50;
                 }
                 if (i == 1) {
@@ -5228,7 +5276,7 @@ namespace amos {
                 return;
             }
             s2 = phi * (ai * asum + dai * bsum);
-            c2r = std::exp(std::real(s1)) * std::real(css[iflag - 1]);
+            c2r = scaled_exp(std::real(s1), std::real(css[iflag - 1]));
             c2i = std::imag(s1);
             s1 = c2r * std::complex<double>(std::cos(c2i), std::sin(c2i));
             s2 *= s1;
@@ -5244,6 +5292,10 @@ namespace amos {
             s2 *= c2;
             cy[i - 1] = s2;
             y[j - 1] = s2 * csr[iflag - 1];
+            if (!std::isfinite(std::real(y[j - 1])) || !std::isfinite(std::imag(y[j - 1]))) {
+                *nz = -1;
+                return;
+            }
             c2 *= cid;
         }
         if (nd > 2) {
@@ -5261,6 +5313,10 @@ namespace amos {
                 s2 = s1 + (fnu + fn) * rz * s2;
                 s1 = c2;
                 c2 = s2 * c1;
+                if (!std::isfinite(std::real(c2)) || !std::isfinite(std::imag(c2))) {
+                    *nz = -1;
+                    return;
+                }
                 y[k - 1] = c2;
                 k -= 1;
                 fn -= 1.0;
@@ -6387,7 +6443,8 @@ namespace amos {
         rcz = std::real(cz);
 
         /*  OVERFLOW TEST  */
-        if (rcz > elim) {
+        double rmax = (ikflg == 1) ? i_max_log(fnu + (n - 1), z, tol, elim) : elim;
+        if (rcz > rmax) {
             return -1;
         }
         if (rcz >= alim) {
@@ -6395,7 +6452,7 @@ namespace amos {
             if (iform == 2) {
                 rcz -= 0.25 * std::log(aarg) + aic;
             }
-            if (rcz > elim) {
+            if (rcz > rmax) {
                 return -1;
             }
         } else {

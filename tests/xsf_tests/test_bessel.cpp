@@ -214,3 +214,26 @@ TEST_CASE(
         CHECK(err <= rtol);
     }
 }
+
+TEST_CASE("complex iv and jv near the overflow threshold", "[bessel][xsf_tests]") {
+    // These returned inf or NaN, although the results are below DBL_MAX.
+    // from mpmath import mp, mpf, mpc, besseli, besselj
+    // mp.dps = 50
+    // complex(besseli(0, mpc(714.2, 0.7853981633974483)))
+    // complex(besseli(100, mpc(715, 1500)))
+    // complex(besseli(mpf(1490.49137019918), mpf(-1431.44)))
+    // complex(besselj(mpf(54.0994671244485), mpc(0, 711.8546736182462)))
+    using C = std::complex<double>;
+    const C i0 = xsf::cyl_bessel_i(0.0, C(714.2, 0.7853981633974483));
+    const C i100 = xsf::cyl_bessel_i(100.0, C(715, 1500));
+    const C iv = xsf::cyl_bessel_i(1490.49137019918, C(-1431.44));
+    const C jv = xsf::cyl_bessel_j(54.0994671244485, C(0, 711.8546736182462));
+
+    SET_FP_FORMAT()
+    CAPTURE(i0, i100, iv, jv);
+    // The error of AMOS grows like max(v, abs(z)) * eps (3e-13 for v = 1490).
+    CHECK(xsf::extended_relative_error(i0, C(1.5736886034585442e+308, 1.5719583803849796e+308)) <= 1e-12);
+    CHECK(xsf::extended_relative_error(i100, C(7.912705314297923e+307, 4.046815106138804e+307)) <= 1e-12);
+    CHECK(xsf::extended_relative_error(iv, C(4.469209850313707e+304, 1.648062504244694e+306)) <= 1e-12);
+    CHECK(xsf::extended_relative_error(jv, C(-2.697976815742536e+306, -4.250028914134902e+305)) <= 1e-12);
+}
