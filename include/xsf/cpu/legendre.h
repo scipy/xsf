@@ -843,7 +843,7 @@ void lqn(std::complex<T> z, OutputVec1 cqn, OutputVec2 cqd) {
 
     std::complex<T> cq0, cq1, cqf0 = 0.0, cqf1, cqf2;
 
-    if (real(z) == 1) {
+    if (real(z) == 1 && imag(z) == 0) {
         for (int k = 0; k <= n; ++k) {
             cqn(k) = 1e300;
             cqd(k) = 1e300;
@@ -872,6 +872,7 @@ void lqn(std::complex<T> z, OutputVec1 cqn, OutputVec2 cqd) {
             km = 40 + n;
         } else {
             km = (int)((40 + n) * floor(-1.0 - 1.8 * log(abs(z - static_cast<T>(1)))));
+            km = std::max(km, 40 + n);
         }
 
         cqf2 = 0.0;
