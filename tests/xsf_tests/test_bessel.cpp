@@ -214,3 +214,30 @@ TEST_CASE(
         CHECK(err <= rtol);
     }
 }
+
+TEST_CASE("amos for |z| > 2**51", "[bessel][xsf_tests]") {
+    // Regression test for gh-514: jv was wrong, the others NaN.
+    // from mpmath import mp, mpf, mpc, besseli, besselj, besselk, exp, hankel1
+    // mp.dps = 50
+    // x = mpf(10)**16
+    // float(besseli(0.5, x) * exp(-x))
+    // float(besselk(0, x) * exp(x))
+    // complex(hankel1(0.5, mpc(1.7e308, -1065)))
+    // float(besselj(0.5, x))
+    // float(besseli(10**10, mpc(0, 10**20)).real)
+    using C = std::complex<double>;
+    const double ive = xsf::cyl_bessel_ie(0.5, 1e16);
+    const double kve = xsf::cyl_bessel_ke(0.0, 1e16);
+    const C h1 = xsf::cyl_hankel_1(0.5, C(1.7e308, -1065));
+    const double jv = xsf::cyl_bessel_j(0.5, 1e16);
+    const C ive_im = xsf::cyl_bessel_ie(1e10, C(0, 1e20));
+
+    SET_FP_FORMAT()
+    CAPTURE(ive, kve, h1, jv, ive_im);
+    const double rtol = 5e-15;
+    CHECK(xsf::extended_relative_error(ive, 3.989422804014327e-09) <= rtol);
+    CHECK(xsf::extended_relative_error(kve, 1.2533141373155002e-08) <= rtol);
+    CHECK(xsf::extended_relative_error(h1, C(-1.2163055021050201e+308, -1.6418905257963063e+308)) <= rtol);
+    CHECK(xsf::extended_relative_error(jv, 6.221010227148709e-09) <= rtol);
+    CHECK(xsf::extended_relative_error(ive_im, C(4.3995655850455926e-11)) <= rtol);
+}

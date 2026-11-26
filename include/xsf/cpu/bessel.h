@@ -70,6 +70,86 @@ namespace detail {
         return i + s * k;
     }
 
+    // AMOS gives up (ierr = 4) for |z| > 0.5 / tol, where Hankel's expansions reach tolerance if v^2 <= |z|
+    inline bool use_hankel_asy(double v, std::complex<double> z) {
+        double az = std::abs(z / 4.0); // |z| / 4, which does not overflow
+        return std::isfinite(z.real()) && std::isfinite(z.imag()) &&
+               az > 0.125 / std::numeric_limits<double>::epsilon() && std::fma(v / 2, v / 2, -az) <= 0;
+    }
+
+    // sum_k a_k(v) w^k, DLMF 10.17.1
+    inline std::complex<double> hankel_asy_sum(double v, std::complex<double> w) {
+        std::complex<double> t = 1, s = 1;
+        for (int k = 1; std::abs(t) > std::numeric_limits<double>::epsilon() * std::abs(s); ++k) {
+            t *= (2 * v - (2 * k - 1)) / (8.0 * k) * (2 * v + (2 * k - 1)) * w;
+            s += t;
+        }
+        return s;
+    }
+
+    // principal sqrt(z) that keeps exact zeros (libc++ std::sqrt goes through polar form and does not)
+    inline std::complex<double> principal_sqrt(std::complex<double> z) {
+        double x = z.real(), y = z.imag(), t = 2 * std::sqrt(std::hypot(x / 8, y / 8) + std::abs(x) / 8);
+        return (x >= 0) ? std::complex<double>(t, y / (2 * t))
+                        : std::complex<double>(std::abs(y) / (2 * t), std::copysign(t, y));
+    }
+
+    // H1(z) exp(-iz) (s = 1) or H2(z) exp(iz) (s = -1) for Re(z) >= 0 or s Im(z) > 0, DLMF 10.17.5-6
+    inline std::complex<double> hankel_asy_e_right(double s, double v, std::complex<double> z) {
+        // sqrt(z) exp(s pi i / 4) as sqrt(s i z), which keeps small components
+        std::complex<double> q = principal_sqrt(std::complex<double>(-s * z.imag(), s * z.real()));
+        q = (z.real() < 0) ? -q : q;
+        return rotate(std::sqrt(M_2_PI) / q * hankel_asy_sum(v, std::complex<double>(0, s) / z), -s * v / 2);
+    }
+
+    // H1(z) exp(-iz) (s = 1) or H2(z) exp(iz) (s = -1)
+    inline std::complex<double> cyl_hankel_asy_e(double s, double v, std::complex<double> z) {
+        z = {z.real() + 0.0, z.imag() + 0.0}; // -0 as +0, as in AMOS
+        if (z.real() >= 0 || (z.imag() >= 0) == (s > 0)) {
+            return hankel_asy_e_right(s, v, z);
+        }
+        // DLMF 10.11.7-8: H1(z) = 2 cos(v pi) H1(-z) + exp(-v pi i) H2(-z) for Im(z) < 0, and H2 likewise
+        std::complex<double> e = std::exp(std::complex<double>(s * z.imag(), -s * z.real())); // exp(-+iz), |e| < 1
+        return 2 * cospi(v) * hankel_asy_e_right(s, v, -z) * e * e + rotate(hankel_asy_e_right(-s, v, -z), -s * v);
+    }
+
+    // J (s = 1) or Y (s = -1) times exp(-|Im(z)|), DLMF 10.4.4-5
+    inline std::complex<double> cyl_bessel_jy_asy_e(double s, double v, std::complex<double> z) {
+        double x = z.real(), y = z.imag();
+        std::complex<double> h1 = cyl_hankel_asy_e(1, v, z) * std::exp(std::complex<double>(-y - std::abs(y), x));
+        std::complex<double> h2 = cyl_hankel_asy_e(-1, v, z) * std::exp(std::complex<double>(y - std::abs(y), -x));
+        return (s > 0) ? (h1 + h2) / 2.0 : (h1 - h2) * std::complex<double>(0, -0.5);
+    }
+
+    // I(z) exp(-|Re(z)|), DLMF 10.40.5 with the upper sign for Im(z) >= 0
+    inline std::complex<double> cyl_bessel_i_asy_e(double v, std::complex<double> z) {
+        double x = z.real(), y = z.imag() + 0.0, s = (y >= 0) ? 1 : -1;
+        std::complex<double> a = hankel_asy_sum(v, -1.0 / z) * std::exp(std::complex<double>(x - std::abs(x), y));
+        std::complex<double> b = hankel_asy_sum(v, 1.0 / z) * std::exp(std::complex<double>(-x - std::abs(x), -y));
+        return (a + rotate(std::complex<double>(0, s) * b, s * v)) / std::sqrt(2 * M_PI) /
+               principal_sqrt(std::complex(x, y));
+    }
+
+    // K(z) exp(z), DLMF 10.40.2
+    inline std::complex<double> cyl_bessel_k_asy_e(double v, std::complex<double> z) {
+        return std::sqrt(M_PI_2) / principal_sqrt(std::complex(z.real(), z.imag() + 0.0)) * hankel_asy_sum(v, 1.0 / z);
+    }
+
+    // r exp(a + ib) for |r| < exp(-16), with exp(a) = exp(h)^2 exp(a - 2h) split as in sinpi so that only overflowing
+    // components become inf (0 * inf stays 0); the first exp(h) is applied before the rotation to keep small components
+    inline std::complex<double> mul_exp(const char *name, std::complex<double> r, double a, double b) {
+        const double h_max = std::log(std::numeric_limits<double>::max()) - 20;
+        // a - 2h is exact, except when a > 3 h_max, where every nonzero component overflows
+        double h = std::fmin(a / ((a > 2 * h_max) ? 3 : 2), h_max);
+        r *= std::exp(h) * std::complex<double>(std::cos(b), std::sin(b));
+        double e = std::exp(h), e2 = std::exp(a - 2 * h);
+        r = {r.real() == 0 ? 0.0 : r.real() * e * e2, r.imag() == 0 ? 0.0 : r.imag() * e * e2};
+        if (std::isinf(r.real()) || std::isinf(r.imag())) {
+            set_error(name, SF_ERROR_OVERFLOW, nullptr);
+        }
+        return r;
+    }
+
     template <typename T>
     void itika(T x, T *ti, T *tk) {
 
@@ -645,6 +725,9 @@ inline std::complex<double> cyl_bessel_je(double v, std::complex<double> z) {
     if (std::isnan(v) || std::isnan(z.real()) || std::isnan(z.imag())) {
         return cy_j;
     }
+    if (detail::use_hankel_asy(v, z)) {
+        return detail::cyl_bessel_jy_asy_e(1, v, z);
+    }
     if (v < 0) {
         v = -v;
         sign = -1;
@@ -702,6 +785,9 @@ inline std::complex<double> cyl_bessel_ye(double v, std::complex<double> z) {
     if (std::isnan(v) || std::isnan(z.real()) || std::isnan(z.imag())) {
         return cy_y;
     }
+    if (detail::use_hankel_asy(v, z)) {
+        return detail::cyl_bessel_jy_asy_e(-1, v, z);
+    }
     if (v < 0) {
         v = -v;
         sign = -1;
@@ -756,6 +842,9 @@ inline std::complex<double> cyl_bessel_ie(double v, std::complex<double> z) {
     if (std::isnan(v) || std::isnan(z.real()) || std::isnan(z.imag())) {
         return cy;
     }
+    if (detail::use_hankel_asy(v, z)) {
+        return detail::cyl_bessel_i_asy_e(v, z);
+    }
     if (v < 0) {
         v = -v;
         sign = -1;
@@ -800,6 +889,9 @@ inline std::complex<double> cyl_bessel_ke(double v, std::complex<double> z) {
     std::complex<double> cy{NAN, NAN};
     if (std::isnan(v) || std::isnan(std::real(z)) || std::isnan(std::imag(z))) {
         return cy;
+    }
+    if (detail::use_hankel_asy(v, z)) {
+        return detail::cyl_bessel_k_asy_e(v, z);
     }
 
     if (v < 0) {
@@ -879,6 +971,9 @@ inline std::complex<double> cyl_hankel_1e(double v, std::complex<double> z) {
     if (std::isnan(v) || std::isnan(z.real()) || std::isnan(z.imag())) {
         return cy;
     }
+    if (detail::use_hankel_asy(v, z)) {
+        return detail::cyl_hankel_asy_e(1, v, z);
+    }
     if (v < 0) {
         v = -v;
         sign = -1;
@@ -907,6 +1002,9 @@ inline std::complex<double> cyl_hankel_2e(double v, std::complex<double> z) {
     std::complex<double> cy{NAN, NAN};
     if (std::isnan(v) || std::isnan(z.real()) || std::isnan(z.imag())) {
         return cy;
+    }
+    if (detail::use_hankel_asy(v, z)) {
+        return detail::cyl_hankel_asy_e(-1, v, z);
     }
 
     if (v < 0) {
@@ -949,6 +1047,9 @@ inline std::complex<double> cyl_bessel_j(double v, std::complex<double> z) {
 
     if (std::isnan(v) || std::isnan(z.real()) || std::isnan(z.imag())) {
         return cy_j;
+    }
+    if (detail::use_hankel_asy(v, z)) {
+        return detail::mul_exp("jv", detail::cyl_bessel_jy_asy_e(1, v, z), std::abs(z.imag()), 0);
     }
     if (v < 0) {
         v = -v;
@@ -1013,6 +1114,9 @@ inline std::complex<double> cyl_bessel_y(double v, std::complex<double> z) {
 
     if (std::isnan(v) || std::isnan(z.real()) || std::isnan(z.imag())) {
         return cy_y;
+    }
+    if (detail::use_hankel_asy(v, z)) {
+        return detail::mul_exp("yv", detail::cyl_bessel_jy_asy_e(-1, v, z), std::abs(z.imag()), 0);
     }
     if (v < 0) {
         v = -v;
@@ -1101,6 +1205,9 @@ inline std::complex<double> cyl_bessel_i(double v, std::complex<double> z) {
     if (std::isnan(v) || std::isnan(z.real()) || std::isnan(z.imag())) {
         return cy;
     }
+    if (detail::use_hankel_asy(v, z)) {
+        return detail::mul_exp("iv", detail::cyl_bessel_i_asy_e(v, z), std::abs(z.real()), 0);
+    }
     if (v < 0) {
         v = -v;
         sign = -1;
@@ -1141,6 +1248,9 @@ inline std::complex<double> cyl_bessel_k(double v, std::complex<double> z) {
     std::complex<double> cy(NAN, NAN);
     if (std::isnan(v) || std::isnan(std::real(z)) || isnan(std::imag(z))) {
         return cy;
+    }
+    if (detail::use_hankel_asy(v, z)) {
+        return detail::mul_exp("kv", detail::cyl_bessel_k_asy_e(v, z), -z.real(), -z.imag());
     }
 
     if (v < 0) {
@@ -1252,6 +1362,9 @@ inline std::complex<double> cyl_hankel_1(double v, std::complex<double> z) {
     if (std::isnan(v) || std::isnan(z.real()) || std::isnan(z.imag())) {
         return cy;
     }
+    if (detail::use_hankel_asy(v, z)) {
+        return detail::mul_exp("hankel1", detail::cyl_hankel_asy_e(1, v, z), -z.imag(), z.real());
+    }
     if (v < 0) {
         v = -v;
         sign = -1;
@@ -1281,6 +1394,9 @@ inline std::complex<double> cyl_hankel_2(double v, std::complex<double> z) {
 
     if (std::isnan(v) || std::isnan(z.real()) || std::isnan(z.imag())) {
         return cy;
+    }
+    if (detail::use_hankel_asy(v, z)) {
+        return detail::mul_exp("hankel2", detail::cyl_hankel_asy_e(-1, v, z), z.imag(), -z.real());
     }
     if (v == 0 && z == 0.0) {
         cy.real(NAN);
