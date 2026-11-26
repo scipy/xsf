@@ -24,7 +24,7 @@ requires-pixi = ">=0.77.1"  # this fixes caching of the xsf packages
 preview = ["pixi-build"]
 
 [workspace.target.win.build-variants]
-cxx_compiler = ["vs2022"]
+cxx_compiler = ["vs2026"]
 
 [package]
 name = { workspace = true }
