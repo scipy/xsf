@@ -1318,7 +1318,17 @@ namespace detail {
             }
             sum = mu * f + (c1 + k) / (c0 + k + 1.0) * sum;
         }
-        return sum * (cephes::jv(nu + 1.0, b) * f + cephes::jv(nu + 2.0, b) * g) / (f * f + g * g) / b / c0;
+        // For noninteger 2b < order < 500 and b >= 3.6 sqrt(order), cephes::jv recurs down from a power series at
+        // order + b, which loses digits and underflows early. Use AMOS there, unless it flushes J to 0 or fails.
+        const double order = nu + 1.0;
+        bool use_amos = nu != std::floor(nu) && order + 1.0 > 2.0 * b && order < 500.0 && b >= 3.6 * std::sqrt(order);
+        std::complex<double> j[2];
+        int ierr;
+        if (!use_amos || amos::besj(b, order, 1, 2, j, &ierr) > 0 || ierr != 0) {
+            j[0] = cephes::jv(order, b);
+            j[1] = cephes::jv(order + 1.0, b);
+        }
+        return sum * (j[0].real() * f + j[1].real() * g) / (f * f + g * g) / b / c0;
     }
 
 } // namespace detail
