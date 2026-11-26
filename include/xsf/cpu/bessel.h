@@ -158,6 +158,46 @@ namespace detail {
         return;
     }
 
+    // Integrals of J0(t) and Y0(t) from 0 to x (tj, ty), of (1 - J0(t))/t from 0 to x (ttj), and of Y0(t)/t
+    // from x to infinity (tty), for 0.5 <= x < 40. This integrates
+    //   Y0(t) = 2/pi (log(t/2) + gamma) J0(t) - 4/pi sum_k (-1)^k J_{2k}(t) / k (DLMF 10.23.16)
+    // term by term (the log term by parts), with
+    //   int_0^x J_n(t) dt = 2 sum_{k >= 0} J_{n+2k+1}(x) (DLMF 10.22.8),
+    //   int_0^x J_n(t) / t dt = (2 sum_{k >= 0} J_{n+2k}(x) - J_n(x)) / n (from DLMF 10.6.1),
+    // and J_n(x) from Miller's backward recurrence normalized by DLMF 10.12.4.
+    inline void itjya_neumann(double x, double *tj, double *ty, double *ttj, double *tty) {
+        const double pi = 3.141592653589793;
+        const double el = 0.5772156649015329;
+        double jp = 0.0, j = 1.0, jn;    // J_{n+1}(x) and J_n(x), unnormalized
+        double so = 0.0, se = 0.0;       // sums of J_k(x) over odd and even k >= n
+        double wo = 0.0, we = 0.0, w;    // sums of int_0^x J_k(t)/t dt over odd and even k >= n
+        double ww = 0.0;                 // sum of int_0^x (int_0^t J_k(s)/s ds)/t dt over even k >= n
+        double ao = 0.0, aw = 0.0;       // alternating sums for the series of Y0
+        int n = 2 * (int)(0.5 * x) + 51; // J_n(x) < 1e-22
+        for (; n >= 1; n--) {
+            if (n % 2 == 1) {
+                so += j;
+                wo += (2.0 * so - j) / n;
+            } else {
+                se += j;
+                w = (2.0 * se - j) / n;
+                we += w;
+                ww += (2.0 * we - w) / n;
+                ao = so / n - ao;
+                aw = w / n - aw;
+            }
+            jn = 2.0 * n / x * j - jp;
+            jp = j;
+            j = jn;
+        }
+        const double norm = j + 2.0 * se; // J_0(x) + 2 J_2(x) + 2 J_4(x) + ... = 1
+        const double l = log(0.5 * x) + el;
+        *tj = 2.0 * so / norm;
+        *ty = 2.0 / pi * (l * *tj - 2.0 * (wo - 4.0 * ao) / norm);
+        *ttj = 2.0 * we / norm;
+        *tty = pi / 6.0 + 2.0 / pi * (l * (*ttj - 0.5 * l) - 2.0 * (ww + 2.0 * aw) / norm);
+    }
+
     template <typename T>
     void itjya(T x, T *tj, T *ty) {
         int k;
@@ -169,6 +209,11 @@ namespace detail {
         if (x == 0.0) {
             *tj = 0.0;
             *ty = 0.0;
+        } else if (x >= 0.5 && x < 40.0) {
+            double tj0, ty0, ttj0, tty0;
+            itjya_neumann(x, &tj0, &ty0, &ttj0, &tty0);
+            *tj = tj0;
+            *ty = ty0;
         } else if (x <= 20.0) {
             x2 = x * x;
             *tj = x;
@@ -325,6 +370,11 @@ namespace detail {
         if (x == 0.0) {
             *ttj = 0.0;
             *tty = -1.0e+300;
+        } else if (x >= 0.5 && x < 34.0) {
+            double tj0, ty0, ttj0, tty0;
+            itjya_neumann(x, &tj0, &ty0, &ttj0, &tty0);
+            *ttj = ttj0;
+            *tty = tty0;
         } else if (x <= 20.0) {
             *ttj = 1.0;
             r = 1.0;
