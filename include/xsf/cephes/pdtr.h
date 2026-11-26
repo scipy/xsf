@@ -119,7 +119,7 @@
  * ERROR MESSAGES:
  *
  *   message         condition      value returned
- * pdtri domain    y < 0 or y >= 1       0.0
+ * pdtri domain    y < 0 or y > 1        NaN
  *                     k < 0
  *
  */
@@ -170,11 +170,11 @@ namespace cephes {
     XSF_HOST_DEVICE inline double pdtri(int k, double y) {
         double v;
 
-        if ((k < 0) || (y < 0.0) || (y >= 1.0)) {
+        if ((k < 0) || (y < 0.0) || (y > 1.0)) {
             set_error("pdtri", SF_ERROR_DOMAIN, NULL);
             return (cxx::numeric_limits<double>::quiet_NaN());
         }
-        v = k + 1;
+        v = k + 1.0;
         v = igamci(v, y);
         return (v);
     }
