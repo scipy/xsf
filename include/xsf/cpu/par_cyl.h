@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../error.h"
+#include "../loggamma.h"
+#include "../trig.h"
 #include "specfun/specfun.h"
 
 namespace xsf {
@@ -689,6 +691,14 @@ void pbvv(T v, T x, T &pvf, T &pvd) {
     if (isnan(v) || isnan(x)) {
         pvf = std::numeric_limits<T>::quiet_NaN();
         pvd = std::numeric_limits<T>::quiet_NaN();
+    } else if (x < 0 && cospi(v) == 0 && std::abs(v) < 170) {
+        // DLMF 12.2.16; V_v(x) is recessive here. Use double, as float pbdv can return NaN.
+        // 1 / Gamma(v + 1) over/underflows for |v| >= 170
+        double dv = v, d, dp;
+        double s = sinpi(dv) * rgamma(dv + 1);
+        pbdv(dv, -static_cast<double>(x), d, dp);
+        pvf = static_cast<T>(-s * d);
+        pvd = static_cast<T>(s * dp);
     } else {
         /* NB. Indexing of VV/VP in specfun.f:PBVV starts from 0 and |v| + 1 can round up, hence +3 */
         num = std::abs((int)v) + 3;
