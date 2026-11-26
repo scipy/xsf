@@ -44,7 +44,7 @@ namespace detail {
     template <typename Int>
     XSF_HOST_DEVICE inline double eval_jacobi_l(Int n, double alpha, double beta, double x) {
         Int kk;
-        double p, d;
+        double p, d, c;
         double k, t;
 
         if (n < 0) {
@@ -58,14 +58,19 @@ namespace detail {
         } else {
             d = (alpha + beta + 2.0) * (x - 1.0) / (2.0 * (alpha + 1.0));
             p = d + 1.0;
+            c = alpha + 1.0; // binom(n + alpha, n) = prod_{k=1}^n (1 + alpha / k), without rounding n + alpha
             for (kk = 0; kk < n - 1; kk++) {
                 k = kk + 1.0;
+                c += alpha / (k + 1.0) * c;
                 t = 2.0 * k + alpha + beta;
                 d = ((t * (t + 1.0) * (t + 2.0)) * (x - 1.0) * p + 2.0 * k * (k + beta) * (t + 2.0) * d) /
                     (2.0 * (k + alpha + 1.0) * (k + alpha + beta + 1.0) * t);
                 p = d + p;
             }
-            return binom(n + alpha, n) * p;
+            // keep binom when n + alpha rounds to n + m for an integer 0 <= m < 20: it then multiplies at most
+            // m terms, while the product accumulates n roundings
+            const double m = (n + alpha) - n;
+            return (alpha > -1 && !(m == cxx::floor(m) && m >= 0 && m < 20) ? c : binom(n + alpha, n)) * p;
         }
     }
 
