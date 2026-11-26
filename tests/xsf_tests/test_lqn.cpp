@@ -152,3 +152,20 @@ TEST_CASE("lqn |x| just above 1.021", "[lqn][real][xsf_tests]") {
     CAPTURE(x, n, k, q[k], desired, error, rtol);
     REQUIRE(error <= rtol);
 }
+
+TEST_CASE("lqn complex z with Re z = 1", "[lqn][complex][xsf_tests]") {
+    // Regression test: lqn returned the 1e300 pole sentinel on the whole line Re z = 1,
+    // and without it, the backward recurrence started at km = 0 for z = 1 + 0.4j.
+    // Q_0'(z) = 1 / (1 - z^2) = 0.2403846153846154 + 1.2019230769230769j
+    SET_FP_FORMAT()
+    const std::complex<double> z(1, 0.4);
+    std::vector<std::complex<double>> q(2), d(2);
+    xsf::lqn(z, xsf::cxx::mdspan(q.data(), q.size()), xsf::cxx::mdspan(d.data(), d.size()));
+
+    const double rtol = 1e-15;
+    const double error_re = xsf::extended_relative_error(d[0].real(), 0.2403846153846154);
+    const double error_im = xsf::extended_relative_error(d[0].imag(), 1.2019230769230769);
+    CAPTURE(d[0], error_re, error_im, rtol);
+    REQUIRE(error_re <= rtol);
+    REQUIRE(error_im <= rtol);
+}
