@@ -224,8 +224,19 @@ namespace detail {
         return d * hyp2f1(a, b, c, g);
     }
 
+    template <typename Int>
+    XSF_HOST_DEVICE inline double eval_legendre_l(Int n, double x);
+
     template <typename T>
     XSF_HOST_DEVICE inline T eval_legendre(double n, T x) {
+        // The 2F1 series cancels near the origin for odd degree (P_{-n-1} = P_n): use the integer-degree path.
+        // Above degree 300, the power series in eval_legendre_l loses digits too.
+        if constexpr (cxx::is_same_v<T, double>) {
+            const double m = n < 0 ? -n - 1.0 : n;
+            if (cxx::abs(x) < 1e-5 && m <= 300 && cxx::fmod(m, 2.0) == 1.0) {
+                return eval_legendre_l(static_cast<long long>(n), x);
+            }
+        }
         if constexpr (cxx::is_same_v<T, double>) {
             if (cxx::isnan(x)) {
                 return x;
@@ -289,8 +300,18 @@ namespace detail {
 
     // Chebyshev 1st kind (T)
 
+    template <typename Int>
+    XSF_HOST_DEVICE inline double eval_chebyt_l(Int k, double x);
+
     template <typename T>
     XSF_HOST_DEVICE inline T eval_chebyt(double n, T x) {
+        // The 2F1 series cancels near the origin for odd n: use the integer-degree path.
+        // The bound on n only limits the length of the recurrence.
+        if constexpr (cxx::is_same_v<T, double>) {
+            if (cxx::abs(x) < 1e-5 && cxx::abs(n) <= 1e3 && cxx::abs(cxx::fmod(n, 2.0)) == 1.0) {
+                return eval_chebyt_l(static_cast<long long>(n), x);
+            }
+        }
         return hyp2f1(-n, n, 0.5, 0.5 * (1.0 - x));
     }
 
@@ -320,8 +341,18 @@ namespace detail {
 
     // Chebyshev 2nd kind (U)
 
+    template <typename Int>
+    XSF_HOST_DEVICE inline double eval_chebyu_l(Int k, double x);
+
     template <typename T>
     XSF_HOST_DEVICE inline T eval_chebyu(double n, T x) {
+        // The 2F1 series cancels near the origin for odd n: use the integer-degree path.
+        // The bound on n only limits the length of the recurrence.
+        if constexpr (cxx::is_same_v<T, double>) {
+            if (cxx::abs(x) < 1e-5 && cxx::abs(n) <= 1e3 && cxx::abs(cxx::fmod(n, 2.0)) == 1.0) {
+                return eval_chebyu_l(static_cast<long long>(n), x);
+            }
+        }
         return (n + 1.0) * hyp2f1(-n, n + 2.0, 1.5, 0.5 * (1.0 - x));
     }
 
