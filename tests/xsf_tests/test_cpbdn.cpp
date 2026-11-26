@@ -38,3 +38,34 @@ TEST_CASE("specfun::cpbdn n < 0 complex z gh-537", "[cpbdn][xsf_tests]") {
     REQUIRE(error <= rtol);
     REQUIRE(error_d <= rtol);
 }
+
+TEST_CASE("specfun::cpbdn n < 0 gh-550", "[cpbdn][xsf_tests]") {
+    // Regression test for gh-550 (https://github.com/scipy/xsf/issues/550): for n < 0 and Re(z) >= 0,
+    // D_n(z) was NaN or 0 for large |n| (overflow), and inaccurate for |z| <= 3 and near the imaginary
+    // axis.
+
+    /*
+    import mpmath as mp
+
+    mp.mp.dps = 50
+    for n, z in [(-150, 20), (-172, 0.001 - 0.002j), (-40, 3), (-40, 0.01 + 12.65j)]:
+        d = mp.pcfd(n, mp.mpc(z))
+        print(n, z, repr(float(d.real)), repr(float(d.imag)))
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<int, std::complex<double>, std::complex<double>>;
+    auto [n, z, desired] = GENERATE(
+        test_case{-150, {20.0, 0.0}, {1.2256275451819904e-248, 0.0}},
+        test_case{-172, {0.001, -0.002}, {8.664390106819175e-156, 2.269866563903925e-157}},
+        test_case{-40, {3.0, 0.0}, {1.6717781937956462e-32, 0.0}},
+        test_case{-40, {0.01, 12.65}, {6.917972259062923e-24, 3.15354954293944e-24}}
+    );
+
+    std::vector<std::complex<double>> cpb(2 - n), cpd(2 - n);
+    xsf::specfun::cpbdn(n, z, cpb.data(), cpd.data());
+
+    const double error = xsf::extended_relative_error(cpb[-n], desired);
+    const double rtol = 1e-13;
+    CAPTURE(n, z, cpb[-n], desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
