@@ -546,6 +546,19 @@ XSF_HOST_DEVICE inline auto round(T x) {
 }
 
 template <typename T, typename = detail::valid_float_t<T>>
+XSF_HOST_DEVICE inline auto nearbyint(T x) {
+#if defined(XSF_TARGET_CUDA)
+#if defined(__CUDACC_RTC__)
+    return ::nearbyint(x);
+#else
+    return cuda::std::nearbyint(x);
+#endif
+#else
+    return std::nearbyint(x);
+#endif
+}
+
+template <typename T, typename = detail::valid_float_t<T>>
 XSF_HOST_DEVICE inline auto trunc(T x) {
 #if defined(XSF_TARGET_CUDA)
 #if defined(__CUDACC_RTC__)
