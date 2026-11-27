@@ -951,7 +951,7 @@ void lqmn(T x, OutputMat1 qm, OutputMat2 qd) {
         if (fabs(x) > 1.1) {
             km = 40 + m + n;
         } else {
-            km = (40 + m + n) * ((int)(-1. - 1.8 * log(x - 1.)));
+            km = (40 + m + n) * ((int)(-1. - 1.8 * log(fabs(x) - 1.)));
         }
         // rescale by a power of 2, since the recurrences grow like (2 x)^k and overflow for large |x|
         const double big = 0x1p512, small = 0x1p-512;
