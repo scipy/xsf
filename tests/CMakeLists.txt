@@ -24,6 +24,8 @@ set(CMAKE_CXX_STANDARD 17)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   # Enable the conforming lambda processor, which is not the default in C++17.
   add_compile_options(/Zc:lambda)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  add_compile_options(-Werror=aggressive-loop-optimizations)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
