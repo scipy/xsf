@@ -46,6 +46,53 @@ TEST_CASE("hyp2f1(nan, nan, nan, complex('nan')) / gh-94", "[hyp2f1][xsf_tests]"
     REQUIRE(std::isnan(result.imag()));
 }
 
+TEST_CASE("hyp2f1(a, b, c, x) very negative c - a - b, real path / gh-371", "[hyp2f1][xsf_tests]") {
+    /*
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for a, b, c, x in [(1, 200.5, 101, 0.5), (1, 201, 101, 0.5), (1, 100.25, 51, 0.875)]:
+        print(float(mpmath.hyp2f1(a, b, c, x)))
+    */
+    SET_FP_FORMAT()
+    using test_case = std::tuple<double, double, double, double, double>;
+    auto [a, b, c, x, desired] = GENERATE(
+        test_case{1, 200.5, 101, 0.5, 18.236244010510156}, test_case{1, 201, 101, 0.5, 18.746707942830703},
+        test_case{1, 100.25, 51, 0.875, 3.172339232831432e+19}
+    );
+
+    const double out = xsf::hyp2f1(a, b, c, x);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 1e-13;
+    CAPTURE(a, b, c, x, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
+
+TEST_CASE("hyp2f1(a, b, c, z) very negative c - a - b, complex path / gh-371", "[hyp2f1][xsf_tests]") {
+    /*
+    import mpmath
+
+    mpmath.mp.dps = 50
+
+    for a, b, c, z in [(1, 200, 101, 0.5), (1, 150, 51, 0.8)]:
+        print(complex(mpmath.hyp2f1(a, b, c, z)))
+    */
+    SET_FP_FORMAT()
+    using cd = std::complex<double>;
+    using test_case = std::tuple<double, double, double, cd, cd>;
+    auto [a, b, c, z, desired] = GENERATE(
+        test_case{1, 200, 101, {0.5, 0}, {17.746707942830703, 0}},
+        test_case{1, 150, 51, {0.8, 0}, {4.1188640665521755e+34, 0}}
+    );
+
+    const cd out = xsf::hyp2f1(a, b, c, z);
+    const double error = xsf::extended_relative_error(out, desired);
+    const double rtol = 1e-13;
+    CAPTURE(a, b, c, z, out, desired, error, rtol);
+    REQUIRE(error <= rtol);
+}
+
 TEST_CASE("hyp1f1(nan, nan, complex('nan')) / gh-94", "[hyp1f1][xsf_tests]") {
     double a = std::numeric_limits<double>::quiet_NaN();
     std::complex<double> z = {std::numeric_limits<double>::quiet_NaN(), 0.0};
