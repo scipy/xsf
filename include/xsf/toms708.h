@@ -1,0 +1,1689 @@
+/*
+ *
+ * This file is a C++ rewrite of the Fortran code with the
+ * following as its original description:
+ *
+ * Cumulative distribution functions, inverses and parameters for
+ * Beta, Binomial, Chi-square, noncentral Chi-square, F, noncentral F, Gamma,
+ * negative Binomial, Normal, Poisson, Student's t distributions.
+ * It uses various TOMS algorithms and Abramowitz & Stegun, also Bus Dekker
+ * zero-finding algorithm.
+ *
+ * The original Fortran code can be found at Netlib
+ * https://www.netlib.org/random/
+ *
+ *
+ * References
+ * ----------
+ *
+ *  J. C. P. Bus, T. J. Dekker, Two Efficient Algorithms with Guaranteed
+ *  Convergence for Finding a Zero of a Function, ACM Trans. Math. Software 1:4
+ *  (1975) 330-345, DOI:10.1145/355656.355659
+ *
+ *  M. Abramowitz and I. A. Stegun (Eds.) (1964) Handbook of Mathematical
+ *  Functions with Formulas, Graphs, and Mathematical Tables. National Bureau
+ *  of Standards Applied Mathematics Series, U.S. Government Printing Office,
+ *  Washington, D.C..
+ *
+ */
+
+/*
+ *
+ * Copyright (C) 2024 SciPy developers
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * a. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * b. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * c. Names of the SciPy Developers may not be used to endorse or promote
+ *    products derived from this software without specific prior written
+ *    permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+ * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
+
+#pragma once
+
+#include "config.h"
+
+namespace xsf::toms708 {
+
+struct TupleDD {
+    double d1;
+    double d2;
+};
+
+struct TupleDI {
+    double d1;
+    int i1;
+};
+
+struct TupleDDI {
+    double d1;
+    double d2;
+    int i1;
+};
+
+static const double PI = 3.1415926535897932384626433832795028841971693993751;
+
+static const double spmpar[3] = {
+    2.220446049250313e-16,   /* np.finfo(np.float64).eps    */
+    2.2250738585072014e-308, /* np.finfo(np.float64).tiny   */
+    1.7976931348623157e+308, /* np.finfo(np.float64).max    */
+};
+
+XSF_HOST_DEVICE inline double algdiv(double, double);
+XSF_HOST_DEVICE inline double alnrel(double);
+XSF_HOST_DEVICE inline double apser(double, double, double, double);
+XSF_HOST_DEVICE inline double basym(double, double, double, double);
+XSF_HOST_DEVICE inline double bcorr(double, double);
+XSF_HOST_DEVICE inline double betaln(double, double);
+XSF_HOST_DEVICE inline double bfrac(double, double, double, double, double, double);
+XSF_HOST_DEVICE inline struct TupleDI bgrat(double, double, double, double, double, double);
+XSF_HOST_DEVICE inline double bpser(double, double, double, double);
+XSF_HOST_DEVICE inline struct TupleDDI bratio(double, double, double, double);
+XSF_HOST_DEVICE inline double brcmp1(int, double, double, double, double);
+XSF_HOST_DEVICE inline double brcomp(double, double, double, double);
+XSF_HOST_DEVICE inline double bup(double, double, double, double, int, double);
+XSF_HOST_DEVICE inline double cdflib_erf(double);
+XSF_HOST_DEVICE inline double erfc1(int, double);
+XSF_HOST_DEVICE inline double esum(int, double);
+XSF_HOST_DEVICE inline double esum_pow(int, double, double, double);
+XSF_HOST_DEVICE inline double fpser(double, double, double, double);
+XSF_HOST_DEVICE inline double gam1(double);
+XSF_HOST_DEVICE inline double gamln(double);
+XSF_HOST_DEVICE inline double gamln1(double);
+XSF_HOST_DEVICE inline struct TupleDD grat1(double, double, double, double);
+XSF_HOST_DEVICE inline double gsumln(double, double);
+XSF_HOST_DEVICE inline double psi(double);
+XSF_HOST_DEVICE inline double rexp(double);
+XSF_HOST_DEVICE inline double rlog1(double);
+
+constexpr double stirling_coeffs[6] = {0.833333333333333e-01,  -0.277777777760991e-02, 0.793650666825390e-03,
+                                       -0.595202931351870e-03, 0.837308034031215e-03,  -0.165322962780713e-02};
+
+XSF_HOST_DEVICE inline double algdiv(double a, double b) {
+    //         Computation of ln(gamma(b)/gamma(a+b)) when b >= 8
+    //
+    //                             --------
+    //
+    //         In this algorithm, del(x) is the function defined by
+    //         Ln(gamma(x)) = (x - 0.5)*ln(x) - x + 0.5*ln(2*pi) + del(x).
+    //
+
+    double c, d, h, s11, s3, s5, s7, s9, t, u, v, w, x, x2;
+
+    if (a > b) {
+        h = b / a;
+        c = 1. / (1. + h);
+        x = h / (1. + h);
+        d = a + (b - 0.5);
+    } else {
+        h = a / b;
+        c = h / (1. + h);
+        x = 1. / (1. + h);
+        d = b + (a - 0.5);
+    }
+    // Set sn = (1 - x**n)/(1 - x)
+    x2 = x * x;
+    s3 = 1. + (x + x2);
+    s5 = 1. + (x + x2 * s3);
+    s7 = 1. + (x + x2 * s5);
+    s9 = 1. + (x + x2 * s7);
+    s11 = 1. + (x + x2 * s9);
+
+    // Set w = del(b) - del(a + b)
+    t = cxx::pow((1. / b), 2);
+    w = (((((stirling_coeffs[5] * s11) * t + stirling_coeffs[4] * s9) * t + stirling_coeffs[3] * s7) * t +
+          stirling_coeffs[2] * s5) *
+             t +
+         stirling_coeffs[1] * s3) *
+            t +
+        stirling_coeffs[0];
+    w *= c / b;
+    // Combine the results
+    u = d * alnrel(a / b);
+    v = a * (cxx::log(b) - 1.);
+    return (u > v ? (w - v) - u : (w - u) - v);
+}
+
+XSF_HOST_DEVICE inline double alnrel(double a) {
+    //    Evaluation of the function ln(1 + a)
+
+    double p[3] = {-0.129418923021993e+01, 0.405303492862024e+00, -0.178874546012214e-01};
+    double q[3] = {-0.162752256355323e+01, 0.747811014037616e+00, -0.845104217945565e-01};
+    double t, t2, w;
+
+    if (cxx::fabs(a) > 0.375) {
+        return cxx::log(1. + a);
+    } else {
+        t = a / (a + 2.);
+        t2 = t * t;
+        w = ((p[2] * t2 + p[1]) * t2 + p[0]) * t2 + 1.;
+        w /= ((q[2] * t2 + q[1]) * t2 + q[0]) * t2 + 1.;
+        return 2 * t * w;
+    }
+}
+
+XSF_HOST_DEVICE inline double apser(double a, double b, double x, double eps) {
+    //    Apser yields the incomplete beta ratio I_(1-x))(b,a) for
+    //    a <= Min(eps,eps*b), b*x <= 1, And x <= 0.5. Used when
+    //    a is very small. Use only if above inequalities are satisfied.
+
+    double aj, bx, c, j, s, t, tol;
+    double g = 0.577215664901532860606512090082;
+
+    bx = b * x;
+    t = x - bx;
+    if (b * eps > 0.02) {
+        c = cxx::log(bx) + g + t;
+    } else {
+        c = cxx::log(x) + psi(b) + g + t;
+    }
+
+    tol = 5. * eps * cxx::fabs(c);
+    j = 1.0;
+    s = 0.0;
+
+    while (1) {
+        j += 1;
+        t *= (x - bx / j);
+        aj = t / j;
+        s += aj;
+        if (cxx::fabs(aj) <= tol) {
+            break;
+        }
+    }
+    return -a * (c + s);
+}
+
+XSF_HOST_DEVICE inline double basym(double a, double b, double lmbda, double eps) {
+    //    Asymptotic expansion for ix(a,b) for large a and b.
+    //    Lambda = (a + b)*y - b  and eps is the tolerance used.
+    //    It is assumed that lambda is nonnegative and that
+    //    a and b are greater than or equal to 15.
+
+    double a0[13] = {0.0};
+    double b0[13] = {0.0};
+    double c[13] = {0.0};
+    double d[13] = {0.0};
+    double bsum, dsum, f, h, h2, hn, j0, j1, r, r0, r1, s, ssum;
+    double t, t0, t1, u, w, w0, z, z0, z2, zn, znm1;
+    double e0 = 2. / cxx::sqrt(PI);
+    double e1 = cxx::pow(2.0, (-3. / 2.));
+    int i, imj, j, m, mmj, n, num;
+
+    // ****** Num is the maximum value that n can take in the do loop
+    //        ending at statement 50. It is required that num be even.
+    //        The arrays a0, b0, c, d have dimension num + 1.
+    num = 12;
+
+    if (a < b) {
+        h = a / b;
+        r0 = 1. / (1. + h);
+        r1 = (b - a) / b;
+        w0 = 1. / cxx::sqrt(a * (1. + h));
+    } else {
+        h = b / a;
+        r0 = 1. / (1. + h);
+        r1 = (b - a) / a;
+        w0 = 1. / cxx::sqrt(b * (1. + h));
+    }
+    f = a * rlog1(-lmbda / a) + b * rlog1(lmbda / b);
+    t = cxx::exp(-f);
+    if (t == 0.0) {
+        return 0.0;
+    }
+    z0 = cxx::sqrt(f);
+    z = 0.5 * (z0 / e1);
+    z2 = f + f;
+
+    a0[0] = (2. / 3.) * r1;
+    c[0] = -0.5 * a0[0];
+    d[0] = -c[0];
+    j0 = (0.5 / e0) * erfc1(1, z0);
+    j1 = e1;
+    ssum = j0 + d[0] * w0 * j1;
+
+    s = 1.0;
+    h2 = h * h;
+    hn = 1.0;
+    w = w0;
+    znm1 = z;
+    zn = z2;
+
+    for (n = 2; n <= num; n += 2) {
+        hn *= h2;
+        a0[n - 1] = 2. * r0 * (1. + h * hn) / (n + 2.);
+        s += hn;
+        a0[n] = 2. * r1 * s / (n + 3.);
+
+        for (i = n; i <= n + 1; i++) {
+            r = -0.5 * (i + 1.);
+            b0[0] = r * a0[0];
+
+            for (m = 2; m <= i; m++) {
+                bsum = 0.0;
+                for (j = 1; j < m; j++) {
+                    mmj = m - j;
+                    bsum += (j * r - mmj) * a0[j - 1] * b0[mmj - 1];
+                }
+                b0[m - 1] = r * a0[m - 1] + bsum / m;
+            }
+            c[i - 1] = b0[i - 1] / (i + 1.);
+            dsum = 0.0;
+
+            for (j = 1; j < i; j++) {
+                imj = i - j;
+                dsum += d[imj - 1] * c[j - 1];
+            }
+            d[i - 1] = -(dsum + c[i - 1]);
+        }
+        j0 = e1 * znm1 + (n - 1.) * j0;
+        j1 = e1 * zn + n * j1;
+        znm1 *= z2;
+        zn *= z2;
+        w *= w0;
+        t0 = d[n - 1] * w * j0;
+        w *= w0;
+        t1 = d[n] * w * j1;
+        ssum += t0 + t1;
+        if ((cxx::fabs(t0) + cxx::fabs(t1)) <= eps * ssum) {
+            break;
+        }
+    }
+    u = cxx::exp(-bcorr(a, b));
+    return e0 * t * u * ssum;
+}
+
+XSF_HOST_DEVICE inline double bcorr(double a0, double b0) {
+    //    Evaluation of  del(a0) + del(b0) - del(a0 + b0)  where
+    //    ln(gamma(a)) = (a - 0.5)*ln(a) - a + 0.5*ln(2*pi) + del(a).
+    //    It is assumed that a0 >= 8 And b0 >= 8.
+
+    double a, b, c, h, s11, s3, s5, s7, s9, t, w, x, x2;
+
+    a = cxx::fmin(a0, b0);
+    b = cxx::fmax(a0, b0);
+    h = a / b;
+    c = h / (1. + h);
+    x = 1. / (1. + h);
+    x2 = x * x;
+    //  Set sn = (1 - x**n)/(1 - x)
+    s3 = 1. + (x + x2);
+    s5 = 1. + (x + x2 * s3);
+    s7 = 1. + (x + x2 * s5);
+    s9 = 1. + (x + x2 * s7);
+    s11 = 1. + (x + x2 * s9);
+    // Set w = del(b) - del(a + b)
+    t = cxx::pow((1. / b), 2);
+    w = (((((stirling_coeffs[5] * s11) * t + stirling_coeffs[4] * s9) * t + stirling_coeffs[3] * s7) * t +
+          stirling_coeffs[2] * s5) *
+             t +
+         stirling_coeffs[1] * s3) *
+            t +
+        stirling_coeffs[0];
+    w *= c / b;
+    // Compute  del(a) + w
+    t = cxx::pow((1. / a), 2);
+    return ((((((stirling_coeffs[5]) * t + stirling_coeffs[4]) * t + stirling_coeffs[3]) * t + stirling_coeffs[2]) * t +
+             stirling_coeffs[1]) *
+                t +
+            stirling_coeffs[0]) /
+               a +
+           w;
+}
+
+XSF_HOST_DEVICE inline double betaln(double a0, double b0) {
+    //    Evaluation of the logarithm of the beta function
+
+    double a, b, c, h, u, v, w, z;
+    double e = 0.918938533204673;
+    int i, n;
+
+    a = cxx::fmin(a0, b0);
+    b = cxx::fmax(a0, b0);
+
+    if (a >= 8.0) {
+        w = bcorr(a, b);
+        h = a / b;
+        c = h / (1. + h);
+        u = -(a - 0.5) * cxx::log(c);
+        v = b * alnrel(h);
+        if (u > v) {
+            return (((-0.5 * cxx::log(b) + e) + w) - v) - u;
+        } else {
+            return (((-0.5 * cxx::log(b) + e) + w) - u) - v;
+        }
+    }
+    if (a < 1) {
+        if (b > 8) {
+            return gamln(a) + algdiv(a, b);
+        } else {
+            return gamln(a) + (gamln(b) - gamln(a + b));
+        }
+    }
+
+    if (a <= 2) {
+        if (b <= 2) {
+            return gamln(a) + gamln(b) - gsumln(a, b);
+        }
+        if (b >= 8) {
+            return gamln(a) + algdiv(a, b);
+        }
+        w = 0.;
+    }
+
+    if (a > 2) {
+        if (b <= 1000) {
+            n = (int)(a - 1.);
+            w = 1.;
+            for (i = 0; i < n; i++) {
+                a -= 1.0;
+                h = a / b;
+                w *= h / (1. + h);
+            }
+            w = cxx::log(w);
+            if (b >= 8.0) {
+                return w + gamln(a) + algdiv(a, b);
+            }
+        } else {
+            n = (int)(a - 1.);
+            w = 1.0;
+            for (i = 0; i < n; i++) {
+                a -= 1.0;
+                w *= a / (1. + (a / b));
+            }
+            return (cxx::log(w) - n * cxx::log(b)) + (gamln(a) + algdiv(a, b));
+        }
+    }
+    n = (int)(b - 1.);
+    z = 1.0;
+    for (i = 0; i < n; i++) {
+        b -= 1.0;
+        z *= b / (a + b);
+    }
+    return w + cxx::log(z) + (gamln(a) + gamln(b) - gsumln(a, b));
+}
+
+XSF_HOST_DEVICE inline double bfrac(double a, double b, double x, double y, double lmbda, double eps) {
+    //    Continued fraction expansion for ix(a,b) when a,b > 1.
+    //    It is assumed that  lambda = (a + b)*y - b.
+
+    double alpha, beta, e, r0, t, w, result;
+    double c = 1. + lmbda;
+    double c0 = b / a;
+    double c1 = 1. + (1. / a);
+    double yp1 = y + 1.;
+    double n = 0.;
+    double p = 1.;
+    double s = a + 1.;
+    double an = 0.;
+    double bn = 1.;
+    double anp1 = 1.;
+    double bnp1 = c / c1;
+    double r = c1 / c;
+
+    result = brcomp(a, b, x, y);
+
+    if (result == 0.0) {
+        return 0;
+    }
+
+    // Continued fraction calculation
+    while (1) {
+        n += 1.0;
+        t = n / a;
+        w = n * (b - n) * x;
+        e = a / s;
+        alpha = (p * (p + c0) * e * e) * (w * x);
+        e = (1. + t) / (c1 + t + t);
+        beta = n + (w / s) + e * (c + n * yp1);
+        p = 1. + t;
+        s += 2.;
+        // Update an, bn, anp1, and bnp1
+        t = alpha * an + beta * anp1;
+        an = anp1;
+        anp1 = t;
+        t = alpha * bn + beta * bnp1;
+        bn = bnp1;
+        bnp1 = t;
+        r0 = r;
+        r = anp1 / bnp1;
+        if (!(cxx::fabs(r - r0) > eps * r)) {
+            break;
+        }
+        // Rescale an, bn, anp1, and bnp1
+        an /= bnp1;
+        bn /= bnp1;
+        anp1 = r;
+        bnp1 = 1.0;
+    }
+    return result * r;
+}
+
+constexpr double bgrat_c[30] = {0.16666666666666666,    0.008333333333333333,   0.0001984126984126984,
+                                2.7557319223985893e-06, 2.505210838544172e-08,  1.6059043836821613e-10,
+                                7.647163731819816e-13,  2.8114572543455206e-15, 8.22063524662433e-18,
+                                1.9572941063391263e-20, 3.868170170630684e-23,  6.446950284384474e-26,
+                                9.183689863795546e-29,  1.1309962886447716e-31, 1.216125041553518e-34,
+                                1.151633562077195e-37,  9.67759295863189e-41,   7.265460179153071e-44,
+                                4.902469756513544e-47,  2.9893108271424046e-50, 1.6552108677421951e-53,
+                                8.359650847182804e-57,  3.866628513960594e-60,  1.643974708316579e-63,
+                                6.446959640457172e-67,  2.3392451525606576e-70, 7.876246304918039e-74,
+                                2.4674957095607893e-77, 7.2106829618959365e-81, 1.9701319568021682e-84};
+
+XSF_HOST_DEVICE inline struct TupleDI bgrat(double a, double b, double x, double y, double w, double eps) {
+    //    Asymptotic expansion for ix(a,b) when a is larger than b.
+    //    The result of the expansion is added to w. It is assumed
+    //    that a >= 15 And b <= 1.  Eps is the tolerance used.
+    //    Ierr is a variable that reports the status of the results.
+
+    double bp2n, coef, dj, j, l, n2, q, r, s, ssum, t, t2, u, v;
+    double d[30] = {0.0};
+    double bm1 = (b - 0.5) - 0.5;
+    double nu = a + bm1 * 0.5;
+    double lnx = (y > 0.375 ? cxx::log(x) : alnrel(-y));
+    double z = -nu * lnx;
+    int i, n;
+
+    if ((b * z) == 0.0) {
+        return TupleDI{w, 1};
+    }
+
+    // COMPUTATION OF THE EXPANSION
+    // SET R = EXP(-Z)*Z**B/GAMMA(B)
+    r = b * (1. + gam1(b)) * cxx::exp(b * cxx::log(z));
+    r *= cxx::exp(a * lnx) * cxx::exp(0.5 * bm1 * lnx);
+    u = algdiv(b, a) + b * cxx::log(nu);
+    u = r * cxx::exp(-u);
+    if (u == 0.0) {
+        return TupleDI{w, 1};
+    }
+
+    struct TupleDD ret = grat1(b, z, r, eps);
+    q = ret.d2;
+    v = 0.25 * cxx::pow((1 / nu), 2);
+    t2 = 0.25 * lnx * lnx;
+    l = w / u;
+    j = q / r;
+    ssum = j;
+    t = 1.;
+    n2 = 0.;
+
+    for (n = 1; n <= 30; n++) {
+        bp2n = b + n2;
+        j = (bp2n * (bp2n + 1.) * j + (z + bp2n + 1.) * t) * v;
+        n2 += 2.;
+        t *= t2;
+        s = 0.0;
+        if (n > 1) {
+            coef = b - n;
+            for (i = 1; i < n; i++) {
+                s += coef * bgrat_c[i - 1] * d[n - i - 1];
+                coef += b;
+            }
+        }
+        d[n - 1] = bm1 * bgrat_c[n - 1] + s / n;
+        dj = d[n - 1] * j;
+        ssum += dj;
+        if (ssum <= 0.) {
+            return TupleDI{w, 1};
+        }
+        if (!(cxx::fabs(dj) > eps * (ssum + l))) {
+            break;
+        }
+    }
+    return TupleDI{w + u * ssum, 0};
+}
+
+XSF_HOST_DEVICE inline double bpser(double a, double b, double x, double eps) {
+    //    Power series expansion for evaluating ix(a,b) when b <= 1
+    //    Or b*x <= 0.7.  Eps is the tolerance used.
+
+    double a0, apb, b0, c, n, ssum, t, tol, u, w, z;
+    int i, m;
+    double result = 0.0;
+
+    if (x == 0.0) {
+        return 0.0;
+    }
+
+    // Compute the factor x**a/(a*beta(a,b))
+    a0 = cxx::fmin(a, b);
+
+    if (a0 < 1.0) {
+        b0 = cxx::fmax(a, b);
+        if (b0 <= 1.0) {
+            result = cxx::pow(x, a);
+            if (result == 0.0) {
+                return 0.0;
+            }
+
+            apb = a + b;
+            if (apb > 1.0) {
+                u = a + b - 1.0;
+                z = (1. + gam1(u)) / apb;
+            } else {
+                z = 1. + gam1(apb);
+            }
+            c = (1. + gam1(a)) * (1. + gam1(b)) / z;
+            result *= c * (b / apb);
+
+        } else if (b0 < 8) {
+            u = gamln1(a0);
+            m = (int)(b0 - 1.0);
+            if (m > 0) {
+                c = 1.0;
+                for (i = 0; i < m; i++) {
+                    b0 -= 1.0;
+                    c *= (b0 / (a0 + b0));
+                }
+                u += cxx::log(c);
+            }
+            z = esum_pow(0, cxx::pow(x, a), -u, a * cxx::log(x) - u);
+            b0 -= 1.0;
+            apb = a0 + b0;
+            if (apb > 1.0) {
+                u = a0 + b0 - 1.0;
+                t = (1. + gam1(u)) / apb;
+            } else {
+                t = 1. + gam1(apb);
+            }
+            result = z * (a0 / a) * (1. + gam1(b0)) / t;
+
+        } else if (b0 >= 8) {
+            u = gamln1(a0) + algdiv(a0, b0);
+            result = (a0 / a) * esum_pow(0, cxx::pow(x, a), -u, a * cxx::log(x) - u);
+        }
+    } else {
+        u = betaln(a, b);
+        result = esum_pow(0, cxx::pow(x, a), -u, a * cxx::log(x) - u) / a;
+    }
+    if ((result == 0.) || (a <= 0.1 * eps)) {
+        return result;
+    }
+    // Compute the series
+    ssum = 0.0;
+    n = 0;
+    c = 1.0;
+    tol = eps / a;
+    while (1) {
+        n += 1.0;
+        c *= (0.5 + (0.5 - b / n)) * x;
+        w = c / (a + n);
+        ssum += w;
+        if (!(cxx::fabs(w) > tol)) {
+            break;
+        }
+    }
+    return result * (1. + a * ssum);
+}
+
+XSF_HOST_DEVICE inline struct TupleDDI bratio(double a, double b, double x, double y) {
+    //           Evaluation of the incomplete beta function Ix(a,b)
+    //
+    //                    --------------------
+    //
+    //    It is assumed that a and b are nonnegative, and that x <= 1
+    //    And y = 1 - x.  Bratio assigns w and w1 the values
+    //
+    //                     w  = Ix(a,b)
+    //                     w1 = 1 - Ix(a,b)
+    //
+    //    Ierr is a variable that reports the status of the results.
+    //    If no input errors are detected then ierr is set to 0 and
+    //    w and w1 are computed. Otherwise, if an error is detected,
+    //    then w and w1 are assigned the value 0 and ierr is set to
+    //    one of the following values ...
+    //
+    //       Ierr = 1  if a or b is negative
+    //       ierr = 2  if a = b = 0
+    //       ierr = 3  if x < 0 Or x > 1
+    //       Ierr = 4  if y < 0 Or y > 1
+    //       Ierr = 5  if x + y .ne. 1
+    //       Ierr = 6  if x = a = 0
+    //       ierr = 7  if y = b = 0
+    //
+
+    double a0, b0, lmbda, x0, y0;
+    int ind, n;
+    double w = 0.;
+    double w1 = 0.;
+    double eps = cxx::fmax(spmpar[0], 1e-15);
+    struct TupleDI bgratret;
+
+    if ((a < 0.) || (b < 0.)) {
+        return TupleDDI{w, w1, 1};
+    } else if ((a == 0.) && (b == 0.)) {
+        return TupleDDI{w, w1, 2};
+    } else if ((x < 0.) || (x > 1.)) {
+        return TupleDDI{w, w1, 3};
+    } else if ((y < 0.) || (y > 1.)) {
+        return TupleDDI{w, w1, 4};
+    } else if (cxx::fabs(((x + y) - 0.5) - 0.5) > 3. * eps) {
+        return TupleDDI{w, w1, 5};
+    } else if (x == 0.) {
+        if (a == 0) {
+            return TupleDDI{w, w1, 6};
+        } else {
+            return TupleDDI{0.0, 1.0, 0};
+        }
+    } else if (y == 0.) {
+        if (b == 0) {
+            return TupleDDI{w, w1, 7};
+        } else {
+            return TupleDDI{1.0, 0.0, 0};
+        }
+    } else if (a == 0.) {
+        return TupleDDI{1.0, 0.0, 0};
+    } else if (b == 0.) {
+        return TupleDDI{0.0, 1.0, 0};
+    } else if (cxx::fmax(a, b) < 1e-3 * eps) {
+        return TupleDDI{b / (a + b), a / (a + b), 0};
+    }
+
+    ind = 0;
+    a0 = a;
+    b0 = b;
+    x0 = x;
+    y0 = y;
+
+    if (cxx::fmin(a0, b0) <= 1.0) {
+        if (!(x <= 0.5)) {
+            ind = 1;
+            a0 = b;
+            b0 = a;
+            x0 = y;
+            y0 = x;
+        }
+        if (b0 < cxx::fmin(eps, eps * a0)) {
+            w = fpser(a0, b0, x0, eps);
+            w1 = 0.5 + (0.5 - w);
+            return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
+        }
+        if ((a0 < cxx::fmin(eps, eps * b0)) && (b0 * x0 <= 1.)) {
+            w1 = apser(a0, b0, x0, eps);
+            w = 0.5 + (0.5 - w1);
+            return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
+        }
+        if (cxx::fmax(a0, b0) <= 1.0) {
+            if ((cxx::pow(x0, a0) <= 0.9) || (a0 >= cxx::fmin(0.2, b0))) {
+                w = bpser(a0, b0, x0, eps);
+                w1 = 0.5 + (0.5 - w);
+                return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
+            }
+            if (x0 >= 0.3) {
+                w1 = bpser(b0, a0, y0, eps);
+                w = 0.5 + (0.5 - w1);
+                return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
+            }
+            // 140
+            n = 20;
+            w1 = bup(b0, a0, y0, x0, n, eps);
+
+            b0 += n;
+            bgratret = bgrat(b0, a0, y0, x0, w1, 15. * eps);
+            w1 = bgratret.d1;
+            w = 0.5 + (0.5 - w1);
+            return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
+
+        } else {
+            // 20
+            if (b0 <= 1.0) {
+                w = bpser(a0, b0, x0, eps);
+                w1 = 0.5 + (0.5 - w);
+                return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
+            }
+            if (x0 >= 0.3) {
+                w1 = bpser(b0, a0, y0, eps);
+                w = 0.5 + (0.5 - w1);
+                return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
+            }
+            if (x0 >= 0.1) {
+                // 30
+                if (b0 > 15.) {
+                    bgratret = bgrat(b0, a0, y0, x0, w1, 15. * eps);
+                    w1 = bgratret.d1;
+                    w = 0.5 + (0.5 - w1);
+                    return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
+                } else {
+                    // 140
+                    n = 20;
+                    w1 = bup(b0, a0, y0, x0, n, eps);
+                    b0 += n;
+                    bgratret = bgrat(b0, a0, y0, x0, w1, 15. * eps);
+                    w1 = bgratret.d1;
+                    w = 0.5 + (0.5 - w1);
+                    return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
+                }
+            }
+            if (cxx::pow((x0 * b0), a0) <= 0.7) {
+                w = bpser(a0, b0, x0, eps);
+                w1 = 0.5 + (0.5 - w);
+                return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
+            }
+            if (b0 > 15.) {
+                bgratret = bgrat(b0, a0, y0, x0, w1, 15. * eps);
+                w1 = bgratret.d1;
+                w = 0.5 + (0.5 - w1);
+                return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
+            }
+            // 140
+            n = 20;
+            w1 = bup(b0, a0, y0, x0, n, eps);
+            b0 += n;
+            bgratret = bgrat(b0, a0, y0, x0, w1, 15. * eps);
+            w1 = bgratret.d1;
+            w = 0.5 + (0.5 - w1);
+            return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
+        }
+    } else {
+        lmbda = (a > b ? ((a + b) * y - b) : (a - (a + b) * x));
+        if (lmbda < 0.0) {
+            ind = 1;
+            a0 = b;
+            b0 = a;
+            x0 = y;
+            y0 = x;
+            lmbda = cxx::fabs(lmbda);
+        }
+        if ((b0 < 40.) && (b0 * x0 <= 0.7)) {
+            w = bpser(a0, b0, x0, eps);
+            w1 = 0.5 + (0.5 - w);
+            return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
+        }
+        if (b0 < 40.) {
+            n = (int)b0;
+            b0 -= n;
+            if (b0 == 0.) {
+                n -= 1;
+                b0 = 1.0;
+            }
+            w = bup(b0, a0, y0, x0, n, eps);
+            if (x0 <= 0.7) {
+                w += bpser(a0, b0, x0, eps);
+                w1 = 0.5 + (0.5 - w);
+                return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
+            } else {
+                if (a0 <= 15.) {
+                    n = 20;
+                    w += bup(a0, b0, x0, y0, n, eps);
+                    a0 += n;
+                }
+                bgratret = bgrat(a0, b0, x0, y0, w, 15. * eps);
+                w = bgratret.d1;
+                w1 = 0.5 + (0.5 - w);
+                return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
+            }
+        }
+        if (a0 > b0) {
+            if ((b0 <= 100) || (lmbda > 0.03 * b0)) {
+                w = bfrac(a0, b0, x0, y0, lmbda, 15.0 * eps);
+                w1 = 0.5 + (0.5 - w);
+                return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
+            } else {
+                // 200
+                w = basym(a0, b0, lmbda, 100. * eps);
+                w1 = 0.5 + (0.5 - w);
+                return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
+            }
+        }
+        if ((a0 <= 100.) || (lmbda > 0.03 * a0)) {
+            w = bfrac(a0, b0, x0, y0, lmbda, 15.0 * eps);
+            w1 = 0.5 + (0.5 - w);
+            return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
+        }
+        // 200
+        w = basym(a0, b0, lmbda, 100. * eps);
+        w1 = 0.5 + (0.5 - w);
+        return TupleDDI{(ind == 0 ? w : w1), (ind == 0 ? w1 : w), 0};
+    }
+}
+
+XSF_HOST_DEVICE inline double brcmp1(int mu, double a, double b, double x, double y) {
+    //    Evaluation of  exp(mu) * (x**a*y**b/beta(a,b))
+
+    double a0, apb, b0, c, e, h, lmbda, p, t, u, v, x0, y0, z, zr;
+    double lnx = 1., lny = 1.;
+    int i, n;
+    double const r2pi = 1. / cxx::sqrt(2. * PI);
+
+    a0 = cxx::fmin(a, b);
+    if (a0 >= 8.0) {
+        if (a > b) {
+            h = b / a;
+            x0 = 1. / (1. + h);
+            y0 = h / (1. + h);
+            lmbda = (a + b) * y - b;
+        } else {
+            h = a / b;
+            x0 = h / (1. + h);
+            y0 = 1. / (1. + h);
+            lmbda = a - (a + b) * x;
+        }
+        e = -lmbda / a;
+        if (cxx::fabs(e) > 0.6) {
+            u = e - cxx::log(x / x0);
+        } else {
+            u = rlog1(e);
+        }
+        e = lmbda / b;
+        if (cxx::fabs(e) > 0.6) {
+            v = e - cxx::log(y / y0);
+        } else {
+            v = rlog1(e);
+        }
+        z = esum(mu, -(a * u + b * v));
+        return r2pi * cxx::sqrt(b * x0) * z * cxx::exp(-bcorr(a, b));
+    }
+    if ((x > 0.375) && (y > 0.375)) {
+        lnx = cxx::log(x);
+        lny = cxx::log(y);
+    } else if ((x > 0.375) && (y <= 0.375)) {
+        lnx = alnrel(-y);
+        lny = cxx::log(y);
+    } else if (x <= 0.375) {
+        lnx = cxx::log(x);
+        lny = alnrel(-x);
+    }
+    z = a * lnx + b * lny;
+
+    if (x <= 0.375) {
+        p = cxx::pow(x, a);
+        zr = b * lny;
+    } else if (y <= 0.375) {
+        p = cxx::pow(y, b);
+        zr = a * lnx;
+    } else {
+        p = cxx::pow(x, a) * cxx::pow(y, b);
+        zr = 0.0;
+    }
+
+    if (a0 >= 1.0) {
+        u = betaln(a, b);
+        return esum_pow(mu, p, zr - u, z - u);
+    }
+
+    b0 = cxx::fmax(a, b);
+    if (b0 >= 8.0) {
+        u = gamln1(a0) + algdiv(a0, b0);
+        return a0 * esum_pow(mu, p, zr - u, z - u);
+    }
+
+    if (b0 > 1.0) {
+        u = gamln1(a0);
+        n = (int)(b0 - 1.);
+        if (n >= 1) {
+            c = 1.;
+            for (i = 0; i < n; i++) {
+                b0 -= 1.;
+                c *= b0 / (a0 + b0);
+            }
+            u += cxx::log(c);
+        }
+        z = esum_pow(mu, p, zr - u, z - u);
+        b0 -= 1.;
+        apb = a0 + b0;
+
+        if (apb > 1.0) {
+            u = a0 + b0 - 1.;
+            t = (1. + gam1(u)) / apb;
+        } else {
+            t = 1. + gam1(apb);
+        }
+        return a0 * z * (1. + gam1(b0)) / t;
+    }
+    t = esum_pow(mu, p, zr, z);
+    if (t == 0.0) {
+        return 0.0;
+    }
+    apb = a + b;
+    if (apb > 1.0) {
+        u = a + b - 1.0;
+        z = (1. + gam1(u)) / apb;
+    } else {
+        z = 1. + gam1(apb);
+    }
+
+    c = (1. + gam1(a)) * (1. + gam1(b)) / z;
+    return t * (a0 * c) / (1. + a0 / b0);
+}
+
+XSF_HOST_DEVICE inline double brcomp(double a, double b, double x, double y) {
+    //    Evaluation of x**a*y**b/beta(a,b)
+
+    double a0, apb, b0, c, e, h, lmbda, lnx, lny, p, t, u, v, x0, y0, z, zr;
+    double const r2pi = 1. / cxx::sqrt(2 * PI);
+    int i, n;
+
+    if ((x == 0.) || (y == 0.)) {
+        return 0.;
+    }
+    a0 = cxx::fmin(a, b);
+
+    if (a0 >= 8.) {
+        if (a > b) {
+            h = b / a;
+            x0 = 1. / (1. + h);
+            y0 = h / (1. + h);
+            lmbda = (a + b) * y - b;
+        } else {
+            h = a / b;
+            x0 = h / (1. + h);
+            y0 = 1. / (1. + h);
+            lmbda = a - (a + b) * x;
+        }
+        e = -lmbda / a;
+        if (cxx::fabs(e) > 0.6) {
+            u = e - cxx::log(x / x0);
+        } else {
+            u = rlog1(e);
+        }
+        e = lmbda / b;
+        if (cxx::fabs(e) > 0.6) {
+            v = e - cxx::log(y / y0);
+        } else {
+            v = rlog1(e);
+        }
+
+        z = cxx::exp(-(a * u + b * v));
+        return r2pi * cxx::sqrt(b * x0) * z * cxx::exp(-bcorr(a, b));
+    }
+    if (x <= 0.375) {
+        lnx = cxx::log(x);
+        lny = alnrel(-x);
+    } else {
+        lnx = (y > 0.375 ? cxx::log(x) : alnrel(-y));
+        lny = cxx::log(y);
+    }
+    z = a * lnx + b * lny;
+
+    if (x <= 0.375) {
+        p = cxx::pow(x, a);
+        zr = b * lny;
+    } else if (y <= 0.375) {
+        p = cxx::pow(y, b);
+        zr = a * lnx;
+    } else {
+        p = cxx::pow(x, a) * cxx::pow(y, b);
+        zr = 0.0;
+    }
+    if (a0 >= 1.0) {
+        u = betaln(a, b);
+        return esum_pow(0, p, zr - u, z - u);
+    }
+
+    b0 = cxx::fmax(a, b);
+    if (b0 >= 8.0) {
+        u = gamln1(a0) + algdiv(a0, b0);
+        return a0 * esum_pow(0, p, zr - u, z - u);
+    }
+
+    if (b0 > 1.0) {
+        u = gamln1(a0);
+        n = (int)(b0 - 1.);
+        if (n >= 1) {
+            c = 1.0;
+            for (i = 0; i < n; i++) {
+                b0 -= 1.0;
+                c *= b0 / (a0 + b0);
+            }
+            u += cxx::log(c);
+        }
+        z = esum_pow(0, p, zr - u, z - u);
+        b0 -= 1.0;
+        apb = a0 + b0;
+
+        if (apb > 1.0) {
+            u = a0 + b0 - 1.0;
+            t = (1. + gam1(u)) / apb;
+        } else {
+            t = 1. + gam1(apb);
+        }
+        return a0 * z * (1. + gam1(b0)) / t;
+    }
+    t = esum_pow(0, p, zr, z);
+    if (t == 0.) {
+        return 0.0;
+    }
+
+    apb = a + b;
+    if (apb > 1.0) {
+        u = a + b - 1.0;
+        z = (1. + gam1(u)) / apb;
+    } else {
+        z = 1. + gam1(apb);
+    }
+    c = (1. + gam1(a)) * (1. + gam1(b)) / z;
+    return t * (a0 * c) / (1. + a0 / b0);
+}
+
+XSF_HOST_DEVICE inline double bup(double a, double b, double x, double y, int n, double eps) {
+    //     Evaluation of Ix(a,b) - Ix(a+n,b) where n is a positive integer and
+    //     eps is the tolerance used.
+    double apb = a + b;
+    double ap1 = a + 1.;
+    double d = 1.;
+    double r, t, w, result;
+    int i, nm1;
+    int k = 0;
+    int mu = 0;
+
+    //          Obtain the scaling factor exp(-mu) and
+    //             exp(mu)*(x**a*y**b/beta(a,b))/a
+
+    if (!((n == 1) || (a < 1) || (apb < 1.1 * ap1))) {
+        mu = 708;
+        t = mu;
+        d = cxx::exp(-708.0);
+    }
+
+    result = brcmp1(mu, a, b, x, y) / a;
+    if ((n == 1) || (result == 0.)) {
+        return result;
+    }
+    nm1 = n - 1;
+    w = d;
+
+    // Let k be the index of the maximum term
+    k = 0;
+    if (b <= 1.) {
+        // 50
+        for (i = 0; i < n - 1; i++) {
+            d *= ((apb + i) / (ap1 + i)) * x;
+            w += d;
+            if (d <= eps * w) {
+                break;
+            }
+        }
+        return result * w;
+    }
+    if (y > 1e-4) {
+        // 20
+        r = (b - 1.) * x / y - a;
+        if (r < 1.) {
+            // 50
+            for (i = 0; i < n - 1; i++) {
+                d *= ((apb + i) / (ap1 + i)) * x;
+                w += d;
+                if (d <= eps * w) {
+                    break;
+                }
+            }
+            return result * w;
+        }
+        k = nm1;
+        t = nm1;
+        if (r < t) {
+            k = (int)r;
+        }
+    } else {
+        k = nm1;
+    }
+    // 30
+    // Add the increasing terms of the series
+    for (i = 0; i < k; i++) {
+        d *= ((apb + i) / (ap1 + i)) * x;
+        w += d;
+    }
+
+    if (k == nm1) {
+        return result * w;
+    }
+
+    // 50
+    // Add the remaining terms of the series
+    for (i = k; i < n - 1; i++) {
+        d *= ((apb + i) / (ap1 + i)) * x;
+        w += d;
+        if (d <= eps * w) {
+            break;
+        }
+    }
+    return result * w;
+}
+
+XSF_HOST_DEVICE inline double cdflib_erf(double x) {
+    //    Evaluation of the real error function
+
+    double ax, bot, t, top;
+    double c = .564189583547756;
+    double a[5] = {
+        .771058495001320e-04, -.133733772997339e-02, .323076579225834e-01, .479137145607681e-01, .128379167095513e+00
+    };
+    double b[3] = {.301048631703895e-02, .538971687740286e-01, .375795757275549e+00};
+    double p[8] = {-1.36864857382717e-07, 5.64195517478974e-01, 7.21175825088309e+00, 4.31622272220567e+01,
+                   1.52989285046940e+02,  3.39320816734344e+02, 4.51918953711873e+02, 3.00459261020162e+02};
+    double q[8] = {1.00000000000000e+00, 1.27827273196294e+01, 7.70001529352295e+01, 2.77585444743988e+02,
+                   6.38980264465631e+02, 9.31354094850610e+02, 7.90950925327898e+02, 3.00459260956983e+02};
+    double r[5] = {
+        2.10144126479064e+00, 2.62370141675169e+01, 2.13688200555087e+01, 4.65807828718470e+00, 2.82094791773523e-01
+    };
+    double s[4] = {9.41537750555460e+01, 1.87114811799590e+02, 9.90191814623914e+01, 1.80124575948747e+01};
+
+    ax = cxx::fabs(x);
+    if (ax <= 0.5) {
+        t = x * x;
+        top = ((((a[0] * t + a[1]) * t + a[2]) * t + a[3]) * t + a[4]) + 1.0;
+        bot = ((b[0] * t + b[1]) * t + b[2]) * t + 1.0;
+        return x * (top / bot);
+    }
+    if (ax <= 4.0) {
+        top = (((((((p[0]) * ax + p[1]) * ax + p[2]) * ax + p[3]) * ax + p[4]) * ax + p[5]) * ax + p[6]) * ax + p[7];
+        bot = (((((((q[0]) * ax + q[1]) * ax + q[2]) * ax + q[3]) * ax + q[4]) * ax + q[5]) * ax + q[6]) * ax + q[7];
+        t = 0.5 + (0.5 - cxx::exp(-x * x) * (top / bot));
+        return (x < 0 ? -t : t);
+    }
+    if (ax < 5.8) {
+        t = cxx::pow(1 / x, 2);
+        top = (((r[0] * t + r[1]) * t + r[2]) * t + r[3]) * t + r[4];
+        bot = (((s[0] * t + s[1]) * t + s[2]) * t + s[3]) * t + 1.0;
+        t = 0.5 + (0.5 - cxx::exp(-x * x) * (c - top / (x * x * bot)) / ax);
+        return (x < 0 ? -t : t);
+    }
+    return (x < 0 ? -1 : 1);
+}
+
+XSF_HOST_DEVICE inline double erfc1(int ind, double x) {
+    //    Evaluation of the complementary error function
+    //
+    //    Erfc1(ind,x) = erfc(x)            if ind = 0
+    //    Erfc1(ind,x) = exp(x*x)*erfc(x)   otherwise
+
+    double ax, bot, t, top, result;
+    double c = 0.564189583547756;
+    double a[5] = {
+        .771058495001320e-04, -.133733772997339e-02, .323076579225834e-01, .479137145607681e-01, .128379167095513e+00
+    };
+    double b[3] = {.301048631703895e-02, .538971687740286e-01, .375795757275549e+00};
+    double p[8] = {-1.36864857382717e-07, 5.64195517478974e-01, 7.21175825088309e+00, 4.31622272220567e+01,
+                   1.52989285046940e+02,  3.39320816734344e+02, 4.51918953711873e+02, 3.00459261020162e+02};
+    double q[8] = {1.00000000000000e+00, 1.27827273196294e+01, 7.70001529352295e+01, 2.77585444743988e+02,
+                   6.38980264465631e+02, 9.31354094850610e+02, 7.90950925327898e+02, 3.00459260956983e+02};
+    double r[5] = {
+        2.10144126479064e+00, 2.62370141675169e+01, 2.13688200555087e+01, 4.65807828718470e+00, 2.82094791773523e-01
+    };
+    double s[4] = {9.41537750555460e+01, 1.87114811799590e+02, 9.90191814623914e+01, 1.80124575948747e+01};
+
+    if (x <= -5.6) {
+        return (ind == 0 ? 2.0 : (2 * cxx::exp(x * x)));
+    }
+
+    // sqrt(log(np.finfo(np.float64).max)) ~= 26.64
+    if ((ind == 0) && (x > 26.64)) {
+        return 0.0;
+    }
+
+    ax = cxx::fabs(x);
+
+    if (ax <= 0.5) {
+        t = x * x;
+        top = (((((a[0]) * t + a[1]) * t + a[2]) * t + a[3]) * t + a[4]) + 1.0;
+        bot = (((b[0]) * t + b[1]) * t + b[2]) * t + 1.0;
+        result = 0.5 + (0.5 - x * (top / bot));
+        return (ind == 0 ? result : result * cxx::exp(t));
+    } else if ((0.5 < ax) && (ax <= 4.0)) {
+        top = (((((((p[0]) * ax + p[1]) * ax + p[2]) * ax + p[3]) * ax + p[4]) * ax + p[5]) * ax + p[6]) * ax + p[7];
+        bot = (((((((q[0]) * ax + q[1]) * ax + q[2]) * ax + q[3]) * ax + q[4]) * ax + q[5]) * ax + q[6]) * ax + q[7];
+        result = top / bot;
+    } else {
+        t = cxx::pow(1 / x, 2);
+        top = (((r[0] * t + r[1]) * t + r[2]) * t + r[3]) * t + r[4];
+        bot = (((s[0] * t + s[1]) * t + s[2]) * t + s[3]) * t + 1.0;
+        result = (c - t * (top / bot)) / ax;
+    }
+    if (ind == 0) {
+        result *= cxx::exp(-(x * x));
+        return (x < 0 ? (2.0 - result) : result);
+    } else {
+        return (x < 0 ? (2.0 * cxx::exp(x * x) - result) : result);
+    }
+}
+
+XSF_HOST_DEVICE inline double esum(int mu, double x) {
+    //    Evaluation of exp(mu + x)
+
+    if (x > 0.0) {
+        if ((mu > 0.) || (mu + x < 0)) {
+            return cxx::exp(static_cast<double>(mu)) * cxx::exp(x);
+        } else {
+            return cxx::exp(mu + x);
+        }
+    } else {
+        if ((mu < 0.) || (mu + x > 0.)) {
+            return cxx::exp(static_cast<double>(mu)) * cxx::exp(x);
+        } else {
+            return cxx::exp(mu + x);
+        }
+    }
+}
+
+XSF_HOST_DEVICE inline double esum_pow(int mu, double p, double r, double z) {
+    //    Function uses more accurate p * exp(r) form unless it could underflow or overflow,
+    //    then falls back to exp(z).
+
+    if ((p >= cxx::numeric_limits<double>::min()) && (cxx::fabs(r) < 700.) && (cxx::fabs(mu + r) < 700.)) {
+        return p * esum(mu, r);
+    }
+    return esum(mu, z);
+}
+
+XSF_HOST_DEVICE inline double fpser(double a, double b, double x, double eps) {
+    //           Evaluation of i_x(a,b)
+    //
+    //    for b < Min(eps,eps*a) and x <= 0.5.
+
+    double an, c, s, t, tol, result = 1.0;
+
+    if (!(a <= 1e-3 * eps)) {
+        result = 0.0;
+        t = a * cxx::log(x);
+        if (t < -708.) {
+            return result;
+        }
+        result = cxx::exp(t);
+    }
+    //  Note that 1/Beta(a,b) = b
+    result *= (b / a);
+    tol = eps / a;
+    an = a + 1.0;
+    t = x;
+    s = t / an;
+    while (1) {
+        an += 1;
+        t *= x;
+        c = t / an;
+        s += c;
+        if (!(cxx::fabs(c) > tol)) {
+            break;
+        }
+    }
+    return result * (1. + a * s);
+}
+
+XSF_HOST_DEVICE inline double gam1(double a) {
+    //    Computation of 1/gamma(a+1) - 1  for -0.5 <= A <= 1.5
+
+    double bot, d, t, top, w;
+    double p[7] = {.577215664901533e+00, -.409078193005776e+00, -.230975380857675e+00, .597275330452234e-01,
+                   .766968181649490e-02, -.514889771323592e-02, .589597428611429e-03};
+    double q[5] = {
+        .100000000000000e+01, .427569613095214e+00, .158451672430138e+00, .261132021441447e-01, .423244297896961e-02
+    };
+    double r[9] = {-.422784335098468e+00, -.771330383816272e+00, -.244757765222226e+00,
+                   .118378989872749e+00,  .930357293360349e-03,  -.118290993445146e-01,
+                   .223047661158249e-02,  .266505979058923e-03,  -.132674909766242e-03};
+    double s[2] = {.273076135303957e+00, .559398236957378e-01};
+
+    d = a - 0.5;
+    t = (d > 0 ? d - 0.5 : a);
+
+    if (t == 0.0) {
+        return 0.0;
+    }
+
+    if (t < 0) {
+        top = ((((((((r[8]) * t + r[7]) * t + r[6]) * t + r[5]) * t + r[4]) * t + r[3]) * t + r[2]) * t + r[1]) * t +
+              r[0];
+        bot = (s[1] * t + s[0]) * t + 1.0;
+        w = top / bot;
+        if (d > 0.0) {
+            return t * w / a;
+        } else {
+            return a * ((w + 0.5) + 0.5);
+        }
+    }
+    top = ((((((p[6]) * t + p[5]) * t + p[4]) * t + p[3]) * t + p[2]) * t + p[1]) * t + p[0];
+    bot = ((((q[4]) * t + q[3]) * t + q[2]) * t + q[1]) * t + 1.0;
+    w = top / bot;
+    if (d > 0.0) {
+        return (t / a) * ((w - 0.5) - 0.5);
+    } else {
+        return a * w;
+    }
+}
+
+XSF_HOST_DEVICE inline double gamln(double a) {
+    //    Evaluation of ln(gamma(a)) for positive a
+
+    double t, w, d = .418938533204673;
+    int i, n;
+
+    if (a <= 0.8) {
+        return gamln1(a) - cxx::log(a);
+    }
+
+    if (a <= 2.25) {
+        t = (a - 0.5) - 0.5;
+        return gamln1(t);
+    }
+
+    if (a < 10) {
+        n = (int)(a - 1.25);
+        t = a;
+        w = 1.0;
+        for (i = 0; i < n; i++) {
+            t -= 1.0;
+            w *= t;
+        }
+        return gamln1(t - 1.) + cxx::log(w);
+    }
+    t = cxx::pow(1 / a, 2);
+    w = (((((stirling_coeffs[5] * t + stirling_coeffs[4]) * t + stirling_coeffs[3]) * t + stirling_coeffs[2]) * t +
+          stirling_coeffs[1]) *
+             t +
+         stirling_coeffs[0]) /
+        a;
+    return (d + w) + (a - 0.5) * (cxx::log(a) - 1.);
+}
+
+XSF_HOST_DEVICE inline double gamln1(double a) {
+    //    Evaluation of ln(gamma(1 + a)) for -0.2 <= A <= 1.25
+
+    double bot, top, w, x;
+
+    const double p[7] = {.577215664901533e+00,  .844203922187225e+00,  -.168860593646662e+00, -.780427615533591e+00,
+                         -.402055799310489e+00, -.673562214325671e-01, -.271935708322958e-02};
+    const double q[6] = {.288743195473681e+01, .312755088914843e+01, .156875193295039e+01,
+                         .361951990101499e+00, .325038868253937e-01, .667465618796164e-03};
+    const double r[6] = {.422784335098467e+00, .848044614534529e+00, .565221050691933e+00,
+                         .156513060486551e+00, .170502484022650e-01, .497958207639485e-03};
+    const double s[5] = {
+        .124313399877507e+01, .548042109832463e+00, .101552187439830e+00, .713309612391000e-02, .116165475989616e-03
+    };
+
+    if (a < 0.6) {
+        top = ((((((p[6]) * a + p[5]) * a + p[4]) * a + p[3]) * a + p[2]) * a + p[1]) * a + p[0];
+        bot = ((((((q[5]) * a + q[4]) * a + q[3]) * a + q[2]) * a + q[1]) * a + q[0]) * a + 1.;
+        w = top / bot;
+        return -a * w;
+    } else {
+        x = (a - 0.5) - 0.5;
+        top = (((((r[5]) * x + r[4]) * x + r[3]) * x + r[2]) * x + r[1]) * x + r[0];
+        bot = (((((s[4]) * x + s[3]) * x + s[2]) * x + s[1]) * x + s[0]) * x + 1.;
+        w = top / bot;
+        return x * w;
+    }
+}
+
+XSF_HOST_DEVICE inline struct TupleDD grat1(double a, double x, double r, double eps) {
+    //        Evaluation of the incomplete gamma ratio functions
+    //                    p(a,x) and q(a,x)
+    //
+    //    it is assumed that a <= 1.  Eps is the tolerance to be used.
+    //    the input argument r has the value e**(-x)*x**a/gamma(a).
+
+    double a2n, a2nm1, am0, an, an0, b2n, b2nm1, c, cma, g, h, j, l;
+    double p, q, ssum, t, tol, w, z;
+
+    if (a * x == 0.) {
+        if (x > a) {
+            return TupleDD{1.0, 0.0};
+        } else {
+            return TupleDD{0.0, 1.0};
+        }
+    }
+
+    if (a == 0.5) {
+        if (x < 0.25) {
+            p = cdflib_erf(cxx::sqrt(x));
+            return TupleDD{p, 0.5 + (0.5 - p)};
+        } else {
+            q = erfc1(0, cxx::sqrt(x));
+            return TupleDD{0.5 + (0.5 - q), q};
+        }
+    }
+
+    if (x < 1.1) {
+        //
+        // Taylor series for p(a,x)/x**a
+        //
+        an = 3.0;
+        c = x;
+        ssum = x / (a + 3.);
+        tol = 0.1 * eps / (a + 1.);
+        while (1) {
+            an += 1;
+            c *= -(x / an);
+            t = c / (a + an);
+            ssum += t;
+            if (cxx::fabs(t) <= tol) {
+                break;
+            }
+        }
+        j = a * x * ((ssum / 6. - 0.5 / (a + 2.)) * x + 1. / (a + 1.));
+
+        z = a * cxx::log(x);
+        h = gam1(a);
+        g = 1. + h;
+
+        if (((x >= 0.25) && (a >= x / 2.59)) || ((x < 0.25) && (z <= -0.13394))) {
+            w = cxx::exp(z);
+            p = w * g * (0.5 + (0.5 - j));
+            q = 0.5 + (0.5 - p);
+            return TupleDD{p, q};
+        } else {
+            l = rexp(z);
+            w = 0.5 + (0.5 + l);
+            q = (w * j - l) * g - h;
+            if (q < 0.0) {
+                return TupleDD{1.0, 0.0};
+            }
+            p = 0.5 + (0.5 - q);
+            return TupleDD{p, q};
+        }
+    }
+    //  Continued fraction expansion
+    a2nm1 = 1.0;
+    a2n = 1.0;
+    b2nm1 = x;
+    b2n = x + (1. - a);
+    c = 1.0;
+    while (1) {
+        a2nm1 = x * a2n + c * a2nm1;
+        b2nm1 = x * b2n + c * b2nm1;
+        am0 = a2nm1 / b2nm1;
+        c = c + 1.;
+        cma = c - a;
+        a2n = a2nm1 + cma * a2n;
+        b2n = b2nm1 + cma * b2n;
+        an0 = a2n / b2n;
+        if (!(cxx::fabs(an0 - am0) >= eps * an0)) {
+            break;
+        }
+    }
+    q = r * an0;
+    p = 0.5 + (0.5 - q);
+    return TupleDD{p, q};
+}
+
+XSF_HOST_DEVICE inline double gsumln(double a, double b) {
+    //     Evaluation of the function ln(gamma(a + b))
+    //     for 1 <= A <= 2  And  1 <= B <= 2
+
+    double x;
+
+    x = a + b - 2;
+    if (x <= 0.25) {
+        return gamln1(1. + x);
+    }
+
+    if (x <= 1.25) {
+        return gamln1(x) + alnrel(x);
+    }
+
+    return gamln1(x - 1.) + cxx::log(x * (1. + x));
+}
+
+XSF_HOST_DEVICE inline double psi(double xx) {
+    //                    Evaluation of the digamma function
+    //
+    //                          -----------
+    //
+    //    Psi(xx) is assigned the value 0 when the digamma function cannot
+    //    be computed.
+    //
+    //    The main computation involves evaluation of rational chebyshev
+    //    approximations published in math. Comp. 27, 123-127(1973) By
+    //    cody, strecok and thacher.
+    //
+    //    ----------------------------------------------------------------
+    //    Psi was written at Argonne National Laboratory for the FUNPACK
+    //    package of special function subroutines. Psi was modified by
+    //    A.H. Morris (nswc).
+
+    double aug, den, dx0, sgn, upper, w, x, xmax1, xmx0, xsmall, z;
+    double p1[7] = {0.895385022981970e-02, 0.477762828042627e+01, 0.142441585084029e+03, 0.118645200713425e+04,
+                    0.363351846806499e+04, 0.413810161269013e+04, 0.130560269827897e+04};
+    double q1[6] = {0.448452573429826e+02, 0.520752771467162e+03, 0.221000799247830e+04,
+                    0.364127349079381e+04, 0.190831076596300e+04, 0.691091682714533e-05};
+    double p2[4] = {-0.212940445131011e+01, -0.701677227766759e+01, -0.448616543918019e+01, -0.648157123766197e+00};
+    double q2[4] = {0.322703493791143e+02, 0.892920700481861e+02, 0.546117738103215e+02, 0.777788548522962e+01};
+    int nq, i;
+    dx0 = 1.461632144968362341262659542325721325;
+    xmax1 = 4503599627370496.0;
+    xsmall = 1e-9;
+    x = xx;
+    aug = 0.0;
+
+    if (x < 0.5) {
+        if (cxx::fabs(x) <= xsmall) {
+            if (x == 0.) {
+                return 0.0;
+            }
+            aug = -1. / x;
+        } else {
+            // 10
+            w = -x;
+            sgn = PI / 4;
+            if (w <= 0.) {
+                w = -w;
+                sgn = -sgn;
+            }
+            // 20
+            if (w >= xmax1) {
+                return 0.0;
+            }
+            w -= (int)w;
+            nq = (int)(w * 4.0);
+            w = 4. * (w - 0.25 * nq);
+
+            if (nq % 2 == 1) {
+                w = 1. - w;
+            }
+            z = (PI / 4.) * w;
+
+            if ((nq / 2) % 2 == 1) {
+                sgn = -sgn;
+            }
+            if ((((nq + 1) / 2) % 2) == 1) {
+                aug = sgn * (cxx::tan(z) * 4.);
+            } else {
+                if (z == 0.) {
+                    return 0.0;
+                }
+                aug = sgn * (4. / cxx::tan(z));
+            }
+        }
+        x = 1 - x;
+    }
+
+    if (x <= 3.0) {
+        // 50
+        den = x;
+        upper = p1[0] * x;
+        for (i = 0; i < 5; i++) {
+            den = (den + q1[i]) * x;
+            upper = (upper + p1[i + 1]) * x;
+        }
+        den = (upper + p1[6]) / (den + q1[5]);
+        xmx0 = x - dx0;
+        return (den * xmx0) + aug;
+    } else {
+        // 70
+        if (x < xmax1) {
+            w = 1. / (x * x);
+            den = w;
+            upper = p2[0] * w;
+
+            for (i = 0; i < 3; i++) {
+                den = (den + q2[i]) * w;
+                upper = (upper + p2[i + 1]) * w;
+            }
+            aug += upper / (den + q2[3]) - 0.5 / x;
+        }
+        return aug + cxx::log(x);
+    }
+}
+
+XSF_HOST_DEVICE inline double rexp(double x) {
+    // Evaluation of exp(-x)*x**a/gamma(a)
+
+    double p[2] = {.914041914819518e-09, .238082361044469e-01};
+    double q[4] = {-.499999999085958e+00, .107141568980644e+00, -.119041179760821e-01, .595130811860248e-03};
+    double w;
+
+    if (cxx::fabs(x) <= 0.15) {
+        return x * (((p[1] * x + p[0]) * x + 1.) / ((((q[3] * x + q[2]) * x + q[1]) * x + q[0]) * x + 1.));
+    } else {
+        w = cxx::exp(x);
+        if (x > 0.) {
+            return w * (0.5 + (0.5 - 1. / w));
+        } else {
+            return (w - 0.5) - 0.5;
+        }
+    }
+}
+
+XSF_HOST_DEVICE inline double rlog1(double x) {
+    // Evaluation of the function x - ln(1 + x)
+
+    double a = .566749439387324e-01;
+    double b = .456512608815524e-01;
+    double p0 = .333333333333333e+00;
+    double p1 = -.224696413112536e+00;
+    double p2 = .620886815375787e-02;
+    double q1 = -.127408923933623e+01;
+    double q2 = .354508718369557e+00;
+    double h, r, t, w, w1;
+
+    if ((-0.39 <= x) && (x <= 0.57)) {
+        if ((-0.18 <= x) && (x <= 0.18)) {
+            h = x;
+            w1 = 0.0;
+        } else if (x < -0.18) {
+            h = (x + 0.3) / 0.7;
+            w1 = a - h * 0.3;
+        } else {
+            // 0.57 >= x > 0.18
+            h = 0.75 * x - 0.25;
+            w1 = b + h / 3.0;
+        }
+
+        r = h / (h + 2);
+        t = r * r;
+        w = ((p2 * t + p1) * t + p0) / ((q2 * t + q1) * t + 1.);
+        return 2 * t * (1. / (1. - r) - r * w) + w1;
+
+    } else {
+
+        return x - cxx::log((x + 0.5) + 0.5);
+    }
+}
+} // namespace xsf::toms708
